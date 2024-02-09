@@ -1,0 +1,44 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+
+
+function getConnectionSchemaJSON as c (connectionString as c, tableName as c)
+	
+	dim cn as sql::connection 
+	dim s as sql::schema
+	dim row as n
+	dim primaryKey as c 
+	dim JSONOutput as c
+	dim table as sql::TableInfo
+	
+	' debug(1)
+	
+	if (.not. cn.open("::Name::" + connectionString)) then
+		error_generate("Could not open connection (connection string '" + connectionString + "').")
+	end if 
+	
+	if (.not. cn.GetSchema(s)) then 
+		error_generate("Could not get schema for connection '" + connectionString + "'.")
+	end if 
+	
+	n = s.TableNumber(tableName)
+	
+	if (n < 0) then 
+		error_generate("Table '" + tableName + "' does not exist for connection string '" + connectionString + "'.")
+	end if 
+	
+	table = s.table[n]
+	primaryKey = table.PrimaryKeyExpression
+	JSONOutput = table.JSON
+	
+	cn.Close()
+	
+	getConnectionSchemaJSON = "{\"primaryKey\":\"" + primaryKey + "\", \"jsonOutput\": " + JSONOutput + "}"
+	
+end function
+
+exports.getConnectionSchemaJSON = getConnectionSchemaJSON
+
+
