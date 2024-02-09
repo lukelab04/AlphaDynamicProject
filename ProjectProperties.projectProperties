@@ -1,0 +1,6 @@
+<extendedUserInfo<connectionstring="::Name::conn">
+<tableName="AASystemTable_ExtendedUserInfo">
+<userIdField="UserId">
+<tableType="SQL">
+<fieldmap="">
+>
