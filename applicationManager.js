@@ -27,13 +27,6 @@ const GLOBAL_CONFIG = {
 				"primaryKey": "CustomerID",
 				"foreignKey": "id"
 			},
-			{
-				"title": "Related",
-				"typeToOpen": "RecurringPanel",
-				"primaryKey": "id",
-				"foreignKey": "OrderID"
-			}
-		
 		]
 	},
 	"ProductPanel": {
@@ -46,11 +39,6 @@ const GLOBAL_CONFIG = {
 			"foreignKey": "ProductID"
 		}]
 	},
-	"RecurringPanel": {
-		"title": "Recurring",
-		"table": "recurring",
-		"related": []
-	}
 }
 
 

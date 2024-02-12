@@ -1,0 +1,240 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+
+' Input: e.tableName
+' Input: [e.columns]
+' Input: e.filter (like Column = Value AND Column = Value OR ...)
+function getTableData (e as p) as c
+	
+	if json_get_array_length(e.columns) = 0 then 
+		getTableData = ";"
+		end 
+	end if
+	
+	dim columns as p
+	columns = json_parse(e.columns)
+	
+	'DIM a SQL arguments object
+	dim args as sql::arguments
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	dim sql as c
+	sql = "SELECT ";
+	
+	for each col in columns
+		sql = sql + "[" + col.value + "],"
+	next
+	
+	if right(sql, 1) == "," then 
+		sql = substr(sql, 1, len(sql) - 1)
+	end if
+	
+	sql = sql + " FROM [" + e.tableName + "]" 
+
+	if len(e.filter) <> 0 then 
+		sql = sql + " WHERE " + e.filter
+	end if
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(sql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = cn.callresult.text
+		getTableData = "alert(" +  errortext + ");"
+		cn.close()
+		end
+	end if
+	'DIM a SQL::Resultset object
+	dim rs as sql::resultset
+	rs = cn.resultset
+	'get the JSON from the query
+	dim json as c 
+	json = rs.toJSON()
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()
+	getTableData = "{dialog.object}.stateInfo.allListData = " + json + ";"
+	
+end function
+
+' Input: Table Name
+' Input: dirty (from 'harvestList')
+function updateTableData (e as p) as c
+	
+	dim schemaInfo as p
+	dim info as c
+	dim schema as p
+	schemaInfo = require("schemaInfo")
+	info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
+	schema = json_parse(info)
+	
+	dim dirty as p
+	dirty = json_parse(e.dirty)
+	
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	
+	for each item in dirty
+		
+		dim shouldDelete as l
+		dim shouldUpdate as l
+		dim shouldInsert as l
+		
+		' I know this is a very long-winded way to write this, but in the future it might be helpful 
+		' to have separate flags like this.
+		
+		if prop_valid(item.value, "_isDeleted") then 
+			shouldDelete = item.value._isDeleted
+		else if prop_valid(item.value, "_isNewRow") then 
+			shouldInsert = item.value._isNewRow
+		end if 
+		
+		if shouldDelete == .f. .and. shouldInsert == .f. then 
+			shouldUpdate = .t.
+		end if
+		
+		
+		if shouldDelete then 
+			runDeleteQuery(e, schema, item, cn)
+		else if shouldUpdate then 
+			runUpdateQuery(e, schema, item, cn)
+		else if shouldInsert then
+			runInsertQuery(e, schema, item, cn)
+		end if
+	next item
+	
+	updateTableData = ";"
+	
+end function
+
+function runUpdateQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+	dim updateSql as c
+	updateSql = "UPDATE [" + e.tableName + "] SET "
+	dim args as sql::arguments
+	
+	' For each field, add an arg to the pile
+	for each column in schema.jsonOutput.column
+		if prop_valid(item.value, column.value.name) == .f. then 
+			continue 
+		end if
+		
+		if column.value.name == schema.primaryKey then 
+			args.set(schema.primaryKey, convert_type(item.value.data(schema.primaryKey), column.value.alphaType))
+			continue
+		end if 
+		
+		args.set(column.value.name, convert_type(item.value.data(column.value.name), column.value.alphaType))
+		updateSql = updateSql + "[" + column.value.name + "] = :" + column.value.name + ","
+
+	next field
+	
+	if right(updateSql, 1) == "," then  
+		updateSql = substr(updateSql, 1, len(updateSql) - 1)
+	end if
+	
+	updateSql = updateSql + " WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(updateSql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = cn.callresult.text
+		updateTableData = "alert(" +  errortext + ");"
+		cn.close()
+		end
+	end if
+end function
+
+function runInsertQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+	dim insertSql as c
+	insertSql = "INSERT INTO [" + e.tableName + "] ("
+	dim args as sql::arguments
+	
+	dim valueSql as c
+	valueSql = " VALUES ("
+	
+	for each column in schema.jsonOutput.column
+		if prop_valid(item.value, column.value.name) == .f. then 
+			continue 
+		end if
+		
+		if column.value.name == schema.primaryKey then
+			continue
+		end if 
+		
+		args.set(column.value.name, convert_type(item.value.data(column.value.name), column.value.alphaType))
+		insertSql = insertSql + "[" + column.value.name + "],"
+		valueSql = valueSql + ":" + column.value.name + ","
+
+	next field
+	
+	if right(insertSql, 1) == "," then  
+		insertSql = substr(insertSql, 1, len(insertSql) - 1)
+	end if
+	
+	if right(valueSql, 1) == "," then  
+		valueSql = substr(valueSql, 1, len(valueSql) - 1)
+	end if
+	
+	insertSql = insertSql + ")"
+	valueSql = valueSql + ")"
+	
+	insertSql = insertSql + valueSql
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(insertSql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = cn.callresult.text
+		updateTableData = "alert(" +  errortext + ");"
+		cn.close()
+		end
+	end if
+end function
+
+function runDeleteQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+	dim deleteSql as c
+	deleteSql = "DELETE FROM [" + e.tableName + "] WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
+	
+	dim args as sql::arguments 
+	args.add(schema.primaryKey, item.value.data(schema.primaryKey))
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(deleteSql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = cn.callresult.text
+		updateTableData = "alert(" +  errortext + ");"
+		cn.close()
+		end
+	end if
+end function
+
+
+exports.getTableData = getTableData
+exports.updateTableData = updateTableData
+
