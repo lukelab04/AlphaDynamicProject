@@ -61,7 +61,7 @@ loadConnectionStrings(gv, _SSRS_ConnectionStrings, "SSRS")
 
 Dim _AlphaDAO_ConnectionStrings as c 
 _AlphaDAO_ConnectionStrings = <<%txt%
-conn|Encrypted:xI3OKMADTTudMXIm5xchblY7uWkh3QDzIRG1MwkL/NQyNMa44+7dNmyR2y92VLPTpLVJmtU3jLE6O3jgzf5uaylOf3xvFZ/0clhga7q8gzlAMvkcSAqMR5iXkEFWKKc+Vtk0b12FiDQtHL3lyVJ/kZA8tcEIltlYDbXTlC9T+djEPLLZ1fPX0HkeIiduaFjobXx/8y5cvKM=
+conn|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL3KXo+isyWws2OOOiUUqqwumi8OrkMxUleEUgwF4/TOCwXrCNYN4yVWfddk5VVsbXM=
 %txt%
 
 'Create a global collection called '_A5_AlphaDAO_ConnectionStrings'
@@ -322,7 +322,7 @@ DIM federatedAuthentication.fieldmap as C
 DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
-DIM __token as C = "b90a7786ce6348ef844c72ca21019419"
+DIM __token as C = "5d34423c52d445899c00ac56b9bfc677"
 %txt%
 
 dim gv as p 
@@ -333,10 +333,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 20244427080439166
+gv.__A5PublishTimestamp = 2024333329123353137
 gv.__buildNumberExe__ = 8867
 gv.__buildNumberAddins__ = 5691
-gv.__guid = "89486ebd-c755-4e4d-bf79-962e75e417c8"
+gv.__guid = "06acd697-933e-4854-8498-0a599fff4e46"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

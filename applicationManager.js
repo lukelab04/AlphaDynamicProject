@@ -4,13 +4,13 @@ const GLOBAL_CONFIG = {
 	parentObjName: "",
 	CustomerPanel: {
 		title: "Customers",
-		table: "customers",
+		table: "Customer",
 		serverSearch: false,
 		related: [{
-			title: "Orders",
-			typeToOpen: "OrderPanel",
-			primaryKey: "id",
-			foreignKey: "CustomerID"
+			title: "Invoice Headers",
+			typeToOpen: "InvoiceHeadersPanel",
+			primaryKey: "CUSTOMER_ID",
+			foreignKey: "CUSTOMER_ID"
 		},
 		{
 			title: "Static Panel",
@@ -18,102 +18,95 @@ const GLOBAL_CONFIG = {
 		}],
 		mappings: [
 			{
-				columnName: "id",
+				columnName: "CUSTOMER_ID",
 				inList: false,
 				inDetailView: false,
 			},
 			{
-				columnName: "FirstName",
+				columnName: "FIRSTNAME",
 				displayName: "First Name",
 				inList: true,
 				inDetailView: true,
 			},
 			{
-				columnName: "LastName",
+				columnName: "LASTNAME",
 				displayName: "Last Name",
 				inList: true,
 				inDetailView: true,
 			},
 			{
-				columnName: "Email",
+				columnName: "EMAIL",
 				displayName: "Email",
 				inList: true,
 				inDetailView: true,
 			},
 		]
 	},
-	OrderPanel: {
-		title: "Orders",
-		table: "orders",
+	InvoiceHeadersPanel: {
+		title: "Invoice Headers",
+		table: "Invoice_Header",
 		serverSearch: false,
 		related: [
 			{
-				title: "Products",
-				typeToOpen: "ProductPanel",
-				primaryKey: "ProductID",
-				foreignKey: "id"
-			},
-			{
-				title: "Customers",
+				title: "Customer",
 				typeToOpen: "CustomerPanel",
-				primaryKey: "CustomerID",
-				foreignKey: "id"
+				primaryKey: "CUSTOMER_ID",
+				foreignKey: "CUSTOMER_ID"
 			},
 		],
 		mappings: [
 			{
-				columnName: "id",
+				columnName: "INVOICE_NUMBER",
 				inList: false,
 				inDetailView: false,
 			},
 			{
-				columnName: "Quantity",
-				inList: true,
-				inDetailView: true,
-			},
-			{
-				columnName: "OrderDate",
-				displayName: "Order Date",
+				columnName: "INV_DATE",
+				displayName: "Date",
 				inList: true,
 				inDetailView: true,
 				editType: 'datetime',
+				template: '<div style="display: table-cell; horizontal-align: middle;">{INV_DATE:dateString("MM/dd/yyyy", "MM/dd/yyyy")}</div>'
+			},
+			{
+				columnName: "CUSTOMER_",
+				displayName: "Customer",
+				inList: true,
+				inDetailView: true,
 			}
 		]
 	},
 	ProductPanel: {
 		title: "Products",
-		table: "products",
+		table: "Product",
 		serverSearch: true,
-		related: [{
-			title: "Orders",
-			typeToOpen: "OrderPanel",
-			primaryKey: "id",
-			foreignKey: "ProductID"
-		}],
+		related: [],
 		mappings: [
 			{
-				columnName: "id",
+				columnName: "PRODUCT_ID",
 				inList: false,
 				inDetailView: false,
 			},
 			{
-				columnName: "ProductName",
-				displayName: "Product Name",
+				columnName: "DESCRIPTION",
+				displayName: "Description",
 				inList: true,
 				inDetailView: true,
+				width: '70%;',
 			},
 			{
-				columnName: "WholesaleCost",
-				displayName: "Wholesale Cost",
+				columnName: "COST",
+				displayName: "Cost",
 				inList: true,
 				inDetailView: true,
-				template: '<div style="display: table-cell; vertical-align: middle; horizontal-align: middle;">${WholesaleCost}</div>'
+				template: '<div style="display: table-cell; vertical-align: middle; horizontal-align: middle;">${COST}</div>'
 			},
 			{
-				columnName: "RetailPrice",
-				displayName: "Retail Price",
+				columnName: "RETAIL",
+				displayName: "Retai",
 				inList: true,
 				inDetailView: true,
+				template:  '<div style="display: table-cell; vertical-align: middle; horizontal-align: middle;">${RETAIL}</div>'
 			}
 		]
 	},
