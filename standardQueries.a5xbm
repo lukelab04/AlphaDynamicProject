@@ -5,7 +5,7 @@
 
 ' Input: e.tableName
 ' Input: [e.columns]
-' Input: e.filter (like Column = Value AND Column = Value OR ...)
+' Input: [e.filters] like {"columnName": name, columnVal: val}
 function getTableData (e as p) as c
 	
 	if json_get_array_length(e.columns) = 0 then 
@@ -13,11 +13,40 @@ function getTableData (e as p) as c
 		end 
 	end if
 	
+	dim filterText as c
+	filterText = *html_unescape(e.filters, "utf8")
+	
+	dim filters as p
+	filters = json_parse(filterText)
+	
+	dim args as sql::arguments
+	dim filterStr as c
+	filterStr = ""
+
+	if filters.size() == 0 then 
+		filterStr = "";
+	else
+		dim argCounter as n
+		argCounter = 0
+		for each filter in filters
+			if filter.value.data("op") == "" then 
+				filter.value.op = "="
+			end if 
+			
+			if len(filterStr) != 0 then 
+				filterStr = filterStr + " " + filter.value.connector + " "
+			end if
+			
+			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter
+			args.add("argNum" + argCounter, filter.value.columnVal);
+			argCounter = argCounter + 1
+		next filter
+	end if
+	
+	
 	dim columns as p
 	columns = json_parse(e.columns)
 	
-	'DIM a SQL arguments object
-	dim args as sql::arguments
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -36,8 +65,8 @@ function getTableData (e as p) as c
 	
 	sql = sql + " FROM [" + e.tableName + "]" 
 
-	if len(e.filter) <> 0 then 
-		sql = sql + " WHERE " + e.filter
+	if len(filterStr) <> 0 then 
+		sql = sql + " WHERE " + filterStr
 	end if
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -48,8 +77,8 @@ function getTableData (e as p) as c
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
-		errortext = cn.callresult.text
-		getTableData = "alert(" +  errortext + ");"
+		errortext = js_escape(cn.callresult.text)
+		getTableData = "alert('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -154,8 +183,8 @@ function runUpdateQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
-		errortext = cn.callresult.text
-		updateTableData = "alert(" +  errortext + ");"
+		errortext = js_escape(cn.callresult.text)
+		updateTableData = "alert('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -205,8 +234,8 @@ function runInsertQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
-		errortext = cn.callresult.text
-		updateTableData = "alert(" +  errortext + ");"
+		errortext = js_escape(cn.callresult.text)
+		updateTableData = "alert('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -227,8 +256,8 @@ function runDeleteQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
-		errortext = cn.callresult.text
-		updateTableData = "alert(" +  errortext + ");"
+		errortext = js_escape(cn.callresult.text)
+		updateTableData = "alert('" +  errortext + "');"
 		cn.close()
 		end
 	end if
