@@ -77,7 +77,7 @@ const GLOBAL_CONFIG = {
 				template: '<div style="display: table-cell; horizontal-align: middle;">{INV_DATE:dateString("MM/dd/yyyy", "MM/dd/yyyy")}</div>'
 			},
 			{
-				columnName: "CUSTOMER_",
+				columnName: "CUSTOMER_ID",
 				displayName: "Customer",
 				inList: true,
 				inDetailView: true,
@@ -127,7 +127,7 @@ const GLOBAL_CONFIG = {
 		]
 	},
 	InvoiceItemPanel: {
-		topLevel: true,
+		topLevel: false,
 		title: "Invoice Items",
 		table: "Invoice_Items",
 		serverSearch: true,
@@ -169,31 +169,4 @@ const GLOBAL_CONFIG = {
 }
 
 
-let FILTER = "";
-let PANELTYPE = "";
-let TITLE = "";
-
-function getFilter() { return FILTER; }
-function getPanelType() { return PANELTYPE; }
-function getTitle() { return TITLE; }
-
-function openPanelWithParams(type, filter, title, parentObj) {
-	FILTER = filter;
-	PANELTYPE = type;
-	TITLE = title;
-	parentObj.runAction("Add Panel");
-}
-
-function openBasePanelWithParams(type, filter, title, parentObj) {
-	FILTER = filter;
-	PANELTYPE = type;
-	TITLE = title;
-	parentObj.runAction("Add Panel No Close");
-}
-
-var gen_alias_count = 0;
-function GEN_ALIAS() {
-	gen_alias_count += 1;
-	return "AUTO_GEN_ALIAS_" + gen_alias_count.toString();
-}
 

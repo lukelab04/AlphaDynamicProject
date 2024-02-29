@@ -8,9 +8,38 @@ function JSONSearchFormBuilder(obj, formName, listName) {
 	if(obj.stateInfo.formWasRendered) return;
 	obj.stateInfo.formWasRendered = true;
 	
-	let form = makeForm(obj);
+	let simpleSearchItems = [];
+	for (item of GLOBAL_CONFIG[obj.stateInfo.panelType].mappings) {
+		if (!item.inList) continue;
+		let component = buildFormComponent(genInputOptionsForCol(item), item.columnName, item.displayName ? item.displayName : item.columnName);
+		let separator = buildFormComponentSeparator();
+		simpleSearchItems.push(component);
+		simpleSearchItems.push(separator);
+	}
+	
+	simpleSearchItems.push(
+		buildFormButton((form) => simpleListSearch(obj, formName, listName), "Search", ""),
+		buildFormButton((form) => clearSearch(obj, listName), "Clear", "")
+	);
+	
+	let simpleSearchTab = buildFormTabPane(simpleSearchItems, "Search");
+	let simpleSearchId = simpleSearchTab.id;
+	
+	let advancedSearchTab = buildFormTabPane([
+			buildFormGroup([]),
+			buildFormButton((form) => addQueryToAdvancedSearch(obj, formName, form), "Add", ""),
+			buildFormButton((form) => advancedListSearch(obj, formName, listName), "Search", ""),
+			buildFormButton((form) => clearSearch(obj, listName), "Clear", "")
+		],
+		"Advanced Search"
+	);
+	
+	let form = buildFormBoilerplate([buildFormTabGroup([simpleSearchTab, advancedSearchTab], simpleSearchId)]);
+	
+	obj.stateInfo.searchFormJSON = form;
 	renderForm(obj, formName, form);
 }
+
 
 function JSONDetailFormBuilder(obj, formName, listName) {
 	let listObj = obj.getControl(listName);
@@ -23,79 +52,22 @@ function JSONDetailFormBuilder(obj, formName, listName) {
 		return;
 	}
 	
-	let form = makeForm(obj, false);
+	let allItems = [];
+	for (item of GLOBAL_CONFIG[obj.stateInfo.panelType].mappings) {
+		if (!item.inDetailView) continue;
+		let component = buildFormComponent(genInputOptionsForCol(item), item.columnName, item.displayName ? item.displayName : item.columnName);
+		allItems.push(component);
+	}
+	let form = buildFormBoilerplate(allItems);
+	
 	let selected = listObj.selectionData[0];
 	renderForm(obj, formName, form);
 	obj.setValue(formName, selected);
 }
 
-function JSONRelatedFieldsFormBuilder(obj, formName, listName) {
-	let listObj = obj.getControl(listName);
-	if (!listObj) {
-		console.error('Could not get list control ' + listName);
-		return;
-	}
-	let relatedItems = GLOBAL_CONFIG[obj.getSessionVariable("PANELTYPE")].related;
-	let allItems = [
-		buildFormComponent({
-			type: 'button',
-			primaryKey: false,
-			control: {
-				"layout": "text",
-				"html": "<span class = \"\" style=\"\"> View Details</span>",
-				"icon": "",
-				"onClick": function() {obj.runAction('Open Detail View');}
-			}
-		},
-		"",
-		"", 
-		false
-	)];
-	
-	relatedItems.forEach((item) => {
-		allItems.push(buildFormComponent({
-			type: 'button',
-			primaryKey: false,
-			control: {
-				"layout": "text",
-				"html": "<span class = \"\" style=\"\">" + item.title + "</span>",
-				"icon": "",
-				"onClick": function() {
-					let filter = item.foreignKey + " = " + listObj.selectionData[0][item.primaryKey];
-					openPanelWithParams(item.typeToOpen, filter, GLOBAL_CONFIG.parent);
-				}
-			}
-		},
-		"",
-		"",
-		false
-		));
-		
-		allItems.push(buildFormComponentSeparator());
-	})
-	
-	let form = buildFormBoilerplate(allItems, false);
-	renderForm(obj, formName, form);
-}
 
-function makeForm(obj, includeSeparators = true) {
-	let primaryKey = obj.stateInfo.schema.primaryKey;
-		
-	let allItems = [];
-	for (item of obj.stateInfo.schema.jsonOutput.column) {
-		let component = buildFormComponent(genInputOptionsForCol(item, primaryKey), item.name, item.name);
-		let separator = buildFormComponentSeparator();
-		allItems.push(component);
-		if (includeSeparators) {
-			allItems.push(separator);
-		}
-	}
-	let boilerplate = buildFormBoilerplate(allItems);
-	return boilerplate;
-}
-
-function genInputOptionsForCol(column, primaryKey) {
-	let alphaType = column.alphaType.toUpperCase();
+function genInputOptionsForCol(column) {
+	let editType = column.editType ? column.editType : "text";
 	let outputObj = {
 		"control": {
 			"placeholder": "",
@@ -106,10 +78,8 @@ function genInputOptionsForCol(column, primaryKey) {
 	
 	// Potentially switch on textarea/textbox based on column.length field
 	
-	if (column.name === primaryKey) outputObj.primaryKey = true;
 	
-	
-	// Number intermediate types are non-integers
+	/* Number intermediate types are non-integers
 	if(alphaType == 'N' && column.intermediateType != 'Number' && column.intermediateType != 'Double' && column.intermediateType != 'Bit') {
 		outputObj.control.layout = "middle";
 		outputObj.control.flow = "ltr";
@@ -117,31 +87,27 @@ function genInputOptionsForCol(column, primaryKey) {
 		outputObj.control.min = 0;
 		outputObj.control.max = 100000;
 		outputObj.type = 'step-number';
-	} 
+	} */
 	
-	// Datetime
-	else if (alphaType == 'T') {
-		outputObj.control.picker = {"type": "date-time", "format": "MM/dd/yyyy 0h:0m:0s AM" };
+	if (editType == 'datetime') {
+		outputObj.control.picker = {"type": "date-time", "format": "yyyy-MM-dd hh:mm:ss" };
 		outputObj.control.behavior = {"show": {"mode": ""}};
 		outputObj.type = 'picker';
 	}
 	
-	// Date only
-	else if (alphaType == 'D') {
-		outputObj.control.picker = {"type": "date", "format": "MM/dd/yyyy" };
+	else if (editType == 'date') {
+		outputObj.control.picker = {"type": "date", "format": "yyyy-MM-dd" };
 		outputObj.control.behavior = {"show": {"mode": ""}};
 		outputObj.type = 'picker';
 	}
 	
-	// Time only
-	else if (alphaType == 'Y') {
-		outputObj.control.picker = {"type": "date-time", "format": "0h:0m:0s AM" };
+	else if (editType == 'time') {
+		outputObj.control.picker = {"type": "date-time", "format": "hh:mm:ss" };
 		outputObj.control.behavior = {"show": {"mode": ""}};
 		outputObj.type = 'picker';
 	}
 	
-	// Boolean 
-	else if (column.intermediateType == 'Bit') {
+	else if (editType == 'bool') {
 		outputObj.type = 'checkbox';
 		outputObj.control.icons = {
 			"on": "svgIcon=#alpha-icon-checkRounded:icon,24{}",
@@ -153,6 +119,20 @@ function genInputOptionsForCol(column, primaryKey) {
 		};
 	}
 	
+	else if (editType == 'dropdown') {
+		let data = column.options ? column.options : [];
+		outputObj.type = 'picker';
+		let src = [];
+		data.forEach((e) => {
+			src.push({"text": e, "value": e});		
+		});
+		
+		outputObj.control.data = {
+			"src": src,
+			"map": ["value", "text"]
+		};
+	}
+	
 	else {
 		outputObj.type = 'edit';
 	}
@@ -161,12 +141,10 @@ function genInputOptionsForCol(column, primaryKey) {
 
 }
 
-// Possible Types
-// 'edit' (textbox)
 
 var UniqueID = 1;
 
-function buildFormComponent(inputOptions, varBinding, labelName, twoColLayout = true) {
+function buildFormComponent(inputOptions, varBinding, labelName, twoColLayout = true, showHideFn = null) {
 	let secLayout;
 	if (twoColLayout) {
 		secLayout = {
@@ -220,7 +198,7 @@ function buildFormComponent(inputOptions, varBinding, labelName, twoColLayout = 
 		"sectionLayout": layout,
 		"type": inputOptions.type,
 		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
-		"show": function(dObj) { return !(inputOptions.primaryKey); },
+		"show": showHideFn,
 		"description": {
 			"text": "",
 			"style": ";",
@@ -247,6 +225,83 @@ function buildFormComponent(inputOptions, varBinding, labelName, twoColLayout = 
 	};
 }
 
+function buildFormGroup(items) {
+	return {
+		"type": "group", 
+		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
+		"container": {
+			"style": "display: flex; flex-direction: row; flex-flow: wrap",
+		},
+		"layout": "",
+		"items": items,
+	}
+}
+
+function buildFormTabGroup(items, defaultId) {
+	return {
+		"type": "tab", 
+		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
+		"container": {
+			"theme": "{dialog.style}",
+			"tabband": {
+				"tab": {"initial": defaultId }
+			}
+		},
+		"layout": "",
+		"items": items,
+	}
+}
+
+function buildFormTabPane(items, title) {
+	let id = "RUNTIME_FORM_ITEM_" + (UniqueID++).toString();
+	return {
+		"type": "pane", 
+		"id": id,
+		"container": {
+			"title": title,
+			"value": id,
+		},
+		layout: "",
+		items: items,
+	}
+}
+
+function buildSimpleDropdown(itemVals, defaultChoice, varName, onChange, itemDisplays = null) {
+	let src = [];
+	if (!itemDisplays || itemVals.length != itemDisplays.length) {
+		itemVals.forEach((e) => {
+			src.push({"text": e, "value": e});		
+		});
+	} else {
+		itemDisplays.map((e, i) => {
+			src.push({"text": e, "value": itemVals[i]});
+		});
+	}
+
+	
+	return {
+		"type": "picker",
+		"sectionLayout": {},
+		"show": () => {return true;},
+		"description": {"text": "", "style": ";", className: ""},
+		"layout": "label-before",
+		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
+		"data": {"from": varName, "blank": defaultChoice},
+		"control": {
+			"placeholder": "",
+			"width": "100%",
+			"data": {
+				"src": src,
+				"map": ['value', 'text']
+			},
+			"onChange": onChange,
+		},
+		"container": {
+			"style": "flex: 1 1;"
+		}
+	};
+}
+
 function buildFormComponentSeparator() {
 	return {
 		"type": "html",
@@ -254,6 +309,84 @@ function buildFormComponentSeparator() {
 			"style": "height: 0px; flex-basis: 100%; overflow:hidden;",
 			"className": " "
 		}
+	}
+}
+
+function buildFormButton(onClick, btnText, btnIcon) {
+	let layout = "text";
+	if (btnText && btnIcon) layout = "icon text";
+	else if (btnIcon) layout = "icon";
+	else layout = "text";
+	return {
+		"type": "button",
+		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
+		"control": {
+			"layout": layout,
+			"html": '<span class = "" style = "">' + btnText + "</span>",
+			"icon": btnIcon,
+			"onClick": onClick,
+		},
+		"container": {
+			"style": "display: inline",
+			"className": ""
+		},
+		"layout": "{content}",
+	}
+}
+
+function buildFormRepeating(items) {
+	return {
+		"type": "repeat",
+		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
+		"container": {
+			"row": {
+				"style": "width: 100%;;display:flex; flex-direction:row; flex-flow:wrap;",
+				"header": {
+					"html": "",
+					"style": "width: 100%;"
+				},
+				"wrapper": {
+					"tag": "",
+					"className": "",
+					"style": ""
+				},
+				"footer": {
+					"html": "<repeat-remove/> <repeat-add/>",
+					"style": "text-align:right; width: 100%;"
+				}
+			},
+			"style": ";display:flex; flex-direction:row; flex-flow:wrap; ",
+			"header": {
+				"html": "",
+				"style": "width: 100%;"
+			},
+			"footer": {
+				"html": "",
+				"style": "text-align:right; width: 100%;"
+			},
+			"empty": {
+				"html": "<repeat-add/>",
+				"style": "width: 100%;"
+			},
+			"buttons": {
+				"add": {
+					"html": "",
+					"icon": "svgIcon=#alpha-icon-addCircleBorder:icon",
+					"layout": "icon",
+					"theme": "",
+					"tip": ""
+				},
+				"remove": {
+					"html": "",
+					"icon": "svgIcon=#alpha-icon-removeCircleBorder:icon",
+					"layout": "icon",
+					"theme": "",
+					"tip": ""
+				},
+			}
+		},
+		"layout": "",
+		"items": items,
 	}
 }
 
@@ -329,18 +462,4 @@ function buildFormBoilerplate(items, twoColLayout = true) {
 			"items": items
 		}]
 	}];
-}
-
-function fillAjaxCallbackVariable(obj, callback) {
-	let tableName = GLOBAL_CONFIG[obj.getSessionVariable("PANELTYPE")].table;
-	obj.ajaxCallback(
-		"",
-		"",
-		"getSchemaAjaxCallback",
-		"",
-		"tableName=" + tableName,
-		{
-			onComplete: callback
-		}
-	)
 }
