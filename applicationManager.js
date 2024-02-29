@@ -3,6 +3,7 @@ const GLOBAL_CONFIG = {
 	parent: null,
 	parentObjName: "",
 	CustomerPanel: {
+		topLevel: true,
 		title: "Customers",
 		table: "Customer",
 		serverSearch: false,
@@ -43,6 +44,7 @@ const GLOBAL_CONFIG = {
 		]
 	},
 	InvoiceHeadersPanel: {
+		topLevel: true,
 		title: "Invoice Headers",
 		table: "Invoice_Header",
 		serverSearch: false,
@@ -53,6 +55,12 @@ const GLOBAL_CONFIG = {
 				primaryKey: "CUSTOMER_ID",
 				foreignKey: "CUSTOMER_ID"
 			},
+			{
+				title: "Invoices",
+				typeToOpen: "InvoiceItemPanel",
+				primaryKey: "INVOICE_NUMBER",
+				foreignKey: "INVOICE_NUMBER",
+			}
 		],
 		mappings: [
 			{
@@ -77,10 +85,18 @@ const GLOBAL_CONFIG = {
 		]
 	},
 	ProductPanel: {
+		topLevel: true,
 		title: "Products",
 		table: "Product",
 		serverSearch: true,
-		related: [],
+		related: [
+			{
+				title: "Invoices",
+				typeToOpen: "InvoiceItemPanel",
+				primaryKey: "PRODUCT_ID",
+				foreignKey: "PRODUCT_ID",
+			}
+		],
 		mappings: [
 			{
 				columnName: "PRODUCT_ID",
@@ -110,6 +126,46 @@ const GLOBAL_CONFIG = {
 			}
 		]
 	},
+	InvoiceItemPanel: {
+		topLevel: true,
+		title: "Invoice Items",
+		table: "Invoice_Items",
+		serverSearch: true,
+		related: [
+			{
+				title: "Product",
+				typeToOpen: "ProductPanel",
+				primaryKey: "PRODUCT_ID",
+				foreignKey: "PRODUCT_ID"
+			},
+		],
+		mappings: [
+			{
+				columnName: "ID",
+				inList: false,
+				inDetailView: false,
+			},
+			{
+				columnName: "INVOICE_NUMBER",
+				displayName: "Invoice Number",
+				inList: true,
+				inDetailView: true,
+			},
+			{
+				columnName: "PRICE",
+				displayName: "Price",
+				inList: true,
+				inDetailView: true,
+				template:  '<div style="display: table-cell; vertical-align: middle; horizontal-align: middle;">${PRICE}</div>'
+			},
+			{
+				columnName: "QUANTITY",
+				displayName: "Quantity",
+				inList: true,
+				inDetailView: true,
+			}
+		]
+	}
 }
 
 
