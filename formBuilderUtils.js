@@ -1,4 +1,11 @@
-function JSONSearchFormBuilder(obj, formName, listName) {
+function renderForm(obj, formName, items) {
+	obj.setJSONFormItems(formName, items);
+	obj.getControl(formName)._formBoxSize = "";
+	obj.resizeFormBoxes();
+}
+
+
+function JSONSearchFormBuilder(obj, formName, listName, dialogStyle) {
 	let listObj = obj.getControl(listName);
 	if (!listObj) {
 		console.error('Could not get list control ' + listName);
@@ -34,7 +41,7 @@ function JSONSearchFormBuilder(obj, formName, listName) {
 		"Advanced Search"
 	);
 	
-	let form = buildFormBoilerplate([buildFormTabGroup([simpleSearchTab, advancedSearchTab], simpleSearchId)]);
+	let form = buildFormBoilerplate([buildFormTabGroup([simpleSearchTab, advancedSearchTab], simpleSearchId, dialogStyle)]);
 	
 	obj.stateInfo.searchFormJSON = form;
 	renderForm(obj, formName, form);
@@ -237,12 +244,12 @@ function buildFormGroup(items) {
 	}
 }
 
-function buildFormTabGroup(items, defaultId) {
+function buildFormTabGroup(items, defaultId, dialogStyle) {
 	return {
 		"type": "tab", 
 		"id": "RUNTIME_FORM_ITEM_" + (UniqueID++).toString(),
 		"container": {
-			"theme": "{dialog.style}",
+			"theme": dialogStyle,
 			"tabband": {
 				"tab": {"initial": defaultId }
 			}
@@ -388,12 +395,6 @@ function buildFormRepeating(items) {
 		"layout": "",
 		"items": items,
 	}
-}
-
-function renderForm(obj, formName, items) {
-	obj.setJSONFormItems(formName, items);
-	obj.getControl(formName)._formBoxSize = "";
-	obj.resizeFormBoxes();
 }
 
 function buildFormBoilerplate(items, twoColLayout = true) {

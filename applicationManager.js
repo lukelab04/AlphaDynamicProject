@@ -7,6 +7,9 @@ const GLOBAL_CONFIG = {
 		title: "Customers",
 		table: "Customer",
 		serverSearch: false,
+		paginate: {
+			pageSize: 10,
+		},
 		related: [{
 			title: "Invoice Headers",
 			typeToOpen: "InvoiceHeadersPanel",

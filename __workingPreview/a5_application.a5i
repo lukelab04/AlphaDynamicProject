@@ -322,7 +322,7 @@ DIM federatedAuthentication.fieldmap as C
 DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
-DIM __token as C = "3a6bd8ea0c0b4db3b91627fdc50a59f3"
+DIM __token as C = "5f0bfd2c946740dfbae2fafee37feec9"
 %txt%
 
 dim gv as p 
@@ -333,10 +333,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 2024484829174831982
+gv.__A5PublishTimestamp = 202444440215447565
 gv.__buildNumberExe__ = 8867
 gv.__buildNumberAddins__ = 5691
-gv.__guid = "1c3f9098-44e7-4087-be03-33f8bb113af2"
+gv.__guid = "29c13d4d-dcc2-46dd-b238-70901f70ec07"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

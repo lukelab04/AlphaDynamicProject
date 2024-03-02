@@ -6,6 +6,7 @@
 ' Input: e.tableName
 ' Input: [e.columns]
 ' Input: [e.filters] like {"columnName": name, columnVal: val}
+' Input: e.pageOptions like {pageSize: n, firstIdNotSeen: n} or nothing
 function getTableData (e as p) as c
 	
 	if json_get_array_length(e.columns) = 0 then 
@@ -53,20 +54,32 @@ function getTableData (e as p) as c
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
 	dim sql as c
-	sql = "SELECT ";
+	dim selectPart as c 
+	dim fromPart as c
+	dim wherePart as c
 	
+	selectPart = ""
 	for each col in columns
-		sql = sql + "[" + col.value + "],"
+		selectPart = selectPart + "[" + col.value + "],"
 	next
-	
-	if right(sql, 1) == "," then 
-		sql = substr(sql, 1, len(sql) - 1)
+	if right(selectPart, 1) == "," then 
+		selectPart = substr(selectPart, 1, len(selectPart) - 1)
 	end if
 	
-	sql = sql + " FROM [" + e.tableName + "]" 
-
+	fromPart = " [" + e.tableName + "]"
+	
 	if len(filterStr) <> 0 then 
-		sql = sql + " WHERE " + filterStr
+		wherePart = " " + filterStr
+	else 
+		wherePart = " 1 = 1 "
+	end if
+	
+	if e.data("pageOptions") = "" then 
+		sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
+	else
+		dim pageOptions as p
+		pageOptions = json_parse(e.pageOptions)
+		sql = buildPaginatedQuery(e.tableName, selectPart, fromPart, wherePart, pageOptions)
 	end if
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -74,11 +87,12 @@ function getTableData (e as p) as c
 	'execute the SQL - pass in the sql::arguments object
 	flag = cn.execute(sql,args)
 	if flag = .f. then 
+		debug(1)
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		getTableData = "alert('" +  errortext + "');"
+		getTableData = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -184,7 +198,7 @@ function runUpdateQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "alert('" +  errortext + "');"
+		updateTableData = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -235,7 +249,7 @@ function runInsertQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "alert('" +  errortext + "');"
+		updateTableData = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
@@ -257,12 +271,28 @@ function runDeleteQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "alert('" +  errortext + "');"
+		updateTableData = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
 end function
 
+' pageOptions = {pageSize: n, firstIdNotSeen: n}
+function buildPaginatedQuery as c (tableName as c, selectPart as c, fromPart as c, wherePart as c, pageOptions as p)
+	dim schemaInfo as p
+	dim info as c
+	dim schema as p
+	dim primaryKey as c
+	schemaInfo = require("schemaInfo")
+	info = schemaInfo.getConnectionSchemaJSON("conn", tableName)
+	schema = json_parse(info)
+	primaryKey = schema.primaryKey
+	
+	dim sql as c 
+	sql = "SELECT FIRST " + pageOptions.pageSize + " " + selectPart + " FROM " + fromPart + " WHERE (" + wherePart + ") AND " + primaryKey + " >= " + pageOptions.firstIdNotSeen
+	
+	buildPaginatedQuery = sql
+end function
 
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData

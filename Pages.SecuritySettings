@@ -116,6 +116,51 @@
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},
 	{
+		"page": ".gitIgnore",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "__liveTestSettings.json",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "readme.txt",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "schemaInfo.a5xbm",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "standardQueries.a5xbm",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "generic_list_ux.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "login_jsonForm.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "login_jsonForm_imageleft.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "main_layout_ux.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
 		"page": "robots.txt",
 		"action": "allow",
 		"groups": ""
