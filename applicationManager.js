@@ -6,20 +6,24 @@ const GLOBAL_CONFIG = {
 		topLevel: true,
 		title: "Customers",
 		table: "Customer",
-		serverSearch: false,
+		serverSearch: true,
 		paginate: {
-			pageSize: 10,
+			pageSize: 30,
 		},
-		related: [{
-			title: "Invoice Headers",
-			typeToOpen: "InvoiceHeadersPanel",
-			primaryKey: "CUSTOMER_ID",
-			foreignKey: "CUSTOMER_ID"
-		},
-		{
-			title: "Static Panel",
-			overrideAction: "openStaticPanel",
-		}],
+		buttons: [
+			{
+				buttonType: 'Open Panel',
+				title: "Invoice Headers",
+				typeToOpen: "InvoiceHeadersPanel",
+				primaryKey: "CUSTOMER_ID",
+				foreignKey: "CUSTOMER_ID"
+			},
+			{
+				buttonType: 'Open Panel',
+				title: "Static Panel",
+				overrideAction: "openStaticPanel",
+			}
+		],
 		mappings: [
 			{
 				columnName: "CUSTOMER_ID",
@@ -51,19 +55,28 @@ const GLOBAL_CONFIG = {
 		title: "Invoice Headers",
 		table: "Invoice_Header",
 		serverSearch: false,
-		related: [
+		buttons: [
 			{
-				title: "Customer",
-				typeToOpen: "CustomerPanel",
-				primaryKey: "CUSTOMER_ID",
-				foreignKey: "CUSTOMER_ID"
-			},
-			{
-				title: "Invoices",
-				typeToOpen: "InvoiceItemPanel",
-				primaryKey: "INVOICE_NUMBER",
-				foreignKey: "INVOICE_NUMBER",
+				buttonType: 'Dropdown',
+				title: 'Related Items',
+				buttons: [
+					{
+						buttonType: 'Open Panel',
+						title: "Customer",
+						typeToOpen: "CustomerPanel",
+						primaryKey: "CUSTOMER_ID",
+						foreignKey: "CUSTOMER_ID"
+					},
+					{
+						buttonType: 'Open Panel',
+						title: "Invoices",
+						typeToOpen: "InvoiceItemPanel",
+						primaryKey: "INVOICE_NUMBER",
+						foreignKey: "INVOICE_NUMBER",
+					}
+				]
 			}
+
 		],
 		mappings: [
 			{
@@ -84,6 +97,13 @@ const GLOBAL_CONFIG = {
 				displayName: "Customer",
 				inList: true,
 				inDetailView: true,
+				lookup: {
+					table: "Customer",
+					primaryKey: "CUSTOMER_ID",
+					foreignKey: "CUSTOMER_ID",
+					getColumns: ["FIRSTNAME", "LASTNAME"],
+					formatter: (row) => row['FIRSTNAME'] + ' ' + row['LASTNAME'],
+				}
 			}
 		]
 	},
@@ -92,8 +112,9 @@ const GLOBAL_CONFIG = {
 		title: "Products",
 		table: "Product",
 		serverSearch: true,
-		related: [
+		buttons: [
 			{
+				buttonType: 'Open Panel',
 				title: "Invoices",
 				typeToOpen: "InvoiceItemPanel",
 				primaryKey: "PRODUCT_ID",
@@ -111,7 +132,7 @@ const GLOBAL_CONFIG = {
 				displayName: "Description",
 				inList: true,
 				inDetailView: true,
-				width: '70%;',
+				width: '20%;',
 			},
 			{
 				columnName: "COST",
@@ -130,12 +151,13 @@ const GLOBAL_CONFIG = {
 		]
 	},
 	InvoiceItemPanel: {
-		topLevel: false,
+		topLevel: true,
 		title: "Invoice Items",
 		table: "Invoice_Items",
 		serverSearch: true,
-		related: [
+		buttons: [
 			{
+				buttonType: 'Open Panel',
 				title: "Product",
 				typeToOpen: "ProductPanel",
 				primaryKey: "PRODUCT_ID",
@@ -153,6 +175,21 @@ const GLOBAL_CONFIG = {
 				displayName: "Invoice Number",
 				inList: true,
 				inDetailView: true,
+				width: '30px',
+			},
+			{
+				columnName: "PRODUCT_ID",
+				displayName: "Product",
+				inList: true,
+				inDetailView: true,
+				template:  '<div style="display: table-cell; vertical-align: middle; horizontal-align: middle; width: 60%">{[temp].formatted.PRODUCT_ID}</div>',
+				lookup: {
+					table: "Product",
+					primaryKey: "PRODUCT_ID",
+					foreignKey: "PRODUCT_ID",
+					getColumns: ["DESCRIPTION"],
+					formatter: (row) => row['DESCRIPTION']
+				}
 			},
 			{
 				columnName: "PRICE",

@@ -13,8 +13,6 @@ function getConnectionSchemaJSON as c (connectionString as c, tableName as c)
 	dim JSONOutput as c
 	dim table as sql::TableInfo
 	
-	' debug(1)
-	
 	if (.not. cn.open("::Name::" + connectionString)) then
 		error_generate("Could not open connection (connection string '" + connectionString + "').")
 	end if 

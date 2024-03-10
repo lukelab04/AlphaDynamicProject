@@ -12,7 +12,7 @@
         "A5ContainerClassPaddingForContainerWidthMode": "4px",
         "cssIcons": "font-awesome",
         "JavaScriptLinkedFiles": "applicationManager.js",
-        "JavaScriptFunctionDeclarations": "\n\nvar genAliasCount = 0;\nvar aliasStack = [];\nfunction genAlias() {\n\t// We push two of these because Alpha calls 'GET_ALIAS' twice for some reason.\n\tgenAliasCount += 1;\n\taliasStack.push(\"AUTO_GEN_ALIAS_\" + genAliasCount.toString(), \"AUTO_GEN_ALIAS_\" + genAliasCount.toString());\n}\n\nfunction GET_ALIAS() {\n\treturn aliasStack.pop()\n}\n\nfunction configSelf(obj, objNameAsStr) {\n\tGLOBAL_CONFIG.parent = obj;\n\tGLOBAL_CONFIG.parentObjName = objNameAsStr;\n\tfor (const panelType in GLOBAL_CONFIG) {\n\t\tif (panelType == 'parent' || panelType == 'parentObjName') continue;\n\t\tif (!GLOBAL_CONFIG[panelType].topLevel) continue;\n\t\topenBasePanelWithParams(panelType, [], GLOBAL_CONFIG[panelType].title, obj);\n\t}\n}\n\nlet TITLE = \"\";\nfunction getTitle() { return TITLE; }\n\n\nvar PanelParamsLookup = {};\nfunction openPanelWithParams(type, filter, title, parentObj) {\n\tTITLE = title;\n\tgenAlias();\n\tPanelParamsLookup[aliasStack[aliasStack.length - 1]] = {\n\t\tfilter: filter,\n\t\tpanelType: type,\n\t\ttitle: title,\n\t};\n\tparentObj.runAction(\"Add Panel\");\n}\n\nfunction openBasePanelWithParams(type, filter, title, parentObj) {\n\tTITLE = title;\n\tgenAlias();\n\tPanelParamsLookup[aliasStack[aliasStack.length - 1]] = {\n\t\tfilter: filter,\n\t\tpanelType: type,\n\t\ttitle: title,\n\t};\n\tparentObj.runAction(\"Add Panel No Close\");\n}\n\n\n",
+        "JavaScriptFunctionDeclarations": "\n// Turns out that keeping everyone synced while in release or live preview mode is a little tricky.\n// The idea is to keep a stack of aliases, updated by us and popped by Alpha. \n// When we generate an alias, we store all the information we need about it in a map \n// (like {aliasName: info}). \n// Then, individual components can use their own aliases to query into the map and get the info they need.\n\n\n// Generate an alias and push it to the stack\nvar genAliasCount = 0;\nvar aliasStack = [];\nfunction genAlias() {\n\t// We push two of these because Alpha calls 'GET_ALIAS' twice for some reason.\n\tgenAliasCount += 1;\n\taliasStack.push(\"AUTO_GEN_ALIAS_\" + genAliasCount.toString(), \"AUTO_GEN_ALIAS_\" + genAliasCount.toString());\n}\n\n\n// Called by Alpha when instantiating panels. Pop an alias name from the stack.\nfunction GET_ALIAS() {\n\treturn aliasStack.pop()\n}\n\n// Configure the main panel. Called after the window is ready.\nfunction configSelf(obj, objNameAsStr) {\n\t// These values cannot be specified at design time\n\tGLOBAL_CONFIG.parent = obj;\n\tGLOBAL_CONFIG.parentObjName = objNameAsStr;\n\t\n\tfor (const panelType in GLOBAL_CONFIG) {\n\t\t// *Most* of the objects in GLOBAL_CONFIG are panels. Some of them are not, which we should filter out. \n\t\t// If this list gets much longer, it is probably best to separate the top level of GLOBAL_CONFIG into panels and non-panels.\n\t\tif (panelType == 'parent' || panelType == 'parentObjName') continue;\n\t\tif (!GLOBAL_CONFIG[panelType].topLevel) continue;\n\t\topenBasePanelWithParams(panelType, [], GLOBAL_CONFIG[panelType].title, obj);\n\t}\n}\n\n// For some reason the above issues with syncing do not apply to title (I don't know. Maybe it is treated differently to aliases?)\n// So instead, we just set TITLE when we want to make a new panel, and Alpha calls getTitle to get the correct value.\nlet TITLE = \"\";\nfunction getTitle() { return TITLE; }\n\n// This is the map described in the comment at the top of this file.\nvar PanelParamsLookup = {};\n\n// Open a *closable* panel\n// type -- string, panelType (name of panel in GLOBAL_CONFIG)\n// filter -- Array of query options\n// title -- Title of panel\n// parentObj -- This object\nfunction openPanelWithParams(type, filter, title, parentObj) {\n\tTITLE = title;\n\tgenAlias();\n\tPanelParamsLookup[aliasStack[aliasStack.length - 1]] = {\n\t\tfilter: filter,\n\t\tpanelType: type,\n\t\ttitle: title,\n\t};\n\tparentObj.runAction(\"Add Panel\");\n}\n\n// Open an *unclosable* panel\n// type -- string, panelType (name of panel in GLOBAL_CONFIG)\n// filter -- Array of query options\n// title -- Title of panel\n// parentObj -- This object\nfunction openBasePanelWithParams(type, filter, title, parentObj) {\n\tTITLE = title;\n\tgenAlias();\n\tPanelParamsLookup[aliasStack[aliasStack.length - 1]] = {\n\t\tfilter: filter,\n\t\tpanelType: type,\n\t\ttitle: title,\n\t};\n\tparentObj.runAction(\"Add Panel No Close\");\n}\n\n\n",
         "layoutType": "ContainerWidth",
         "previewMode": "Default",
         "useDragScrolling": "Auto",
@@ -177,8 +177,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-1-20",
-            "dateLastEdited": "2024-2-29",
-            "revisionnumber": 156
+            "dateLastEdited": "2024-3-7",
+            "revisionnumber": 157
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -201,7 +201,6 @@
             "errorMessageStyle": "color: red;",
             "logoutDoesFullPageReload": true,
             "persisent": false,
-            "persistentLoginAlwaysAllowed": "",
             "persistentduration": 60000,
             "afterLogin": "RedirectToTargetPage",
             "afterLoginRedirectPage": "<Default>",
@@ -214,7 +213,8 @@
             "otherFeaturesJSON": "",
             "createAccountSettingsJSON": "",
             "hasLoginWithGoogle": false,
-            "googleSettingsJSON": ""
+            "googleSettingsJSON": "",
+            "persistentLoginAlwaysAllowed": ""
         },
         "applyResponsiveDesignSettings": true,
         "responseDesignRulesMode": "FirstTrue",
@@ -524,9 +524,6 @@
                     "precalc": {
                         "javascriptAbstractSetupCode": ""
                     },
-                    "localxbasic": "",
-                    "localjavascript": "",
-                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 3,
                         "isContainerStart": false,
@@ -536,7 +533,6 @@
                         "isTabPaneEnd": false,
                         "lastItemInTabPane": false,
                         "inContainer": true,
-                        "inCSSGridContainer": false,
                         "inRepeatingSection": false,
                         "inTabPane": false,
                         "parentContainerID": "69c3a042-e6e3-4ecd-9f0a-5431b7314418",
@@ -549,9 +545,13 @@
                         "displayText": "[Static Text:Home]",
                         "parentPanelCardId": "69c3a042-e6e3-4ecd-9f0a-5431b7314418",
                         "break": true,
-                        "display": "{B=White,Light Blue} 4{T=.3}{C=Black,White}{B=White,Light Blue} 4{T=.3}{C=Black,White}{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=b6b3bc21-d8fc-4e6a-b9a8-28d2d1858db3}{I:'$$format.text'} [Static Text:Home]<<break>>"
+                        "display": "{B=White,Light Blue} 4{T=.3}{C=Black,White}{B=White,Light Blue} 4{T=.3}{C=Black,White}{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=b6b3bc21-d8fc-4e6a-b9a8-28d2d1858db3}{I:'$$format.text'} [Static Text:Home]<<break>>",
+                        "inCSSGridContainer": false
                     },
-                    "controlContainerStyle": ""
+                    "controlContainerStyle": "",
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": ""
                 },
                 "precalc": {
                     "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<div id=\"{dialog.componentName}.V.R{dialog.rownumber}.STATICTEXT_1\" title=\"\"  class=\"\" style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;\"   >Home</div>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
@@ -647,11 +647,6 @@
                 "display": "{B=White,Light Blue} 7{T=.3}{C=Black,White}{B=White,Light Blue} 7{T=.3}{C=Black,White}{C=#84+180+100,White}{B=White,#84+180+100}{F=+B}{Data=0e9a4ea2-d1a1-45c7-920c-67d4dad158f5}{I:'vertLineCap'} [Panel Layout End: PANELLAYOUT_1]",
                 "idInternal": "0e9a4ea2-d1a1-45c7-920c-67d4dad158f5",
                 "crc": "4294907156",
-                "precalc": {
-                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
-                    "DesignViewHTML": ""
-                },
-                "containerStartIndex": 1,
                 "v": {
                     "localxbasic": "",
                     "localjavascript": "",
@@ -679,7 +674,12 @@
                         "parentPanelCardId": "",
                         "display": "{B=White,Light Blue} 7{T=.3}{C=Black,White}{B=White,Light Blue} 7{T=.3}{C=Black,White}{C=#84+180+100,White}{B=White,#84+180+100}{F=+B}{Data=0e9a4ea2-d1a1-45c7-920c-67d4dad158f5}{I:'vertLineCap'} [Panel Layout End: PANELLAYOUT_1]"
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
+                    "DesignViewHTML": ""
+                },
+                "containerStartIndex": 1
             }
         ],
         "builderType": "Dialog2",
@@ -736,7 +736,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "155",
+        "_buildCount": "156",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -798,9 +798,6 @@
             "absoluteLayoutSetButtonSizes": "",
             "viewBoxesToRefresh": "",
             "AdditionalGridStyles": "",
-            "viewbox": {
-                "includeJSONPath": false
-            },
             "hasListNavigator": true,
             "vb_based_on_lists": "",
             "vb_based_on_javascritFunctions": "",
@@ -810,7 +807,6 @@
             "setScreenHeightJS": "",
             "hasListColumnSelector": false,
             "hasPDFViewerForReports": false,
-            "hasIndexedDBJS": false,
             "hasCalendarJS": false,
             "hasCharts": false,
             "hasformbox": false,
@@ -827,13 +823,17 @@
                 "controlnamesListDataSource": "{dialog.object}._listsWithDependentTFControls = {}"
             },
             "requiredPlugins": "",
-            "__panelButtons": "",
             "formbox": {
                 "has": false
             },
             "_PDFViewerIds": "",
+            "__panelButtons": "",
             "flagLoadFirestore": false,
             "__freeformLayoutsJS": "{dialog.object}._freeformLayoutLists = {\n\n};",
+            "viewbox": {
+                "includeJSONPath": false
+            },
+            "hasIndexedDBJS": false,
             "_jsOnChangeFunctions": "function onChange_JForm1_f9ab5610738648258cca3ada1cfd573a(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('JFORM1');};",
             "_jsOnClickFunctions": "",
             "__freeformLayoutLists_searchReplace": "[]",
@@ -905,7 +905,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240229174240782",
+        "A5SaveTimeStamp": "20240307182110831",
         "a_actionJavascript": [
             {
                 "actionGuid": "517e0962-1bc1-4512-b96f-e3ab1af7450e ",
@@ -942,22 +942,13 @@
         "minimumBuildNumber": "",
         "_display": "",
         "showPulseEffect": true,
-        "serversidelanguage": "Xbasic",
         "style_color_palette": "",
         "customTabOrder": "",
         "flagShowDeleteConfirmation": true,
         "floatingLabelSettingsJSON": "",
-        "suppressJavascriptCodeWarning": false,
-        "onConnectionLostBehavior": "Stop",
-        "onConnectionLostExecutionDuration": "0",
-        "AllowSelectionOfText": false,
-        "debugOnTemplateError": false,
-        "restorePanelSizes": true,
         "_conversiontoOptimizeUXTreeHasRun": true,
         "componentImagesJSON": "",
         "friendlydatesCustomizationJSON": "",
-        "simulatedculture": "",
-        "simulatedcultureNumber": "",
         "allowusertoswitchstylesatruntime": false,
         "listofstyles": "",
         "styleselectorplaceholder": "",
@@ -965,12 +956,8 @@
         "templateforstyleselector": "",
         "captureJSErrorStackTrace": false,
         "optionalSystemLibraries": "",
-        "watcheventsjson": "",
-        "svgiconsdefaultsize": "15,15",
         "PreRenderUXInSections": false,
         "refreshPanelObject": true,
-        "compressUX": false,
-        "optimizedPreRender": false,
         "useIphoneXStyling": false,
         "iPhoneXStylingJSON": "",
         "wrapPasswordFieldsInForms": true,
@@ -980,29 +967,20 @@
         "lockEventHandlers": true,
         "lockEventHandlersDuration": 300,
         "capturesqltracelog": false,
-        "addCorsHeaders": false,
-        "corsAllowOrigins": "*",
-        "corsAllowPrivateNetwork": false,
-        "convertImagesToBase64": false,
-        "htmlencodejavascript": true,
-        "populateArgumentsFromQueryString": false,
-        "_alphasoftwareBucketName": "",
-        "staticHTMLFileJSON": "",
         "__LPhostName": "Chrome",
         "_style_isInherited": false,
         "_analyzecontainersjs": true,
+        "__idinternalCurrentControl": "f9ab5610-7386-4825-8cca-3ada1cfd573a",
+        "__nameCurrentControl": "JForm1",
+        "_flagForceRecalcChildren": true,
         "_repeatingSectionPendingRecalc": "\n",
         "cachecomponent": false,
         "_crcXbEvents": 4294903431,
-        "_crcJSFunctions": 4294931110,
+        "_crcJSFunctions": 4294940311,
         "_crcJSEvents": 4294955346,
         "_treeErrors": "",
         "__flagHasMacro": false,
-        "__staticMode": "",
         "__componentnotfound": false,
-        "__flagRecursive": false,
-        "_fakeServersideCanAjaxCallback": true,
-        "_style_name_beforeResolve": "Alpha",
         "__changeAJAXURL": "",
         "_afterLogin": {
             "panelName": ""
@@ -1016,16 +994,17 @@
             "formbox": true,
             "pickers": true
         },
-        "includeIndexedDB": false,
         "_flagUsesCharts": false,
         "_passwordReset": false,
         "_isPartial": false,
         "__flagCreateAppCache": false,
-        "__embedLinkedFiles": false,
-        "__embedLinkedJSFiles": false,
-        "favoriteControls": "",
-        "__idinternalCurrentControl": "f9ab5610-7386-4825-8cca-3ada1cfd573a",
-        "__nameCurrentControl": "JForm1",
+        "_flagDoTreeview": true,
+        "_move": {
+            "index": 13,
+            "targetIndex": 12,
+            "count": 3
+        },
+        "__allowCascadingRecalc": true,
         "a_UnboundActionJavascript": [
             {
                 "idInternal": "2a59c7db-289f-4240-b530-76f478e43317",
@@ -1175,20 +1154,41 @@
                 "part": ""
             }
         ],
+        "serversidelanguage": "Xbasic",
+        "watcheventsjson": "",
+        "optimizedPreRender": false,
+        "addCorsHeaders": false,
+        "convertImagesToBase64": false,
+        "htmlencodejavascript": true,
+        "__staticMode": "",
+        "_fakeServersideCanAjaxCallback": true,
+        "includeIndexedDB": false,
+        "__embedLinkedFiles": false,
+        "__embedLinkedJSFiles": false,
+        "suppressJavascriptCodeWarning": false,
+        "onConnectionLostBehavior": "Stop",
+        "onConnectionLostExecutionDuration": "0",
+        "AllowSelectionOfText": false,
+        "debugOnTemplateError": false,
+        "restorePanelSizes": true,
+        "simulatedculture": "",
+        "simulatedcultureNumber": "",
+        "svgiconsdefaultsize": "15,15",
+        "compressUX": false,
+        "corsAllowOrigins": "*",
+        "corsAllowPrivateNetwork": false,
+        "populateArgumentsFromQueryString": false,
+        "_alphasoftwareBucketName": "",
+        "staticHTMLFileJSON": "",
+        "__flagRecursive": false,
+        "_style_name_beforeResolve": "Alpha",
+        "favoriteControls": "",
         "unboundActionShowOnNewActionMessage": true,
-        "__allowCascadingRecalc": true,
-        "_flagDoTreeview": true,
-        "_move": {
-            "index": 13,
-            "targetIndex": 12,
-            "count": 3
-        },
         "actionJavascriptUnboundLastEdited": "caae5861-c842-4512-9a70-34090aa23958",
         "showJavascriptActions": false,
         "showResponsiveLayoutHelp": false,
         "livePreview_permissions_friendly": "",
         "_forceMobileSimulation": false,
-        "_flagForceRecalcChildren": true,
         "_containerstorecalc": "",
         "json": "{\n\t\"items\": [\n\t{\n\t\t\"html\": \"Home\",\n\t\t\"action\": \"action1\"\n\t},\n\t{\n\t\t\"html\": \"Customers\",\n\t\t\"action\": \"action2\"\n\t},\n\t{\n\t\t\"html\": \"Orders\",\n\t\t\"action\": \"action3\"\n\t},\n\t{\n\t\t\"html\": \"Products\",\n\t\t\"action\": \"action4\"\n\t}],\n\t\"actions\": {\n\t\t\"action1\": function(arg) { {dialog.object}.runAction('Navigate Home');},\n\t\t\"action2\": function(arg) { {dialog.object}.runAction('Navigate Customers');\n},\n\t\t\"action3\": function(arg) { {dialog.object}.runAction('Navigate Orders');},\n\t\t\"action4\": function(arg) { {dialog.object}.runAction('Navigate Products');}\n\t}\n}",
         "jsonInputArray": "{\n\t\"tree\": [\n\t{\n\t\t\"label\": \"Home\",\n\t\t\"level\": 1,\n\t\t\"isLeaf\": true,\n\t\t\"Icon\": \"\",\n\t\t\"Event\": \"\",\n\t\t\"value\": \"\",\n\t\t\"onClick\": \"{dialog.object}.runAction('Navigate Home');\",\n\t\t\"SecurityGroups\": \"\",\n\t\t\"serverSideShowHideExpn\": \"\",\n\t\t\"targetPanel\": \"\",\n\t\t\"itemType\": \"Item\",\n\t\t\"headingText\": \"\",\n\t\t\"actionName\": \"\",\n\t\t\"clientsideshowhideexpn\": \"\"\n\t},\n\t{\n\t\t\"label\": \"Customers\",\n\t\t\"level\": 1,\n\t\t\"isLeaf\": true,\n\t\t\"Icon\": \"\",\n\t\t\"Event\": \"\",\n\t\t\"value\": \"\",\n\t\t\"onClick\": \"{dialog.object}.runAction('Navigate Customers');\\r\\n\",\n\t\t\"SecurityGroups\": \"\",\n\t\t\"serverSideShowHideExpn\": \"\",\n\t\t\"targetPanel\": \"\",\n\t\t\"itemType\": \"Item\",\n\t\t\"headingText\": \"\",\n\t\t\"actionName\": \"\",\n\t\t\"clientsideshowhideexpn\": \"\"\n\t},\n\t{\n\t\t\"label\": \"Orders\",\n\t\t\"level\": 1,\n\t\t\"isLeaf\": true,\n\t\t\"Icon\": \"\",\n\t\t\"Event\": \"\",\n\t\t\"value\": \"\",\n\t\t\"onClick\": \"{dialog.object}.runAction('Navigate Orders');\",\n\t\t\"SecurityGroups\": \"\",\n\t\t\"serverSideShowHideExpn\": \"\",\n\t\t\"targetPanel\": \"\",\n\t\t\"itemType\": \"Item\",\n\t\t\"headingText\": \"\",\n\t\t\"actionName\": \"\",\n\t\t\"clientsideshowhideexpn\": \"\"\n\t},\n\t{\n\t\t\"label\": \"Products\",\n\t\t\"level\": 1,\n\t\t\"isLeaf\": true,\n\t\t\"Icon\": \"\",\n\t\t\"Event\": \"\",\n\t\t\"value\": \"\",\n\t\t\"onClick\": \"{dialog.object}.runAction('Navigate Products');\",\n\t\t\"SecurityGroups\": \"\",\n\t\t\"serverSideShowHideExpn\": \"\",\n\t\t\"targetPanel\": \"\",\n\t\t\"itemType\": \"Item\",\n\t\t\"headingText\": \"\",\n\t\t\"actionName\": \"\",\n\t\t\"clientsideshowhideexpn\": \"\"\n\t}]\n}",
@@ -1198,7 +1198,7 @@
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

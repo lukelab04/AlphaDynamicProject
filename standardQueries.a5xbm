@@ -14,35 +14,9 @@ function getTableData (e as p) as c
 		end 
 	end if
 	
-	dim filterText as c
-	filterText = *html_unescape(e.filters, "utf8")
-	
-	dim filters as p
-	filters = json_parse(filterText)
-	
 	dim args as sql::arguments
 	dim filterStr as c
-	filterStr = ""
-
-	if filters.size() == 0 then 
-		filterStr = "";
-	else
-		dim argCounter as n
-		argCounter = 0
-		for each filter in filters
-			if filter.value.data("op") == "" then 
-				filter.value.op = "="
-			end if 
-			
-			if len(filterStr) != 0 then 
-				filterStr = filterStr + " " + filter.value.connector + " "
-			end if
-			
-			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter
-			args.add("argNum" + argCounter, filter.value.columnVal);
-			argCounter = argCounter + 1
-		next filter
-	end if
+	filterStr = buildConstraint(e, args)
 	
 	
 	dim columns as p
@@ -87,7 +61,6 @@ function getTableData (e as p) as c
 	'execute the SQL - pass in the sql::arguments object
 	flag = cn.execute(sql,args)
 	if flag = .f. then 
-		debug(1)
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
@@ -107,6 +80,68 @@ function getTableData (e as p) as c
 	cn.close()
 	getTableData = "{dialog.object}.stateInfo.allListData = " + json + ";"
 	
+end function
+
+function countRowsWithFilter(e as p) as c
+	dim args as sql::arguments
+	dim filterStr as c
+	filterStr = buildConstraint(e, args)
+	
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	dim wherePart as c
+	
+	if len(filterStr) <> 0 then 
+		wherePart = " " + filterStr
+	else 
+		wherePart = " 1 = 1 "
+	end if
+	
+	dim count as n
+	count = sql_count(cn, e.tableName, "*", wherePart, args);
+	
+	if count < 0 then 
+		count = 0
+	end if 
+	
+	countRowsWithFilter = "{dialog.object}.stateInfo.numRowsAvailable = " + count + ";"
+end function
+
+function buildConstraint(e as p, args as sql::arguments) as c
+	dim filterText as c
+	filterText = *html_unescape(e.filters, "utf8")
+	
+	dim filters as p
+	filters = json_parse(filterText)
+	
+	dim args as sql::arguments
+	dim filterStr as c
+	filterStr = ""
+
+	if filters.size() == 0 then 
+		filterStr = "";
+	else
+		dim argCounter as n
+		argCounter = 0
+		for each filter in filters
+			if filter.value.data("op") == "" then 
+				filter.value.op = "="
+			end if 
+			
+			if len(filterStr) != 0 then 
+				filterStr = filterStr + " " + filter.value.connector + " "
+			end if
+			
+			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter
+			args.add("argNum" + argCounter, filter.value.columnVal);
+			argCounter = argCounter + 1
+		next filter
+	end if
+	
+	buildConstraint = filterStr
 end function
 
 ' Input: Table Name
@@ -296,4 +331,5 @@ end function
 
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData
+exports.countRowsWithFilter = countRowsWithFilter
 
