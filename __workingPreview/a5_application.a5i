@@ -14,7 +14,7 @@
 
 Dim _aliases_ as c
 _aliases_ = <<%txt%
-[PathAlias.ADB_Path]|C:\Users\lukes\Documents\AlphaAnywhere\Phase 1 Project
+[PathAlias.ADB_Path]|C:\Users\lukes\Documents\AlphaAnywhere\GenericListTester
 %txt%
 
 'Creates a global collection called '_A5_Aliases' 
@@ -61,7 +61,7 @@ loadConnectionStrings(gv, _SSRS_ConnectionStrings, "SSRS")
 
 Dim _AlphaDAO_ConnectionStrings as c 
 _AlphaDAO_ConnectionStrings = <<%txt%
-conn|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL3KXo+isyWws2OOOiUUqqwumi8OrkMxUleEUgwF4/TOCwXrCNYN4yVWfddk5VVsbXM=
+conn|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL20g68j3QxOodxysxDY2CK89Ze/ZnUudwAWtn2UWq9jPchMGo0L88mE3hMvpj2MNzs=
 %txt%
 
 'Create a global collection called '_A5_AlphaDAO_ConnectionStrings'
@@ -322,7 +322,7 @@ DIM federatedAuthentication.fieldmap as C
 DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
-DIM __token as C = "8e15cf81d1fd4ea994b3b52c1391fd4a"
+DIM __token as C = "390917811a8343259fbe459127c24cfa"
 %txt%
 
 dim gv as p 
@@ -333,10 +333,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 20249910160950903
+gv.__A5PublishTimestamp = 202421210115211785
 gv.__buildNumberExe__ = 8867
 gv.__buildNumberAddins__ = 5691
-gv.__guid = "5db35b9e-9692-44e4-b136-65b5f5754148"
+gv.__guid = "022b04d0-12e0-46a4-a28c-446162f17cb9"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%
