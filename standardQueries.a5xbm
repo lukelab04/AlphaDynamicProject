@@ -5,8 +5,8 @@
 
 ' Input: e.tableName
 ' Input: [e.columns]
-' Input: [e.filters] like {"columnName": name, columnVal: val}
-' Input: e.pageOptions like {pageSize: n, firstIdNotSeen: n} or nothing
+' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
+' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
 function getTableData (e as p) as c
 	
 	if json_get_array_length(e.columns) = 0 then 
@@ -17,7 +17,6 @@ function getTableData (e as p) as c
 	dim args as sql::arguments
 	dim filterStr as c
 	filterStr = buildConstraint(e, args)
-	
 	
 	dim columns as p
 	columns = json_parse(e.columns)
@@ -31,6 +30,8 @@ function getTableData (e as p) as c
 	dim selectPart as c 
 	dim fromPart as c
 	dim wherePart as c
+	dim rowStart as n
+	dim getRows as n
 	
 	selectPart = ""
 	for each col in columns
@@ -48,12 +49,16 @@ function getTableData (e as p) as c
 		wherePart = " 1 = 1 "
 	end if
 	
+	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
+	
 	if e.data("pageOptions") = "" then 
-		sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
+		rowStart = 1
+		getRows = -1
 	else
 		dim pageOptions as p
 		pageOptions = json_parse(e.pageOptions)
-		sql = buildPaginatedQuery(e.tableName, selectPart, fromPart, wherePart, pageOptions)
+		rowStart = 1 + (pageOptions.pageSize * (pageOptions.getPage - 1))
+		getRows = pageOptions.pageSize
 	end if
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -72,13 +77,20 @@ function getTableData (e as p) as c
 	'DIM a SQL::Resultset object
 	dim rs as sql::resultset
 	rs = cn.resultset
+	dim cr as sql::CallResult 
+	cr = cn.CallResult
+	
+	dim count as n
+	count = sql_count(cn, e.tableName, "*", wherePart, args);
+	
 	'get the JSON from the query
 	dim json as c 
-	json = rs.toJSON()
+	json = rs.toJSON(getRows, rowStart)
 	'Clean up by freeing the resultset and then closing the database
 	cn.freeresult()
 	cn.close()
-	getTableData = "{dialog.object}.stateInfo.allListData = " + json + ";"
+
+	getTableData = ("{dialog.object}.stateInfo.allListData = " + json + ";" + "{dialog.object}.stateInfo.numRowsAvailable = " + count + ";")
 	
 end function
 
@@ -140,7 +152,6 @@ function buildConstraint(e as p, args as sql::arguments) as c
 			argCounter = argCounter + 1
 		next filter
 	end if
-	
 	buildConstraint = filterStr
 end function
 
@@ -164,6 +175,9 @@ function updateTableData (e as p) as c
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
 	
+	dim results as c
+	results = ""
+	
 	for each item in dirty
 		
 		dim shouldDelete as l
@@ -185,19 +199,19 @@ function updateTableData (e as p) as c
 		
 		
 		if shouldDelete then 
-			runDeleteQuery(e, schema, item, cn)
+			results = results + runDeleteQuery(e, schema, item, cn)
 		else if shouldUpdate then 
-			runUpdateQuery(e, schema, item, cn)
+			results = results + runUpdateQuery(e, schema, item, cn)
 		else if shouldInsert then
-			runInsertQuery(e, schema, item, cn)
+			results = results + runInsertQuery(e, schema, item, cn)
 		end if
 	next item
 	
-	updateTableData = ";"
+	updateTableData = results
 	
 end function
 
-function runUpdateQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connection)
 	dim updateSql as c
 	updateSql = "UPDATE [" + e.tableName + "] SET "
 	dim args as sql::arguments
@@ -233,13 +247,15 @@ function runUpdateQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "console.error('" +  errortext + "');"
+		runUpdateQuery = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
+	
+	runUpdateQuery = ";"
 end function
 
-function runInsertQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connection)
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
 	dim args as sql::arguments
@@ -284,13 +300,14 @@ function runInsertQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "console.error('" +  errortext + "');"
+		runInsertQuery = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
+	runInsertQuery = ";"
 end function
 
-function runDeleteQuery as v (e as p, schema as p, item as p, cn as sql::connection)
+function runDeleteQuery as c (e as p, schema as p, item as p, cn as sql::connection)
 	dim deleteSql as c
 	deleteSql = "DELETE FROM [" + e.tableName + "] WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
 	
@@ -306,28 +323,13 @@ function runDeleteQuery as v (e as p, schema as p, item as p, cn as sql::connect
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		updateTableData = "console.error('" +  errortext + "');"
+		runDeleteQuery = "console.error('" +  errortext + "');"
 		cn.close()
 		end
 	end if
+	runDeleteQuery = ";"
 end function
 
-' pageOptions = {pageSize: n, firstIdNotSeen: n}
-function buildPaginatedQuery as c (tableName as c, selectPart as c, fromPart as c, wherePart as c, pageOptions as p)
-	dim schemaInfo as p
-	dim info as c
-	dim schema as p
-	dim primaryKey as c
-	schemaInfo = require("schemaInfo")
-	info = schemaInfo.getConnectionSchemaJSON("conn", tableName)
-	schema = json_parse(info)
-	primaryKey = schema.primaryKey
-	
-	dim sql as c 
-	sql = "SELECT FIRST " + pageOptions.pageSize + " " + selectPart + " FROM " + fromPart + " WHERE (" + wherePart + ") AND " + primaryKey + " >= " + pageOptions.firstIdNotSeen
-	
-	buildPaginatedQuery = sql
-end function
 
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData

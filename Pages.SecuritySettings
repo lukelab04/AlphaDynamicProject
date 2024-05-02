@@ -111,11 +111,6 @@
 		"groups": ""
 	},
 	{
-		"page": "test_list.a5wcmp",
-		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
-	},
-	{
 		"page": ".gitIgnore",
 		"action": "login",
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
@@ -157,6 +152,21 @@
 	},
 	{
 		"page": "main_layout_ux.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "list_ux.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "search_ux.a5wcmp",
+		"action": "login",
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "example_layout_ux.a5wcmp",
 		"action": "login",
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},

@@ -108,6 +108,8 @@ DIM extendedUserInfo.tableName as C = "AASystemTable_ExtendedUserInfo"
 DIM extendedUserInfo.userIdField as C = "UserId"
 DIM extendedUserInfo.tableType as C = "SQL"
 DIM extendedUserInfo.fieldmap as C
+DIM googleMapsAPIkey as C
+DIM googleStaticMapsAPIkey as C
 DIM aexFiles as P
 DIM aexFiles.fileNames as C
 DIM fileDownload as P
@@ -115,7 +117,7 @@ DIM fileDownload.allowedFilenamePatterns as C = "*.xls*,*.pdf,*.jpg,*.jpeg,*.bmp
 DIM fileDownload.allowedFolderPatterns as C
 DIM fileDownload.blockedFilenamePatterns as C
 DIM reportServer as P
-DIM reportServer.disable as L
+DIM reportServer.disable as L = .T.
 DIM reportEvents as P
 DIM reportEvents.afterPrint as C
 DIM reportEvents.library as C
@@ -164,8 +166,6 @@ DIM deleteOldBackups as L
 DIM maxNumberOfBackups as C
 DIM minNumberOfBackups as C
 DIM deleteIfOlderThanDays as C
-DIM googleMapsAPIKey as C
-DIM googleStaticMapsAPIKey as C
 DIM useHTTPSforStaicMaps as L
 DIM googleGeocodingAPIKey as C
 DIM NamedResources as C
@@ -322,7 +322,7 @@ DIM federatedAuthentication.fieldmap as C
 DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
-DIM __token as C = "f579604c375d422ca9e9a3c6a4aa25b3"
+DIM __token as C = "b593170b500d4abaa74ea9bea069e9f0"
 %txt%
 
 dim gv as p 
@@ -333,10 +333,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 20240001160042118
+gv.__A5PublishTimestamp = 2024393902093927656
 gv.__buildNumberExe__ = 8867
 gv.__buildNumberAddins__ = 5691
-gv.__guid = "1848dcf3-2a42-4aff-ba80-bc25715912f9"
+gv.__guid = "f20c8c50-f0a9-4b61-849b-5574a212b736"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%
