@@ -183,6 +183,16 @@ class FormInput {
         };
         return this;
     }
+    
+    asDropdown(items) {
+    	this.type = 'picker';
+    	this.control.width = '100%';
+    	this.control.data = {
+    		src: items.map(x => {return {text: x, value: x}}),
+    		map: ['value', 'text']
+    	}
+    	return this;
+    }
 
     getJSON() {
         let output = {
@@ -286,129 +296,3 @@ class FormButton {
         }
     }
 }
-
-
-let temp = {
-    "type": "group",
-    "container": {
-        "style": "display:flex; flex-direction:row;"
-    },
-    "items": [
-        {
-            "type": "html",
-            "container": {
-                "style": "flex:1 1 auto;"
-            }
-        },
-        {
-            "type": "button",
-            "disabled": {
-                "*a5type": "function",
-                "*data": "function (d) { return this._saveButtonIsDisabled() }"
-            },
-            "control": {
-                "layout": "icon text",
-                "html": "Save",
-                "style": "white-space:nowrap",
-                "icon": "svgIcon=#alpha-icon-save:icon iconButton",
-                "onClick": {
-                    "*a5type": "function",
-                    "*data": "function () {                    this._listDetailView('save')                }"
-                }
-            },
-            "container": {
-                "style": ";",
-                "className": ""
-            }
-        },
-        {
-            "type": "button",
-            "disabled": {
-                "*a5type": "function",
-                "*data": "function (d) { return this._newRecordButtonIsDisabled() }"
-            },
-            "control": {
-                "layout": "icon text",
-                "html": "New Record",
-                "icon": "svgIcon=#alpha-icon-docAdd:icon iconButton",
-                "listName": "LIST1",
-                "style": "white-space:nowrap",
-                "onClick": {
-                    "*a5type": "function",
-                    "*data": "function () {                    this._listDetailView('newrecord')                }"
-                }
-            },
-            "container": {
-                "style": ";",
-                "className": ""
-            }
-        },
-        {
-            "type": "button",
-            "disabled": {
-                "*a5type": "function",
-                "*data": "function (d) { return this._deleteRecordButtonIsDisabled() }"
-            },
-            "control": {
-                "layout": "icon text",
-                "html": "Delete Record",
-                "style": "white-space:nowrap",
-                "icon": "svgIcon=#alpha-icon-removeCircle:icon iconButton",
-                "listName": "LIST1",
-                "onClick": {
-                    "*a5type": "function",
-                    "*data": "function () {                    this._listDetailView('deleterecord')                }"
-                }
-            },
-            "container": {
-                "style": ";",
-                "className": ""
-            }
-        },
-        {
-            "type": "button",
-            "disabled": {
-                "*a5type": "function",
-                "*data": "function (d) { return this._resetRecordButtonIsDisabled() }"
-            },
-            "control": {
-                "layout": "icon text",
-                "html": "Reset",
-                "icon": "svgIcon=#alpha-icon-undo:icon iconButton",
-                "style": "white-space:nowrap",
-                "listName": "LIST1",
-                "onClick": {
-                    "*a5type": "function",
-                    "*data": "function () {                    this._listDetailView('reset')                }"
-                }
-            },
-            "container": {
-                "style": ";",
-                "className": ""
-            }
-        },
-        {
-            "type": "button",
-            "disabled": {
-                "*a5type": "function",
-                "*data": "function (d) { return this._synchronizeButtonIsDisabled() }"
-            },
-            "control": {
-                "layout": "icon text",
-                "html": "Synchronize",
-                "style": "white-space:nowrap",
-                "icon": "svgIcon=#alpha-icon-save:icon iconButton",
-                "listName": "LIST1",
-                "onClick": {
-                    "*a5type": "function",
-                    "*data": "function () {                    this._listDetailView('synchronize')                }"
-                }
-            },
-            "container": {
-                "style": ";",
-                "className": ""
-            }
-        }
-    ]
-};
-

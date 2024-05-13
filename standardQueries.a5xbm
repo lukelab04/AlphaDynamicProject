@@ -143,15 +143,25 @@ function buildConstraint(e as p, args as sql::arguments) as c
 				filter.value.op = "="
 			end if 
 			
-			if len(filterStr) != 0 then 
-				filterStr = filterStr + " " + filter.value.connector + " "
+			if filter.value.data("connector") == "" then 
+				filter.value.connector = "AND"
 			end if
 			
-			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter
-			args.add("argNum" + argCounter, filter.value.columnVal);
+			if filter.value.data("type") == "" then 
+				filter.value.type = "c"
+			end if
+			
+			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter + " " + filter.value.connector + " "
+			args.add("argNum" + argCounter, convert_type(filter.value.columnVal, filter.value.type));
 			argCounter = argCounter + 1
 		next filter
 	end if
+	
+	if len(filterStr) != 0 then
+		' Get rid of AND or OR
+		filterStr = substr(filterStr, 1, len(filterStr) - 4)
+	end if
+	
 	buildConstraint = filterStr
 end function
 

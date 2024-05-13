@@ -31,13 +31,16 @@ Next, we'll define the "home page", where we can show multiple lists. Create a n
 
 Again, add an alias to this Embedded Object. We'll show a list of customers, so use the alias `CUSTOMER_LIST`.
 
+#### IMPORTANT
+Go to `Javascript Linked Files` in the `main_layout_ux` and add `formBuilder.js,listBuilder.js`. These two Javascript files contain the class definitions that we will be using.
+
 If you try running this, you will just get an empty list. Our next step is to populate the list with data. 
 
 ## Populating the List
 We need a way to communicate from the main layout to each embedded layout. There are several ways of doing this. I found it easiest to register a callback to the dialog object itself. Go to the `afterPrepare` event on your list layout (mine is `example_layout_ux`) and paste the following code.
 
 ```js
-{dialog.object}.populateDynamicElements = function(config, openCallback, filters = []) {
+{dialog.object}.populateDynamicElements = function(config, filters = []) {
     let load = setInterval(() => {
         // Get the embedded objects
         let embeddedList = {dialog.object}.getChildObject('DYNAMIC_LIST');
@@ -47,7 +50,7 @@ We need a way to communicate from the main layout to each embedded layout. There
         // This code will run every 200ms until both objects are defined.
         if (!embeddedList || !embeddedSearch) return;
 
-        let list = new DynamicList(embeddedList, config, openCallback, filters);
+        let list = new DynamicList(embeddedList, config, filters);
         let search = new DynamicListSearch(list, embeddedSearch);
 
         // Both objects have been defined, so we can stop running this function
@@ -64,7 +67,7 @@ Next, open your main layout (mine is called `main_layout_ux`). Find the Embedded
 
 ```js
 let embeddedObj = {dialog.EmbeddedUX_CUSTOMER_LIST};
-embeddedObj.populateDynamicElements(CUSTOMER_CONFIG, openNewCallback);
+embeddedObj.populateDynamicElements(CUSTOMER_CONFIG);
 ```
 
 Notice that `populateDynamicElements` is the function we just defined. 
@@ -174,11 +177,11 @@ Set the panel titles to `Products` and `Invoice Headers`, respectively.
 ```js
 // For onLoadComplete: PRODUCT_LIST
 let embeddedObj = {dialog.EmbeddedUX_PRODUCT_LIST}
-embeddedObj.populateDynamicElements(PRODUCT_CONFIG, openNewCallback);
+embeddedObj.populateDynamicElements(PRODUCT_CONFIG);
 
 // For onLoadComplete: INVOICE_LIST
 let embeddedObj = {dialog.EmbeddedUX_INVOICE_LIST}
-embeddedObj.populateDynamicElements(INVOICE_HEADER_CONFIG, openNewCallback);
+embeddedObj.populateDynamicElements(INVOICE_HEADER_CONFIG);
 ```
 
 Next, go to the `Javascript Functions` section of the main layout. Define the following two configs. 
@@ -279,14 +282,14 @@ function newPanelTitle() {
 	return title;
 }
 
-function openNewCallback(config, titleName, filters) {
+function openNewPanel(config, titleName, filters) {
 	title = titleName;
 	counter += 1;
 	let open = () => {dialog.object}.runAction('Open Panel');
 	let build = () => {
 		let name = NEWPANELALIAS() + '_DlgObj';
 		let newObj = window[name];
-		newObj.populateDynamicElements(config, openNewCallback, filters);
+		newObj.populateDynamicElements(config, filters);
 	};
 	A5.executeThisThenThat(open, build);
 }
@@ -312,7 +315,7 @@ buttons: [
         columnTitle: 'Customer Invoices',
         onClick: (list) => {
             let filters = list.makeFilterFromSelected('CUSTOMER_ID', 'CUSTOMER_ID');
-            list.openNew(INVOICE_HEADER_CONFIG, 'Invoice Headers', filters);
+            openNewPanel(INVOICE_HEADER_CONFIG, 'Invoice Headers', filters);
         }
     }
 ]
@@ -326,7 +329,7 @@ We can also build the title dynamically from the list data. The underlying list 
 ...
 let data = list.listBox.selectionData[0];
 let name = data.FIRSTNAME + ' ' + data.LASTNAME;
-list.openNew(INVOICE_HEADER_CONFIG, 'Invoice Headers for ' + name, filters);
+openNewPanel(INVOICE_HEADER_CONFIG, 'Invoice Headers for ' + name, filters);
 ```
 
 Then, for customer John Smith, we would open a new tab with the title `Invoice Headers for John Smith`.
@@ -346,14 +349,14 @@ buttons: [
                 title: 'Customer',
                 onClick: (list) => {
                     let filters = list.makeFilterFromSelected('CUSTOMER_ID', 'CUSTOMER_ID');
-                    list.openNew(CUSTOMER_CONFIG, 'Customer', filters);
+                    openNewPanel(CUSTOMER_CONFIG, 'Customer', filters);
                 }
             },
             {
                 title: 'Invoice Items',
                 onClick: (list) => {
                     let filters = list.makeFilterFromSelected('INVOICE_NUMBER', 'INVOICE_NUMBER');
-                    list.openNew(INVOICE_ITEM_CONFIG, 'Invoice Items', filters);
+                    openNewPanel(INVOICE_ITEM_CONFIG, 'Invoice Items', filters);
                 }
             }
         ]
@@ -363,3 +366,11 @@ buttons: [
 This results in a button that, when clicked, shows several options.
 ![](./tutorial_pictures/dropdown.png)
 The `INVOICE_ITEM_CONFIG` object is already defined in the example for this project.
+
+## Opening Lists Programmatically
+
+Say we want to open a dynamic list from a button, Action Javascript, or some other location. For example, maybe we'd like to add a button on the home page that opens all Invoice Items. To do so, add the following Javascript to the `onClick` event of the button.
+```js
+openNewPanel(INVOICE_ITEM_CONFIG, 'All Invoice Items', []);
+```
+Notice that we pass in an empty array for `filters` because we'd like to see all of the items. 

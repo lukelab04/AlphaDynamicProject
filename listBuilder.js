@@ -1,6 +1,8 @@
 const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
 
+// TODO update documentation, make opening new panel API easier
+
 
 function definedOr(item, val) {
 	return item === undefined ? val : item;
@@ -20,7 +22,7 @@ function getSchema(obj, table, callback) {
 }
 
 class DynamicList {
-	constructor(obj, config, openNewCallback, filters = []) {
+	constructor(obj, config, filters = []) {
 		this.permanentFilters = filters;
 		this.searchFilters = [];
 		this.buttonFns = {};
@@ -31,22 +33,17 @@ class DynamicList {
 		this.config = config;
 		this.data = [];
 		
-		this.openNewCallback = openNewCallback;
-		
 		obj.getControl('LIST1')._size = () => {};
 		obj.getControl('LIST1')._resize = () => {};
 		obj.saveDynamicListEdits = () => this.saveDynamicListEdits();
-		getSchema(obj, this.config.table, () => {
-			this.schema = this.obj.stateInfo.schema;
-			this.settings = this.buildSettings();
-			this.buildList();
-			this.fetchData(() => this.populateListBox());
-		});
+
+
+		this.settings = this.buildSettings();
+		this.buildList();
+		this.fetchData(() => this.populateListBox());
+
 	}
-	
-	openNew(config, title, filters) {
-		this.openNewCallback(config, title, filters);
-	}
+
 	
 	openDetailView() {
 		this.obj.runAction('Navigate Detail View');
@@ -850,7 +847,6 @@ class DynamicList {
 	}
 	
 	buildColumnButton(button, btnNumber, items) {
-		// Is this comment here?
 		if (!button.title) button.title = '';
 	
 		let innerTemplate = button.title + '&nbsp';
@@ -1089,6 +1085,19 @@ class DynamicList {
 				switch (mapping.editType) {
 					case 'text': 
 					case 'number': break;
+					case 'dropdown':
+						// Static dropdown list
+						if (mapping.dropdownConfig.choices) {
+							input = input.asDropdown(mapping.dropdownConfig.choices);
+						}
+						if (mapping.dropdownConfig.fromColumn) {
+							let set = new Set();
+							this.listBox._data.forEach(d => {
+								set.add(d[mapping.dropdownConfig.fromColumn].toString());
+							});
+							input = input.asDropdown(Array.from(set));
+						}
+						break;
 					case 'time': 
 						input = input.asTime("hh:mm AM");
 						break;
@@ -1143,7 +1152,7 @@ class DynamicList {
 		if (this.config.paginate) {
 			paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
 		}
-
+		
 		this.obj.ajaxCallback(
 			"",
 			"",
@@ -1305,12 +1314,21 @@ function makeDetailButtons() {
 
 
 
-
 class DynamicListSearch {
 	constructor(dynamicList, obj) {
 		this.list = dynamicList;
 		this.obj = obj;
 		this.form = new FormBuilder(this.obj, "SearchForm");
+		this.advForm = obj.getControl('AdvancedSearch');
+		this.dynamicDropdowns = [];
+		
+		this.advForm.data.fields = {};
+		
+		if (dynamicList.config.advancedSearch) {
+			obj.setControlDisplay('SEARCHFORM'+'',false,'display');
+		} else {
+			obj.setControlDisplay('ADVANCEDSEARCH'+'',false,'display');
+		}
 		
 		for (const mapping of this.list.config.mappings) {
 			if (mapping.inList) {
@@ -1319,27 +1337,143 @@ class DynamicListSearch {
 					.withVariable(mapping.columnName)
 					.withStyle('width: 100%');
 					
-				if (!mapping.editType) mapping.editType = 'text';
+				let advancedControl = {
+					type: 'default'
+				};
+					
+				if (!mapping.editType) {
+					mapping.editType = 'text';
+				}
+				
 				switch (mapping.editType) {
 					case 'text': 
 					case 'number': break;
 					case 'time': 
 						element = element.asTime("hh:mm AM");
+						advancedControl.type = 'datepicker';
+						advancedControl.format = 'hh:mm AM';
 						break;
 					case 'date':
 						element = element.asDate("MM/dd/yyyy");
+						advancedControl.type = 'datepicker';
+						advancedControl.format = 'MM/dd/yyyy';
 						break;
 					case 'datetime':
 						element = element.asDateTime("MM/dd/yyyy hh:mm AM");
+						advancedControl.type = 'datepicker';
+						advancedControl.format = 'MM/dd/yyyy hh:mm AM';
 						break;
 					case 'bool':
 						element = element.asBool();
+						advancedControl.type = 'switch';
+						advancedControl.data = ['true', 'false'];
 						break;
+					case 'dropdown':
+						let choices;
+						if (mapping.dropdownConfig.choices) {
+							choices = mapping.dropdownConfig.choices;
+						}
+						if (mapping.dropdownConfig.fromColumn) {
+							this.dynamicDropdowns.push({isAdvanced: false, elem: element, col: mapping.dropdownConfig.fromColumn});
+							this.dynamicDropdowns.push({isAdvanced: true, elem: advancedControl, col: mapping.dropdownConfig.fromColumn});
+							choices = ['...'];
+						}
+						
+						element = element.asDropdown(choices);
+						advancedControl.data = choices.map(x => { return {html: x, value: x}});
+						advancedControl.type = 'combolist';
 				}
 				
 				this.form.withElement(element);
+				
+				this.advForm.data.fields[mapping.columnName] = {
+					control: advancedControl,
+					default: {
+						op: '='
+					},
+					label: mapping.displayName ? mapping.displayName : mapping.columnName
+				};
 			}
 		}
+		
+		this.advForm.onBeforePopulate(this.advForm.data);
+		this.advForm.refresh();
+		
+		this.advForm.items.clearSearch.onClick = () => {
+			this.list.listBox._clearSearchListServerSide();
+		};
+		
+		this.advForm.items.runQuery.onClick = () => {
+			let query = this.advForm.value;
+			let obj = {
+				searchMode: 'serverSide'
+			};
+			obj.advancedSearchControl = 'AdvancedSearch';
+			obj.queryData = JSON.parse(query[0]);
+			
+			let getMapping = (col) => {
+				for (const mapping of this.list.config.mappings) {
+					if (mapping.columnName == col) return mapping;
+				}
+			};
+			
+			obj.queryData.forEach(e => {
+				let mapping = getMapping(e.field);
+				
+				let d = new Date();
+				
+				if (['date', 'datetime', 'time'].includes(mapping.editType)) {
+					
+					if (e.value == 'Today') d.adjust('day', 0);
+					else if (e.value == 'Yesterday') d.adjust('day', -1);
+					else if (e.value == 'Tomorrow') d.adjust('day', 1);
+					else {
+						let fmt;
+						if (mapping.editType == 'date') fmt = 'MM/dd/yyyy';
+						if (mapping.editType == 'datetime') fmt = 'MM/dd/yyyy hh:mm AM';
+						if (mapping.editType == 'time') fmt = 'hh:mm AM';
+						d.fromFormat(e.value, fmt);
+					}
+					
+					e.value = d;
+				}
+				
+				let alphaType;
+				switch(mapping.editType) {
+					case 'text':
+					case 'dropdown':
+						alphaType = 'C';
+						break;
+					case 'number':
+						alphaType = 'N';
+						break;
+					case 'date':
+						alphaType = 'D';
+						break;
+					case 'datetime':
+						alphaType = 'T';
+						break;
+					case 'time':
+						alphaType = 'Y';
+						break;
+					case 'bool':
+						alphaType = 'L';
+						break;
+				}
+			
+			
+				e.connector = e.andor == '.and.' ? 'AND' : 'OR';
+				delete e.andor;
+				e.columnName = e.field;
+				delete e.field;
+				e.op = e.op == '' ? '=' : e.op;
+				e.columnVal = e.value;
+				e.type = alphaType;
+				delete e.value;
+			});
+
+			this.list.listBox.searchList(obj);
+		};
 		
 		this.form.withElement((new FormButton())
 			.withHtml("Search")
@@ -1355,7 +1489,24 @@ class DynamicListSearch {
 			})
 		);
 		
-		this.list.addOnRenderCallback(() => this.setListSearchFns());
+		this.list.addOnRenderCallback(() => {
+			this.setListSearchFns()
+			
+			this.dynamicDropdowns.forEach(element => {
+				let set = new Set();
+				this.list.listBox._data.forEach(d => {
+					set.add(d[element.col].toString());
+				});
+				
+				if (element.isAdvanced)
+					element.elem.data = (Array.from(set)).map(x => { return {html: x, value: x}});
+				else
+					element.elem = element.elem.asDropdown(Array.from(set));
+					
+				this.advForm.onBeforePopulate(this.advForm.data);
+				this.advForm.refresh();
+			});
+		});
 		
 		this.form.render();
 	}
@@ -1365,9 +1516,10 @@ class DynamicListSearch {
 		
 		if (lObj.searchList) return;
 		
-		lObj.searchList = () => {
-			let obj = typeof arguments[0] != 'undefined' ? arguments[0] : {};
+		lObj.searchList = (x) => {
+			let obj = typeof x != 'undefined' ? x : {};
 			let mode = 'serverSide';
+			if (!(this.list.config.serverSearch)) mode = 'clientside';
 			if (typeof obj.searchMode != 'undefined') mode = obj.searchMode;
 			mode = mode.toLowerCase();
 			
@@ -1380,9 +1532,9 @@ class DynamicListSearch {
 				}
 				
 				if (flagCS) mode = 'clientside';
+				if (!(this.list.config.serverSearch)) mode = 'clientside';
+				else mode = 'serverside';
 			}
-			
-			if (!(this.list.config.serverSearch)) mode = 'clientside';
 			
 			
 			let flagDirty = false;
@@ -1391,17 +1543,18 @@ class DynamicListSearch {
 			let flagResult = this.obj._list_executeEvent(lObj.listVariableName, 'beforeSearch', {searchMode: 'search', searchWhere: mode, listIsDirty: flagDirty});
 			if (!flagResult) return false;
 			
+			if (!obj.queryData) obj = undefined;
 			if (mode == 'serverside') {
 				lObj._searchListServerSide(obj);
 			} else if (mode == 'clientside') {
-				lObj._searchPartSubmit_clientSideFilter();
+				lObj._searchPartSubmit_clientSideFilter(obj);
 				let rowCount = lObj._rData.length;
 				this.obj._list_executeEvent(lObj.listVariableName, 'afterSearchComplete', {searchMode: 'search', searchWhere: mode, recordsInQuery: rowCount});
 			}
 		}
 		
 		
-		lObj._searchPartSubmit_clientSideFilter = () => {
+		lObj._searchPartSubmit_clientSideFilter = (searchObj) => {
 			lObj._state.highlight = {};
 			
 			let map = lObj._searchPart.fieldMap;
@@ -1414,30 +1567,60 @@ class DynamicListSearch {
 			let aco = {};
 			let _highlight = {};
 			
+			let getSearchObjElement = (col) => {
+				for (const e of searchObj.queryData) {
+					if (e.columnName == col) return e; 
+				}
+			};
 			
+			// {index: i, item: (value) | (searchElt) }
+			let values = [];
 			for (let i = 0; i < map.length; i++) {
-				let val = this.obj.getValue(map[i].control);
-				if (val != '' && val != undefined) {
-					obj_i = lObj._searchFieldOptions[lObj._listFields[i].name.toUpperCase()];
-					lObj._setSearchOps(obj, obj_i);
-					
-					let strVal = val.toString();
-					if (typeof val === 'string') strVal = lObj._str(val);
-					if (val instanceof Date) strVal = val.toFormat('MM/dd/yyyy 0h:0m:0s 000 am');
-					
-					expn_i = 'this._match(data,' + lObj._str(lObj._listFields[i].name) + ',' + strVal + ','+JSON.stringify(obj)+')';
-					expn.push(expn_i);
-					aco.control = map[i].control;
-					aco.value = val;
-					ac.push(aco);
+				let val;
+				if (!searchObj) {
+					val = this.obj.getValue(map[i].control);
+					if (val != undefined && val != '') values.push({index: i, item: val});
+				} else {
+					for (const e of searchObj.queryData) {
+						if (e.columnName == map[i].field) values.push({index: i, item: e});
+					}
 				}
 			}
 			
-			let operator = '&&';
+			for (const v of values) {
+			
+				let i = v.index;
+				let val;
+				if (v.item.columnVal) val = v.item.columnVal;
+				else val = v.item;
+
+				obj_i = lObj._searchFieldOptions[lObj._listFields[i].name.toUpperCase()];
+				lObj._setSearchOps(obj, obj_i);
+				
+				let strVal = val.toString();
+				if (typeof val === 'string') strVal = lObj._str(val);
+				if (val instanceof Date) strVal = lObj._str(val.toFormat('MM/dd/yyyy 0h:0m:0s 000 am'));
+				
+				expn_i = 'this._match(data,' + lObj._str(lObj._listFields[i].name) + ',' + strVal + ','+JSON.stringify(obj)+')';
+				expn.push(expn_i);
+				
+				if (v.item.connector && i < map.length - 1) {
+					if (v.item.connector == 'AND') expn.push('&&');
+					else expn.push('||');
+				}
+				
+				aco.control = map[i].control;
+				aco.value = val;
+				ac.push(aco);
+			}
+			
+			if (expn.length == 0) return true;
+			
+			if (expn[expn.length - 1] == '||' || expn[expn.length - 1] == '&&') expn.pop();
+			
+			let operator = searchObj ? '' : '&&';
 			if (typeof lObj._searchPartOperator != 'undefined') operator = lObj._searchPartOperator;
 			expn = expn.join(' ' + operator + ' ');
-			
-			if (expn == '') return true;
 			
 			let fnText = 'if (' + expn + ') { return true; } else { return false; }';
 			let searchFn = new Function('data', fnText);
@@ -1452,7 +1635,7 @@ class DynamicListSearch {
 			obj.dateFormat = obj_i.dateFormat;
 		}
 		
-		lObj._searchListServerSide = () => {
+		lObj._searchListServerSide = (searchObj) => {
 			let flagDirty = false;
 			if (lObj.listIsDirty) flagDirty = lObj.listIsDirty();
 			
@@ -1461,7 +1644,8 @@ class DynamicListSearch {
 				return false;
 			}
 
-			let filters = [];
+			let filters = searchObj ? searchObj.queryData : [];
+			
 			let map = lObj._searchPart.fieldMap;
 			for (let i = 0; i < map.length; i++) {
 				let val = this.obj.getValue(map[i].control);
@@ -1482,10 +1666,22 @@ class DynamicListSearch {
 						columnName: ops.searchField,
 						columnVal: columnVal,
 						connector: 'AND',
-						op: op
+						op: op,
+						type: ops.type,
 					});
 				}
 			}
+			
+			filters.forEach(e => {
+				if (e.op == '..x..') {
+					e.op = 'LIKE';
+					e.columnVal = '%' + e.columnVal + '%';
+				}
+				
+				if (e.columnVal instanceof Date) {
+					e.columnVal = e.columnVal.toFormat('MM/dd/yyyy hh:mm:ss 000 am');
+				}
+			});
 			
 			this.list.setFilterAndFetch(filters);
 		};
@@ -1554,6 +1750,7 @@ class DynamicListSearch {
 			if (!mapping.editType) mapping.editType = 'text';
 			switch (mapping.editType) {
 				case 'text':
+				case 'dropdown':
 					type = 'c';
 					break;
 				case 'time':
