@@ -1208,9 +1208,10 @@ class DynamicList {
 	
 	populateListBox() {
 		this.listBox.populate(this.data);
+		console.log(this.listBox._data);
 		this.listBox._refreshStateMessages();
-		this.listBox.refresh();
 		for (const f of this.onRender) { f() }
+		this.listBox.refresh();
 	}
 	
 	buildList() {
