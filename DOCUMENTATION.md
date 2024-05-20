@@ -134,6 +134,7 @@ The `DynamicList` object controls all of the rendering and data syncing for the 
 >
 > **makeFilterFromSelected(colName, foreignColName)**
 > > Create a filter array based on the selected row.
+> >
 > > **colName**
 > > > Column name *in this list* to filter by. 
 > > 
