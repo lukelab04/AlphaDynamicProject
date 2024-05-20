@@ -33,6 +33,11 @@ class DynamicList {
 		this.config = config;
 		this.data = [];
 		
+		if (config.dataSource.type != 'sql' && config.advancedSearch) {
+			console.warn('Advanced search is only available for SQL-backed lists. Falling back to default search.');
+			config.advancedSearch = false;
+		}
+		
 		obj.getControl('LIST1')._size = () => {};
 		obj.getControl('LIST1')._resize = () => {};
 		obj.saveDynamicListEdits = () => this.saveDynamicListEdits();
@@ -50,13 +55,15 @@ class DynamicList {
 	}
 	
 	saveDynamicListEdits() {
+		if (this.config.dataSource.type != 'sql') return;
+		
 		let harvest = this.listBox.harvestList();
 		this.obj.ajaxCallback(
 			"", 
 			"",
 			"updateData",
 			"",
-			"tableName=" + this.config.table
+			"tableName=" + this.config.dataSource.table
 			+ "&dirty=" + encodeURI(JSON.stringify(harvest)),
 			{ onComplete: () => {
 				this.listBox.__fixData(this.listBox);
@@ -1142,57 +1149,56 @@ class DynamicList {
 	}
 	
 	fetchData(callback) {
-		let columns = [];
-		this.config.mappings.forEach((c) => {
-			columns.push(c.columnName);
-		});
-		
-		let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-		let paginate = '';
-		if (this.config.paginate) {
-			paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
-		}
-		
-		this.obj.ajaxCallback(
-			"",
-			"",
-			"getAllDataForTable",
-			"",
-			"columns=" + encodeURIComponent(JSON.stringify(columns))
-			+ "&tableName=" + encodeURIComponent(this.config.table)
-			+ "&filters=" + encodeURIComponent(filters)
-			+ paginate,
-			{
-				onComplete: () => {
-					this.data = this.obj.stateInfo.allListData;
-					let pageSize = (this.config.paginate ? this.config.paginate.pageSize : this.obj.stateInfo.numRowsAvailable);
-					this.listBox._state = {
-						pageSize: pageSize,
-						page: this.listBox._state.page,
-						pageCount: Math.ceil(this.obj.stateInfo.numRowsAvailable / pageSize),
-						recordCount: this.obj.stateInfo.numRowsAvailable,
-					};
-					callback();
+		if (this.config.dataSource.type == 'sql') {
+			let columns = [];
+			this.config.mappings.forEach((c) => {
+				columns.push(c.columnName);
+			});
+			
+			let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+			let paginate = '';
+			if (this.config.paginate) {
+				paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
+			}
+			
+			this.obj.ajaxCallback(
+				"",
+				"",
+				"getAllDataForTable",
+				"",
+				"columns=" + encodeURIComponent(JSON.stringify(columns))
+				+ "&tableName=" + encodeURIComponent(this.config.dataSource.table)
+				+ "&filters=" + encodeURIComponent(filters)
+				+ paginate,
+				{
+					onComplete: () => {
+						this.data = this.obj.stateInfo.allListData;
+						let pageSize = (this.config.paginate ? this.config.paginate.pageSize : this.obj.stateInfo.numRowsAvailable);
+						this.listBox._state = {
+							pageSize: pageSize,
+							page: this.listBox._state.page,
+							pageCount: Math.ceil(this.obj.stateInfo.numRowsAvailable / pageSize),
+							recordCount: this.obj.stateInfo.numRowsAvailable,
+						};
+						callback();
+					}
 				}
-			}
-		);
-	}
-	
-	countRows(callback) {
-		let tableName = this.config.table;
-		let filters = JSON.stringify(this.permanentFilters);
-		
-		obj.ajaxCallback(
-			"",
-			"",
-			"countRows",
-			"",
-			"&tableName=" + encodeURIComponent(tableName)
-			+ "&filters=" + encodeURIComponent(filters),
-			{
-				onComplete: callback
-			}
-		)
+			);
+		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.static) {
+			this.data = this.config.dataSource.static;
+			callback();
+		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.url) {
+			fetch(this.config.dataSource.url)
+			.then(res => {
+				res.json()
+				.then((json) => {
+					let data = json;
+					if (this.config.dataSource.preprocess) data = this.config.dataSource.preprocess(data);
+					this.data = data;
+					callback();
+				});
+			});
+		}
 	}
 	
 	addOnRenderCallback(f) {
@@ -1536,6 +1542,9 @@ class DynamicListSearch {
 				else mode = 'serverside';
 			}
 			
+			// Non sql list data always overrides to client search
+			if (this.list.config.dataSource.type != 'sql') mode = 'clientside';
+			
 			
 			let flagDirty = false;
 			if (lObj.listIsDirty) flagDirty = lObj.listIsDirty();
@@ -1594,7 +1603,7 @@ class DynamicListSearch {
 				if (v.item.columnVal) val = v.item.columnVal;
 				else val = v.item;
 
-				obj_i = lObj._searchFieldOptions[lObj._listFields[i].name.toUpperCase()];
+				obj_i = lObj._searchFieldOptions[lObj._listFields[i].name];
 				lObj._setSearchOps(obj, obj_i);
 				
 				let strVal = val.toString();

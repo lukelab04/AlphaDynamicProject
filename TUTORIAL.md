@@ -78,7 +78,10 @@ The last thing we need is the `CUSTOMER_CONFIG` and `openNewCallback` definition
 
 ```js
 let CUSTOMER_CONFIG = {
-    table: 'Customer',
+    dataSource: {
+        type: 'sql',
+        table: 'Customer',
+    },
     buttons: [],
     mappings: [
         {
@@ -188,7 +191,10 @@ Next, go to the `Javascript Functions` section of the main layout. Define the fo
 
 ```js
 let PRODUCT_CONFIG = {
-    table: 'Product',
+    dataSource: {
+        type: 'sql',
+        table: 'Product',
+    },
     buttons: [
         {
             columnTitle: 'Open Detail View',
@@ -229,7 +235,10 @@ let PRODUCT_CONFIG = {
 };
 
 let INVOICE_HEADER_CONFIG = {
-    table: "Invoice_Header",
+    dataSource: {
+        type: 'sql',
+        table: "Invoice_Header",
+    }
     buttons: [
         {
             columnTitle: 'Open Detail View',
