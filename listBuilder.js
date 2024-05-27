@@ -1185,8 +1185,11 @@ class DynamicList {
 				}
 			);
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.static) {
-			this.data = this.config.dataSource.static;
-			callback();
+			setTimeout(() => {
+				this.data = this.config.dataSource.static;
+				if (this.config.dataSource.preprocess) this.data = this.config.dataSource.preprocess(data);
+				callback();
+			}, 100);
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.url) {
 			fetch(this.config.dataSource.url)
 			.then(res => {
