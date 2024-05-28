@@ -22,7 +22,7 @@ function getSchema(obj, table, callback) {
 }
 
 class DynamicList {
-	constructor(obj, config, filters = []) {
+	constructor(obj, config, filters = [], args = []) {
 		this.permanentFilters = filters;
 		this.searchFilters = [];
 		this.buttonFns = {};
@@ -30,12 +30,16 @@ class DynamicList {
 		this.onRender = [];
 		this.obj = obj;
 		this.listBox = null;
-		this.config = config;
+		this.config = jQuery.extend({}, config);
 		this.data = [];
 		
-		if (config.dataSource.type != 'sql' && config.advancedSearch) {
+		if (this.config.onInitialize) {
+			this.config.onInitialize(this, args);
+		}
+		
+		if (this.config.dataSource.type != 'sql' && this.config.advancedSearch) {
 			console.warn('Advanced search is only available for SQL-backed lists. Falling back to default search.');
-			config.advancedSearch = false;
+			this.config.advancedSearch = false;
 		}
 		
 		obj.getControl('LIST1')._size = () => {};
@@ -48,7 +52,22 @@ class DynamicList {
 		this.fetchData(() => this.populateListBox());
 
 	}
-
+	
+	setStaticData(data) {
+		this.config.dataSource.type = 'json';
+		if (this.config.dataSource.type != 'sql' && this.config.advancedSearch) {
+			console.warn('Advanced search is only available for SQL-backed lists. Falling back to default search.');
+			this.config.advancedSearch = false;
+		}
+		this.config.dataSource.static = data;
+		this.settings = this.buildSettings();
+		this.buildList();
+		this.fetchData(() => this.populateListBox());
+	}
+	
+	selection() {
+		return this.data[this.listBox.selectionKey[0]]
+	}
 	
 	openDetailView() {
 		this.obj.runAction('Navigate Detail View');
@@ -185,7 +204,7 @@ class DynamicList {
 				method: 'JSONForm'
 			},
 			_inplaceEditing: { allow: false },
-			_dataSourceType: 'SQL',
+			_dataSourceType: this.config.dataSource.type == 'sql' ? 'SQL' : 'Static',
 			_detailViewGlobalErrorStyle: 'font-family: Arial; font-size: 10pt; color: red; border: solid 1px red; width: 100%;',
 			_autoCommitDetailView: true,
 			customization: {
@@ -1185,11 +1204,9 @@ class DynamicList {
 				}
 			);
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.static) {
-			setTimeout(() => {
-				this.data = this.config.dataSource.static;
-				if (this.config.dataSource.preprocess) this.data = this.config.dataSource.preprocess(data);
-				callback();
-			}, 100);
+			this.data = this.config.dataSource.static;
+			if (this.config.dataSource.preprocess) this.data = this.config.dataSource.preprocess(data);
+			callback();
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.url) {
 			fetch(this.config.dataSource.url)
 			.then(res => {
@@ -1211,10 +1228,10 @@ class DynamicList {
 	
 	populateListBox() {
 		this.listBox.populate(this.data);
-		console.log(this.listBox._data);
 		this.listBox._refreshStateMessages();
 		for (const f of this.onRender) { f() }
 		this.listBox.refresh();
+		this.listBox.resize();
 	}
 	
 	buildList() {

@@ -36,7 +36,7 @@
 <PDFPrintTimeoutMessage="">
 <PDFMaxPages=1000>
 <HTMLReportOffload=.F.>
-<jsLibraries<jQueryCore="None">
+<jsLibraries<jQueryCore="Load Internal Version">
 <jQueryUI="None">
 <links="">
 <vuejs="None">
@@ -204,7 +204,7 @@
 >
 <stripe<keysJSON="">
 >
-<siteDefaults<guessedDefaultPage=.F.>
+<siteDefaults<guessedDefaultPage=.T.>
 <defaultpage="index.a5w">
 <useExternalRedirect=.F.>
 <maxUploadSizeMB=100>
@@ -224,6 +224,11 @@
 <wellknownPath=".well-known\acme-challenge">
 >
 <defaultExtensions="">
+<sessionTimeout=15>
+<sessionCookieName="XBasic_SessionId">
+<authenticationCookieName=".ASPXFORMSAUTH">
+<extendAuthenticationCookieOnEachRequest=.F.>
+<executionTimeout=0>
 >
 <aggressive_cleanup=.F.>
 <federatedAuthentication<tableType="SQL">
@@ -234,3 +239,4 @@
 <responseHeaders<includeInsecureHeaders=.F.>
 <additionalHeaders="">
 >
+<pdfReferenceDevice="">
