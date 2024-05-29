@@ -13,6 +13,10 @@
 # List Configuration
 Lists are created dynamically by referencing a JSON configuration object. The object has the following structure. 
 
+> **onInitialize**: `function(DynamicList, any) => any`
+> > If specified, this function will be called after the list object is created. The first 
+> > parameter is a reference to the current dynamic list object. The second parameter contains any arguments passed in to `openNewPanel`.
+> 
 > **dataSource**: `object`
 > > Specify where the list data comes from.
 > >
@@ -31,17 +35,27 @@ Lists are created dynamically by referencing a JSON configuration object. The ob
 > > **preprocess**: `function (object) => object`
 > > > If `type="sql"`, this function will take in the raw data from the API and transform it. Useful if the API data is not in the correct format.
 >
-> **serverSearch**: `boolean`
-> > Specify whether the list should search server-side or not. This can be overridden by other properties if those properties do not support server-side searching (or vice versa).
->
-> **advancedSearch**: `boolean`
-> > Specify whether to show an advanced search builder or a simple search form. This option will be overridden if the dataSource type is not `"sql"`.
->
-> **paginate**: `object | undefined`
-> > If defined, specify pagination options
+> **searchOptions**: `object`
+> > Specify search options
 > > 
-> > **pageSize**: `integer`
-> > > Specify how many entries to fetch per page
+> > **serverSearch**: `boolean`
+> > > Specify whether the list should search server-side or not. This can be overridden by other properties if those properties do not support server-side searching (or vice versa).
+> >
+> >
+> > **advancedSearch**: `boolean`
+> > > Specify whether to show an advanced search builder or a simple search form. This option will be overridden if the dataSource type is not `"sql"`.
+> > 
+> > **onlyInclude**: `[string]`
+> > > An array of column names. If specified, *only* these columns will appear in the search.
+> >
+> > **onlyExclude** `[string]`
+> > > An array of column names. If specified, *only* these columns will be excluded in the search.
+> > **paginate**: `object | undefined`
+> > > If defined, specify pagination options
+> > >
+> > > 
+> > > **pageSize**: `integer`
+> > > > Specify how many entries to fetch per page
 >
 > **buttons**: `array`
 > > Lists support action and dropdown buttons in addition to regular data cells. Those buttons are specified here. Each array entry is an object with the following form.
@@ -115,7 +129,7 @@ The `DynamicList` object controls all of the rendering and data syncing for the 
 > > The [configuration object](#list-configuration) used to create this list
 
 ## Methods 
-> **constructor(obj, config, filters)**
+> **constructor(obj, config, filters, args)**
 >
 > > **obj**: `object`
 > > > Pointer to the Dialog Object containing this list
@@ -125,6 +139,9 @@ The `DynamicList` object controls all of the rendering and data syncing for the 
 > > 
 > > **filters**: `array`
 > > > Array of filters used for this list. Defaults to an empty array. Filters should probably not be specified manually. See the section on filters for more information.
+> >
+> > **args**: `any`
+> > > If the `onInitialize` function is specified, these arguments will be passed in.
 >
 > **openDetailView()**
 > > Open the detail view for the selected row
@@ -152,6 +169,15 @@ The `DynamicList` object controls all of the rendering and data syncing for the 
 > > Register a function to be called when the list is rendered.
 > >
 > > **f**: `() => any`
+>
+> > **setStaticData(data)**
+> > > Set the static data for the list. This overrides any data provided in the configuration.
+> > >
+> > > **data**: `object`
+> > > > JSON data to show in the list.
+>
+> **selection()**
+> > Return the currently selected list row.
 
 
 ## DynamicListSearch

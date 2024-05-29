@@ -1,5 +1,17 @@
 # Dynamic List Tutorial 
 
+- [Dynamic List Tutorial](#dynamic-list-tutorial)
+  - [Overview](#overview)
+- [Setting Up](#setting-up)
+  - [Building a Layout](#building-a-layout)
+      - [IMPORTANT -- Link JS Files](#important----link-js-files)
+  - [Populating the List](#populating-the-list)
+  - [More Features](#more-features)
+  - [Creating More Lists](#creating-more-lists)
+  - [Hooking Lists Together](#hooking-lists-together)
+  - [Opening Lists Programmatically](#opening-lists-programmatically)
+
+
 ## Overview
 This project aims to automate the process of building CRUD lists. 
 
@@ -31,7 +43,7 @@ Next, we'll define the "home page", where we can show multiple lists. Create a n
 
 Again, add an alias to this Embedded Object. We'll show a list of customers, so use the alias `CUSTOMER_LIST`.
 
-#### IMPORTANT
+#### IMPORTANT -- Link JS Files
 Go to `Javascript Linked Files` in the `main_layout_ux` and add `formBuilder.js,listBuilder.js`. These two Javascript files contain the class definitions that we will be using.
 
 If you try running this, you will just get an empty list. Our next step is to populate the list with data. 
@@ -40,7 +52,7 @@ If you try running this, you will just get an empty list. Our next step is to po
 We need a way to communicate from the main layout to each embedded layout. There are several ways of doing this. I found it easiest to register a callback to the dialog object itself. Go to the `afterPrepare` event on your list layout (mine is `example_layout_ux`) and paste the following code.
 
 ```js
-{dialog.object}.populateDynamicElements = function(config, filters = []) {
+{dialog.object}.populateDynamicElements = function(config, filters = [], args = []) {
     let load = setInterval(() => {
         // Get the embedded objects
         let embeddedList = {dialog.object}.getChildObject('DYNAMIC_LIST');
@@ -50,7 +62,7 @@ We need a way to communicate from the main layout to each embedded layout. There
         // This code will run every 200ms until both objects are defined.
         if (!embeddedList || !embeddedSearch) return;
 
-        let list = new DynamicList(embeddedList, config, filters);
+        let list = new DynamicList(embeddedList, config, filters, args);
         let search = new DynamicListSearch(list, embeddedSearch);
 
         // Both objects have been defined, so we can stop running this function
@@ -82,6 +94,7 @@ let CUSTOMER_CONFIG = {
         type: 'sql',
         table: 'Customer',
     },
+    searchOptions: {},
     buttons: [],
     mappings: [
         {
@@ -121,8 +134,11 @@ Edit `CUSTOMER_CONFIG` to add the following.
 ```js
 let CUSTOMER_CONFIG = {
     ...
-    paginate: {
-        pageSize: 30
+    searchOptions: {
+        serverSearch: true,
+        paginate: {
+            pageSize: 30
+        }
     }
     ...
 }
@@ -195,6 +211,7 @@ let PRODUCT_CONFIG = {
         type: 'sql',
         table: 'Product',
     },
+    searchOptions: {},
     buttons: [
         {
             columnTitle: 'Open Detail View',
@@ -238,7 +255,8 @@ let INVOICE_HEADER_CONFIG = {
     dataSource: {
         type: 'sql',
         table: "Invoice_Header",
-    }
+    },
+    searchOptions: {},
     buttons: [
         {
             columnTitle: 'Open Detail View',
@@ -291,14 +309,14 @@ function newPanelTitle() {
 	return title;
 }
 
-function openNewPanel(config, titleName, filters) {
+function openNewPanel(config, titleName, filters, args = []) {
 	title = titleName;
 	counter += 1;
 	let open = () => {dialog.object}.runAction('Open Panel');
 	let build = () => {
 		let name = NEWPANELALIAS() + '_DlgObj';
 		let newObj = window[name];
-		newObj.populateDynamicElements(config, filters);
+		newObj.populateDynamicElements(config, filters, args);
 	};
 	A5.executeThisThenThat(open, build);
 }
@@ -336,7 +354,7 @@ The `openNew` function is also important. We supply the configuration of the lis
 We can also build the title dynamically from the list data. The underlying list object is stored in the `listBox` property of `list`, so we could do the following:
 ```js
 ...
-let data = list.listBox.selectionData[0];
+let data = list.selection();
 let name = data.FIRSTNAME + ' ' + data.LASTNAME;
 openNewPanel(INVOICE_HEADER_CONFIG, 'Invoice Headers for ' + name, filters);
 ```
