@@ -170,11 +170,11 @@ The `DynamicList` object controls all of the rendering and data syncing for the 
 > >
 > > **f**: `() => any`
 >
-> > **setStaticData(data)**
-> > > Set the static data for the list. This overrides any data provided in the configuration.
-> > >
-> > > **data**: `object`
-> > > > JSON data to show in the list.
+> **setStaticData(data)**
+> > Set the static data for the list. This overrides any data provided in the configuration.
+> >
+> > **data**: `object`
+> > > JSON data to show in the list.
 >
 > **selection()**
 > > Return the currently selected list row.
