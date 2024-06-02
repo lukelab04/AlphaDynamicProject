@@ -141,7 +141,7 @@ DIM PDFPrintTimeoutMessage as C
 DIM PDFMaxPages as N = 1000
 DIM HTMLReportOffload as L
 DIM jsLibraries as P
-DIM jsLibraries.jQueryCore as C = "None"
+DIM jsLibraries.jQueryCore as C = "Load Internal Version"
 DIM jsLibraries.jQueryUI as C = "None"
 DIM jsLibraries.links as C
 DIM jsLibraries.vuejs as C = "None"
@@ -293,7 +293,7 @@ DIM css.webkit.AllowSelectionOfText as L
 DIM stripe as P
 DIM stripe.keysJSON as C
 DIM siteDefaults as P
-DIM siteDefaults.guessedDefaultPage as L
+DIM siteDefaults.guessedDefaultPage as L = .T.
 DIM siteDefaults.defaultpage as C = "index.a5w"
 DIM siteDefaults.useExternalRedirect as L
 DIM siteDefaults.maxUploadSizeMB as N = 100
@@ -313,6 +313,11 @@ DIM siteDefaults.http01ChallengeOptions.enabled as L
 DIM siteDefaults.http01ChallengeOptions.challengeVendor as C = "LetsEncrypt"
 DIM siteDefaults.http01ChallengeOptions.wellknownPath as C = ".well-known\acme-challenge"
 DIM siteDefaults.defaultExtensions as C
+DIM siteDefaults.sessionTimeout as N = 15
+DIM siteDefaults.sessionCookieName as C = "XBasic_SessionId"
+DIM siteDefaults.authenticationCookieName as C = ".ASPXFORMSAUTH"
+DIM siteDefaults.extendAuthenticationCookieOnEachRequest as L
+DIM siteDefaults.executionTimeout as N
 DIM aggressive_cleanup as L
 DIM federatedAuthentication as P
 DIM federatedAuthentication.tableType as C = "SQL"
@@ -322,7 +327,8 @@ DIM federatedAuthentication.fieldmap as C
 DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
-DIM __token as C = "7719cdf62de34caa92658addd51f5fec"
+DIM pdfReferenceDevice as C
+DIM __token as C = "717071233f8044bab044b1ec36fa3f53"
 %txt%
 
 dim gv as p 
@@ -333,10 +339,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 2024191927171944601
+gv.__A5PublishTimestamp = 2024101002071052822
 gv.__buildNumberExe__ = 8867
 gv.__buildNumberAddins__ = 5691
-gv.__guid = "cb2af7e0-aefa-4312-9dce-fc67a9082353"
+gv.__guid = "54fc9007-2584-444d-ba3d-3134646373c8"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

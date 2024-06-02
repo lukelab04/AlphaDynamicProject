@@ -1,15 +1,19 @@
 const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
 
+const objTimeFormat = () => A5.__tfmt;
+const objDatetimeFormat = () => A5.__dtfmt + ' ' + objTimeFormat();
+
 // TODO update documentation, make opening new panel API easier
 
 function alphaTypeToEditType(t) {
 	switch (t.toLowerCase()) {
 		case 'c': return 'text';
+		case 't':
 		case 'd': return 'datetime';
 		case 'l': return 'bool';
 		case 'n': return 'number';
-		case 't': return 'time';
+		case 'y': return 'time';
 	}
 }
 
@@ -17,9 +21,8 @@ function editTypeToAlphaType(t) {
 	switch (t.toLowerCase()) {
 		case 'text':
 		case 'dropdown': return 'c';
-		case 'time': return 't';
-		case 'date':
-		case 'datetime': return 'd';
+		case 'time': return 'y';
+		case 'datetime': return 't';
 		case 'bool': return 'l';
 		case 'number': return 'n';
 	}
@@ -210,13 +213,10 @@ class DynamicList {
 					for (const mapping of this.config.mappings) {
 						switch (mapping.editType) {
 							case 'time':
-								data[i][mapping.columnName] = A5.stringToDate(data[i][mapping.columnName], "0h:0m:0s am");
-								break;
-							case 'date':
-								data[i][mapping.columnName] = A5.stringToDate(data[i][mapping.columnName], "MM/dd/yyyy");
+								data[i][mapping.columnName] = A5.stringToDate(data[i][mapping.columnName]);
 								break;
 							case 'datetime':
-								data[i][mapping.columnName] = A5.stringToDate(data[i][mapping.columnName], "MM/dd/yyyy 0h:0m:0s 000 am");
+								data[i][mapping.columnName] = A5.stringToDate(data[i][mapping.columnName], mapping.serverDateFormat);
 								break;
 							case 'number':
 								data[i][mapping.columnName] = $u.s.toNum(data[i][mapping.columnName]);
@@ -225,6 +225,24 @@ class DynamicList {
 								data[i][mapping.columnName] = $u.s.toBool(data[i][mapping.columnName]);
 								break;
 						}
+					}
+				}
+			},
+			onBeforeUpdateRow: (index, data) => {
+				for (const mapping of this.config.mappings) {
+					switch (mapping.editType) {
+						case 'time':
+							data[mapping.columnName] = A5.stringToDate(data[mapping.columnName], objDatetimeFormat());
+							break;
+						case 'datetime':
+							data[mapping.columnName] = A5.stringToDate(data[mapping.columnName], objDatetimeFormat());
+							break;
+						case 'number':
+							data[mapping.columnName] = $u.s.toNum(data[mapping.columnName]);
+							break;
+						case 'bool':
+							data[mapping.columnName] = $u.s.toBool(data[mapping.columnName]);
+							break;
 					}
 				}
 			},
@@ -706,9 +724,6 @@ class DynamicList {
 					// Loop through all elements of _d. Set the flag to true if at least one of the items is true.
 
 					for (let _d of matchingVals) {
-
-						_d = _d.toString();
-
 						if (obj.type == 'n') {
 							o.v1 = Number(o.v1);
 							o.v2 = Number(o.v2);
@@ -717,11 +732,11 @@ class DynamicList {
 							o.v1 = $u.s.toBool(o.v1);
 							o.v2 = $u.s.toBool(o.v2);
 							_d = $u.s.toBool(_d);
-						} else if (obj.type == 'd') {
-							o.v1 = A5.stringToDate(o.v1, obj.dateFormat);
-							o.v2 = A5.stringToDate(o.v2, obj.dateFormat);
+						} else if (obj.type == 'd' || obj.type == 't') {
+							o.v1 = A5.stringToDate(o.v1, objDatetimeFormat());
+							o.v2 = A5.stringToDate(o.v2, objDatetimeFormat());
 
-							if (typeof _d == 'string') _d = A5.stringToDate(_d, obj.dateFormat);
+							if (typeof _d == 'string') _d = A5.stringToDate(_d, objDatetimeFormat());
 							if (o.v1 != '' && o.v1 != null) o.v1 = o.v1.getTime();
 							if (o.v2 != '' && o.v2 != null) o.v2 = o.v2.getTime();
 							if (_d != '' && _d != null) _d = _d.getTime();
@@ -903,13 +918,10 @@ class DynamicList {
 		let template = mapping.columnName;
 		switch (mapping.editType) {
 			case 'time':
-				template += ':dateString("MM/dd/yyyy 0h:0m:0s 000 am", "0h:0m AM")';
-				break;
-			case 'date':
-				template += ':dateString("MM/dd/yyyy 0h:0m:0s 000 am", "MM/dd/yyyy")';
+				template += `:date("${objTimeFormat()}")`;
 				break;
 			case 'datetime':
-				template += ':dateString("MM/dd/yyyy 0h:0m:0s 000 am", "MM/dd/yyyy 0h:0m AM")';
+				template += `:date("${objDatetimeFormat()}")`;
 				break;
 		}
 		template = '{' + template + '}';
@@ -923,7 +935,7 @@ class DynamicList {
 				html: definedOr(mapping.displayName, mapping.columnName)
 			},
 			data: {
-				template: `<span id="${this.obj.dialogId}.${LIST_NAME}.FIRSTNAME.I.{*dataRow}"> ${template} </span>`
+				template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${mapping.columnName}.I.{*dataRow}"> ${template} </span>`
 			},
 			width: mapping.width ? mapping.width : 'flex(1)',
 			resize: false,
@@ -1079,14 +1091,7 @@ class DynamicList {
 				if(this._value == '') return '';
 				if(this._value == null) return '';
 				
-				let formatIn = A5.serverSideDateFormat;
-				formatIn = A5.__dtfmt + ' ' + A5.__tfmt;
-				let timeSuffix = '';
-				
-				if( this._value.toLowerCase().indexOf('pm') > 0 || this._value.toLowerCase().indexOf('am') > 0) 
-					timeSuffix = ' AM';
-					
-				formatIn = formatIn + ' 0h:0m:0s' + timeSuffix;
+				let formatIn = ${mapping.serverDateFormat};
 				let formatOut = format;
 				let _d = A5.stringToDate(this._value,formatIn);
 				let _ds = _d.toFormat(formatOut);
@@ -1104,15 +1109,7 @@ class DynamicList {
 				if(this._value == null) 
 					return '';
 					
-				let formatIn = A5.serverSideDateFormat;
-				formatIn = A5.__dtfmt + ' ' + A5.__tfmt;
-				
-				let timeSuffix = '';
-				if (this._value.toLowerCase().indexOf('pm') > 0 || this._value.toLowerCase().indexOf('am') > 0)
-					timeSuffix = ' AM';
-					
-				formatIn = formatIn + ' 0h:0m:0s' + timeSuffix;
-				
+				let formatIn = ${mapping.serverDateFormat};
 				let formatOut = format;
 				let _d = A5.stringToDate(this._value,formatIn);
 				let _ds = _d.toFormat(formatOut);
@@ -1123,34 +1120,29 @@ class DynamicList {
 
 
 		if (mapping.editType === 'time') {
-			defn.onDetailViewPopulate = onDvPopTemplate('0h:0m AM');
-			defn.onListUpdate = onListUpdateTemplate('0h:0m AM');
-		} else if (mapping.editType === 'date') {
-			defn.onDetailViewPopulate = onDvPopTemplate('MM/dd/yyyy');
-			defn.onListUpdate = onListUpdateTemplate('MM/dd/yyyy');
+			defn.onDetailViewPopulate = onDvPopTemplate(objTimeFormat());
+			defn.onListUpdate = onListUpdateTemplate(objTimeFormat());
 		} else if (mapping.editType === 'datetime') {
-			defn.onDetailViewPopulate = onDvPopTemplate('MM/dd/yyyy 0h:0m AM');
-			defn.onListUpdate = onListUpdateTemplate('MM/dd/yyyy 0h:0m AM');
+			defn.onDetailViewPopulate = onDvPopTemplate(objDatetimeFormat());
+			defn.onListUpdate = onListUpdateTemplate(objDatetimeFormat());
 		}
 
 		return defn;
 	}
 
 	buildDetailViewForm(listId, rowNum) {
-		let _d = this.listBox._data[this.listBox._dataMap[rowNum]];
+		let _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
 
 		for (const mapping of this.config.mappings) {
 			let val = _d[mapping.columnName];
 			switch (mapping.editType) {
 				case "time":
-				case "date":
 				case "datetime":
-					if (val instanceof Date) val = val.toFormat("MM/dd/yyyy 0h:0m:0s 000 am");
+					if (val instanceof Date) val = val.toFormat(objDatetimeFormat());
 					_d[mapping.columnName] = val;
 					break;
 			}
 		}
-
 		let d = JSON.parse(JSON.stringify(_d))
 		delete d['*key'];
 		delete d['*renderIndex'];
@@ -1186,11 +1178,8 @@ class DynamicList {
 					case 'time':
 						input = input.asTime("hh:mm AM");
 						break;
-					case 'date':
-						input = input.asDate("MM/dd/yyyy");
-						break;
 					case 'datetime':
-						input = input.asDateTime("MM/dd/yyyy hh:mm AM");
+						input = input.asDateTime(objDatetimeFormat());
 						break;
 					case 'bool':
 						input = input.asBool();
@@ -1480,7 +1469,6 @@ class DynamicListSearch {
 
 		// {name: string, editType: string}
 		let getPreferredColumnOptions = (colName) => {
-			if (colName == 'category') debugger;
 			let col = { name: '', editType: 'text' };
 			this.schema.jsonOutput.column.forEach(c => {
 				if (c.name == colName) {
@@ -1527,19 +1515,14 @@ class DynamicListSearch {
 					case 'text':
 					case 'number': break;
 					case 'time':
-						element = element.asTime("hh:mm AM");
+						element = element.asTime(objTimeFormat());
 						advancedControl.type = 'datepicker';
-						advancedControl.format = 'hh:mm AM';
-						break;
-					case 'date':
-						element = element.asDate("MM/dd/yyyy");
-						advancedControl.type = 'datepicker';
-						advancedControl.format = 'MM/dd/yyyy';
+						advancedControl.format = objTimeFormat();
 						break;
 					case 'datetime':
-						element = element.asDateTime("MM/dd/yyyy hh:mm AM");
+						element = element.asDateTime(objDatetimeFormat());
 						advancedControl.type = 'datepicker';
-						advancedControl.format = 'MM/dd/yyyy hh:mm AM';
+						advancedControl.format = objDatetimeFormat();
 						break;
 					case 'bool':
 						element = element.asBool();
@@ -1619,16 +1602,15 @@ class DynamicListSearch {
 
 				let d = new Date();
 
-				if (['date', 'datetime', 'time'].includes(editType)) {
+				if (['datetime', 'time'].includes(editType)) {
 
 					if (e.value == 'Today') d.adjust('day', 0);
 					else if (e.value == 'Yesterday') d.adjust('day', -1);
 					else if (e.value == 'Tomorrow') d.adjust('day', 1);
 					else {
 						let fmt;
-						if (editType == 'date') fmt = 'MM/dd/yyyy';
-						if (editType == 'datetime') fmt = 'MM/dd/yyyy hh:mm AM';
-						if (editType == 'time') fmt = 'hh:mm AM';
+						if (editType == 'datetime') fmt = objDatetimeFormat();
+						if (editType == 'time') fmt = objTimeFormat();
 						d.fromFormat(e.value, fmt);
 					}
 
@@ -1732,6 +1714,7 @@ class DynamicListSearch {
 
 		lObj._searchPartSubmit_clientSideFilter = (searchObj) => {
 			lObj._state.highlight = {};
+			debugger;
 
 			let map = lObj._searchPart.fieldMap;
 			let val = '';
@@ -1776,7 +1759,7 @@ class DynamicListSearch {
 
 				let strVal = val.toString();
 				if (typeof val === 'string') strVal = lObj._str(val);
-				if (val instanceof Date) strVal = lObj._str(val.toFormat('MM/dd/yyyy 0h:0m:0s 000 am'));
+				if (val instanceof Date) strVal = lObj._str(val.toFormat(objDatetimeFormat()));
 
 				expn_i = 'this._match(data,' + lObj._str(v.name) + ',' + strVal + ',' + JSON.stringify(obj) + ')';
 				expn.push(expn_i);
@@ -1857,7 +1840,7 @@ class DynamicListSearch {
 				}
 
 				if (e.columnVal instanceof Date) {
-					e.columnVal = e.columnVal.toFormat('MM/dd/yyyy hh:mm:ss 000 am');
+					e.columnVal = e.columnVal.toFormat(objDatetimeFormat());
 				}
 			});
 
@@ -1924,19 +1907,19 @@ class DynamicListSearch {
 		lObj._searchPart.fieldMap = [];
 		for (const column of this.schema.jsonOutput.column) {
 
-			let type = column.alphaType;
+			let type = column.alphaType.toLowerCase();
 
 			lObj._searchPart.fieldMap.push({
 				control: 'SearchForm::' + column.name,
 				field: column.name,
-				dateFormat: 'MM/dd/yyyy 0h:0m:0s 000 am'
+				dateFormat: objDatetimeFormat()
 			});
 			lObj._searchFieldOptions[column.name] = {
 				option: 2,
 				qbs: true,
 				searchField: column.name,
 				type: type,
-				dateFormat: 'MM/dd/yyyy 0h:0m:0s 000 am'
+				dateFormat: objDatetimeFormat()
 			};
 		}
 	}

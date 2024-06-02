@@ -107,19 +107,19 @@ class FormInput {
         this.type = 'picker';
         this.control.picker = {
             type: 'date-time',
-            format: A5.serverSideDateFormat + ' 0h:0m:0s 000 am',
+            format: objDatetimeFormat(),
         };
         this.control.behavior = {
             show: { mode: '' }
         };
 
-        this.format = function(v,dObj) {
-            if(v) {
-                var fmtIn = A5.serverSideDateFormat + ' 0h:0m:0s 000 am'; 
-                var fmtOut = format ? format : 'yyyy-MM-dd'; 
-                var d = new Date(); 
-                d.fromFormat(v,fmtIn);
-                
+        this.format = function (v, dObj) {
+            if (v) {
+                var fmtIn = objDatetimeFormat();
+                var fmtOut = format ? format : objDatetimeFormat();
+                var d = new Date();
+                d.fromFormat(v, fmtIn);
+
                 return d.toFormat(fmtOut);
             }
         };
@@ -127,44 +127,23 @@ class FormInput {
         return this;
     }
 
-    asDate(format) {
-        this.type = 'picker';
-        this.control.picker = {
-            type: 'date',
-            format: A5.serverSideDateFormat,
-        };
-        this.control.behavior = {
-            show: { mode: '' }
-        };
-        this.format = function(v,dObj) {
-            if(v) {
-                var fmtIn = A5.serverSideDateFormat; 
-                var fmtOut = format ? format : 'yyyy-MM-dd'; 
-                var d = new Date(); 
-                d.fromFormat(v,fmtIn);
-                
-                return d.toFormat(fmtOut);
-            }
-        };
-        return this;
-    }
 
     asTime(format) {
         this.type = 'picker';
         this.control.picker = {
             type: 'date-time',
-            format: A5.serverSideDateFormat + " 0h:0m:0s 000 am",
+            format: objDatetimeFormat(),
         };
         this.control.behavior = {
             show: { mode: '' }
         };
-        this.format = function(v,dObj) {
-            if(v) {
-                var fmtIn = A5.serverSideDateFormat + ' 0h:0m:0s 000 am'; 
-                var fmtOut = format ? format : 'hh:mm AM'; 
-                var d = new Date(); 
-                d.fromFormat(v,fmtIn);
-                
+        this.format = function (v, dObj) {
+            if (v) {
+                var fmtIn = objDatetimeFormat();
+                var fmtOut = format ? format : objTimeFormat();
+                var d = new Date();
+                d.fromFormat(v, fmtIn);
+
                 return d.toFormat(fmtOut);
             }
         };
@@ -183,15 +162,15 @@ class FormInput {
         };
         return this;
     }
-    
+
     asDropdown(items) {
-    	this.type = 'picker';
-    	this.control.width = '100%';
-    	this.control.data = {
-    		src: items.map(x => {return {text: x, value: x}}),
-    		map: ['value', 'text']
-    	}
-    	return this;
+        this.type = 'picker';
+        this.control.width = '100%';
+        this.control.data = {
+            src: items.map(x => { return { text: x, value: x } }),
+            map: ['value', 'text']
+        }
+        return this;
     }
 
     getJSON() {
@@ -238,7 +217,7 @@ class FormButton {
         this.btnStyle = '';
         this.containerStyle = '';
         this.icon = '';
-        this.onClick = () => {};
+        this.onClick = () => { };
         this._listName = '';
     }
 
