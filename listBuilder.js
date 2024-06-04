@@ -57,6 +57,15 @@ function getSchema(obj, table, callback) {
 
 class DynamicList {
 	constructor(obj, config, filters = [], args = []) {
+
+		/* Filters like 
+			columnName: string,
+			columnVal: any,
+			connector: 'AND' | 'OR',
+			op: string (like '+', 'LIKE', '/', etc),
+			type: string ('text', 'number', etc),
+		*/
+
 		this.permanentFilters = filters;
 		this.searchFilters = [];
 		this.buttonFns = {};
@@ -937,7 +946,7 @@ class DynamicList {
 			data: {
 				template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${mapping.columnName}.I.{*dataRow}"> ${template} </span>`
 			},
-			width: mapping.width ? mapping.width : 'flex(1)',
+			width: definedOr(mapping.width, 'flex(1)'),
 			resize: false,
 			order: mapping.columnName,
 		}
@@ -1154,7 +1163,7 @@ class DynamicList {
 		for (const mapping of this.config.mappings) {
 			if (mapping.inDetailView) {
 				let input = (new FormInput())
-					.withLabel(mapping.displayName ? mapping.displayName : mapping.columnName)
+					.withLabel(definedOr(mapping.displayName, mapping.columnName))
 					.withStyle('width: 100%')
 					.withVariable(mapping.columnName);
 
@@ -1256,7 +1265,11 @@ class DynamicList {
 			if (this.config.dataSource.preprocess) this.data = this.config.dataSource.preprocess(data);
 			callback();
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.url) {
-			fetch(this.config.dataSource.url)
+
+			let url = this.populateApiSearch();
+			console.log(url);
+
+			fetch(url)
 				.then(res => {
 					res.json()
 						.then((json) => {
@@ -1267,6 +1280,58 @@ class DynamicList {
 						});
 				});
 		}
+	}
+
+	populateApiSearch() {
+		if (!this.config.dataSource.url) return;
+		let url = this.config.dataSource.url;
+
+		/* Filters like 
+			columnName: string,
+			columnVal: any,
+			connector: 'AND' | 'OR',
+			op: string (like '+', 'LIKE', '/', etc),
+			type: string ('text', 'number', etc),
+		*/
+
+		// Capture text contained within {...}
+		let parts = url.split(/({[^}]*})/);
+		let final = "";
+		let allFilters = [...this.permanentFilters, this.searchFilters];
+		parts.forEach(part => {
+
+			if (part.length == 0) return;
+
+			if (part[0] != '{') {
+				final += part;
+				return;
+			}
+			part = part.substr(1, part.length - 2);
+			// Capture words starting with $. Ignore if \ precedes the $.
+			let vars = part.split(/(?:[^\\]|^)(\$\w+)/);
+			let evalStr = '';
+			vars.forEach(v => {
+				if (v.length == 0) return;
+
+				if (v[0] != '$') {
+					evalStr += v;
+					return;
+				}
+
+				let varname = v.substr(1);
+				for (const filter of allFilters) {
+					if (filter.columnName == varname) {
+						evalStr += '"' + filter.columnVal.toString() + '"';
+						return;
+					}
+				}
+				evalStr += '""';
+			});
+
+			final += encodeURIComponent(eval(evalStr));
+		});
+
+		return final;
 	}
 
 	addOnRenderCallback(f) {
@@ -1447,7 +1512,8 @@ class DynamicListSearch {
 			buildSchema(unique);
 			callback();
 		} else if (this.list.config.dataSource.type == 'json' && 'url' in this.list.config.dataSource) {
-			fetch(this.list.config.dataSource.url)
+			let url = this.list.populateApiSearch();
+			fetch(url)
 				.then(res => res.json())
 				.then(res => {
 					let data = res;
@@ -1479,8 +1545,8 @@ class DynamicListSearch {
 
 			this.list.config.mappings.forEach(m => {
 				if (m.columnName == colName) {
-					col.name = m.displayName ? m.displayName : m.columnName;
-					col.editType = m.editType ? m.editType : col.editType;
+					col.name = definedOr(m.displayName, m.columnName);
+					col.editType = definedOr(m.editType, col.editType);
 				}
 			})
 
@@ -1866,6 +1932,8 @@ class DynamicListSearch {
 
 			let flagResult = this.obj._list_executeEvent(lObj.listVariableName, 'beforeSearch', { searchMode: 'clear', searchWhere: mode });
 			if (!flagResult) return false;
+
+			lObj.setFilter(false);
 
 			if (mode == 'serverside') {
 				lObj._clearSearchListServerSide();
