@@ -117,28 +117,88 @@ class DynamicList {
 	}
 
 	saveDynamicListEdits() {
-		if (this.config.dataSource.type != 'sql') return;
 
 		let harvest = this.listBox.harvestList();
-		this.obj.ajaxCallback(
-			"",
-			"",
-			"updateData",
-			"",
-			"tableName=" + this.config.dataSource.table
-			+ "&dirty=" + encodeURI(JSON.stringify(harvest)),
-			{
-				onComplete: () => {
-					this.listBox.__fixData(this.listBox);
-					for (let i = 0; i < this.listBox._data.length; i++) {
-						this.listBox._data[i]._isDirty = false;
-					}
-					this.listBox.populateUXControls();
-					this.obj.refreshClientSideComputations(true);
-					this.fetchData(() => this.populateListBox());
-				}
+		let onComplete = () => {
+			this.listBox.__fixData(this.listBox);
+			for (let i = 0; i < this.listBox._data.length; i++) {
+				this.listBox._data[i]._isDirty = false;
 			}
-		);
+			this.listBox.populateUXControls();
+			this.obj.refreshClientSideComputations(true);
+			this.fetchData(() => this.populateListBox());
+		};
+
+		if (this.config.dataSource.type == 'sql') {
+			this.obj.ajaxCallback(
+				"",
+				"",
+				"updateData",
+				"",
+				"tableName=" + this.config.dataSource.table
+				+ "&dirty=" + encodeURI(JSON.stringify(harvest)),
+				{
+					onComplete: onComplete,
+				}
+			);
+		} else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
+			let newRows = [];
+			let updatedRows = [];
+			let deletedRows = [];
+
+			harvest.forEach(r => {
+				if ('_isNewRow' in r && r._isNewRow === true) {
+					newRows.push(r);
+				} else if ('_isDeleted' in r && r._isDeleted === true) {
+					deletedRows.push(r);
+				} else {
+					updatedRows.push(r);
+				}
+			});
+
+			let getOptions = (rowData, ep) => {
+				let method = this.populateUrlParams(ep.method, rowData);
+				let headers = {};
+				let body = {};
+				for (const h in ep.headers) {
+					headers[h] = this.populateUrlParams(ep.headers[h], rowData);
+				}
+				for (const b in ep.body) {
+					body[b] = this.populateUrlParams(ep.body[b], rowData);
+				}
+				let endpoint = this.populateUrlParams(ep.endpoint, rowData);
+				return { method: method, headers: headers, body: body, endpoint: endpoint };
+			}
+
+			let allQueries = [];
+
+			let populateQueries = (list, endpoint) => {
+				list.forEach(n => {
+					if (endpoint in this.config.dataSource.endpoints) {
+						let ep = this.config.dataSource.endpoints[endpoint];
+						let ops = getOptions(n, ep);
+						allQueries.push({
+							ops: ops,
+							callback: definedOr(ep.callback, () => { })
+						});
+					}
+				})
+			}
+
+			populateQueries(newRows, 'add');
+			populateQueries(updatedRows, 'update');
+			populateQueries(deletedRows, 'delete');
+
+			allQueries.forEach(q => {
+				q.callback(fetch(q.ops.endpoint, {
+					method: q.ops.method,
+					headers: q.ops.headers,
+					body: JSON.stringify(q.ops.body),
+				}))
+			})
+
+			onComplete();
+		}
 	}
 
 	buildSettings() {
@@ -1264,12 +1324,39 @@ class DynamicList {
 			this.data = jQuery.extend(true, [], this.config.dataSource.static);
 			if (this.config.dataSource.preprocess) this.data = this.config.dataSource.preprocess(data);
 			callback();
-		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.url) {
+		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
 
-			let url = this.populateApiSearch();
-			console.log(url);
+			let endpoint;
+			let method = 'GET';
+			let headers = {};
+			let body = {};
+			let url;
 
-			fetch(url)
+			if (this.permanentFilters.length == 0 && this.searchFilters.length == 0) {
+				endpoint = this.config.dataSource.endpoints.fetch;
+			} else {
+				endpoint = this.config.dataSource.endpoints.search;
+			}
+
+			let data = this.filtersAsSimpleObj();
+
+			method = this.populateUrlParams(endpoint.method, data);
+			for (const header in endpoint.headers) {
+				headers[header] = this.populateUrlParams(headers[header], data);
+			}
+
+			for (const item in endpoint.body) {
+				headers[item] = this.populateUrlParams(headers[item], data);
+			}
+
+
+			url = this.populateUrlParams(endpoint.endpoint, data);
+
+			fetch(url, {
+				method: method,
+				headers: headers,
+				body: method == 'GET' ? undefined : JSON.stringify(body),
+			})
 				.then(res => {
 					res.json()
 						.then((json) => {
@@ -1282,10 +1369,15 @@ class DynamicList {
 		}
 	}
 
-	populateApiSearch() {
-		if (!this.config.dataSource.url) return;
-		let url = this.config.dataSource.url;
+	filtersAsSimpleObj() {
+		let data = {};
+		for (const item of [...this.permanentFilters, this.searchFilters]) {
+			data[item.columnName] = item.columnVal;
+		}
+		return data;
+	}
 
+	populateUrlParams(url, data) {
 		/* Filters like 
 			columnName: string,
 			columnVal: any,
@@ -1294,10 +1386,11 @@ class DynamicList {
 			type: string ('text', 'number', etc),
 		*/
 
-		// Capture text contained within {...}
-		let parts = url.split(/({[^}]*})/);
+		if (typeof url != 'string') return;
+
+		// Capture text contained within {...}. Ignore if \ precedes {.
+		let parts = url.split(/([^\\]|^)({[^}]*})/);
 		let final = "";
-		let allFilters = [...this.permanentFilters, this.searchFilters];
 		parts.forEach(part => {
 
 			if (part.length == 0) return;
@@ -1319,13 +1412,11 @@ class DynamicList {
 				}
 
 				let varname = v.substr(1);
-				for (const filter of allFilters) {
-					if (filter.columnName == varname) {
-						evalStr += '"' + filter.columnVal.toString() + '"';
-						return;
-					}
+				if (varname in data) {
+					evalStr += '"' + data[varname].toString() + '"';
+				} else {
+					evalStr += '""';
 				}
-				evalStr += '""';
 			});
 
 			final += encodeURIComponent(eval(evalStr));
@@ -1511,8 +1602,9 @@ class DynamicListSearch {
 			let unique = getUniqueCols(staticData);
 			buildSchema(unique);
 			callback();
-		} else if (this.list.config.dataSource.type == 'json' && 'url' in this.list.config.dataSource) {
-			let url = this.list.populateApiSearch();
+		} else if (this.list.config.dataSource.type == 'json' && 'endpoints' in this.list.config.dataSource) {
+			let data = this.list.filtersAsSimpleObj();
+			let url = this.list.populateUrlParams(this.list.config.dataSource.endpoints.fetch.endpoint, data);
 			fetch(url)
 				.then(res => res.json())
 				.then(res => {
@@ -1780,7 +1872,6 @@ class DynamicListSearch {
 
 		lObj._searchPartSubmit_clientSideFilter = (searchObj) => {
 			lObj._state.highlight = {};
-			debugger;
 
 			let map = lObj._searchPart.fieldMap;
 			let val = '';
