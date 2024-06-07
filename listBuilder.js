@@ -734,8 +734,7 @@ class DynamicList {
 				let flagKeyword = false;
 				if (typeof obj.flagKeyword != 'undefined') flagKeyword = obj.flagKeyword;
 				if (flagKeyword) {
-					let _field = field.toUpperCase();
-					let obj_i = lObj._searchFieldOptions[_field];
+					let obj_i = lObj._searchFieldOptions[field];
 					lObj._setSearchOps(obj, obj_i);
 					field = obj_i.searchField;
 				}
@@ -1346,11 +1345,11 @@ class DynamicList {
 			}
 
 			for (const item in endpoint.body) {
-				headers[item] = this.populateUrlParams(headers[item], data);
+				body[item] = this.populateUrlParams(headers[item], data);
 			}
 
 
-			url = this.populateUrlParams(endpoint.endpoint, data);
+			url = encodeURI(this.populateUrlParams(endpoint.endpoint, data));
 
 			fetch(url, {
 				method: method,
@@ -1371,7 +1370,7 @@ class DynamicList {
 
 	filtersAsSimpleObj() {
 		let data = {};
-		for (const item of [...this.permanentFilters, this.searchFilters]) {
+		for (const item of [...this.permanentFilters, ...this.searchFilters]) {
 			data[item.columnName] = item.columnVal;
 		}
 		return data;
@@ -1419,7 +1418,7 @@ class DynamicList {
 				}
 			});
 
-			final += encodeURIComponent(eval(evalStr));
+			final += eval(evalStr);
 		});
 
 		return final;
@@ -1849,10 +1848,6 @@ class DynamicListSearch {
 				else mode = 'serverside';
 			}
 
-			// Non sql list data always overrides to client search
-			if (this.list.config.dataSource.type != 'sql') mode = 'clientside';
-
-
 			let flagDirty = false;
 			if (lObj.listIsDirty) flagDirty = lObj.listIsDirty();
 
@@ -1968,7 +1963,7 @@ class DynamicListSearch {
 			for (let i = 0; i < map.length; i++) {
 				let val = this.obj.getValue(map[i].control);
 				if (val != '' && val != undefined) {
-					let ops = lObj._searchFieldOptions[schemaCols[i].name.toUpperCase()];
+					let ops = lObj._searchFieldOptions[schemaCols[i].name];
 
 					let columnVal = '';
 					let op = '';
