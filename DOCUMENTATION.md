@@ -29,8 +29,21 @@ Lists are created dynamically by referencing a JSON configuration object. The ob
 > > **static**: `array`
 > > > If `type="sql"` and you want static data, this property holds the array of list data. 
 > >
-> > **url**: `string`
-> > > If `type="sql"` and you want to get data from an API, specify the API url here
+> > **endpoints**: `object`
+> > > If `type="json"` and you want to get data from an API, this object holds the endpoints. Each key is one of `fetch`, `search`, `add`, `update`, or `delete`, and each value is of the following form:
+> > > 
+> > > **method**: `string`
+> > > > HTTP method. GET, POST, DELETE, etc.
+> > >
+> > > **headers**: `object`
+> > > > Headers to pass to HTTP request
+> > >
+> > > **endpoint**: `string | function([filters]) => string`
+> > > > Endpoint to fetch. If a string, then any templates will be filled and the string will be used as the URL. You can also supply a function accepting a list of filters based on the currently selected row and returning a string URL. This is useful for APIs with complex queries not covered by templates.
+> > > 
+> > > **callback**: `function(Promise) => any`
+> > > > Callback accepting the Promise returned from the API call
+> > > 
 > >
 > > **preprocess**: `function (object) => object`
 > > > If `type="sql"`, this function will take in the raw data from the API and transform it. Useful if the API data is not in the correct format.

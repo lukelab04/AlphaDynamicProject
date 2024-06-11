@@ -80,11 +80,6 @@ class DynamicList {
 			this.config.onInitialize(this, args);
 		}
 
-		if (this.config.dataSource.type != 'sql' && this.config.searchOptions.advancedSearch) {
-			console.warn('Advanced search is only available for SQL-backed lists. Falling back to default search.');
-			this.config.searchOptions.advancedSearch = false;
-		}
-
 		obj.getControl('LIST1')._size = () => { };
 		obj.getControl('LIST1')._resize = () => { };
 		obj.saveDynamicListEdits = () => this.saveDynamicListEdits();
@@ -98,10 +93,6 @@ class DynamicList {
 
 	setStaticData(data) {
 		this.config.dataSource.type = 'json';
-		if (this.config.dataSource.type != 'sql' && this.config.searchOptions.advancedSearch) {
-			console.warn('Advanced search is only available for SQL-backed lists. Falling back to default search.');
-			this.config.searchOptions.advancedSearch = false;
-		}
 		this.config.dataSource.static = data;
 		this.settings = this.buildSettings();
 		this.buildList();
@@ -1385,6 +1376,10 @@ class DynamicList {
 			type: string ('text', 'number', etc),
 		*/
 
+		if (typeof url == 'function') {
+			return url([...this.permanentFilters, ...this.searchFilters]);
+		}
+
 		if (typeof url != 'string') return;
 
 		// Capture text contained within {...}. Ignore if \ precedes {.
@@ -1398,7 +1393,7 @@ class DynamicList {
 				final += part;
 				return;
 			}
-			part = part.substr(1, part.length - 2);
+			part = part.substring(1, part.length - 2);
 			// Capture words starting with $. Ignore if \ precedes the $.
 			let vars = part.split(/(?:[^\\]|^)(\$\w+)/);
 			let evalStr = '';
@@ -1717,7 +1712,7 @@ class DynamicListSearch {
 					default: {
 						op: '='
 					},
-					label: column.name
+					label: preferred.name
 				};
 			}
 		}
@@ -1748,7 +1743,7 @@ class DynamicListSearch {
 
 				for (const mapping of this.list.config.mappings) {
 					if (mapping.columnName == col) {
-						return mapping.editType;
+						return definedOr(mapping.editType, 'text');
 					}
 				}
 				return type;

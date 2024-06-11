@@ -10,6 +10,8 @@
   - [Creating More Lists](#creating-more-lists)
   - [Hooking Lists Together](#hooking-lists-together)
   - [Opening Lists Programmatically](#opening-lists-programmatically)
+  - [API Backed Lists](#api-backed-lists)
+    - [API List Templates](#api-list-templates)
 
 
 ## Overview
@@ -401,3 +403,72 @@ Say we want to open a dynamic list from a button, Action Javascript, or some oth
 openNewPanel(INVOICE_ITEM_CONFIG, 'All Invoice Items', []);
 ```
 Notice that we pass in an empty array for `filters` because we'd like to see all of the items. 
+
+--- 
+
+## API Backed Lists
+Hooking lists up to APIs can be done by modifying the `dataSource` variable to `"json"`. From there, either define a key `static` to hold static JSON data, or define a key `endpoints` to map to an actual API. For example, 
+
+```js
+dataSource: {
+    type: "json",
+    endpoints: {
+        fetch: {
+            method: "GET",
+            headers: {},
+            endpoint: "https://my-api/...",
+        },
+        search: {
+            method: "GET",
+            headers: {},
+            endpoint: "...",
+        },
+        add: {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: {
+                title: "...",
+                ...
+            },
+            callback: result => result.then(...),
+            endpoint: "...",
+        },
+        update: ...,
+        delete: ...,
+    }
+}
+```
+
+The endpoints that can be defined are `fetch`, `search`, `add`, `update`, and `delete`. For each, the keys that can be specified are 
+- `method`: POST, GET, HEAD, etc
+- `headers`: All headers
+- `body`: Data passed in the body of the HTTP request
+- `callback`: Promise returned by the API
+- `endpoint`: String URL to fetch
+
+### API List Templates
+Note that the example above does not provide a way to query list data. We can do this by specifying templates, which are valid in any string value (e.g. `endpoint`, `method`, values for `headers` and `body`, etc). Inside a template string, substrings of the form `{...}` will be evaluated as a Javascript expression, with `$varName` used to reference list variables. 
+
+For example, imagine our list has columns `FirstName` and `LastName`, and let the selected 
+row contain the values `"John"` and `"Doe"`. Then, the template
+
+```
+https://my-api.com/user?f_name={$FirstName}&l_name={$LastName}
+```
+
+would evaluate to 
+
+```
+https://my-api.com/user?f_name=John&l_name=Doe
+```
+
+Again, templates are valid outside just the URL. If this data needed to be passed in the body, for example, we could do 
+
+```js
+body {
+    f_name: "{$FirstName}",
+    l_name: "{$LastName}"
+}
+```
