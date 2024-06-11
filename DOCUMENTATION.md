@@ -7,6 +7,7 @@
   - [DynamicListSearch](#dynamiclistsearch)
   - [Properties](#properties-1)
   - [Methods](#methods-1)
+  - [Filters](#filters)
 - [LIST\_UX, SEARCH\_UX](#list_ux-search_ux)
 
 
@@ -213,6 +214,27 @@ The `DynamicListSearch` controls the search form and searching functions for the
 > > 
 > > **obj**: `object`
 > > > Dialog Object containing this search form 
+
+
+## Filters
+Internally, filters are passed around to tell Dynamic Lists which data to fetch. However, if a custom function is supplied for an API URL, then you may need to interact with filters directly. 
+
+> **columnName**: `string`
+> > Name of the column in the list
+>
+> **columnVal**: `any`
+> > Value specified for the column
+>
+> **connector**: `'AND' | 'OR'`
+> > If this filter is coming from an Advanced Search form, then this field specifies whether this filter should be ANDed or ORed with the other filters.
+> 
+> **op**: `string`
+> >  Any valid SQL binary operation, like `+`, `LIKE`, or `/`.
+>
+> **type**: `string`
+> > Type of the data stored. Can be `text`, `boolean`, `number`, `datetime`, `time`, or `dropdown`. 
+
+Filters can come from a variety of sources. If a list is created with some filters (e.g. from opening it from another list's button), then those filters will appear. Filters can also come from both simple and advanced search forms.
 
 
 # LIST_UX, SEARCH_UX
