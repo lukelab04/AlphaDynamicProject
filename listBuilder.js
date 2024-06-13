@@ -1332,11 +1332,11 @@ class DynamicList {
 
 			method = this.populateUrlParams(endpoint.method, data);
 			for (const header in endpoint.headers) {
-				headers[header] = this.populateUrlParams(headers[header], data);
+				headers[header] = this.populateUrlParams(endpoint.headers[header], data);
 			}
 
 			for (const item in endpoint.body) {
-				body[item] = this.populateUrlParams(headers[item], data);
+				body[item] = this.populateUrlParams(endpoint.body[item], data);
 			}
 
 
