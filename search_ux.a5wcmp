@@ -31,7 +31,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tgetAllDataForTable = stdQueries.getTableData(e)\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function",
+        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tgetAllDataForTable = stdQueries.getTableData(e)\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -174,8 +174,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-25",
-            "dateLastEdited": "2024-5-28",
-            "revisionnumber": 114
+            "dateLastEdited": "2024-6-16",
+            "revisionnumber": 115
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -324,11 +324,8 @@
                     "localJavascript": "",
                     "controlContainerStyle": "",
                     "cssGridItemPropertiesJSON": "",
-                    "formbox": {
-                        "height": "3in",
-                        "width": "4in",
-                        "fillPanelContainer": true,
-                        "definitionJSON": "{\n\t\"_state\": {\n\t\t\"showPane\": {\n\t\t\t\"css\": false,\n\t\t\t\"javascript\": false,\n\t\t\t\"items\": true,\n\t\t\t\"preview\": true\n\t\t},\n\t\t\"tabPage\": \"FormLayout\",\n\t\t\"flagShowLineNumbers\": false,\n\t\t\"LayoutSelected_n\": 1,\n\t\t\"fieldSelected_n\": 0,\n\t\t\"layoutGenieFieldSelected_c\": \"\",\n\t\t\"fieldselected_c\": \"\",\n\t\t\"itemSelected_c\": \"\",\n\t\t\"groupSelected_c\": \"\",\n\t\t\"cssMode\": 1,\n\t\t\"jsmode\": 1,\n\t\t\"selected_javascriptLocal_c\": \"\",\n\t\t\"flagPreviewOpen\": false\n\t},\n\t\"formview\": {\n\t\t\"datasource\": {\n\t\t},\n\t\t\"formProperties\": {\n\t\t\t\"hasMultipleLayouts\": false,\n\t\t\t\"theme\": \"{dialog.style}\",\n\t\t\t\"item\": {\n\t\t\t\t\"className\": \"listItem\",\n\t\t\t\t\"label\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t},\n\t\t\t\t\"description\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"javascript\": {\n\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\"onInitialize\": \"\"\n\t\t\t},\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"namedLayoutsJSON\": \"\"\n\t\t},\n\t\t\"fields\": [],\n\t\t\"items\": [],\n\t\t\"groups\": [],\n\t\t\"layouts\": [\n\t\t{\n\t\t\t\"layoutName\": \"default\",\n\t\t\t\"defaultLayout\": false,\n\t\t\t\"layoutDataType\": \"Data\",\n\t\t\t\"layoutDefinition\": \"\",\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"defaultTemplate\": \"\",\n\t\t\t\"postProcessJavascript\": \"\",\n\t\t\t\"layoutType\": \"Genie\",\n\t\t\t\"last_layoutGenieFieldSelected_c\": \"\",\n\t\t\t\"itemsArray\": []\n\t\t}],\n\t\t\"javascriptLocal\": [],\n\t\t\"css\": \"\",\n\t\t\"Javascript\": \"\"\n\t}\n}"
+                    "listView": {
+                        "allchildren": ""
                     },
                     "info": {
                         "level": 0,
@@ -354,8 +351,11 @@
                         "break": true,
                         "display": "{B=White,Light Blue}{Data=72228034-2134-4681-ba14-4d2ac137f203}{I:'$$control.form'} [SearchForm]<<break>>"
                     },
-                    "listview": {
-                        "allchildren": ""
+                    "formbox": {
+                        "height": "3in",
+                        "width": "4in",
+                        "fillPanelContainer": true,
+                        "definitionJSON": "{\n\t\"_state\": {\n\t\t\"showPane\": {\n\t\t\t\"css\": false,\n\t\t\t\"javascript\": false,\n\t\t\t\"items\": true,\n\t\t\t\"preview\": true\n\t\t},\n\t\t\"tabPage\": \"FormLayout\",\n\t\t\"flagShowLineNumbers\": false,\n\t\t\"LayoutSelected_n\": 1,\n\t\t\"fieldSelected_n\": 0,\n\t\t\"layoutGenieFieldSelected_c\": \"\",\n\t\t\"fieldselected_c\": \"\",\n\t\t\"itemSelected_c\": \"\",\n\t\t\"groupSelected_c\": \"\",\n\t\t\"cssMode\": 1,\n\t\t\"jsmode\": 1,\n\t\t\"selected_javascriptLocal_c\": \"\",\n\t\t\"flagPreviewOpen\": false\n\t},\n\t\"formview\": {\n\t\t\"datasource\": {\n\t\t},\n\t\t\"formProperties\": {\n\t\t\t\"hasMultipleLayouts\": false,\n\t\t\t\"theme\": \"{dialog.style}\",\n\t\t\t\"item\": {\n\t\t\t\t\"className\": \"listItem\",\n\t\t\t\t\"label\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t},\n\t\t\t\t\"description\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"javascript\": {\n\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\"onInitialize\": \"\"\n\t\t\t},\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"namedLayoutsJSON\": \"\"\n\t\t},\n\t\t\"fields\": [],\n\t\t\"items\": [],\n\t\t\"groups\": [],\n\t\t\"layouts\": [\n\t\t{\n\t\t\t\"layoutName\": \"default\",\n\t\t\t\"defaultLayout\": false,\n\t\t\t\"layoutDataType\": \"Data\",\n\t\t\t\"layoutDefinition\": \"\",\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"defaultTemplate\": \"\",\n\t\t\t\"postProcessJavascript\": \"\",\n\t\t\t\"layoutType\": \"Genie\",\n\t\t\t\"last_layoutGenieFieldSelected_c\": \"\",\n\t\t\t\"itemsArray\": []\n\t\t}],\n\t\t\"javascriptLocal\": [],\n\t\t\"css\": \"\",\n\t\t\"Javascript\": \"\"\n\t}\n}"
                     }
                 },
                 "precalc": {
@@ -381,8 +381,8 @@
                     },
                     "precalc": {
                         "javascriptAbstractSetupCode": "",
-                        "_jsOnChangeFunction": "function onChange_AdvancedSearch_9bd032594af84e248ed78c025938bf3b(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('ADVANCEDSEARCH');};",
                         "controlHTMLInPanelCard": "in panel card",
+                        "_jsOnChangeFunction": "function onChange_AdvancedSearch_9bd032594af84e248ed78c025938bf3b(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('ADVANCEDSEARCH');};",
                         "javascript_dataBoundCustomControlData": "{dialog.object}._dataBoundCustomControlData['ADVANCEDSEARCH'] = [[dialog.dataBoundCustomControlData.AdvancedSearch]]; ",
                         "javascript_dataBoundCustomControlSettings": "{dialog.object}._dataBoundCustomControlSettings['ADVANCEDSEARCH'] = [[dialog.dataBoundCustomControlSettings.AdvancedSearch]]; ",
                         "javascript_dataBoundCustomControl": "{dialog.object}._controls['ADVANCEDSEARCH'] =  { type: 'dataBoundCustomControl',  data: {dialog.object}._dataBoundCustomControlData['ADVANCEDSEARCH'],  onInitialize: function() { if(this._onInitialize) {this._onInitialize();} },  settings: {dialog.object}._dataBoundCustomControlSettings['ADVANCEDSEARCH'] }"
@@ -527,11 +527,11 @@
                     "precalc": {
                         "javascriptClientSideWatches": "{dialog.object}.dialogWatches['ENABLE_DUMMY_LIST'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar enable = (false);\n\tvar eles = $cetp($n('V.R' + data.rowNumber + '.DUMMY_LIST'),$('{dialog.componentName}.R'+data.rowNumber));\n\tif(typeof eles.length == 'undefined' || eles.length == 0) eles = [$('{grid.componentname}.'+'V.R' + data.rowNumber + '.DUMMY_LIST')];\n\tvar pObj = {dialog.object}.getControl('dummy_list'); if(pObj) { if(typeof pObj.setDisabled != 'undefined') {  pObj.setDisabled(!enable,eles); return true;  } }\n\tif(typeof {dialog.object}._buttons['dummy_list'] != 'undefined') {\n\t{dialog.object}._buttons['dummy_list'].setDisabled(!enable,eles)\n\t} else {\n\tfor(var i=0; i<eles.length;i++) eles[i].disabled = !enable;\n\t}\n\t;;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'enable', control: 'dummy_list', flag: enable});}\n}\n\n",
                         "javascriptAbstractSetupCode": "",
-                        "_jsOnChangeFunction": "function onChange_dummy_list_dd1800d60bbb44289802771982029090(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DUMMY_LIST');};",
                         "controlHTMLInPanelCard": "in panel card",
                         "javascript_listViewData": "{dialog.object}._listViewData['DUMMY_LIST'] = [[dialog.listViewData.dummy_list]]; ",
                         "javascript_listViewSettings": "{dialog.object}._listViewSettings['DUMMY_LIST'] = [[dialog.listViewSettings.dummy_list]]; ",
-                        "javascript_listview": "{dialog.object}._controls['DUMMY_LIST'] =  { type: 'list',  data: {dialog.object}._listViewData['DUMMY_LIST'],  onInitialize: function() {\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['DUMMY_LIST'] }"
+                        "javascript_listview": "{dialog.object}._controls['DUMMY_LIST'] =  { type: 'list',  data: {dialog.object}._listViewData['DUMMY_LIST'],  onInitialize: function() {\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['DUMMY_LIST'] }",
+                        "_jsOnChangeFunction": "function onChange_dummy_list_dd1800d60bbb44289802771982029090(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DUMMY_LIST');};"
                     },
                     "lookup": {
                         "flagIsdefined": false,
@@ -616,32 +616,7 @@
                     "localJavascript": "",
                     "controlContainerStyle": "",
                     "cssGridItemPropertiesJSON": "",
-                    "info": {
-                        "level": 0,
-                        "isContainerStart": false,
-                        "isTabControlStart": false,
-                        "isContainerEnd": false,
-                        "isTabControlEnd": false,
-                        "isTabPaneEnd": false,
-                        "lastItemInTabPane": false,
-                        "inContainer": false,
-                        "inCSSGridContainer": false,
-                        "inRepeatingSection": false,
-                        "inTabPane": false,
-                        "parentContainerID": "",
-                        "repeatingSectionParentId": "",
-                        "parentTabID": "",
-                        "parentTabPaneID": "",
-                        "index": 3,
-                        "color": "",
-                        "icon": "$$control.browse",
-                        "displayText": "[dummy_list]",
-                        "parentPanelCardId": "",
-                        "break": true,
-                        "display": "{B=White,Light Blue}{Data=dd1800d6-0bbb-4428-9802-771982029090}{I:'$$control.browse'} [dummy_list]<<break>>"
-                    },
-                    "listview": {
-                        "allchildren": "",
+                    "listView": {
                         "listGUID": "549ec0a5-de69-4089-8d1e-8158efcaecbb",
                         "compressList": false,
                         "class": "<Default>",
@@ -1640,7 +1615,32 @@
                         "previewMode": false,
                         "__xbjs": "ps.__checkedImage = \"svgIcon=#alpha-icon-checkCircle:icon,24\"\nps.__uncheckedImage = \"svgIcon=#alpha-icon-circle:icon,24\"",
                         "_templateCSS": "\n",
+                        "allchildren": "",
                         "optimizeJSONSize": true
+                    },
+                    "info": {
+                        "level": 0,
+                        "isContainerStart": false,
+                        "isTabControlStart": false,
+                        "isContainerEnd": false,
+                        "isTabControlEnd": false,
+                        "isTabPaneEnd": false,
+                        "lastItemInTabPane": false,
+                        "inContainer": false,
+                        "inCSSGridContainer": false,
+                        "inRepeatingSection": false,
+                        "inTabPane": false,
+                        "parentContainerID": "",
+                        "repeatingSectionParentId": "",
+                        "parentTabID": "",
+                        "parentTabPaneID": "",
+                        "index": 3,
+                        "color": "",
+                        "icon": "$$control.browse",
+                        "displayText": "[dummy_list]",
+                        "parentPanelCardId": "",
+                        "break": true,
+                        "display": "{B=White,Light Blue}{Data=dd1800d6-0bbb-4428-9802-771982029090}{I:'$$control.browse'} [dummy_list]<<break>>"
                     }
                 },
                 "precalc": {
@@ -1710,7 +1710,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "113",
+        "_buildCount": "114",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -1869,7 +1869,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240528184239385",
+        "A5SaveTimeStamp": "20240616094236894",
         "forceChromeControl": true,
         "flagOptimizedUXTree": true,
         "flagReanalyzeContainers": false,
@@ -1967,7 +1967,7 @@
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip:H4sIAAAAAAAAC81Z/0/jOBa/Xxlp/gcfM2jhNClpue5BMrDqFGYHid1bwezOSafTyE3c1osb5xyXwlT87/f8JYmTJm2B+eGEgPjl+X3ze59nO+8z+cAIkg8pOd2V5F4eRlm2e/b61VTOGFoib0FGt1R6EqfelE6mDH6lF3HGRYDEZIT3/Xf65yAseOcZEV5GGIlkgBKeEHg1yzzJ59HUw5GkPLH0x9ev6FjgGUHLxsnKIMXUGfQjnkhMEyLQcsw4lgEjYxmmOI5pMgn89N7yDb9c4Qc+l2iZv0N/h5fITEJ6Fhrxey+j3/TbERcxqASSMpN/89pfZu3vrPUt741pPwsaf6IxuRCCiyFnyNKK8TKmWcrwQ2CCVs665gvNdAlRqHE5onGW86G182jCIJDeiPHoNqwo+YOSxS88JiVvA9NFTGWVqWYI8FwmBdc66VtOXNXYYNY5FfJhneghI3glCjXtmZHSKnW7STVNhSlErcVnyGm0NBUkSByOIbFVzpDgOJVVtk95wUHOK64FUYNgxFn7NJq6wkc4up0IPk/i4M14PMZjjOaC7f9AZ3hCssO3kJyHb5WUw+P748O3Y8rY4e/pXv/jOcUTnmAWfJlSSfaOBnu9o16/v9cb9o5OzN9Omkw6uK9F/XAQmnQPuuk9yjijMXozPj4OZ1hMaAK1nwY9KMO8JtVziweXSTqvBGhFsCIauYpYm+nEbEVEr0lECR03GnVI/GEupaoXnuKIyoeg0w8hMBIEYJZO8b6ln/YB9MzMy+SOZnTEyBWkJVo6Ua9jpOHXYKSyBNAMReq/ggs5BZgqgoKUYWhBYzm1z1Oz/GbA74gAMYsATWkckyREBd7p99Y7M7D+G1jRplKmPMunGquuaCZ/BrPTTwQDe4aW3zyaxOQ+6Ic7Kc+oRm5BGJb0Tme0+VGom6PzAGKfDEkiFVBXEdimgkLgAM8lz3NDaK80ReG9h5WIAEVaSCtWPzbovQLRLVpblKxtB4+oQce1ya0Nrrk6tOp1frRH8Aw5He0danZ4E5OxeBOXq7HotWtVruNydJaNu0REVGlBeW92IPucZhjKKS6LEHX6j0W6fVQTIJJXeESY0oyWZYKiIkN3HPRBvbLQK9Mvkwx68hoh6+dQBTo6Am0cZjOzlkWlCxYEKwtMYpU2o7/SWcqFxIkskqUip00yJCmnalE9cgeLm5nyd1zEIwDDuQSaE+RwR2vu+3vhjs5n1FWBC3dMBdkRkgIn2ZiLWWAeIVhkH1698/rdvQMQoohWT8GLjnx/lr1DoCF/LPDOEJoWSA9WfIRQOViprTKW66fCoa41pdHUru/vHWyvMg/rixX/mN4fFGv5G04IuyY6BktUtg67yXb6R6fbNx3EAd5BFAGWQJg/U8nIPxOdDDXieNxALSusKEpTjbZXIKeRn5ycFJ0bqdat4S0mIA87u/loLjJ1LLBpl+M7NDbJZ2YicsU8Vj1QgYDe2azeIqYOtFbWINytdq9XVPtnPPrMUxsaO7AhMaPWULhnhvV25Wa4ptmCcbc9Twhe1Xa0rPnrdUuxBfHI9fmDJpZu23HpuSG8xPnv62hucJ4DzmJXQLHipWpHpY96VHqohk/N84a8eolTxr5i+WyoKqtnacot67ilOP0QJOmWWrpqhqWvevxUZ60+g/NtZfUS963Rhf9GU8V9QzqqlasCg2qiuhQVVXes1azFjwrwhOVOQonHSbzFPL9SXDAH/jnVZQlOeRlKuSQNe4snrdIGjKnsdZ63bAt11vMyaGFEcSwEThtcfg4WwdwbkmLQzkUZa22EW+w1x/MDz5Hrjm+PjupJIiwoZlVFKjluIsEZ2ybmlTBt61hzOLcusqYFrbig8/n/0AcXmDY64SR/Q7NtwuhGLGtuV2t3NO52FtmjO6qc3dUG98BY+wWOuHyBlvbuz/iJYzrPTJycu72Vd64EdfRvQhHf991rGPSm1+uFpYW94nKhbmGvX24S69u8YKrO/82bPeddBZiqdLMLqtJs+6wS80ZTE5vvJgx5uZJN4CsR+WWZ9uEXkswvJZmhFebKwQ8zPrm+WUGLEiBiUA2r/CaKohDpY6TFib5zFDeHmGKJcrEfOdc3Ey5X10/LY/ggobNrLmGnfuKb8DqE4fBLjdY9rnMBBdjajrprjkXWUlffv3Hfi6YkuiXxKU/+A4ErTxRC8+yf+DGZHDTMBSO2mO61zAcvtpgNXG2zt1S/KuFmgdOaK+gM/S1gOJMgjrJ4Oz8a5Kh12SxqsyQwehuTtvDNJstmYc2y1veGZySeFgrWWBMsv0WkVu6K7Q3XC8Xp2LRA9VSAnF+TV08aJX5MRSn/STNdw5yTuXOEfn+oP4Cd6WeI1y1s+BgBgDnd3VUxPd3V77MpIXK3/pkMTQUZn+7C4+FAYbeR1YHxT6M5KI0A8eXXbvdIfVB7n0WCwo5FkBkgJh3TZMHFLXTlVJA7Shau8D/xHTbsuygT0aqKP1c1gCd6xlnuyBOs/5pNsSDxjWZe64Xyo+WLYYfqr0yvXyEEHUHSCLP8CnRG45iRUL2yF9q9HyEL1Djf4xUE9Q0iMG1TDTMp+C2xBH1RrdTc0G9ENfuN6tZJc9XrW1vHPj0u1JVbC8VSNu9/9A3P8vd//XZ9cX3x6zn8OR9cXQ5uHr8Ozv8Y/Dq8OL+5GFwPP6HOf+dEPHxQEdX3rDG9M+Iqu7fniVM390ZYvfqlstt1TN15hRW1tTvGF1jgOFXYoQ3wBF+8XHC7+IgwFjZlAkBP+D1j7BhShaV6hL+Ts00ujxl5rg/225ouDJDiwZ50oQBREWawH8qL0/dtmEp4fF88FKS//A/9m05zPSAAAA==",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

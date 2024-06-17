@@ -194,9 +194,6 @@ function updateTableData (e as p) as c
 		dim shouldUpdate as l
 		dim shouldInsert as l
 		
-		' I know this is a very long-winded way to write this, but in the future it might be helpful 
-		' to have separate flags like this.
-		
 		if prop_valid(item.value, "_isDeleted") then 
 			shouldDelete = item.value._isDeleted
 		else if prop_valid(item.value, "_isNewRow") then 
@@ -341,7 +338,69 @@ function runDeleteQuery as c (e as p, schema as p, item as p, cn as sql::connect
 end function
 
 
+function performFetch as c (e as p)
+	dim settings as p
+	dim settings.method as c
+	dim settings.host as c
+	dim options as p
+	dim urlData as p
+	
+	if e.options <> "undefined" then
+		options = json_parse(e.options)
+	else 
+		options = json_parse("{}")
+	end if
+	
+	urlData = a5_split_url(e.url)
+	settings.host = urlData.server
+
+	dim settings.page as c
+	settings.page = urlData.path + urlData.page
+	
+	if urlData.query_string <> "" then 
+		dim settings.query_string as c 
+		settings.query_string = urlData.query_string
+	end if
+	
+	
+	if prop_valid(options, "method") then 
+		settings.method = options.method
+	else 
+		settings.method = "GET"
+	end if 
+	
+	dim apiKeys as p
+	dim keysFilePath as c
+	keysFilePath = "./apiKeys.json"
+	apiKeys = json_parse(FILE.to_string(keysFilePath))
+	
+	if prop_valid(options, "headers") then
+		dim settings.header as c
+		settings.header = ""
+		for each property in properties_enum(options.headers)
+			dim val as c
+			val = options.headers.data(property.value)
+			if substr(val, 1, 7) == "__KEY__" then 
+				val = apiKeys.data(substr(val, 8))
+			end if
+			
+			settings.header = settings.header + property.value + ": " + val
+		next
+	end if
+	
+	if prop_valid(options, "body") then 
+		dim settings.body as c
+		settings.body = options.body
+	end if
+	
+	dim result as P
+	performFetch = json_generate(http_fetch(settings))
+	
+end function
+
+
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData
 exports.countRowsWithFilter = countRowsWithFilter
+exports.performFetch = performFetch
 

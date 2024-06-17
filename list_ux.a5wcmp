@@ -31,7 +31,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tgetAllDataForTable = stdQueries.getTableData(e)\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function",
+        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tgetAllDataForTable = stdQueries.getTableData(e)\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -175,8 +175,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2024-6-1",
-            "revisionnumber": 474
+            "dateLastEdited": "2024-6-16",
+            "revisionnumber": 475
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -737,20 +737,22 @@
                 "parentContainer": 5,
                 "displayODtree": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>",
                 "crc": "4294953718",
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "containerStartIndex": 0,
                 "v": {
                     "controlType": "list",
                     "variableName": "list1",
                     "type": "Character",
-                    "localXbasic": "",
-                    "localJavascript": "",
-                    "controlContainerStyle": "",
-                    "cssGridItemPropertiesJSON": "",
                     "maxLength": -1,
                     "watermark": {
                         "text": "<FieldLabel>"
+                    },
+                    "precalc": {
+                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_LIST1'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'list1', flag: $if(showHide == '',true,false)});}\n}\n\n",
+                        "javascriptAbstractSetupCode": "",
+                        "controlHTMLInPanelCard": "in panel card",
+                        "javascript_listViewData": "{dialog.object}._listViewData['LIST1'] = [[dialog.listViewData.list1]]; ",
+                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['LIST1'] = [[dialog.listViewSettings.list1]]; ",
+                        "javascript_listview": "{dialog.object}._controls['LIST1'] =  { type: 'list',  data: {dialog.object}._listViewData['LIST1'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['LIST1'] }",
+                        "_jsOnChangeFunction": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};"
                     },
                     "lookup": {
                         "flagIsdefined": false,
@@ -758,7 +760,6 @@
                             "openLookupOnFocus": false
                         }
                     },
-                    "textboxSubTheme": "",
                     "textboxAutocorrect": true,
                     "textboxAutoCapitalize": true,
                     "label": "List1",
@@ -782,8 +783,6 @@
                         "trimTrailingSeparatorOnBlur": false
                     },
                     "showExpression": "false",
-                    "getFunction": "",
-                    "setFunction": "",
                     "onChange_ValidationOption": "Client-side only",
                     "dataBinding": {
                         "updateable": true,
@@ -800,6 +799,44 @@
                         "encrypted": false,
                         "encryptionkey": ""
                     },
+                    "textboxSubTheme": "",
+                    "getFunction": "",
+                    "setFunction": "",
+                    "datePicker": {
+                        "displayTimePicker": false,
+                        "openMethod": "ClickIcon",
+                        "dateFormat": "<Default>",
+                        "iconNumber": 2,
+                        "OKButtonLabel": "OK",
+                        "CancelButtonLabel": "Cancel",
+                        "userMustSelectFromDatePicker": false,
+                        "multiple": {
+                            "allow": false,
+                            "separators": ".."
+                        },
+                        "hasMask": false,
+                        "format": {
+                            "mask": ""
+                        },
+                        "timePickerOptionsDefined": false,
+                        "display": false,
+                        "useComboBoxes": true,
+                        "lowYear": 1950,
+                        "highYear": 2050,
+                        "switchYear": 30,
+                        "lowDate": "",
+                        "highDate": "",
+                        "disabledDays": "",
+                        "disabledDates": ""
+                    },
+                    "displayAsSlider": false,
+                    "flags": {
+                        "clientSideDefinition": false
+                    },
+                    "localXbasic": "",
+                    "localJavascript": "",
+                    "controlContainerStyle": "",
+                    "cssGridItemPropertiesJSON": "",
                     "listView": {
                         "listGUID": "27accd17-2b12-4ebf-ade6-a6e11be22a51",
                         "compressList": false,
@@ -1966,16 +2003,16 @@
                                         "groupName": "Group1"
                                     },
                                     "unboundField": false,
-                                    "baseName": "Firstname",
                                     "display": "{data=3}{I:'$$control.smartField'} Firstname (C)",
+                                    "xbfunction": "",
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
                                     "controlHTML": "<span id=\"{dialog.componentName}.LIST1.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
                                     "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.LIST1.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
-                                    "_templateEditingFreeform": "{Firstname}",
-                                    "xbfunction": "",
-                                    "deleteField": false
+                                    "deleteField": false,
+                                    "baseName": "Firstname",
+                                    "_templateEditingFreeform": "{Firstname}"
                                 },
                                 {
                                     "name": "Lastname",
@@ -2174,16 +2211,16 @@
                                         "groupName": "Group1"
                                     },
                                     "unboundField": false,
-                                    "baseName": "Lastname",
                                     "display": "{data=4}{I:'$$control.smartField'} Lastname (C)",
+                                    "xbfunction": "",
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
                                     "controlHTML": "<span id=\"{dialog.componentName}.LIST1.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
                                     "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.LIST1.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
-                                    "_templateEditingFreeform": "{Lastname}",
-                                    "xbfunction": "",
-                                    "deleteField": false
+                                    "deleteField": false,
+                                    "baseName": "Lastname",
+                                    "_templateEditingFreeform": "{Lastname}"
                                 }
                             ]
                         },
@@ -2597,33 +2634,6 @@
                         "allchildren": "",
                         "optimizeJSONSize": true
                     },
-                    "datePicker": {
-                        "displayTimePicker": false,
-                        "openMethod": "ClickIcon",
-                        "dateFormat": "<Default>",
-                        "iconNumber": 2,
-                        "OKButtonLabel": "OK",
-                        "CancelButtonLabel": "Cancel",
-                        "userMustSelectFromDatePicker": false,
-                        "multiple": {
-                            "allow": false,
-                            "separators": ".."
-                        },
-                        "hasMask": false,
-                        "format": {
-                            "mask": ""
-                        },
-                        "timePickerOptionsDefined": false,
-                        "display": false,
-                        "useComboBoxes": true,
-                        "lowYear": 1950,
-                        "highYear": 2050,
-                        "switchYear": 30,
-                        "lowDate": "",
-                        "highDate": "",
-                        "disabledDays": "",
-                        "disabledDates": ""
-                    },
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -2647,31 +2657,21 @@
                         "parentPanelCardId": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
                         "break": true,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>"
-                    },
-                    "displayAsSlider": false,
-                    "precalc": {
-                        "controlHTMLInPanelCard": "in panel card",
-                        "javascript_listViewData": "{dialog.object}._listViewData['LIST1'] = [[dialog.listViewData.list1]]; ",
-                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['LIST1'] = [[dialog.listViewSettings.list1]]; ",
-                        "javascript_listview": "{dialog.object}._controls['LIST1'] =  { type: 'list',  data: {dialog.object}._listViewData['LIST1'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['LIST1'] }",
-                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_LIST1'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'list1', flag: $if(showHide == '',true,false)});}\n}\n\n",
-                        "_jsOnChangeFunction": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};",
-                        "javascriptAbstractSetupCode": ""
-                    },
-                    "flags": {
-                        "clientSideDefinition": false
                     }
                 },
                 "precalc": {
-                    "columnInfo": "'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }\n",
                     "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.LIST1\" name=\"V.R{grid.rownumber}.LIST1\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.LIST1.CONTROL\"  class=\"{grid.componentName}_LIST1\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": "",
+                    "columnInfo": "'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }\n",
                     "listviewData": "[[%%[[list1]]%%]]",
                     "listviewSearchReplace": "[[dialog.listViewData.list1]] = tmpl.page_fields[6].precalc.listViewData",
                     "listViewHasBeenRendered": false,
                     "js_afterListInitialize": "var listObj = {UXPRERENDEREDALIAS}_DlgObj.getControl('LIST1');\nif(listObj) listObj._state.recordCount = 1;\nif(listObj) listObj._state.recordCountFormatted = '1';\nif(listObj) listObj._state.lastBreakValue = '<None>';\nif(listObj) listObj._state.pageCount = 0;\nif(listObj) listObj._state.pageSize = 20;\nif(listObj) {var ele = $('{UXPRERENDEREDALIAS}.list1.RECORDCOUNT'); if(ele) ele.innerHTML = listObj._state.recordCountFormatted;};\nif(listObj) listObj._state.paginated = true;\n\nif(listObj) listObj._state.highlight = {  };\nif(listObj) listObj._state.whereClause = '';\nif(listObj) listObj._state.whereParameters = '';\nlistObj._state.order = '';\n\t\t\n\t\tvar flagPersist = false;\n\t\tif(typeof listObj._flagPersistDataOK != 'undefined') { \n\t\t\tif(listObj._flagPersistDataOK) { \n\t\t\t\tvar data = listObj._data;\n\t\t\t\tlistObj.persistToStorage({mode:'populate', data: data, submode: 'ListViewData'});\n\t\t\t}\n\t\t}\n\t\t\n\t\t\n;\n{UXPRERENDEREDALIAS}_DlgObj._list_executeEvent('LIST1','afterRenderComplete',{});\n\nif(listObj._refreshStateMessages) listObj._refreshStateMessages();",
                     "list_CapturedFieldValueFromFirstRow": ""
-                }
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_ContainerEnd",
@@ -3255,7 +3255,7 @@
         "autoSetPreRenderOnForAllUX": true,
         "selected": "a99c667b-1092-4d68-810e-88264b95c03e\n",
         "designPaneIndex": 1,
-        "masterPaneC": "controls",
+        "masterPaneC": "XbasicFunctions",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 35,
         "clientSideEventIndexC": "35",
@@ -3273,7 +3273,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "473",
+        "_buildCount": "474",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3440,7 +3440,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240601183427611",
+        "A5SaveTimeStamp": "20240616094247807",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7  ",
@@ -3600,15 +3600,15 @@
         "unboundActionShowOnNewActionMessage": true,
         "actionJavascriptUnboundLastEdited": "7851927a-54a8-488e-9f3a-03a43995f3fc",
         "_flagForceRecalcChildren": true,
+        "_containerstorecalc": "",
         "informixFix": false,
         "__suppressContainerWarnings": "",
-        "_containerstorecalc": "",
         "prerendered": {
             "_styledataVersion": 4,
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

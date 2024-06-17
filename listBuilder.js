@@ -4,7 +4,6 @@ const DETAIL_FORM_NAME = "DETAIL_VIEW";
 const objTimeFormat = () => A5.__tfmt;
 const objDatetimeFormat = () => A5.__dtfmt + ' ' + objTimeFormat();
 
-// TODO update documentation, make opening new panel API easier
 
 function alphaTypeToEditType(t) {
 	switch (t.toLowerCase()) {
@@ -53,6 +52,25 @@ function getSchema(obj, table, callback) {
 			onComplete: callback
 		}
 	)
+}
+
+async function fetch(obj, url, options) {
+	options = JSON.stringify(options);
+	return new Promise((resolve, reject) => {
+		obj.ajaxCallback(
+			"",
+			"",
+			"fetch",
+			"",
+			`url=${encodeURIComponent(url)}&options=${encodeURIComponent(options)}`,
+			{
+				onComplete: () => {
+					let result = obj.stateInfo.fetchResult;
+					resolve(result);
+				}
+			}
+		);
+	});
 }
 
 class DynamicList {
@@ -181,7 +199,7 @@ class DynamicList {
 			populateQueries(deletedRows, 'delete');
 
 			allQueries.forEach(q => {
-				q.callback(fetch(q.ops.endpoint, {
+				q.callback(fetch(this.obj, q.ops.endpoint, {
 					method: q.ops.method,
 					headers: q.ops.headers,
 					body: JSON.stringify(q.ops.body),
@@ -1342,19 +1360,16 @@ class DynamicList {
 
 			url = encodeURI(this.populateUrlParams(endpoint.endpoint, data));
 
-			fetch(url, {
+			fetch(this.obj, url, {
 				method: method,
 				headers: headers,
 				body: method == 'GET' ? undefined : JSON.stringify(body),
 			})
-				.then(res => {
-					res.json()
-						.then((json) => {
-							let data = json;
-							if (this.config.dataSource.preprocess) data = this.config.dataSource.preprocess(data);
-							this.data = data;
-							callback();
-						});
+				.then((json) => {
+					let data = JSON.parse(json.body);
+					if (this.config.dataSource.preprocess) data = this.config.dataSource.preprocess(data);
+					this.data = data;
+					callback();
 				});
 		}
 	}
@@ -1393,7 +1408,7 @@ class DynamicList {
 				final += part;
 				return;
 			}
-			part = part.substring(1, part.length - 2);
+			part = part.substring(1, part.length - 1);
 			// Capture words starting with $. Ignore if \ precedes the $.
 			let vars = part.split(/(?:[^\\]|^)(\$\w+)/);
 			let evalStr = '';
@@ -1405,7 +1420,7 @@ class DynamicList {
 					return;
 				}
 
-				let varname = v.substr(1);
+				let varname = v.substring(1);
 				if (varname in data) {
 					evalStr += '"' + data[varname].toString() + '"';
 				} else {
@@ -1599,10 +1614,9 @@ class DynamicListSearch {
 		} else if (this.list.config.dataSource.type == 'json' && 'endpoints' in this.list.config.dataSource) {
 			let data = this.list.filtersAsSimpleObj();
 			let url = this.list.populateUrlParams(this.list.config.dataSource.endpoints.fetch.endpoint, data);
-			fetch(url)
-				.then(res => res.json())
+			fetch(this.obj, url)
 				.then(res => {
-					let data = res;
+					let data = JSON.parse(res.body);
 					let preprocess = this.list.config.dataSource.preprocess;
 					if (preprocess) data = preprocess(data);
 					let unique = getUniqueCols(data);
