@@ -80,7 +80,7 @@ class DynamicList {
 			columnName: string,
 			columnVal: any,
 			connector: 'AND' | 'OR',
-			op: string (like '+', 'LIKE', '/', etc),
+			op: string (like '=' 'LIKE', '<>', etc),
 			type: string ('text', 'number', etc),
 		*/
 
@@ -165,29 +165,17 @@ class DynamicList {
 				}
 			});
 
-			let getOptions = (rowData, ep) => {
-				let method = this.populateUrlParams(ep.method, rowData);
-				let headers = {};
-				let body = {};
-				for (const h in ep.headers) {
-					headers[h] = this.populateUrlParams(ep.headers[h], rowData);
-				}
-				for (const b in ep.body) {
-					body[b] = this.populateUrlParams(ep.body[b], rowData);
-				}
-				let endpoint = this.populateUrlParams(ep.endpoint, rowData);
-				return { method: method, headers: headers, body: body, endpoint: endpoint };
-			}
 
 			let allQueries = [];
 
 			let populateQueries = (list, endpoint) => {
-				list.forEach(n => {
+				list.forEach(rowData => {
 					if (endpoint in this.config.dataSource.endpoints) {
 						let ep = this.config.dataSource.endpoints[endpoint];
-						let ops = getOptions(n, ep);
+						let ops = this.getFetchOptions(ep, rowData);
 						allQueries.push({
 							ops: ops,
+							endpoint: ep,
 							callback: definedOr(ep.callback, () => { })
 						});
 					}
@@ -199,11 +187,7 @@ class DynamicList {
 			populateQueries(deletedRows, 'delete');
 
 			allQueries.forEach(q => {
-				q.callback(fetch(this.obj, q.ops.endpoint, {
-					method: q.ops.method,
-					headers: q.ops.headers,
-					body: JSON.stringify(q.ops.body),
-				}))
+				q.callback(fetch(this.obj, q.endpoint, q.ops));
 			})
 
 			onComplete();
@@ -1335,9 +1319,6 @@ class DynamicList {
 		} else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
 
 			let endpoint;
-			let method = 'GET';
-			let headers = {};
-			let body = {};
 			let url;
 
 			if (this.permanentFilters.length == 0 && this.searchFilters.length == 0) {
@@ -1346,31 +1327,39 @@ class DynamicList {
 				endpoint = this.config.dataSource.endpoints.search;
 			}
 
+			let options = this.getFetchOptions(endpoint);
 			let data = this.filtersAsSimpleObj();
-
-			method = this.populateUrlParams(endpoint.method, data);
-			for (const header in endpoint.headers) {
-				headers[header] = this.populateUrlParams(endpoint.headers[header], data);
-			}
-
-			for (const item in endpoint.body) {
-				body[item] = this.populateUrlParams(endpoint.body[item], data);
-			}
-
-
 			url = encodeURI(this.populateUrlParams(endpoint.endpoint, data));
 
-			fetch(this.obj, url, {
-				method: method,
-				headers: headers,
-				body: method == 'GET' ? undefined : JSON.stringify(body),
-			})
+			fetch(this.obj, url, options)
 				.then((json) => {
 					let data = JSON.parse(json.body);
 					if (this.config.dataSource.preprocess) data = this.config.dataSource.preprocess(data);
 					this.data = data;
 					callback();
 				});
+		}
+	}
+
+	getFetchOptions(endpoint, dataOverride) {
+		let data = dataOverride ? dataOverride : this.filtersAsSimpleObj();
+
+		let method = this.populateUrlParams(endpoint.method, data);
+		let headers = {};
+		let body = {};
+
+		for (const header in endpoint.headers) {
+			headers[header] = this.populateUrlParams(endpoint.headers[header], data);
+		}
+
+		for (const item in endpoint.body) {
+			body[item] = this.populateUrlParams(endpoint.body[item], data);
+		}
+
+		return {
+			method: method,
+			headers: headers,
+			body: method == 'GET' ? undefined : JSON.stringify(body)
 		}
 	}
 
@@ -1614,7 +1603,8 @@ class DynamicListSearch {
 		} else if (this.list.config.dataSource.type == 'json' && 'endpoints' in this.list.config.dataSource) {
 			let data = this.list.filtersAsSimpleObj();
 			let url = this.list.populateUrlParams(this.list.config.dataSource.endpoints.fetch.endpoint, data);
-			fetch(this.obj, url)
+			let options = this.list.getFetchOptions(this.list.config.dataSource.endpoints.fetch);
+			fetch(this.obj, url, options)
 				.then(res => {
 					let data = JSON.parse(res.body);
 					let preprocess = this.list.config.dataSource.preprocess;

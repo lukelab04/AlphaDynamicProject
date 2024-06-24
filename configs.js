@@ -301,14 +301,7 @@ let API_CONFIG = {
             search: {
                 method: 'GET',
                 headers: {},
-                //endpoint: "https://dummyjson.com/products{$title.length > 0 ? '/search?q=' + $title : ''}",
-                endpoint: (filters) => {
-                    let endpointQuery = "";
-                    filters.forEach(f => {
-                        if (f.columnName == 'title') endpointQuery += '/search?q=' + encodeURIComponent(f.columnVal);
-                    });
-                    return "https://dummyjson.com/products" + endpointQuery;
-                }
+                endpoint: "https://dummyjson.com/products{$title.length > 0 ? '/search?q=' + $title : ''}",
             },
             add: {
                 method: 'POST',
@@ -444,6 +437,33 @@ let TR_CONFIG = {
                     apikey: '__KEY__tfKey',
                 },
                 endpoint: 'https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/5saudit_enhanced',
+            },
+            search: {
+                method: 'GET',
+                headers: {
+                    apikey: '__KEY__tfKey',
+                },
+                endpoint: (filters) => {
+                    let endpointQuery = "";
+                    filters.forEach((f) => {
+                        let operator;
+                        switch (f.op) {
+                            case "=":
+                                operator = "==";
+                                break;
+                            case "<>":
+                                operator = "!=";
+                                break;
+                            default:
+                                operator = f.op;
+                                break;
+                        }
+                        let condition = "data." + f.columnName + " " + operator + " " + f.columnVal;
+                        endpointQuery += `if (${condition}) { return true; }`;
+                    });
+                    endpointQuery += "return false;";
+                    return `https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/5saudit_enhanced?formDataFilterJavascript=${endpointQuery}`;
+                }
             }
         }
     },
@@ -451,7 +471,7 @@ let TR_CONFIG = {
     searchOptions: {
         serverSearch: true,
         advancedSearch: true,
-        onlyInclude: ['title']
+        onlyInclude: ['totalScore']
     },
     mappings: [
         {
