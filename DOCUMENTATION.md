@@ -229,7 +229,7 @@ Internally, filters are passed around to tell Dynamic Lists which data to fetch.
 > > If this filter is coming from an Advanced Search form, then this field specifies whether this filter should be ANDed or ORed with the other filters.
 > 
 > **op**: `string`
-> >  Any valid SQL binary operation, like `+`, `LIKE`, or `/`.
+> >  Any valid SQL comparison operation, like `=`, `LIKE`, or `<`.
 >
 > **type**: `string`
 > > Type of the data stored. Can be `text`, `boolean`, `number`, `datetime`, `time`, or `dropdown`. 
