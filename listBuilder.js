@@ -1544,7 +1544,7 @@ function makeDetailButtons() {
 
 
 class DynamicListSearch {
-	constructor(dynamicList, obj) {
+	constructor(dynamicList, obj, onComplete) {
 		// { name: string, alphaType: string }[]
 		this.schema = {};
 		this.list = dynamicList;
@@ -1556,27 +1556,40 @@ class DynamicListSearch {
 		this.advForm.data.fields = {};
 
 		this.fetchSchema(() => {
+			debugger;
 			this.buildForms();
 			this.form.render();
+			if (typeof onComplete == 'function') onComplete();
 		});
 	}
 
 	fetchSchema(callback) {
-		let getUniqueCols = (obj) => {
-			let unique = {};
-			if (typeof obj != 'object') return;
-			for (const key in obj) {
-				if (typeof obj[key] == 'object') Object.assign(unique, getUniqueCols(obj[key]));
-				else if (obj[key] instanceof Array) obj[key].forEach(elt => Object.assign(unique, getUniqueCols(elt)));
-				else unique[key] = jsTypeToAlphaType(typeof obj[key]);
+	
+		let getUniqueCols = (data) => {
+			let getUniqueColsRec = (obj, topLvl = true) => {
+				let unique = {};
+				if (typeof obj != 'object') return;
+				for (const key in obj) {
+					if (typeof obj[key] == 'object') Object.assign(unique, getUniqueColsRec(obj[key], false));
+					else if (obj[key] instanceof Array) obj[key].forEach(elt => Object.assign(unique, getUniqueColsRec(elt, false)));
+					else unique[key] = {type: jsTypeToAlphaType(typeof obj[key]), topLvl: topLvl};
+				}
+	
+				return unique;
+			};
+			
+			let cols = {};
+			for (const row of data) {
+				Object.assign(cols, getUniqueColsRec(row, true));
 			}
+			
+			return cols;
+		};
 
-			return unique;
-		}
 
 		let buildSchema = (uniqueCols) => {
 			for (const key in uniqueCols) {
-				this.schema.jsonOutput.column.push({ name: key, alphaType: uniqueCols[key] });
+				this.schema.jsonOutput.column.push({ name: key, alphaType: uniqueCols[key].type, topLvl: uniqueCols[key].topLvl });
 			}
 		};
 
@@ -1622,11 +1635,14 @@ class DynamicListSearch {
 		} else {
 			this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
 		}
+		
+		if (this.schema.jsonOutput == undefined) return;
+		let searchCols = this.schema.jsonOutput.column;
 
 		// {name: string, editType: string}
 		let getPreferredColumnOptions = (colName) => {
 			let col = { name: '', editType: 'text' };
-			this.schema.jsonOutput.column.forEach(c => {
+			searchCols.forEach(c => {
 				if (c.name == colName) {
 					col.name = c.name;
 					col.editType = alphaTypeToEditType(c.alphaType);
@@ -1643,9 +1659,7 @@ class DynamicListSearch {
 			return col;
 		};
 
-		if (this.schema.jsonOutput == undefined) return;
-
-		for (const column of this.schema.jsonOutput.column) {
+		for (const column of searchCols) {
 			let include = this.list.config.searchOptions.onlyInclude;
 			let exclude = this.list.config.searchOptions.onlyExclude;
 
@@ -1738,7 +1752,7 @@ class DynamicListSearch {
 
 			let getEditType = (col) => {
 				let type;
-				for (const column of this.schema.jsonOutput.column) {
+				for (const column of searchCols) {
 					if (column.name == col) {
 						type = alphaTypeToEditType(column.alphaType);
 						break;

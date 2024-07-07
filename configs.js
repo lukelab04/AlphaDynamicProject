@@ -1,4 +1,5 @@
 let CUSTOMER_CONFIG = {
+	"name": "Customers",
     "dataSource": {
         "type": "sql",
         "table": "Customer",
@@ -68,7 +69,7 @@ let CUSTOMER_CONFIG = {
 };
 
 let PRODUCT_CONFIG = {
-    "title": "Products",
+    "name": "Products",
     "dataSource": {
         "type": "sql",
         "table": "Product",
@@ -127,7 +128,7 @@ let PRODUCT_CONFIG = {
 };
 
 let INVOICE_HEADER_CONFIG = {
-    "title": "Invoice Headers",
+    "name": "Invoice Headers",
     "dataSource": {
         "type": "sql",
         "table": "Invoice_Header",
@@ -193,7 +194,7 @@ let INVOICE_HEADER_CONFIG = {
 
 
 let INVOICE_ITEM_CONFIG = {
-    "title": "Invoice Items",
+    "name": "Invoice Items",
     "dataSource": {
         "type": "sql",
         "table": "Invoice_Items",
@@ -257,7 +258,7 @@ let INVOICE_ITEM_CONFIG = {
 };
 
 let JSON_CONFIG = {
-    "title": "Static Data",
+    "name": "Static Data",
     "dataSource": {
         "type": "json",
         "static": [
@@ -288,7 +289,7 @@ let JSON_CONFIG = {
     ]
 };
 let API_CONFIG = {
-    "title": "API Data",
+    "name": "API Data",
     "dataSource": {
         "type": "json",
         "preprocess": (result) => result.products,
@@ -339,7 +340,7 @@ let API_CONFIG = {
     searchOptions: {
         serverSearch: true,
         advancedSearch: true,
-        onlyInclude: ['title'],
+        //onlyInclude: ['title'],
     },
     "buttons": [
         {
@@ -389,7 +390,7 @@ let API_CONFIG = {
 };
 
 let REVIEWS_CONFIG = {
-    "title": "Reviews Data",
+    "name": "Reviews Data",
     onInitialize: function (list, args) {
         list.setStaticData(args);
     },
@@ -426,7 +427,7 @@ let REVIEWS_CONFIG = {
 };
 
 let TR_CONFIG = {
-    title: "Transform 5S Audit",
+    name: "Transform 5S Audit",
     dataSource: {
         type: "json",
         preprocess: result => result.result,

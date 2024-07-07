@@ -169,5 +169,10 @@
 		"page": "list_configure_ux.a5wcmp",
 		"action": "login",
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+	},
+	{
+		"page": "robots.txt",
+		"action": "allow",
+		"groups": ""
 	}]
 }
