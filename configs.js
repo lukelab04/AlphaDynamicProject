@@ -340,7 +340,7 @@ let API_CONFIG = {
     searchOptions: {
         serverSearch: true,
         advancedSearch: true,
-        //onlyInclude: ['title'],
+        onlyInclude: ['title'],
     },
     "buttons": [
         {

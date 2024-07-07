@@ -1556,10 +1556,9 @@ class DynamicListSearch {
 		this.advForm.data.fields = {};
 
 		this.fetchSchema(() => {
-			debugger;
 			this.buildForms();
 			this.form.render();
-			if (typeof onComplete == 'function') onComplete();
+			if (typeof onComplete == 'function') onComplete(this);
 		});
 	}
 
