@@ -1,11 +1,11 @@
 let CUSTOMER_CONFIG = {
-	"name": "Customers",
+    "name": "Customers",
     "dataSource": {
         "type": "sql",
         "table": "Customer",
     },
     searchOptions: {
-        serverSearch: false,
+        serverSearch: true,
         advancedSearch: true,
         onlyInclude: [
             "FIRSTNAME", "LASTNAME", "EMAIL", "SHIP_SAME", "COMPANY"
@@ -385,7 +385,7 @@ let API_CONFIG = {
             "displayName": "Brand",
             "inList": true,
             "inDetailView": true,
-        },
+        }
     ]
 };
 
@@ -437,7 +437,7 @@ let TR_CONFIG = {
                 headers: {
                     apikey: '__KEY__tfKey',
                 },
-                endpoint: 'https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/5saudit_enhanced',
+                endpoint: 'https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1',
             },
             search: {
                 method: 'GET',
@@ -463,7 +463,7 @@ let TR_CONFIG = {
                         endpointQuery += `if (${condition}) { return true; }`;
                     });
                     endpointQuery += "return false;";
-                    return `https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/5saudit_enhanced?formDataFilterJavascript=${endpointQuery}`;
+                    return `https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1?formDataFilterJavascript=${endpointQuery}`;
                 }
             }
         }
@@ -472,15 +472,8 @@ let TR_CONFIG = {
     searchOptions: {
         serverSearch: true,
         advancedSearch: true,
-        onlyInclude: ['totalScore']
     },
     mappings: [
-        {
-            columnName: "totalScore",
-            displayName: "Total Score",
-            inList: true,
-            inDetailView: true,
-            editType: 'number'
-        }
+
     ]
 };

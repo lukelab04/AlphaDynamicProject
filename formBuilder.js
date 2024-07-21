@@ -163,8 +163,9 @@ class FormInput {
         return this;
     }
 
-    asDropdown(items) {
+    asDropdown(items, onChange) {
         this.type = 'picker';
+        if (onChange) this.control.onChange = onChange;
         this.control.width = '100%';
         this.control.data = {
             src: items.map(x => { return { text: x, value: x } }),
