@@ -338,9 +338,9 @@ let API_CONFIG = {
         }
     },
     searchOptions: {
-        serverSearch: true,
-        advancedSearch: true,
-        onlyInclude: ['title'],
+        serverSearch: false,
+        advancedSearch: false,
+        // onlyInclude: ['title'],
     },
     "buttons": [
         {

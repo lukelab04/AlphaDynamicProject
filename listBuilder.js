@@ -2005,7 +2005,7 @@ var DynamicListSearch = /** @class */ (function () {
                 }
             };
             var values = [];
-            Object.keys(allSearchCols).forEach(function (colName, i) {
+            allSearchCols.forEach(function (colName, i) {
                 var val;
                 if (!searchObj) {
                     val = _this.obj.getValue(map[i].control);
