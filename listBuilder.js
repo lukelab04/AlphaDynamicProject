@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -35,15 +35,174 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var LIST_NAME = 'DYNAMIC_LIST';
 var DETAIL_FORM_NAME = "DETAIL_VIEW";
 var objTimeFormat = function () { return A5.__tfmt; };
 var objDatetimeFormat = function () { return A5.__dtfmt + ' ' + objTimeFormat(); };
+var ValidationError = /** @class */ (function () {
+    function ValidationError(message) {
+        this.name = "Validation Error";
+        this.message = message;
+    }
+    return ValidationError;
+}());
+function propExists(obj, prop) {
+    return prop in obj;
+}
+function existsAndIs(obj, prop, val) {
+    return prop in obj && typeof obj[prop.toString()] == typeof val;
+}
+function existsAndIsOrNone(obj, prop, val) {
+    if (!(prop in obj))
+        return true;
+    if (prop in obj && typeof obj[prop.toString()] == 'undefined')
+        return true;
+    return existsAndIs(obj, prop, val);
+}
+function existsIsErr(root, prop, type) {
+    return new ValidationError("Expected \"".concat(root, "\" to have a prop \"").concat(prop, "\" of type \"").concat(type, "\""));
+}
+function validateConfig(config) {
+    if (config == null || typeof config != 'object')
+        throw new ValidationError("Expected config to be an object, not " + JSON.stringify(config));
+    if (!existsAndIs(config, 'name', 'string'))
+        throw existsIsErr("config", "name", "string");
+    if ('onInitialize' in config) {
+        if (!existsAndIs(config, 'onInitialize', function () { }))
+            throw existsIsErr("config", "onInitialize", "function");
+    }
+    if (!existsAndIs(config, "dataSource", {}))
+        throw existsIsErr("config", "dataSource", "object");
+    if (!existsAndIs(config.dataSource, 'type', 'string'))
+        throw existsIsErr("config.dataSource", "type", "string");
+    if (config.dataSource.type == 'json') {
+        if ('static' in config.dataSource) {
+            if (!(config.dataSource.static instanceof Array))
+                throw new ValidationError("Expected `config.dataSource.static` to be an array");
+        }
+        else if ('endpoints' in config.dataSource) {
+            if (!existsAndIs(config.dataSource, "endpoints", {}))
+                throw existsIsErr("config.dataSource", "endpoints", "object");
+            for (var key in config.dataSource.endpoints) {
+                validateEndpoint(config.dataSource.endpoints[key]);
+            }
+        }
+        else {
+            throw new ValidationError("Expected `config.dataSource` to have a prop `static` or a prop `endpoints`");
+        }
+    }
+    else if (config.dataSource.type == 'sql') {
+        if (!existsAndIs(config.dataSource, "table", "string"))
+            throw existsIsErr("config.dataSource", "table", "string");
+    }
+    else {
+        throw new ValidationError('Expected `config.dataSource.type` to be `json` or `sql`');
+    }
+    if (propExists(config.dataSource, "preprocess")) {
+        if (typeof config.dataSource.preprocess != 'function')
+            throw existsIsErr("config.dataSource", "preprocess", "function");
+    }
+    if (!('mappings' in config && config.mappings instanceof Array))
+        throw new ValidationError('Expected `config` to have a prop `mappings` of type Array');
+    config.mappings.forEach(function (x) { return validateMapping(x); });
+    if (!existsAndIs(config, "searchOptions", {}))
+        throw existsIsErr("config", "searchOptions", "object");
+    if (propExists(config.searchOptions, 'paginate')) {
+        if (!existsAndIs(config.searchOptions, "paginate", {}))
+            throw existsIsErr("config.searchOptions", "paginate", "object");
+        if (!existsAndIs(config.searchOptions.paginate, "pageSize", 0))
+            throw existsIsErr("config.searchOptions.paginate", "pageSize", "number");
+    }
+    if (propExists(config, "buttons")) {
+        if (!(config.buttons instanceof Array))
+            throw new ValidationError("Expected `config.buttons` to be of type `Array`");
+        config.buttons.forEach(function (b) { return validateListBtn(b); });
+    }
+    return config;
+}
+function validateConfigSchema(config, manager) {
+    config.mappings.forEach(function (m) { return validateMappingSchema(m, manager); });
+}
+function validateListBtn(btn) {
+    if (typeof btn != 'object' || btn == null)
+        throw new ValidationError("Expected list button to be of type `object`");
+    if (!existsAndIs(btn, "columnTitle", ""))
+        throw existsIsErr("config.buttons", "columnTitle", "string");
+    if (!existsAndIs(btn, "onClick", function () { }))
+        throw existsIsErr("config.buttons", "onClick", "function");
+    if (!existsAndIsOrNone(btn, "title", "string"))
+        throw existsIsErr("config.buttons", "title", "string");
+    if (!existsAndIsOrNone(btn, "icon", "string"))
+        throw existsIsErr("config.buttons", "icon", "string");
+    if (propExists(btn, "children")) {
+        if (!(btn.children instanceof Array))
+            throw existsIsErr("config.buttons", "children", "Array");
+        btn.children.forEach(function (x) { return validateListBtn(x); });
+    }
+    return btn;
+}
+function validateMapping(mapping) {
+    if (typeof mapping != 'object' || mapping == null)
+        throw new ValidationError('Expected "config" to have a prop "mapping" of type "object"');
+    if (!existsAndIs(mapping, "columnName", "string"))
+        throw existsIsErr("config.mappings", "columnName", "string");
+    if (!existsAndIsOrNone(mapping, "displayName", "string"))
+        throw existsAndIs("config.mappings", "displayName", "string");
+    if (!existsAndIsOrNone(mapping, "inList", true))
+        throw existsAndIs("config.mappings", "inList", "boolean");
+    if (!existsAndIsOrNone(mapping, "inDetailView", true))
+        throw existsAndIs("config.mappings", "inDetailView", "boolean");
+    if (!existsAndIsOrNone(mapping, "editType", "string"))
+        throw existsAndIs("config.mappings", "editType", "string");
+    if (!existsAndIsOrNone(mapping, "serverDateFormat", "string"))
+        throw existsAndIs("config.mappings", "serverDateFormat", "string");
+    if (!existsAndIsOrNone(mapping, "template", "string"))
+        throw existsAndIs("config.mappings", "template", "string");
+    if (!existsAndIsOrNone(mapping, "width", "string"))
+        throw existsAndIs("config.mappings", "width", "string");
+    if (existsAndIs(mapping, "dropdownConfig", {})) {
+        if ('choices' in mapping.dropdownConfig && !(mapping.dropdownConfig.choices instanceof Array))
+            throw existsIsErr("config.mappings.dropdownConfig", "choices", "String Array");
+        else if ('fromColumn' in mapping.dropdownConfig && typeof mapping.dropdownConfig.fromColumn != 'string')
+            throw existsIsErr("config.mappings.dropdownConfig", "fromColumn", "string");
+        else if (!('choices' in mapping.dropdownConfig || 'fromColumn' in mapping.dropdownConfig))
+            throw new ValidationError('Expected "config.mappings.dropdownConfig" to have a prop "choices" of type "String Array" or a prop "fromColumn" of type "string"');
+    }
+    return mapping;
+}
+function validateMappingSchema(mapping, manager) {
+    if (!manager.getAvailableDataColumns().includes(mapping.columnName)) {
+        throw new ValidationError("Mapping \"".concat(mapping.columnName, "\" is not a column of the list data"));
+    }
+}
+function validateEndpoint(endpoint) {
+    if (endpoint == null || typeof endpoint != 'object')
+        throw new ValidationError('Expected "config.mappings.endpoints.endpoint" to be of type "object"');
+    var root = "config.mappings.endpoints.endpoint";
+    if (!existsAndIs(endpoint, "method", "string"))
+        throw existsIsErr(root, "method", "string");
+    if (!existsAndIsOrNone(endpoint, "headers", {}))
+        throw existsIsErr(root, "headers", "object");
+    if (!existsAndIsOrNone(endpoint, "callback", function () { }))
+        throw existsIsErr(root, "callback", "function");
+    if (propExists(endpoint, "endpoint")) {
+        if (typeof endpoint.endpoint != 'string' && typeof endpoint.endpoint != 'function')
+            throw existsIsErr(root, "endpoint", "function or string");
+    }
+    else {
+        throw existsIsErr(root, "endpoint", "function or string");
+    }
+    return endpoint;
+}
 function alphaTypeToEditType(t) {
     switch (t.toLowerCase()) {
         case 'c': return 'text';
@@ -84,7 +243,7 @@ function fetch(obj, url, options) {
         return __generator(this, function (_a) {
             options = JSON.stringify(options);
             return [2 /*return*/, new Promise(function (resolve, reject) {
-                    obj.ajaxCallback("", "", "fetch", "", "url=" + encodeURIComponent(url) + "&options=" + encodeURIComponent(options), {
+                    obj.ajaxCallback("", "", "fetch", "", "url=".concat(encodeURIComponent(url), "&options=").concat(encodeURIComponent(options)), {
                         onComplete: function () {
                             var result = obj.stateInfo.fetchResult;
                             resolve(result);
@@ -96,10 +255,10 @@ function fetch(obj, url, options) {
 }
 var DynamicList = /** @class */ (function () {
     function DynamicList(obj, config, filters, args, onComplete) {
-        var _this = this;
         if (filters === void 0) { filters = []; }
         if (args === void 0) { args = []; }
         if (onComplete === void 0) { onComplete = (function () { }); }
+        var _this = this;
         this.nestedPath = [];
         this.dataScopeManager = new DataScopeManager({});
         this.permanentFilters = filters;
@@ -111,6 +270,13 @@ var DynamicList = /** @class */ (function () {
         this.config = jQuery.extend({}, config);
         this.data = [];
         this.schema = {};
+        try {
+            validateConfig(this.config);
+        }
+        catch (e) {
+            alert("Error while validating List Config. Check error logs.");
+            throw e;
+        }
         if (this.config.onInitialize) {
             this.config.onInitialize(this, args);
         }
@@ -122,6 +288,13 @@ var DynamicList = /** @class */ (function () {
             _this.buildList();
             _this.dataScopeManager = new DataScopeManager(_this.schema);
             _this.reRender(function () {
+                try {
+                    validateConfigSchema(_this.config, _this.dataScopeManager);
+                }
+                catch (e) {
+                    alert("Error while validating List Config. Check error logs.");
+                    throw e;
+                }
                 if (typeof onComplete == 'function')
                     onComplete(_this);
             });
@@ -196,7 +369,7 @@ var DynamicList = /** @class */ (function () {
                         var ops = _this.getFetchOptions(ep, rowData);
                         allQueries_1.push({
                             ops: ops,
-                            endpoint: ep.endpoint,
+                            endpoint: _this.populateUrlParams(ep.endpoint, _this.filtersAsSimpleObj()),
                             callback: (_a = ep.callback) !== null && _a !== void 0 ? _a : (function () { }),
                         });
                     }
@@ -217,6 +390,8 @@ var DynamicList = /** @class */ (function () {
         var listFields = [];
         var menuSettings = {};
         var items = {};
+        if (!this.config.buttons)
+            this.config.buttons = [];
         for (var _i = 0, _a = this.config.mappings; _i < _a.length; _i++) {
             var mapping = _a[_i];
             columns.push(this.buildColumnDefn(mapping));
@@ -596,7 +771,7 @@ var DynamicList = /** @class */ (function () {
                     $acn(ele, _hasUnsyncedMediaFilesClassName);
                 }
                 if (index == this._rData.length - 1) {
-                    var btns = document.getElementsByClassName(LIST_NAME + "_BUTTON");
+                    var btns = document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
                     for (var i = 0; i < btns.length; i++) {
                         btns[i].parentElement.style.whiteSpace = 'normal';
                     }
@@ -609,16 +784,16 @@ var DynamicList = /** @class */ (function () {
                 if (_this.obj._listStateChange)
                     _this.obj._listStateChange(_this.listBox.listVariableName);
                 var ele = '';
-                ele = $("_" + _this.obj.dialogId + ".DUMMY.PAGENUMBER");
+                ele = $("_".concat(_this.obj.dialogId, ".DUMMY.PAGENUMBER"));
                 if (ele)
                     ele.innerHTML = _this.listBox._state.page;
-                ele = $("_" + _this.obj.dialogId + ".DUMMY.PAGECOUNT");
+                ele = $("_".concat(_this.obj.dialogId, ".DUMMY.PAGECOUNT"));
                 if (ele)
                     ele.innerHTML = _this.listBox._state.pageCount;
-                ele = $("_" + _this.obj.dialogId + ".DUMMY.PAGECOUNT.PAGESELECTOR");
+                ele = $("_".concat(_this.obj.dialogId, ".DUMMY.PAGECOUNT.PAGESELECTOR"));
                 if (ele)
                     ele.innerHTML = _this.listBox._state.pageCount;
-                ele = $("_" + _this.obj.dialogId + ".DUMMY.LISTSTATE");
+                ele = $("_".concat(_this.obj.dialogId, ".DUMMY.LISTSTATE"));
                 if (ele) {
                     var listState = $u.o.toJSON(_this.listBox._state);
                     ele.innerHTML = listState;
@@ -693,7 +868,7 @@ var DynamicList = /** @class */ (function () {
                     else
                         ele.setDisabled(false);
                 }
-                ele = $(_this.obj.dialogId + ".V.R1.A5SYSTEM_LIST_PAGESELECTOR_LIST1");
+                ele = $("".concat(_this.obj.dialogId, ".V.R1.A5SYSTEM_LIST_PAGESELECTOR_LIST1"));
                 if (ele) {
                     var data = _this.listBox._recordNavigatorLinks;
                     if (data) {
@@ -1021,7 +1196,7 @@ var DynamicList = /** @class */ (function () {
                 }
             },
             onChange: function () {
-                var btns = document.getElementsByClassName(LIST_NAME + "_BUTTON");
+                var btns = document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
                 for (var i = 0; i < btns.length; i++) {
                     btns[i].parentElement.style.whiteSpace = 'normal';
                 }
@@ -1033,10 +1208,10 @@ var DynamicList = /** @class */ (function () {
         var template = mapping.columnName;
         switch (mapping.editType) {
             case 'time':
-                template += ":date(\"" + objTimeFormat() + "\")";
+                template += ":date(\"".concat(objTimeFormat(), "\")");
                 break;
             case 'datetime':
-                template += ":date(\"" + objDatetimeFormat() + "\")";
+                template += ":date(\"".concat(objDatetimeFormat(), "\")");
                 break;
         }
         template = '{' + template + '}';
@@ -1048,7 +1223,7 @@ var DynamicList = /** @class */ (function () {
                 html: (_b = mapping.displayName) !== null && _b !== void 0 ? _b : mapping.columnName
             },
             data: {
-                template: "<span id=\"" + this.obj.dialogId + "." + LIST_NAME + "." + mapping.columnName + ".I.{*dataRow}\"> " + template + " </span>"
+                template: "<span id=\"".concat(this.obj.dialogId, ".").concat(LIST_NAME, ".").concat(mapping.columnName, ".I.{*dataRow}\"> ").concat(template, " </span>")
             },
             width: (_c = mapping.width) !== null && _c !== void 0 ? _c : 'flex(1)',
             resize: false,
@@ -1061,7 +1236,7 @@ var DynamicList = /** @class */ (function () {
             button.title = '';
         var innerTemplate = button.title + '&nbsp';
         if (button.icon && button.icon != '') {
-            innerTemplate += "{@A5.u.icon.html(<escape<'" + button.icon + "'>>)}";
+            innerTemplate += "{@A5.u.icon.html(<escape<'".concat(button.icon, "'>>)}");
         }
         if (button.children != undefined) {
             return {
@@ -1073,12 +1248,12 @@ var DynamicList = /** @class */ (function () {
                 resize: false,
                 rcw: 0,
                 data: {
-                    template: "\n\t\t\t\t\t\t<div style=\"display:inline-block\" id=\"" + this.obj.dialogId + "." + LIST_NAME + ".MENU." + btnNumber + ".{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_" + btnNumber + "\" class=\"" + LIST_NAME + "_BUTTON\">\n\t\t\t\t\t\t\t" + innerTemplate + "\n\t\t\t\t\t\t</div>&nbsp;\n\t\t\t\t\t"
+                    template: "\n\t\t\t\t\t\t<div style=\"display:inline-block\" id=\"".concat(this.obj.dialogId, ".").concat(LIST_NAME, ".MENU.").concat(btnNumber, ".{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_").concat(btnNumber, "\" class=\"").concat(LIST_NAME, "_BUTTON\">\n\t\t\t\t\t\t\t").concat(innerTemplate, "\n\t\t\t\t\t\t</div>&nbsp;\n\t\t\t\t\t")
                 }
             };
         }
         var tmpThis = this;
-        items["_systemButtononClick_" + btnNumber] = {
+        items["_systemButtononClick_".concat(btnNumber)] = {
             'selectable': true,
             onClick: function (idx, v, args) {
                 var data = _this.listBox._data[_this.listBox._dataMap[idx]];
@@ -1094,7 +1269,7 @@ var DynamicList = /** @class */ (function () {
             resize: false,
             rcw: 0,
             data: {
-                template: "\n\t\t\t\t\t<span class = \"" + LIST_NAME + "_BUTTON\" id=\"" + this.obj.dialogId + "." + LIST_NAME + "." + btnNumber + ".I.{*dataRow}\">\n\t\t\t\t\t\t<button\n\t\t\t\t\t\t\ta5-item = \"_systemButtononClick_" + btnNumber + "\"\n\t\t\t\t\t\t\tclass=\"button\"\n\t\t\t\t\t\t\tstyle=\"cursor:pointer;\"\n\t\t\t\t\t\t\ttitle=\"" + button.title + "\"\n\t\t\t\t\t\t\tid=\"" + this.obj.dialogId + "." + LIST_NAME + ".BTN.{*dataRow}\"\n\t\t\t\t\t\t>" + innerTemplate + "</button>\n\t\t\t\t\t</span>\n\t\t\t\t"
+                template: "\n\t\t\t\t\t<span class = \"".concat(LIST_NAME, "_BUTTON\" id=\"").concat(this.obj.dialogId, ".").concat(LIST_NAME, ".").concat(btnNumber, ".I.{*dataRow}\">\n\t\t\t\t\t\t<button\n\t\t\t\t\t\t\ta5-item = \"_systemButtononClick_").concat(btnNumber, "\"\n\t\t\t\t\t\t\tclass=\"button\"\n\t\t\t\t\t\t\tstyle=\"cursor:pointer;\"\n\t\t\t\t\t\t\ttitle=\"").concat(button.title, "\"\n\t\t\t\t\t\t\tid=\"").concat(this.obj.dialogId, ".").concat(LIST_NAME, ".BTN.{*dataRow}\"\n\t\t\t\t\t\t>").concat(innerTemplate, "</button>\n\t\t\t\t\t</span>\n\t\t\t\t")
             },
             order: false,
             width: 'flex(1)',
@@ -1105,12 +1280,13 @@ var DynamicList = /** @class */ (function () {
         if (!button.children)
             return;
         var makeMenuData = function (button) {
+            var _a;
             var children = [];
             if (button.children) {
                 button.children.forEach(function (c) { return children.push(makeMenuData(c)); });
             }
             return {
-                html: button.title,
+                html: (_a = button.title) !== null && _a !== void 0 ? _a : null,
                 icon: '',
                 onClick: function () { return button.onClick(_this); },
             };
@@ -1127,7 +1303,7 @@ var DynamicList = /** @class */ (function () {
             menuType: 'Cascading',
             menuData: menuData,
             menuSettings: {
-                listName: "" + LIST_NAME,
+                listName: "".concat(LIST_NAME),
                 theme: this.obj.styleName,
                 style: '',
                 iconColumn: { width: '20px' },
@@ -1164,7 +1340,7 @@ var DynamicList = /** @class */ (function () {
                 }
             }
         };
-        items["_MENU_onClick_" + index] = {
+        items["_MENU_onClick_".concat(index)] = {
             'selectable': true,
             onClick: function (idx, v, args) {
                 var data = _this.listBox._data[_this.listBox._dataMap[idx]];
@@ -1177,15 +1353,15 @@ var DynamicList = /** @class */ (function () {
     DynamicList.prototype.buildListFieldDefn = function (mapping) {
         var defn = {
             name: mapping.columnName,
-            defaultValue: "return this._controlDefaultValueForListField('" + mapping.columnName + "');",
+            defaultValue: "return this._controlDefaultValueForListField('".concat(mapping.columnName, "');"),
             onDetailViewPopulate: '',
             onListUpdate: '',
         };
         var onDvPopTemplate = function (format) {
-            return "\n\t\t\t\tif(this._value == '') return '';\n\t\t\t\tif(this._value == null) return '';\n\t\t\t\t\n\t\t\t\tlet formatIn = " + mapping.serverDateFormat + ";\n\t\t\t\tlet formatOut = format;\n\t\t\t\tlet _d = A5.stringToDate(this._value,formatIn);\n\t\t\t\tlet _ds = _d.toFormat(formatOut);\n\t\t\t\t\n\t\t\t\treturn _ds;\n\t\t\t\t\n\t\t\t";
+            return "\n\t\t\t\tif(this._value == '') return '';\n\t\t\t\tif(this._value == null) return '';\n\t\t\t\t\n\t\t\t\tlet formatIn = ".concat(mapping.serverDateFormat, ";\n\t\t\t\tlet formatOut = format;\n\t\t\t\tlet _d = A5.stringToDate(this._value,formatIn);\n\t\t\t\tlet _ds = _d.toFormat(formatOut);\n\t\t\t\t\n\t\t\t\treturn _ds;\n\t\t\t\t\n\t\t\t");
         };
         var onListUpdateTemplate = function (format) {
-            return "\n\t\t\t\tif(this._value == '') \n\t\t\t\t\treturn '';\n\t\t\t\t\t\n\t\t\t\tif(this._value == null) \n\t\t\t\t\treturn '';\n\t\t\t\t\t\n\t\t\t\tlet formatIn = " + mapping.serverDateFormat + ";\n\t\t\t\tlet formatOut = format;\n\t\t\t\tlet _d = A5.stringToDate(this._value,formatIn);\n\t\t\t\tlet _ds = _d.toFormat(formatOut);\n\t\t\t\t\n\t\t\t\treturn _ds;\n\t\t\t";
+            return "\n\t\t\t\tif(this._value == '') \n\t\t\t\t\treturn '';\n\t\t\t\t\t\n\t\t\t\tif(this._value == null) \n\t\t\t\t\treturn '';\n\t\t\t\t\t\n\t\t\t\tlet formatIn = ".concat(mapping.serverDateFormat, ";\n\t\t\t\tlet formatOut = format;\n\t\t\t\tlet _d = A5.stringToDate(this._value,formatIn);\n\t\t\t\tlet _ds = _d.toFormat(formatOut);\n\t\t\t\t\n\t\t\t\treturn _ds;\n\t\t\t");
         };
         if (mapping.editType === 'time') {
             defn.onDetailViewPopulate = onDvPopTemplate(objTimeFormat());
@@ -1293,10 +1469,10 @@ var DynamicList = /** @class */ (function () {
             this.config.mappings.forEach(function (c) {
                 columns_1.push(c.columnName);
             });
-            var filters = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters), this.searchFilters));
+            var filters = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
             var paginate = '';
             if (this.config.searchOptions.paginate) {
-                paginate = "&pageOptions=" + encodeURIComponent("{pageSize: " + this.config.searchOptions.paginate.pageSize + ", getPage: " + this.listBox._state.page + "}");
+                paginate = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, ", getPage: ").concat(this.listBox._state.page, "}"));
             }
             this.obj.ajaxCallback("", "", "getAllDataForTable", "", "columns=" + encodeURIComponent(JSON.stringify(columns_1))
                 + "&tableName=" + encodeURIComponent(this.config.dataSource.table)
@@ -1368,7 +1544,7 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.filtersAsSimpleObj = function () {
         var data = {};
-        for (var _i = 0, _a = __spreadArray(__spreadArray([], this.permanentFilters), this.searchFilters); _i < _a.length; _i++) {
+        for (var _i = 0, _a = __spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true); _i < _a.length; _i++) {
             var item = _a[_i];
             data[item.columnName] = item.columnVal;
         }
@@ -1383,7 +1559,7 @@ var DynamicList = /** @class */ (function () {
             type: string ('text', 'number', etc),
         */
         if (typeof url == 'function') {
-            return url(__spreadArray(__spreadArray([], this.permanentFilters), this.searchFilters));
+            return url(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
         }
         if (typeof url != 'string')
             return "";
@@ -1528,6 +1704,10 @@ var DataScopeManager = /** @class */ (function () {
             for (var _a = 0, _b = config.mappings; _a < _b.length; _a++) {
                 var mapping = _b[_a];
                 var path = mapping.columnName.split('__');
+                if (path.length > 1 && path[0] == '__') {
+                    path[1] = '__' + path[1];
+                    path = path.slice(1);
+                }
                 var tmp = dataPoint;
                 for (var i = 0; i < path.length; i++) {
                     tmp = tmp[path[i]];
@@ -1561,6 +1741,19 @@ var DataScopeManager = /** @class */ (function () {
     };
     DataScopeManager.prototype.setPath = function (path) {
         this.path = path;
+    };
+    DataScopeManager.prototype.inSubArray = function (path) {
+        var part = this.schema;
+        for (var i = 0; i < path.length; i++) {
+            var tmp = this.schema[path[i]];
+            if ('nested' in tmp)
+                part = tmp.nested;
+            else if ('array' in tmp)
+                return true;
+            else
+                return false;
+        }
+        return false;
     };
     DataScopeManager.prototype._getAvailableDataColumns = function (schema, prefix, path) {
         var result = [];
@@ -1729,6 +1922,7 @@ var DynamicListSearch = /** @class */ (function () {
         this.obj = obj;
         this.form = new FormBuilder(this.obj, "SearchForm");
         this.advForm = obj.getControl('AdvancedSearch');
+        console.log(this.advForm);
         this.dynamicDropdowns = [];
         this.advForm.data.fields = {};
         this.buildForms();
@@ -1794,6 +1988,7 @@ var DynamicListSearch = /** @class */ (function () {
                     type: 'default',
                     format: '',
                     data: [],
+                    quantified: true
                 };
                 var editType = preferred.editType;
                 switch (editType) {
@@ -1846,6 +2041,7 @@ var DynamicListSearch = /** @class */ (function () {
                 };
             }
         }
+        this.modifyAdvFormTemplate();
         this.advForm.onBeforePopulate(this.advForm.data);
         this.advForm.refresh();
         this.advForm.items.clearSearch.onClick = function () {
@@ -1937,6 +2133,16 @@ var DynamicListSearch = /** @class */ (function () {
                 _this.advForm.refresh();
             });
         });
+    };
+    DynamicListSearch.prototype.modifyAdvFormTemplate = function () {
+        return;
+        var template = this.advForm.layouts.Default.template;
+        var newTemplate = "\n            <div style=\"white-space: nowrap;\">\n                {*if [root].fields[field].control.quantified} \n                    {A5.buttonLists.html(\n                        '".concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIED' + [count],\n                        <escape<\n                            {\n                                theme: ").concat(this.obj.theme, ",\n                                button: {style: 'width: 60px;' }\n                            },\n                            [\n                                {\n                                    html: 'ALL<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.all.'\n                                },\n                                {\n                                    html: 'SOME<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.some.'\n                                },\n                            ],\n                            quantified,\n                            'id=\"").concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIED' + [count] + '.{index}\"\n                            a5-item=\"quantified:' + [count] + '\"\n                            a5-value=\"{value}\"'\n                        >>\n                    )}\n                {*endif}\n            </div>\n        ");
+        newTemplate = newTemplate.replace(/\s/g, '');
+        var templateSplit = template.split("</div>	{/_parsed}");
+        template = [templateSplit[0], newTemplate, templateSplit[1]].join('');
+        this.advForm.layouts.Default.template = template;
+        this.advForm.layouts.Default._t = undefined;
     };
     DynamicListSearch.prototype.setListSearchFns = function () {
         var _this = this;
@@ -2169,7 +2375,12 @@ var DynamicListSearch = /** @class */ (function () {
         lObj._searchPart.fieldMap = [];
         for (var _i = 0, _a = this.list.dataScopeManager.getAvailableDataColumns(); _i < _a.length; _i++) {
             var col = _a[_i];
-            var item = this.findInSchema(col.split('__'), this.list.schema);
+            var path = col.split('__');
+            if (path.length > 1 && path[0] == '') {
+                path[1] = '__' + path[1];
+                path = path.slice(1);
+            }
+            var item = this.findInSchema(path, this.list.schema);
             if (item && 'alphaType' in item) {
                 var type = item.alphaType.toLowerCase();
                 lObj._searchPart.fieldMap.push({

@@ -470,8 +470,8 @@ let TR_CONFIG = {
     },
     buttons: [],
     searchOptions: {
-        serverSearch: true,
-        advancedSearch: true,
+        serverSearch: false,
+        advancedSearch: false,
     },
     mappings: [
 
