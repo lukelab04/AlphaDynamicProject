@@ -2,31 +2,30 @@ let CUSTOMER_CONFIG = {
     "name": "Customers",
     "dataSource": {
         "type": "sql",
-        "table": "Customer",
+        "table": "Customer"
     },
-    searchOptions: {
-        serverSearch: true,
-        advancedSearch: true,
-        onlyInclude: [
-            "FIRSTNAME", "LASTNAME", "EMAIL", "SHIP_SAME", "COMPANY"
-        ],
+    "searchOptions": {
+        "serverSearch": true,
+        "advancedSearch": true,
+        "onlyInclude": [
+            "FIRSTNAME",
+            "LASTNAME",
+            "EMAIL",
+            "SHIP_SAME",
+            "COMPANY"
+        ]
     },
     "buttons": [
         {
             "title": "Open Invoices",
             "columnTitle": "Customer Invoices",
-            onClick: (list) => {
-                let filters = list.makeFilterFromSelected('CUSTOMER_ID', 'CUSTOMER_ID');
-                let name = list.selection();
-                name = name['FIRSTNAME'] + ' ' + name['LASTNAME'];
-                openNewPanel(INVOICE_HEADER_CONFIG, `Invoice Headers for ${name}`, filters);
-            }
+            "onClick": "(list) => {\n                let filters = list.makeFilterFromSelected('CUSTOMER_ID', 'CUSTOMER_ID');\n                let name = list.selection();\n                name = name['FIRSTNAME'] + ' ' + name['LASTNAME'];\n                openNewPanel(INVOICE_HEADER_CONFIG, `Invoice Headers for ${name}`, filters);\n            }"
         },
         {
             "title": "",
             "columnTitle": "Open Detail View",
-            "icon": 'svgIcon=#alpha-icon-edit:icon,24',
-            onClick: (list) => list.openDetailView(),
+            "icon": "svgIcon=#alpha-icon-edit:icon,24",
+            "onClick": "(list) => list.openDetailView()"
         }
     ],
     "mappings": [
@@ -40,10 +39,13 @@ let CUSTOMER_CONFIG = {
             "displayName": "First Name",
             "inList": true,
             "inDetailView": true,
-            editType: 'dropdown',
-            dropdownConfig: {
-                choices: ['Luke', 'Emma'],
-                fromColumn: 'FIRSTNAME',
+            "editType": "dropdown",
+            "dropdownConfig": {
+                "choices": [
+                    "Luke",
+                    "Emma"
+                ],
+                "fromColumn": "FIRSTNAME"
             }
         },
         {
@@ -59,11 +61,11 @@ let CUSTOMER_CONFIG = {
             "inDetailView": true
         },
         {
-            columnName: "SHIP_SAME",
-            displayName: "Ship Same",
-            inList: true,
-            inDetailView: true,
-            editType: 'bool',
+            "columnName": "SHIP_SAME",
+            "displayName": "Ship Same",
+            "inList": true,
+            "inDetailView": true,
+            "editType": "bool"
         }
     ]
 };
@@ -82,17 +84,16 @@ let PRODUCT_CONFIG = {
         {
             "title": "Open Invoices",
             columnTitle: 'Product Invoices',
-            onClick: (list) => {
+            onClick: `(list) => {
                 let filters = list.makeFilterFromSelected('PRODUCT_ID', 'PRODUCT_ID');
-                let pid = list.listBox.selectionData[0]['PRODUCT_ID'];
-                openNewPanel(INVOICE_ITEM_CONFIG, `Invoice for product ${pid}`, filters);
-            }
+                openNewPanel(INVOICE_ITEM_CONFIG, "Invoices", filters);
+            }`
         },
         {
             "title": "",
             "columnTitle": "Open Detail View",
             "icon": 'svgIcon=#alpha-icon-edit:icon,24',
-            onClick: (list) => list.openDetailView(),
+            onClick: `(list) => list.openDetailView()`,
         }
     ],
     "mappings": [
@@ -145,19 +146,19 @@ let INVOICE_HEADER_CONFIG = {
             "children": [
                 {
                     "title": "Customer",
-                    onClick: (list) => {
+                    onClick: `(list) => {
                         let filters = list.makeFilterFromSelected('CUSTOMER_ID', 'CUSTOMER_ID');
                         let id = list.listBox.selectionData[0]['INVOICE_NUMBER'];
-                        openNewPanel(CUSTOMER_CONFIG, `Customer for invoice ${id}`, filters);
-                    }
+                        openNewPanel(CUSTOMER_CONFIG, "Customer for invoice " + id, filters);
+                    }`
                 },
                 {
                     "title": "Invoice Items",
-                    onClick: (list) => {
+                    onClick: `(list) => {
                         let filters = list.makeFilterFromSelected('INVOICE_NUMBER', 'INVOICE_NUMBER');
                         let id = list.listBox.selectionData[0]['INVOICE_NUMBER'];
-                        openNewPanel(INVOICE_ITEM_CONFIG, `Invoice Items for Invoice ${id}`, filters);
-                    }
+                        openNewPanel(INVOICE_ITEM_CONFIG, "Invoice Items for Invoice " + id, filters);
+                    }`
                 }
             ]
         },
@@ -165,7 +166,7 @@ let INVOICE_HEADER_CONFIG = {
             "title": "",
             "columnTitle": "Open Detail View",
             "icon": 'svgIcon=#alpha-icon-edit:icon,24',
-            onClick: (list) => list.openDetailView(),
+            onClick: `(list) => list.openDetailView()`,
         }
     ],
     "mappings": [
@@ -207,11 +208,11 @@ let INVOICE_ITEM_CONFIG = {
         {
             "title": "Open Product",
             columnTitle: 'Invoice Product',
-            onClick: (list) => {
+            onClick: `(list) => {
                 let filters = list.makeFilterFromSelected('PRODUCT_ID', 'PRODUCT_ID');
                 let num = list.listBox.selectionData[0]['INVOICE_NUMBER'];
-                openNewPanel(PRODUCT_CONFIG, `Product for Invoice ${num}`, filters);
-            }
+                openNewPanel(PRODUCT_CONFIG, "Product for Invoice " + num, filters);
+            }`
         },
         {
             "title": "",
@@ -257,223 +258,143 @@ let INVOICE_ITEM_CONFIG = {
     ]
 };
 
-let JSON_CONFIG = {
-    "name": "Static Data",
-    "dataSource": {
-        "type": "json",
-        "static": [
-            { 'COUNTRY': 'US', 'SHIP': 'T' },
-            { 'COUNTRY': 'UK', 'SHIP': 'T' },
-            { 'COUNTRY': 'AUS', 'SHIP': 'F' },
-        ]
-    },
-    searchOptions: {
-        serverSearch: false,
-        advancedSearch: false,
-    },
-    "buttons": [],
-    "mappings": [
-        {
-            "columnName": "COUNTRY",
-            "displayName": "Country",
-            "inList": true,
-            "inDetailView": true,
-        },
-        {
-            "columnName": "SHIP",
-            "displayName": "Ship",
-            "inList": true,
-            "inDetailView": true,
-            editType: 'bool',
-        },
-    ]
-};
 let API_CONFIG = {
     "name": "API Data",
     "dataSource": {
         "type": "json",
-        "preprocess": (result) => result.products,
-        endpoints: {
-            fetch: {
-                method: 'GET',
-                headers: {},
-                endpoint: "https://dummyjson.com/products"
+        "preprocess": "(result) => result.products",
+        "endpoints": {
+            "fetch": {
+                "method": "GET",
+                "headers": {},
+                "endpoint": {
+                    "template": "https://dummyjson.com/products"
+                }
             },
-            search: {
-                method: 'GET',
-                headers: {},
-                endpoint: "https://dummyjson.com/products{$title.length > 0 ? '/search?q=' + $title : ''}",
+            "search": {
+                "method": "GET",
+                "headers": {},
+                "endpoint": {
+                    "template": "https://dummyjson.com/products{$title.length > 0 ? '/search?q=' + $title : ''}"
+                }
             },
-            add: {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': '__KEY__api key name',
+            "add": {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "X-Api-Key": "__KEY__api key name"
                 },
-                body: {
-                    title: "{$title}",
-                    description: "{$description}",
+                "body": {
+                    "title": "{$title}",
+                    "description": "{$description}"
                 },
-                callback: result => result.then(x => alert(`Item ${JSON.parse(x.body).title} added successfully`)),
-                endpoint: 'https://dummyjson.com/products/add',
+                "callback": "result => result.then(x => alert(`Item ${JSON.parse(x.body).title} added successfully`))",
+                "endpoint": {
+                    "template": "https://dummyjson.com/products/add"
+                }
             },
-            update: {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
+            "update": {
+                "method": "PUT",
+                "headers": {
+                    "Content-Type": "application/json"
                 },
-                body: {
-                    title: "{$title}",
-                    description: "{$description}",
+                "body": {
+                    "title": "{$title}",
+                    "description": "{$description}"
                 },
-                callback: result => result.then(x => alert(`Item ${JSON.parse(x.body).title} updated successfully`)),
-                endpoint: 'https://dummyjson.com/products/{$id}',
+                "callback": "result => result.then(x => alert(`Item ${JSON.parse(x.body).title} updated successfully`))",
+                "endpoint": {
+                    "template": "https://dummyjson.com/products/{$id}"
+                }
             },
-            delete: {
-                method: 'DELETE',
-                callback: result => result.then(x => alert(`Item ${JSON.parse(x.body).title} deleted successfully`)),
-                endpoint: 'https://dummyjson.com/products/{$id}',
-            },
-
+            "delete": {
+                "method": "DELETE",
+                "callback": "result => result.then(x => alert(`Item ${JSON.parse(x.body).title} deleted successfully`))",
+                "endpoint": {
+                    "template": "https://dummyjson.com/products/{$id}"
+                }
+            }
         }
     },
-    searchOptions: {
-        serverSearch: false,
-        advancedSearch: false,
-        // onlyInclude: ['title'],
+    "searchOptions": {
+        "serverSearch": false,
+        "advancedSearch": false
     },
     "buttons": [
         {
-            title: "Show Reviews",
-            columnTitle: "Reviews",
-            onClick: (list) => {
-                let reviews = list.selection().reviews;
-                openNewPanel(REVIEWS_CONFIG, "Reviews for " + list.selection().title, [], reviews);
-            }
-        },
-        {
             "title": "",
             "columnTitle": "Open Detail View",
-            "icon": 'svgIcon=#alpha-icon-edit:icon,24',
-            onClick: (list) => list.openDetailView(),
+            "icon": "svgIcon=#alpha-icon-edit:icon,24",
+            "onClick": "(list) => list.openDetailView()"
         }
     ],
     "mappings": [
         {
-            columnName: "id",
-            inList: false,
-            inDetailView: false,
+            "columnName": "id",
+            "inList": false,
+            "inDetailView": false
         },
         {
             "columnName": "title",
             "displayName": "Product",
             "inList": true,
-            "inDetailView": true,
+            "inDetailView": true
         },
         {
-            columnName: "category",
-            displayName: "Category",
+            "columnName": "category",
+            "displayName": "Category"
         },
         {
             "columnName": "description",
             "displayName": "Description",
             "inList": true,
-            "inDetailView": true,
+            "inDetailView": true
         },
         {
             "columnName": "brand",
             "displayName": "Brand",
             "inList": true,
-            "inDetailView": true,
+            "inDetailView": true
         }
     ]
 };
 
-let REVIEWS_CONFIG = {
-    "name": "Reviews Data",
-    onInitialize: function (list, args) {
-        list.setStaticData(args);
-    },
-    "dataSource": {
-        "type": "json",
-        "static": [],
-    },
-    searchOptions: {
-        serverSearch: false,
-        advancedSearch: false,
-    },
-    buttons: [],
-    mappings: [
-        {
-            columnName: "rating",
-            displayName: "Rating",
-            inList: true,
-            inDetailView: true,
-            editType: "number",
-        },
-        {
-            columnName: "comment",
-            displayName: "Comment",
-            inList: true,
-            inDetailView: true,
-        },
-        {
-            columnName: "reviewerName",
-            displayName: "Reviewer",
-            inList: true,
-            inDetailView: true,
-        }
-    ]
-};
 
 let TR_CONFIG = {
-    name: "Transform 5S Audit",
-    dataSource: {
-        type: "json",
-        preprocess: result => result.result,
-        endpoints: {
-            fetch: {
-                method: 'GET',
-                headers: {
-                    apikey: '__KEY__tfKey',
+    "name": "Transform 5S Audit",
+    "dataSource": {
+        "type": "json",
+        "preprocess": "result => result.result",
+        "endpoints": {
+            "fetch": {
+                "method": "GET",
+                "headers": {
+                    "apikey": "__KEY__tfKey"
                 },
-                endpoint: 'https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1',
+                "endpoint": {
+                    "template": "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1"
+                }
             },
-            search: {
-                method: 'GET',
-                headers: {
-                    apikey: '__KEY__tfKey',
+            "search": {
+                "method": "GET",
+                "headers": {
+                    "apikey": "__KEY__tfKey"
                 },
-                endpoint: (filters) => {
-                    let endpointQuery = "";
-                    filters.forEach((f) => {
-                        let operator;
-                        switch (f.op) {
-                            case "=":
-                                operator = "==";
-                                break;
-                            case "<>":
-                                operator = "!=";
-                                break;
-                            default:
-                                operator = f.op;
-                                break;
-                        }
-                        let condition = "data." + f.columnName + " " + operator + " " + f.columnVal;
-                        endpointQuery += `if (${condition}) { return true; }`;
-                    });
-                    endpointQuery += "return false;";
-                    return `https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1?formDataFilterJavascript=${endpointQuery}`;
+                "endpoint": {
+                    "getEndpointURL": "(filters) => {\n                    let endpointQuery = \"\";\n                    filters.forEach((f) => {\n                        let operator;\n                        switch (f.op) {\n                            case \"=\":\n                                operator = \"==\";\n                                break;\n                            case \"<>\":\n                                operator = \"!=\";\n                                break;\n                            default:\n                                operator = f.op;\n                                break;\n                        }\n                        let condition = \"data.\" + f.columnName + \" \" + operator + \" \" + f.columnVal;\n                        endpointQuery += `if (${condition}) { return true; }`;\n                    });\n                    endpointQuery += \"return false;\";\n                    return `https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormDataArrayForFormId/QCAQL1?formDataFilterJavascript=${endpointQuery}`;\n                }"
                 }
             }
         }
     },
-    buttons: [],
-    searchOptions: {
-        serverSearch: false,
-        advancedSearch: false,
+    "buttons": [],
+    "searchOptions": {
+        "serverSearch": false,
+        "advancedSearch": true
     },
-    mappings: [
-
+    "mappings": [
+        {
+            "columnName": "defectGroup___defect",
+            "inList": true
+        }
     ]
-};
+}
