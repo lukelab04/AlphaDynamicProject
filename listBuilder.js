@@ -281,6 +281,7 @@ var DynamicList = /** @class */ (function () {
         this.listBox = null;
         this.config = jQuery.extend({}, config);
         this.data = [];
+        this.rawData = [];
         this.schema = {};
         try {
             validateConfig(this.config);
@@ -924,12 +925,9 @@ var DynamicList = /** @class */ (function () {
                 recordCount: 100,
             },
             _match: function (data, field, val, obj) {
+                var _a;
                 if (obj.qbf && obj.type == 'c')
                     val = $u.s.rTrim(val, ',');
-                var flagKeyword = false;
-                if (typeof obj.flagKeyword != 'undefined')
-                    flagKeyword = obj.flagKeyword;
-                var _d = '';
                 var _v = val;
                 var flagC = false;
                 if (obj.type == 'c') {
@@ -945,131 +943,147 @@ var DynamicList = /** @class */ (function () {
                 }
                 var flag = false;
                 obj.usesQBFOperator = false;
-                if (obj.qbf)
-                    _v = _v.split(',');
-                else
-                    _v = [_v];
                 var o = {};
-                var r = '';
                 var _vals = [];
-                // Given a field name, search data recursivley to find the value or values, if they exist
-                function findFieldInData(field, data) {
-                    if (typeof data != 'object')
-                        return [];
-                    var result = [];
-                    for (var key in data) {
-                        if (field == key)
-                            result.push(data[field]);
-                        else if (data[key] instanceof Array) {
-                            data[key].forEach(function (elt) { return result.push.apply(result, findFieldInData(field, elt)); });
-                        }
-                        else if (typeof data[key] == 'object') {
-                            result.push.apply(result, findFieldInData(field, data[key]));
-                        }
-                    }
-                    return result;
-                }
-                for (var i = 0; i < _v.length; i++) {
+                var matches = function (data, field) {
+                    var _a;
                     o.flag = false;
-                    o.v1 = _v[i];
+                    o.v1 = _v;
                     o.v2 = '';
-                    var matchingVals = findFieldInData(field, data);
-                    if (matchingVals.length == 0)
-                        break;
-                    // Loop through all elements of _d. Set the flag to true if at least one of the items is true.
-                    for (var _i = 0, matchingVals_1 = matchingVals; _i < matchingVals_1.length; _i++) {
-                        var _d_1 = matchingVals_1[_i];
-                        if (obj.type == 'n') {
-                            o.v1 = Number(o.v1);
-                            o.v2 = Number(o.v2);
-                            _d_1 = Number(_d_1);
-                        }
-                        else if (obj.type == 'l') {
-                            o.v1 = $u.s.toBool(o.v1);
-                            o.v2 = $u.s.toBool(o.v2);
-                            _d_1 = $u.s.toBool(_d_1);
-                        }
-                        else if (obj.type == 'd' || obj.type == 't') {
-                            o.v1 = A5.stringToDate(o.v1, objDatetimeFormat());
-                            o.v2 = A5.stringToDate(o.v2, objDatetimeFormat());
-                            if (typeof _d_1 == 'string')
-                                _d_1 = A5.stringToDate(_d_1, objDatetimeFormat());
-                            if (o.v1 != '' && o.v1 != null)
-                                o.v1 = o.v1.getTime();
-                            if (o.v2 != '' && o.v2 != null)
-                                o.v2 = o.v2.getTime();
-                            if (_d_1 != '' && _d_1 != null)
-                                _d_1 = _d_1.getTime();
-                        }
-                        if (flagC) {
-                            if (!obj.caseSensitive && typeof _d_1 == 'string')
-                                _d_1 = _d_1.toLowerCase();
-                        }
-                        if (o.flag) {
-                            if (o.op == 'between') {
-                                if (flagC) {
-                                    if (_d_1.substr(0, o.v1.length) >= o.v1 && _d_1.substr(0, o.v2.length) <= o.v2)
-                                        flag = true;
-                                }
-                                else {
-                                    if (_d_1 >= o.v1 && _d_1 < o.v2 && (typeof _d_1 == typeof o.v1))
-                                        flag = true;
-                                }
+                    var _d = data[field];
+                    if (obj.type == 'n') {
+                        o.v1 = Number(o.v1);
+                        o.v2 = Number(o.v2);
+                        _d = Number(_d);
+                    }
+                    else if (obj.type == 'l') {
+                        o.v1 = $u.s.toBool(o.v1);
+                        o.v2 = $u.s.toBool(o.v2);
+                        _d = $u.s.toBool(_d);
+                    }
+                    else if (obj.type == 'd' || obj.type == 't') {
+                        o.v1 = A5.stringToDate(o.v1, objDatetimeFormat());
+                        o.v2 = A5.stringToDate(o.v2, objDatetimeFormat());
+                        if (typeof _d == 'string')
+                            _d = A5.stringToDate(_d, objDatetimeFormat());
+                        if (o.v1 != '' && o.v1 != null)
+                            o.v1 = o.v1.getTime();
+                        if (o.v2 != '' && o.v2 != null)
+                            o.v2 = o.v2.getTime();
+                        if (_d != '' && _d != null)
+                            _d = _d.getTime();
+                    }
+                    if (flagC) {
+                        if (!obj.caseSensitive && typeof _d == 'string')
+                            _d = _d.toLowerCase();
+                    }
+                    if (o.flag) {
+                        if (o.op == 'between') {
+                            if (flagC) {
+                                if (_d.substr(0, o.v1.length) >= o.v1 && _d.substr(0, o.v2.length) <= o.v2)
+                                    flag = true;
                             }
                             else {
-                                if (flagC)
-                                    _d_1 = _d_1.substr(0, o.v1.length);
-                                if (o.op == '>=')
-                                    if (_d_1 >= o.v1)
-                                        flag = true;
-                                if (o.op == '<=')
-                                    if (_d_1 <= o.v1)
-                                        flag = true;
-                                if (o.op == '>')
-                                    if (_d_1 > o.v1)
-                                        flag = true;
-                                if (o.op == '<')
-                                    if (_d_1 < o.v1)
-                                        flag = true;
+                                if (_d >= o.v1 && _d < o.v2 && (typeof _d == typeof o.v1))
+                                    flag = true;
                             }
                         }
                         else {
-                            if (obj.mode == 1 || obj.mode == -1) {
-                                if (obj.mode == 1)
-                                    if (_d_1 == o.v1)
-                                        flag = true;
-                                ; //match
-                                if (obj.mode == -1)
-                                    if (!(_d_1 == o.v1))
-                                        flag = true;
-                                ; //match
-                            }
-                            else if (obj.mode == 2 || obj.mode == -2) {
-                                if (obj.mode == 2)
-                                    if (_d_1.indexOf(o.v1) > -1)
-                                        flag = true; //contains
-                                if (obj.mode == -2)
-                                    if (!(_d_1.indexOf(o.v1) > -1))
-                                        flag = true;
-                            }
-                            else if (obj.mode == 3 || obj.mode == -3) {
-                                if (obj.mode == 3)
-                                    if (_d_1.indexOf(o.v1) == 0)
-                                        flag = true; //starts with
-                                if (obj.mode == -3)
-                                    if (!(_d_1.indexOf(o.v1) == 0))
-                                        flag = true; //starts with
-                            }
-                        }
-                        if (o.v1 != '') {
-                            if (_vals.indexOf(o.v1) == -1)
-                                _vals.push(o.v1);
-                        }
-                        if (o.v2 != '') {
-                            if (_vals.indexOf(o.v2) == -1)
-                                _vals.push(o.v2);
+                            if (flagC)
+                                _d = _d.substr(0, o.v1.length);
+                            if (o.op == '>=')
+                                if (_d >= o.v1)
+                                    flag = true;
+                            if (o.op == '<=')
+                                if (_d <= o.v1)
+                                    flag = true;
+                            if (o.op == '>')
+                                if (_d > o.v1)
+                                    flag = true;
+                            if (o.op == '<')
+                                if (_d < o.v1)
+                                    flag = true;
                         }
                     }
+                    else {
+                        var op = (_a = obj.op) !== null && _a !== void 0 ? _a : "..x..";
+                        switch (op) {
+                            case '=':
+                                flag = _d == o.v1;
+                                break;
+                            case '<>':
+                                flag = _d != o.v1;
+                                break;
+                            case '>':
+                                flag = _d > o.v1;
+                                break;
+                            case '<':
+                                flag = _d < o.v1;
+                                break;
+                            case '>=':
+                                flag = _d >= o.v1;
+                                break;
+                            case '<=':
+                                flag = _d <= o.v1;
+                                break;
+                            case "..x..":
+                                flag = _d.toString().includes(o.v1);
+                                break;
+                            case "x..":
+                                flag = _d.toString().startsWith(o.v1);
+                                break;
+                            case "..x":
+                                flag = _d.toString().endsWith(o.v1);
+                                break;
+                        }
+                    }
+                    if (o.v1 != '') {
+                        if (_vals.indexOf(o.v1) == -1)
+                            _vals.push(o.v1);
+                    }
+                    if (o.v2 != '') {
+                        if (_vals.indexOf(o.v2) == -1)
+                            _vals.push(o.v2);
+                    }
+                    return flag;
+                };
+                var matchNested = function (quantifier, path, d) {
+                    if (path.length == 0)
+                        return false;
+                    if (path.length == 1) {
+                        return matches(d, path[0]);
+                    }
+                    else {
+                        var item = d[path[0]];
+                        if (!(item instanceof Array))
+                            return false;
+                        var results = [];
+                        for (var _i = 0, item_1 = item; _i < item_1.length; _i++) {
+                            var d_1 = item_1[_i];
+                            var m = matchNested(quantifier, path.slice(1), d_1);
+                            results.push(m);
+                        }
+                        var result = void 0;
+                        if (results.length == 0) {
+                            result = false;
+                        }
+                        else {
+                            result = results.reduce(function (a, b) {
+                                if (quantifier == 'SOME')
+                                    return a || b;
+                                return a && b;
+                            });
+                        }
+                        return result;
+                    }
+                };
+                var path = _this.dataScopeManager.strToPath(field);
+                if (_this.dataScopeManager.inSubArray(path)) {
+                    var rawDataPoint = _this.rawData[_this.dataScopeManager.getOriginalIndex(data['*key'])];
+                    flag = matchNested((_a = obj.quantifier) !== null && _a !== void 0 ? _a : 'ALL', path, rawDataPoint);
+                }
+                else {
+                    flag = matches(data, field);
                 }
                 if (flag) {
                     var lObj = _this.listBox;
@@ -1491,6 +1505,7 @@ var DynamicList = /** @class */ (function () {
                 + paginate, {
                 onComplete: function () {
                     _this.data = _this.obj.stateInfo.allListData;
+                    _this.rawData = _this.obj.stateInfo.allListData;
                     var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : _this.obj.stateInfo.numRowsAvailable);
                     _this.listBox._state = {
                         pageSize: pageSize,
@@ -1508,6 +1523,7 @@ var DynamicList = /** @class */ (function () {
             this.data = jQuery.extend(true, [], this.config.dataSource.static);
             if (this.config.dataSource.preprocess)
                 this.data = stringReprToFn(this.config.dataSource.preprocess)(this.data);
+            this.rawData = this.data;
             this.dataScopeManager.setPathFromConfig(this.config, this.data);
             this.data = this.dataScopeManager.flattenData(this.data);
             callback();
@@ -1530,6 +1546,7 @@ var DynamicList = /** @class */ (function () {
                 if (_this.config.dataSource.preprocess)
                     data = stringReprToFn(_this.config.dataSource.preprocess)(data);
                 _this.data = data;
+                _this.rawData = _this.data;
                 _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
                 _this.data = _this.dataScopeManager.flattenData(_this.data);
                 callback();
@@ -1612,6 +1629,12 @@ var DynamicList = /** @class */ (function () {
             f();
         this.onRender.push(f);
     };
+    DynamicList.prototype.updateRecordCount = function () {
+        var count = document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
+        if (count) {
+            count.innerHTML = "Records: " + this.listBox._rData.length;
+        }
+    };
     DynamicList.prototype.populateListBox = function () {
         this.listBox.populate(this.data);
         this.listBox._refreshStateMessages();
@@ -1621,6 +1644,7 @@ var DynamicList = /** @class */ (function () {
         }
         this.listBox.refresh();
         this.listBox.resize();
+        this.updateRecordCount();
     };
     DynamicList.prototype.buildList = function () {
         var _this = this;
@@ -1641,17 +1665,17 @@ var DynamicList = /** @class */ (function () {
                 var _loop_2 = function (key) {
                     if (instance[key] instanceof Array) {
                         schema[key] = { array: {} };
-                        var item_1 = schema[key];
-                        if (!('array' in item_1))
+                        var item_2 = schema[key];
+                        if (!('array' in item_2))
                             return "break";
                         instance[key].forEach(function (i, idx) {
-                            if (!('array' in item_1))
+                            if (!('array' in item_2))
                                 return;
                             if (typeof i != 'object') {
-                                item_1.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
+                                item_2.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
                             }
                             else {
-                                Object.assign(item_1.array, buildFromInstance(i));
+                                Object.assign(item_2.array, buildFromInstance(i));
                             }
                         });
                     }
@@ -1707,6 +1731,7 @@ var DataScopeManager = /** @class */ (function () {
     function DataScopeManager(schema) {
         this.schema = schema;
         this.path = [];
+        this.expandedIdxToRawIdx = {};
     }
     DataScopeManager.prototype.setPathFromConfig = function (config, data) {
         this.path = [];
@@ -1732,15 +1757,28 @@ var DataScopeManager = /** @class */ (function () {
             }
         }
     };
+    DataScopeManager.prototype.strToPath = function (str) {
+        return str.split(SEPARATOR);
+    };
+    DataScopeManager.prototype.getOriginalIndex = function (n) {
+        return this.expandedIdxToRawIdx[n];
+    };
     DataScopeManager.prototype.flattenData = function (data) {
+        this.expandedIdxToRawIdx = {};
         var newData = [];
         // Given path part n, datapoint d
         // Flatten data around d, ignoring any arrays
         // Enter array n, if it exists
         // Repeat for part n + 1, datapoint d[n]
-        for (var _i = 0, data_2 = data; _i < data_2.length; _i++) {
-            var dataPoint = data_2[_i];
-            newData.push.apply(newData, this.flattenDataPoint(dataPoint, this.schema, this.path, ""));
+        for (var i = 0; i < data.length; i++) {
+            var dataPoint = data[i];
+            var newItems = this.flattenDataPoint(dataPoint, this.schema, this.path, "");
+            var startIdx = newData.length;
+            var endIdx = startIdx + newItems.length;
+            for (var j = startIdx; j < endIdx; j++) {
+                this.expandedIdxToRawIdx[j] = i;
+            }
+            newData.push.apply(newData, newItems);
         }
         return newData;
     };
@@ -1960,10 +1998,13 @@ var DynamicListSearch = /** @class */ (function () {
         var _this = this;
         if (this.list.config.searchOptions.advancedSearch) {
             this.obj.setControlDisplay('SEARCHFORM' + '', false, 'display');
+            this.obj.setControlDisplay('ADVANCEDSEARCH' + '', true, 'display');
         }
         else {
+            this.obj.setControlDisplay('SEARCHFORM' + '', true, 'display');
             this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
         }
+        document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
         var allSearchCols = this.list.dataScopeManager.getAvailableDataColumns();
         var getPreferredColumnOptions = function (colName) {
             var col = { name: '', editType: 'text' };
@@ -2000,7 +2041,7 @@ var DynamicListSearch = /** @class */ (function () {
                     type: 'default',
                     format: '',
                     data: [],
-                    quantified: this.list.dataScopeManager.inSubArray(colName.split(SEPARATOR))
+                    quantifier: this.list.dataScopeManager.inSubArray(colName.split(SEPARATOR))
                 };
                 var editType = preferred.editType;
                 switch (editType) {
@@ -2058,11 +2099,56 @@ var DynamicListSearch = /** @class */ (function () {
         this.advForm.refresh(false);
         this.advForm.items.clearSearch.onClick = function () {
             _this.list.listBox._clearSearchListServerSide();
+            var len = _this.advForm.data._parsed.length;
+            for (var i = 0; i < len; i++) {
+                _this.advForm.items.remove.onClick.bind(_this.advForm)(i.toString());
+            }
+        };
+        this.advForm.items.filter.onClick = function (v, ia, i, ele, event) {
+            if (_this.advForm._picker) {
+                var _filterMenu = [{
+                        html: 'Equals',
+                        value: '='
+                    }, {
+                        html: 'Does Not Equal',
+                        value: '<>'
+                    }, {
+                        html: 'Less Than',
+                        value: '<'
+                    }, {
+                        html: 'Less Than or Equal',
+                        value: '<='
+                    }, {
+                        html: 'Greater Than',
+                        value: '>'
+                    }, {
+                        html: 'Greater Than or Equal',
+                        value: '>='
+                    }];
+                var f = _this.advForm.data._parsed[v].field;
+                var type = _this.advForm.data.fields[f].control.type;
+                var exclude = ['datepicker', 'datepickerrange', 'step'];
+                if (exclude.indexOf(type) == -1) {
+                    _filterMenu = _filterMenu.concat([{
+                            html: 'Contains',
+                            value: '..x..'
+                        }, {
+                            html: 'Starts with',
+                            value: 'x..'
+                        }, {
+                            html: 'Ends with',
+                            value: '..x'
+                        }]);
+                }
+                _this.advForm._picker.layout = 'list';
+                _this.advForm._picker.populate(_filterMenu);
+                _this.advForm._picker.setValue(_this.advForm.data._parsed[v].op || '');
+                _this.advForm.showPicker(ele, 'filter', v);
+            }
         };
         this.advForm.items.runQuery.onClick = function () {
             var query = _this.advForm.value;
             var obj = {
-                searchMode: 'serverSide',
                 advancedSearchControl: '',
                 queryData: [],
             };
@@ -2110,6 +2196,7 @@ var DynamicListSearch = /** @class */ (function () {
                 }
                 var alphaType = editTypeToAlphaType(editType);
                 e.connector = e.andor == '.and.' ? 'AND' : 'OR';
+                e.quantifier = e.quantifier == '.some.' ? 'SOME' : 'ALL';
                 delete e.andor;
                 e.columnName = e.field;
                 delete e.field;
@@ -2149,11 +2236,11 @@ var DynamicListSearch = /** @class */ (function () {
     DynamicListSearch.prototype.modifyAdvFormTemplate = function () {
         var template = this.advForm.layouts.Default.template;
         var onBtnClick = function (v, ia) {
-            this.data._parsed[ia.toString()].quantified = v;
+            this.data._parsed[ia.toString()].quantifier = v;
             this.setValue(JSON.stringify(this.data._parsed));
             this.refresh();
         };
-        this.advForm.items['quantified'] = {
+        this.advForm.items['quantifier'] = {
             onClick: onBtnClick,
             disabledClassName: "",
             drag: { allow: false, on: "down" },
@@ -2172,12 +2259,11 @@ var DynamicListSearch = /** @class */ (function () {
             selectable: false,
             selectedClassName: ""
         };
-        if (template.indexOf("QUANTIFIED") >= 0)
+        if (template.indexOf("QUANTIFIER") >= 0)
             return;
-        var newTemplate = "\n            <div style=\"white-space: nowrap;\">\n                {*if [root].fields[field].control.quantified} \n                    {A5.buttonLists.html(\n                        '".concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIED' + [count],\n                        <escape<\n                            {\n                                theme: \"").concat(this.advForm.theme, "\",\n                                button: {style: 'width: 60px;' }\n                            },\n                            [\n                                {\n                                    html: 'ALL<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.all.'\n                                },\n                                {\n                                    html: 'SOME<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.some.'\n                                },\n                            ],\n                            (() => { try {return quantified;} catch(_) {return '.all.'}})(),\n                            'a5-item=\"quantified:' + [count] + '\" a5-value=\"{value}\" id=\"").concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIED' + [count] + '.{index}\"'\n                        >>\n                    )}\n                {*endif}\n            </div>\n        ");
+        var newTemplate = "\n            <div style=\"white-space: nowrap;\">\n                {*if [root].fields[field].control.quantifier} \n                    {A5.buttonLists.html(\n                        '".concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIER' + [count],\n                        <escape<\n                            {\n                                theme: \"").concat(this.advForm.theme, "\",\n                                button: {style: 'width: 60px;' }\n                            },\n                            [\n                                {\n                                    html: 'ALL<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.all.'\n                                },\n                                {\n                                    html: 'SOME<div class=\"icon\" style=\"width: 0px; display: inline-block;\">&nbsp;</div>',\n                                    value: '.some.'\n                                },\n                            ],\n                            (() => { try {return quantifier;} catch(_) {return '.all.'}})(),\n                            'a5-item=\"quantifier:' + [count] + '\" a5-value=\"{value}\" id=\"").concat(this.obj.dialogId, ".AdvancedSearch.QUANTIFIER' + [count] + '.{index}\"'\n                        >>\n                    )}\n                {*endif}\n            </div>\n        ");
         newTemplate = newTemplate.replace(/(\r\n|\n|\r)/gm, '');
         var templateSplitPoint = template.indexOf("</div>	{/_parsed}");
-        console.log(this.advForm.theme);
         template = template.slice(0, templateSplitPoint) + newTemplate + template.slice(templateSplitPoint);
         this.advForm.layouts.Default.template = template;
         this.advForm.layouts.Default._t = undefined;
@@ -2189,6 +2275,8 @@ var DynamicListSearch = /** @class */ (function () {
         if (lObj.searchList)
             return;
         lObj.searchList = function (x) {
+            var _a;
+            ((_a = _this.obj.stateInfo.onSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach(function (f) { return f(_this); });
             var obj = typeof x != 'undefined' ? x : {};
             var mode = 'serverSide';
             if (!(_this.list.config.searchOptions.serverSearch))
@@ -2229,6 +2317,7 @@ var DynamicListSearch = /** @class */ (function () {
                 var rowCount = lObj._rData.length;
                 _this.obj._list_executeEvent(lObj.listVariableName, 'afterSearchComplete', { searchMode: 'search', searchWhere: mode, recordsInQuery: rowCount });
             }
+            _this.list.updateRecordCount();
         };
         lObj._searchPartSubmit_clientSideFilter = function (searchObj) {
             lObj._state.highlight = {};
@@ -2264,9 +2353,8 @@ var DynamicListSearch = /** @class */ (function () {
                     }
                 }
             });
-            for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
-                var v = values_1[_i];
-                var i = v.index;
+            for (var i = 0; i < values.length; i++) {
+                var v = values[i];
                 var val_1 = void 0;
                 if (v.item.columnVal)
                     val_1 = v.item.columnVal;
@@ -2279,15 +2367,19 @@ var DynamicListSearch = /** @class */ (function () {
                     strVal = lObj._str(val_1);
                 if (val_1 instanceof Date)
                     strVal = lObj._str(val_1.toFormat(objDatetimeFormat()));
+                if (v.item.op)
+                    obj['op'] = v.item.op;
+                if (v.item.quantifier)
+                    obj['quantifier'] = v.item.quantifier;
                 expn_i = 'this._match(data,' + lObj._str(v.name) + ',' + strVal + ',' + JSON.stringify(obj) + ')';
                 expn.push(expn_i);
-                if (v.item.connector && i < map.length - 1) {
+                if (v.item.connector && i < values.length - 1) {
                     if (v.item.connector == 'AND')
                         expn.push('&&');
                     else
                         expn.push('||');
                 }
-                aco.control = map[i].control;
+                aco.control = map[v.index].control;
                 aco.value = val_1;
                 ac.push(aco);
             }
@@ -2295,10 +2387,7 @@ var DynamicListSearch = /** @class */ (function () {
                 return true;
             if (expn[expn.length - 1] == '||' || expn[expn.length - 1] == '&&')
                 expn.pop();
-            var operator = searchObj ? '' : '&&';
-            if (typeof lObj._searchPartOperator != 'undefined')
-                operator = lObj._searchPartOperator;
-            var expn_str = expn.join(' ' + operator + ' ');
+            var expn_str = expn.join('');
             var fnText = 'if (' + expn_str + ') { return true; } else { return false; }';
             var searchFn = new Function('data', fnText);
             lObj.setFilter(searchFn);

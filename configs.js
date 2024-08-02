@@ -5,7 +5,7 @@ let CUSTOMER_CONFIG = {
         "table": "Customer"
     },
     "searchOptions": {
-        "serverSearch": true,
+        "serverSearch": false,
         "advancedSearch": true,
         "onlyInclude": [
             "FIRSTNAME",
