@@ -2098,7 +2098,7 @@ var DynamicListSearch = /** @class */ (function () {
         this.advForm.onBeforePopulate(this.advForm.data);
         this.advForm.refresh(false);
         this.advForm.items.clearSearch.onClick = function () {
-            _this.list.listBox._clearSearchListServerSide();
+            _this.list.listBox.clearSearchList();
             var len = _this.advForm.data._parsed.length;
             for (var i = 0; i < len; i++) {
                 _this.advForm.items.remove.onClick.bind(_this.advForm)(i.toString());
@@ -2268,6 +2268,13 @@ var DynamicListSearch = /** @class */ (function () {
         this.advForm.layouts.Default.template = template;
         this.advForm.layouts.Default._t = undefined;
     };
+    DynamicListSearch.prototype.serverOrClientSearch = function (o) {
+        var obj = typeof o != 'undefined' ? o : {};
+        var mode = 'serverside';
+        if (!(this.list.config.searchOptions.serverSearch))
+            mode = 'clientside';
+        return mode;
+    };
     DynamicListSearch.prototype.setListSearchFns = function () {
         var _this = this;
         var lObj = this.list.listBox;
@@ -2278,29 +2285,7 @@ var DynamicListSearch = /** @class */ (function () {
             var _a;
             ((_a = _this.obj.stateInfo.onSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach(function (f) { return f(_this); });
             var obj = typeof x != 'undefined' ? x : {};
-            var mode = 'serverSide';
-            if (!(_this.list.config.searchOptions.serverSearch))
-                mode = 'clientside';
-            if (typeof obj.searchMode != 'undefined')
-                mode = obj.searchMode;
-            mode = mode.toLowerCase();
-            if (mode.indexOf('auto') == 0) {
-                var flagCS = false;
-                if (typeof lObj.detailViewIsDirty == 'function') {
-                    if (lObj.listIsDirty() || lObj.detailViewIsDirty())
-                        flagCS = true;
-                }
-                else {
-                    if (lObj.listIsDirty())
-                        flagCS = true;
-                }
-                if (flagCS)
-                    mode = 'clientside';
-                if (!(_this.list.config.searchOptions.serverSearch))
-                    mode = 'clientside';
-                else
-                    mode = 'serverside';
-            }
+            var mode = _this.serverOrClientSearch(x);
             var flagDirty = false;
             if (lObj.listIsDirty)
                 flagDirty = lObj.listIsDirty();
@@ -2330,13 +2315,6 @@ var DynamicListSearch = /** @class */ (function () {
             var ac = [];
             var aco = {};
             var _highlight = {};
-            var getSearchObjElement = function (col) {
-                for (var _i = 0, _a = searchObj.queryData; _i < _a.length; _i++) {
-                    var e = _a[_i];
-                    if (e.columnName == col)
-                        return e;
-                }
-            };
             var values = [];
             allSearchCols.forEach(function (colName, i) {
                 var val;
@@ -2443,24 +2421,9 @@ var DynamicListSearch = /** @class */ (function () {
             _this.list.setFilterAndFetch(filters);
         };
         lObj.clearSearchList = function (_obj) {
-            var obj = _obj !== null && _obj !== void 0 ? _obj : {};
-            var mode = 'serverSide';
-            if (typeof obj.searchMode != 'undefined')
-                mode = obj.searchMode;
-            mode = mode.toLowerCase();
-            if (mode.indexOf('auto') == 0) {
-                if (lObj.listIsDirty())
-                    mode = 'clientside';
-                else
-                    mode = 'serverside';
-            }
-            if (!_this.list.config.searchOptions.serverSearch)
-                mode = 'clientside';
-            var parentList = lObj.parentList;
-            if (typeof parentList != 'undefined') {
-                if (parentList != '')
-                    mode = 'clientside';
-            }
+            var _a;
+            ((_a = _this.obj.stateInfo.onClearSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach(function (f) { return f(_this); });
+            var mode = _this.serverOrClientSearch(_obj);
             var flagResult = _this.obj._list_executeEvent(lObj.listVariableName, 'beforeSearch', { searchMode: 'clear', searchWhere: mode });
             if (!flagResult)
                 return false;
