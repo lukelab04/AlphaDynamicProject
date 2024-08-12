@@ -11,7 +11,7 @@
         "A5ContainerClassPadding": "0px",
         "A5ContainerClassPaddingForContainerWidthMode": "4px",
         "cssIcons": "font-awesome",
-        "JavaScriptLinkedFiles": "formBuilder.js,listBuilder.js,configs.js",
+        "JavaScriptLinkedFiles": "formBuilder.js,listBuilder.js,configs.js,configFormBuilder.js",
         "JavaScriptFunctionDeclarations": "\nlet counter = 0;\nlet title = 'New Tab';\nfunction NEWPANELALIAS() {\n\treturn 'DYNAMIC_LIST_RUNTIME_' + counter.toString();\n}\n\nfunction newPanelTitle() {\n\treturn title;\n}\n\nfunction openNewPanel(config, titleName, filters, args = []) {\n\ttitle = titleName;\n\tcounter += 1;\n\tlet open = () => {dialog.object}.runAction('Open Panel');\n\tlet build = () => {\n\t\tlet name = NEWPANELALIAS() + '_DlgObj';\n\t\tlet newObj = window[name];\n\t\tnewObj.populateDynamicElements(config, filters, args);\n\t};\n\tA5.executeThisThenThat(open, build);\n}\n\n",
         "layoutType": "ContainerWidth",
         "previewMode": "Default",
@@ -176,8 +176,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-1-20",
-            "dateLastEdited": "2024-7-30",
-            "revisionnumber": 399
+            "dateLastEdited": "2024-8-12",
+            "revisionnumber": 401
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -747,21 +747,7 @@
                 "idInternal": "59d509ba-4663-40de-9bf9-39872f50beeb",
                 "parentContainer": 6,
                 "crc": "4294923021",
-                "precalc": {
-                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_59d509ba_4663_40de_9bf9_39872f50beeb\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
-                    "DesignViewHTML": "",
-                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_59d509ba_4663_40de_9bf9_39872f50beeb = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_2','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_CUSTOMER_LIST}\\nembeddedObj.populateDynamicElements(CUSTOMER_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_CUSTOMER_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_2','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_CUSTOMER_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
-                },
-                "isCollapsed": false,
-                "inPanelCard": true,
-                "containerStartIndex": 0,
-                "inTabPane": true,
-                "inWindowContainer": false,
-                "hasParentTab": false,
-                "parentTabId": "",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "pageLayoutPart": {
                         "showMode": "When page is loaded",
                         "objectPosition": "To right of button",
@@ -781,12 +767,11 @@
                             "gridName": "example_layout_ux",
                             "componentType": "UX",
                             "alias": "CUSTOMER_LIST",
-                            "customSettingOverridesJSON": "",
                             "useMasterStyle": true,
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
-                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_CUSTOMER_LIST}\nembeddedObj.populateDynamicElements(CUSTOMER_CONFIG);"
+                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_CUSTOMER_LIST}\nembeddedObj.populateDynamicElements(CUSTOMER_CONFIG);",
+                            "customSettingOverridesJSON": ""
                         },
-                        "useStaticHTML": false,
                         "report": {
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
                             "moreRecordsTemplate": "<hr />Showing first [DisplayRecords] of [TotalRecords] records in query",
@@ -840,6 +825,7 @@
                         "a5wPage": {
                             "liveUpdate": false
                         },
+                        "useStaticHTML": false,
                         "inPanelCard": {
                             "fillPanelContainer": true,
                             "delayRenderTillVisible": true,
@@ -853,8 +839,10 @@
                             }
                         }
                     },
-                    "id": "PAGELAYOUTPART_3",
                     "controlContainerPreventFloat": true,
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "id": "PAGELAYOUTPART_3",
                     "class": "<Default>",
                     "style": "width:1.5in;",
                     "BreakType": "After",
@@ -945,7 +933,19 @@
                     "tabbedUI": {
                         "autoRefreshOnFocus": false
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_59d509ba_4663_40de_9bf9_39872f50beeb\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
+                    "DesignViewHTML": "",
+                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_59d509ba_4663_40de_9bf9_39872f50beeb = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_2','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_CUSTOMER_LIST}\\nembeddedObj.populateDynamicElements(CUSTOMER_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_CUSTOMER_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_2','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_CUSTOMER_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_a061f296d63d4fe7a5c48532a7a146c9_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
+                },
+                "isCollapsed": false,
+                "inPanelCard": true,
+                "containerStartIndex": 0,
+                "inTabPane": true,
+                "inWindowContainer": false,
+                "hasParentTab": false,
+                "parentTabId": ""
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -1096,22 +1096,7 @@
                 "idInternal": "f119088b_e9ec_4d7b_92cd_62ed39f0e92b",
                 "parentContainer": 9,
                 "crc": "4294956260",
-                "precalc": {
-                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_f119088b_e9ec_4d7b_92cd_62ed39f0e92b\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
-                    "DesignViewHTML": "",
-                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_f119088b_e9ec_4d7b_92cd_62ed39f0e92b = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_6','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_TR_LIST}\\nembeddedObj.populateDynamicElements(TR_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_TR_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_6','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_TR_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": true,
-                "containerStartIndex": 0,
-                "inTabPane": true,
-                "inWindowContainer": false,
-                "hasParentTab": false,
-                "parentTabId": "",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "pageLayoutPart": {
                         "showMode": "When page is loaded",
                         "objectPosition": "To right of button",
@@ -1131,12 +1116,11 @@
                             "gridName": "example_layout_ux",
                             "componentType": "UX",
                             "alias": "TR_LIST",
-                            "customSettingOverridesJSON": "",
                             "useMasterStyle": true,
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
-                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_TR_LIST}\nembeddedObj.populateDynamicElements(TR_CONFIG);"
+                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_TR_LIST}\nembeddedObj.populateDynamicElements(TR_CONFIG);",
+                            "customSettingOverridesJSON": ""
                         },
-                        "useStaticHTML": false,
                         "report": {
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
                             "moreRecordsTemplate": "<hr />Showing first [DisplayRecords] of [TotalRecords] records in query",
@@ -1190,6 +1174,7 @@
                         "a5wPage": {
                             "liveUpdate": false
                         },
+                        "useStaticHTML": false,
                         "inPanelCard": {
                             "fillPanelContainer": true,
                             "delayRenderTillVisible": true,
@@ -1203,8 +1188,10 @@
                             }
                         }
                     },
-                    "id": "PAGELAYOUTPART_6",
                     "controlContainerPreventFloat": true,
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "id": "PAGELAYOUTPART_6",
                     "class": "<Default>",
                     "style": "width:1.5in;",
                     "BreakType": "After",
@@ -1295,7 +1282,20 @@
                     "tabbedUI": {
                         "autoRefreshOnFocus": false
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_f119088b_e9ec_4d7b_92cd_62ed39f0e92b\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
+                    "DesignViewHTML": "",
+                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_f119088b_e9ec_4d7b_92cd_62ed39f0e92b = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_6','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_TR_LIST}\\nembeddedObj.populateDynamicElements(TR_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_TR_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_6','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_TR_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_6cf912b333ef4530a28852209aa195d7_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": true,
+                "containerStartIndex": 0,
+                "inTabPane": true,
+                "inWindowContainer": false,
+                "hasParentTab": false,
+                "parentTabId": ""
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -1447,22 +1447,7 @@
                 "idInternal": "e7711823_2c70_47d5_9f0b_bccf60f93a0f",
                 "parentContainer": 12,
                 "crc": "4294938334",
-                "precalc": {
-                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_e7711823_2c70_47d5_9f0b_bccf60f93a0f\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
-                    "DesignViewHTML": "",
-                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_e7711823_2c70_47d5_9f0b_bccf60f93a0f = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_7','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_API_LIST}\\nembeddedObj.populateDynamicElements(API_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_API_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_7','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_API_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": true,
-                "containerStartIndex": 0,
-                "inTabPane": true,
-                "inWindowContainer": false,
-                "hasParentTab": false,
-                "parentTabId": "",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "pageLayoutPart": {
                         "showMode": "When page is loaded",
                         "objectPosition": "To right of button",
@@ -1482,12 +1467,11 @@
                             "gridName": "example_layout_ux",
                             "componentType": "UX",
                             "alias": "API_LIST",
-                            "customSettingOverridesJSON": "",
                             "useMasterStyle": true,
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
-                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_API_LIST}\nembeddedObj.populateDynamicElements(API_CONFIG);"
+                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_API_LIST}\nembeddedObj.populateDynamicElements(API_CONFIG);",
+                            "customSettingOverridesJSON": ""
                         },
-                        "useStaticHTML": false,
                         "report": {
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
                             "moreRecordsTemplate": "<hr />Showing first [DisplayRecords] of [TotalRecords] records in query",
@@ -1541,6 +1525,7 @@
                         "a5wPage": {
                             "liveUpdate": false
                         },
+                        "useStaticHTML": false,
                         "inPanelCard": {
                             "fillPanelContainer": true,
                             "delayRenderTillVisible": true,
@@ -1554,8 +1539,10 @@
                             }
                         }
                     },
-                    "id": "PAGELAYOUTPART_7",
                     "controlContainerPreventFloat": true,
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "id": "PAGELAYOUTPART_7",
                     "class": "<Default>",
                     "style": "width:1.5in;",
                     "BreakType": "After",
@@ -1646,7 +1633,20 @@
                     "tabbedUI": {
                         "autoRefreshOnFocus": false
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_e7711823_2c70_47d5_9f0b_bccf60f93a0f\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
+                    "DesignViewHTML": "",
+                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_e7711823_2c70_47d5_9f0b_bccf60f93a0f = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_7','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_API_LIST}\\nembeddedObj.populateDynamicElements(API_CONFIG);';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_API_LIST';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_7','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_API_LIST'}\n\tvar jsToRun = PRECOMPUTEDUX_0ff20c7c00364b6d88af37a76d3b311a_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": true,
+                "containerStartIndex": 0,
+                "inTabPane": true,
+                "inWindowContainer": false,
+                "hasParentTab": false,
+                "parentTabId": ""
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -1806,7 +1806,7 @@
         "autoSetPreRenderOnForAllUX": true,
         "selected": "59d509ba-4663-40de-9bf9-39872f50beeb\n",
         "designPaneIndex": 1,
-        "masterPaneC": "controls",
+        "masterPaneC": "TabbedUIProps",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 10,
         "clientSideEventIndexC": "10",
@@ -1824,7 +1824,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "398",
+        "_buildCount": "400",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -1993,7 +1993,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240730161351445",
+        "A5SaveTimeStamp": "20240812111010228",
         "a_actionJavascript": [
             {
                 "actionGuid": "497996c7-01ef-45ce-a879-1fde3c3b4894      ",
@@ -2136,7 +2136,7 @@
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {
