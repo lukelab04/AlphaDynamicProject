@@ -1209,20 +1209,74 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
             }, 0);
         }
         catch (e) {
-            obj.stateInfo.errorMessages = e.toString();
+            displayErrorMessage(e.toString());
         }
         reRender();
     };
     var loadFromFileCallback = function (data) {
         populateFromData(obj, formName, configObj, reRender, data);
     };
+    var runValidation = function (config) {
+        if ('name' in config) {
+            validateConfig(config);
+        }
+        else {
+            validateMapping(config);
+        }
+    };
+    var extractRelevantConfig = function (config, global) {
+        if (('name' in config) && global)
+            return config;
+        if (('name' in config) && !global)
+            return config.mappings;
+        // Global and no name means user isn't logged in 
+        if (global) {
+            throw new Error("Please log in as an administrator to save a list configuration globally.");
+        }
+        // Otherwise, the config is already just the mapping
+        return config;
+    };
     var saveGlobal = function () {
-        var data = encodeURIComponent(JSON.stringify(configObj.serialize()));
-        obj.ajaxCallback('', '', 'save_config_global', '', "listname=".concat(listName, "&config=").concat(data));
+        try {
+            var maybeConfig = configObj.serialize();
+            runValidation(maybeConfig);
+            maybeConfig = extractRelevantConfig(maybeConfig, true);
+            var data = encodeURIComponent(JSON.stringify(maybeConfig));
+            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(listName, "&payload=").concat(data, "&global=").concat(true), {
+                onComplete: function () {
+                    var res = obj.stateInfo.apiResponse;
+                    if (res && res.err) {
+                        displayErrorMessage(res.err);
+                        console.error(res.err);
+                    }
+                }
+            });
+        }
+        catch (e) {
+            displayErrorMessage(e.toString());
+            console.error(e);
+        }
     };
     var saveUser = function () {
-        var data = encodeURIComponent(JSON.stringify(configObj.serialize()));
-        obj.ajaxCallback('', '', 'save_config_user', '', "listname=".concat(listName, "&config=").concat(data));
+        try {
+            var maybeConfig = configObj.serialize();
+            runValidation(maybeConfig);
+            maybeConfig = extractRelevantConfig(maybeConfig, false);
+            var data = encodeURIComponent(JSON.stringify(maybeConfig));
+            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(listName, "&payload=").concat(data, "&global=").concat(false), {
+                onComplete: function () {
+                    var res = obj.stateInfo.apiResponse;
+                    if (res && res.err) {
+                        displayErrorMessage(res.err);
+                        console.error(res.err);
+                    }
+                }
+            });
+        }
+        catch (e) {
+            displayErrorMessage(e.toString());
+            console.error(e);
+        }
     };
     var bottomButtons;
     if (!isSql)
@@ -1238,9 +1292,9 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
             form = makeTabGroup(tabPanes, tabStack, obj, obj.styleName, allFormCallbacks, configObj.id);
         }
         catch (e) {
-            obj.stateInfo.errorMessages = e.toString();
+            displayErrorMessage(e.toString());
         }
-        renderForm(obj, formName, [form, bottomButtons, makeErrorPane(obj)]);
+        renderForm(obj, formName, [form, bottomButtons]);
         obj.setValue(formName, oldData);
     };
     function addObjAsTab(obj, tabTitle) {
@@ -1281,10 +1335,10 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
         form = makeTabGroup(tabPanes, tabStack, obj, obj.styleName, allFormCallbacks, configObj.id);
     }
     catch (e) {
-        obj.stateInfo.errorMessages = e.toString();
+        displayErrorMessage(e.toString());
         form = {};
     }
-    renderForm(obj, formName, [form, bottomButtons, makeErrorPane(obj)]);
+    renderForm(obj, formName, [form, bottomButtons]);
     return reRender;
 }
 // Helper function to populate the form given an existing JSON object representing the data
@@ -1294,7 +1348,7 @@ function populateFromData(obj, formName, input, reRender, data) {
         obj.setValue(formName, JSON.stringify(d));
     }
     catch (e) {
-        obj.stateInfo.errorMessages = e.toString();
+        displayErrorMessage(e.toString());
         console.error(e);
     }
     reRender();
@@ -1344,22 +1398,6 @@ function wrapInTab(formJSON, title, id, mainId, obj) {
         items: [formJSON],
     };
 }
-function makeErrorPane(obj) {
-    var style = 'background-color: red; color: white;';
-    if (!obj.stateInfo.errorMessages || obj.stateInfo.errorMessages === '')
-        style += 'display: none;';
-    return {
-        type: 'html',
-        control: {
-            html: "<h3> Error </h3>" + obj.stateInfo.errorMessages,
-        },
-        container: {
-            className: '',
-            style: style,
-        },
-        layout: '{content}',
-    };
-}
 // Helper function to make a button to serialize the form data
 function makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback) {
     return {
@@ -1377,7 +1415,6 @@ function makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback) {
                     html: "<span class=\"\" style=\"\">Save</span>",
                     "icon": "",
                     "onClick": function () {
-                        obj.stateInfo.errorMessages = '';
                         writeToFileCallback();
                     }
                 },
@@ -1396,7 +1433,6 @@ function makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback) {
                     html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Load </label></span>",
                     icon: "",
                     onClick: function () {
-                        obj.stateInfo.errorMessages = '';
                         var input = document.createElement('input');
                         input.type = 'file';
                         input.accept = 'application/json';
@@ -1443,7 +1479,6 @@ function makeSQLSaveButtons(obj, saveUser, saveGlobal) {
                     html: "<span class=\"\" style=\"\">Save to Current User</span>",
                     "icon": "",
                     "onClick": function () {
-                        obj.stateInfo.errorMessages = '';
                         saveUser();
                     }
                 },
@@ -1462,7 +1497,6 @@ function makeSQLSaveButtons(obj, saveUser, saveGlobal) {
                     html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Save Globally </label></span>",
                     icon: "",
                     onClick: function () {
-                        obj.stateInfo.errorMessages = '';
                         saveGlobal();
                     }
                 },

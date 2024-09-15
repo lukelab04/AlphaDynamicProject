@@ -31,7 +31,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tgetAllDataForTable = stdQueries.getTableData(e)\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
+        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.querySqlWithFilters(e)\n\tgetAllDataForTable = \"{dialog.object}.stateInfo.apiResult = \" + result + \";\"\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -175,8 +175,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2024-7-30",
-            "revisionnumber": 489
+            "dateLastEdited": "2024-9-14",
+            "revisionnumber": 497
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -518,24 +518,21 @@
                 "containerStartIndex": 0
             },
             {
-                "controltype": "layout_directive_ContainerBegin",
+                "controlType": "layout_directive_ContainerBegin",
+                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=bba7d142-7081-457c-b7bd-bb4b9231ae80}{I:'$$format.border.style.dash'} [Container: FLEXLAYOUT_1]",
                 "idInternal": "bba7d142-7081-457c-b7bd-bb4b9231ae80",
                 "lastIndex": 7,
                 "parentContainer": 3,
-                "containerStartIndex": 0,
-                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=bba7d142-7081-457c-b7bd-bb4b9231ae80}{I:'$$format.border.style.dash'} [Container: FLEXLAYOUT_1]",
-                "precalc": {
-                    "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.FLEXLAYOUT_1\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; flex-direction: row; align-items: center; \"  ><!--DIV for Container control-->",
-                    "DesignViewHTML": ""
-                },
                 "crc": "4294941703",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "container": {
                         "ID": "FLEXLAYOUT_1",
                         "style": "display: flex; flex-direction: row; align-items: center;",
                         "contentAlignment": "Left",
+                        "buttonGroup": {
+                            "orientation": "Horizontal"
+                        },
+                        "subType": "None",
                         "contentVerticalAlign": "Top",
                         "CSSGridJSON": "",
                         "useFlex": true,
@@ -543,10 +540,6 @@
                         "alignItems": "",
                         "containersettype": "",
                         "edgeOffset": "",
-                        "buttonGroup": {
-                            "orientation": "Horizontal"
-                        },
-                        "subType": "None",
                         "allowScrolling": false,
                         "scrolling": {
                             "axis": "Both",
@@ -589,10 +582,12 @@
                         "constrainTabKey": "No",
                         "constrainJavascriptFunction": ""
                     },
-                    "cssGridItemPropertiesJSON": "",
                     "precalc": {
                         "javascriptAbstractSetupCode": ""
                     },
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 3,
                         "isContainerStart": true,
@@ -619,7 +614,12 @@
                         "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=bba7d142-7081-457c-b7bd-bb4b9231ae80}{I:'$$format.border.style.dash'} [Container: FLEXLAYOUT_1]"
                     }
                 },
-                "iscollapsed": false
+                "precalc": {
+                    "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.FLEXLAYOUT_1\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; flex-direction: row; align-items: center; \"  ><!--DIV for Container control-->",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_button",
@@ -630,23 +630,10 @@
                 "displayOD": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button]",
                 "displayODtree": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button:Synchronize]",
                 "crc": "4294931148",
-                "indentTree": 0,
-                "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
-                    "DesignViewHTML": ""
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": false,
-                "inTreeControl": false,
-                "containerStartIndex": 0,
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "buttonText": "Synchronize",
                     "Class": "<Default>",
                     "Style": "width: .75in;",
-                    "cssGridItemPropertiesJSON": "",
                     "BreakType": "None",
                     "breakHeight": ".1in",
                     "breakHorizontalSpace": ".1in",
@@ -669,8 +656,6 @@
                         "hoverImageName": "",
                         "displayDropdownIconOnButton": false,
                         "displayAsSplitButton": false,
-                        "showBadge": false,
-                        "badgeSettingsJSON": "",
                         "hyperlinkClass": "[class.gridHyperlinkButton]",
                         "hyperlinkImagePosition": "None",
                         "hyperlinkInlineStyle": "",
@@ -680,7 +665,9 @@
                         "pressedImageName": "",
                         "textClass": "",
                         "textInlineStyle": "",
-                        "type": "Button"
+                        "type": "Button",
+                        "showBadge": false,
+                        "badgeSettingsJSON": ""
                     },
                     "securityGroups": "",
                     "showHideExpn": "",
@@ -698,6 +685,13 @@
                         "javascriptAdvancedButton_control": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'] = new A5.Button({\n\tlayout: 'icon text',\n\tstyle: 'box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;',\n\ttip: 'Synchronize data - push local edits back to the server',\n\thtml: 'Synchronize',\n\ticon: '{images.GridRow.SaveRecord}',\n\tdisabledIcon: '{images.GridRow.SaveRecord.disabled}',\n\tonClick: function() { \n\n},\n\ttheme: '{grid.style}'\n});",
                         "javascriptAdvancedButton_bind": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].bind('{DIALOG.COMPONENTNAME}.V.R{DIALOG.ROWNUMBER}.BUTTON_DVSYNCHRONIZE_LIST1');"
                     },
+                    "javascript": {
+                        "onclick": ""
+                    },
+                    "consumedInSpecialPanelButton": false,
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -722,35 +716,32 @@
                         "break": false,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button: Synchronize]"
                     },
-                    "javascript": {
-                        "onclick": ""
-                    },
                     "controlContainerStyle": "",
-                    "variablename": "",
-                    "consumedInSpecialPanelButton": false
-                }
-            },
-            {
-                "controltype": "layout_directive_statictext",
-                "idInternal": "f5da1d92-e09e-43d5-916c-87e9d716bb7c",
-                "parentContainer": 4,
-                "containerStartIndex": 0,
-                "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=f5da1d92-e09e-43d5-916c-87e9d716bb7c}{I:'$$format.text'} [Static Text:<p id=\"{dialog.componentname}_RECORD_COU...]<<break>>",
+                    "variablename": ""
+                },
+                "indentTree": 0,
                 "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<div id=\"{dialog.componentName}.V.R{dialog.rownumber}.STATICTEXT_1\" title=\"\"  class=\"\" style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;\"   ><p id=\"{dialog.componentname}_RECORD_COUNT\">Records: 0</p></div>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": false,
+                "inTreeControl": false,
+                "containerStartIndex": 0
+            },
+            {
+                "controlType": "layout_directive_statictext",
+                "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=f5da1d92-e09e-43d5-916c-87e9d716bb7c}{I:'$$format.text'} [Static Text:<p id=\"{dialog.componentname}_RECORD_COU...]<<break>>",
+                "idInternal": "f5da1d92-e09e-43d5-916c-87e9d716bb7c",
+                "parentContainer": 4,
                 "crc": "4294922261",
-                "iscollapsed": false,
                 "v": {
                     "StaticText": "<p id=\"{dialog.componentname}_RECORD_COUNT\">Records: 0</p>",
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "Class": "<Default>",
                     "BreakType": "After",
                     "breakHeight": ".1in",
                     "breakHorizontalSpace": ".1in",
-                    "cssGridItemPropertiesJSON": "",
                     "id": "STATICTEXT_1",
                     "labelClass": "<Default>",
                     "labelPosition": "None",
@@ -759,6 +750,9 @@
                     "precalc": {
                         "javascriptAbstractSetupCode": ""
                     },
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -784,19 +778,20 @@
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=f5da1d92-e09e-43d5-916c-87e9d716bb7c}{I:'$$format.text'} [Static Text:<p id=\"{dialog.componentname}_RECORD_COU...]<<break>>"
                     },
                     "controlContainerStyle": ""
-                }
-            },
-            {
-                "controltype": "layout_directive_ContainerEnd",
-                "idInternal": "55d493f0-66f5-47e0-baaa-efdaa63c7639",
-                "parentContainer": 3,
-                "containerStartIndex": 4,
-                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=55d493f0-66f5-47e0-baaa-efdaa63c7639}{I:'vertLineCap'} [Container End: FLEXLAYOUT_1]<<break>>",
-                "__flagwrapcontentsindiv": false,
+                },
                 "precalc": {
-                    "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.FLEXLAYOUT_1.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<div id=\"{dialog.componentName}.V.R{dialog.rownumber}.STATICTEXT_1\" title=\"\"  class=\"\" style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;\"   ><p id=\"{dialog.componentname}_RECORD_COUNT\">Records: 0</p></div>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
+                "containerStartIndex": 0
+            },
+            {
+                "controlType": "layout_directive_ContainerEnd",
+                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=55d493f0-66f5-47e0-baaa-efdaa63c7639}{I:'vertLineCap'} [Container End: FLEXLAYOUT_1]<<break>>",
+                "idInternal": "55d493f0-66f5-47e0-baaa-efdaa63c7639",
+                "parentContainer": 3,
+                "crc": "4294927777",
                 "v": {
                     "container": {
                         "BreakType": "After",
@@ -829,7 +824,12 @@
                         "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=55d493f0-66f5-47e0-baaa-efdaa63c7639}{I:'vertLineCap'} [Container End: FLEXLAYOUT_1]<<break>>"
                     }
                 },
-                "crc": "4294927777"
+                "precalc": {
+                    "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.FLEXLAYOUT_1.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
+                    "DesignViewHTML": ""
+                },
+                "containerStartIndex": 4,
+                "__flagwrapcontentsindiv": false
             },
             {
                 "controlType": "layout_directive_ContainerBegin",
@@ -934,8 +934,8 @@
                     "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.LIST_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; height: 300px; flex: 1; \"  ><!--DIV for Container control-->",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0,
-                "iscollapsed": false
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "dialog_formcontrol",
@@ -943,7 +943,7 @@
                 "idInternal": "a99c667b-1092-4d68-810e-88264b95c03e",
                 "parentContainer": 8,
                 "displayODtree": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>",
-                "crc": "4294948818",
+                "crc": "4294925626",
                 "isCollapsed": false,
                 "parentIsCollapsed": false,
                 "containerStartIndex": 0,
@@ -3310,6 +3310,12 @@
                     "localJavascript": "",
                     "controlContainerStyle": "",
                     "cssGridItemPropertiesJSON": "",
+                    "formbox": {
+                        "height": "",
+                        "width": "100%",
+                        "fillPanelContainer": false,
+                        "definitionJSON": "{\n\t\"_state\": {\n\t\t\"showPane\": {\n\t\t\t\"css\": false,\n\t\t\t\"javascript\": false,\n\t\t\t\"items\": true,\n\t\t\t\"preview\": true\n\t\t},\n\t\t\"tabPage\": \"FormLayout\",\n\t\t\"flagShowLineNumbers\": false,\n\t\t\"LayoutSelected_n\": 1,\n\t\t\"fieldSelected_n\": 0,\n\t\t\"layoutGenieFieldSelected_c\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\\r\\n\",\n\t\t\"fieldselected_c\": \"\",\n\t\t\"itemSelected_c\": \"\",\n\t\t\"groupSelected_c\": \"\",\n\t\t\"cssMode\": 1,\n\t\t\"jsmode\": 1,\n\t\t\"selected_javascriptLocal_c\": \"\",\n\t\t\"flagPreviewOpen\": false\n\t},\n\t\"formview\": {\n\t\t\"datasource\": {\n\t\t},\n\t\t\"formProperties\": {\n\t\t\t\"hasMultipleLayouts\": false,\n\t\t\t\"theme\": \"{dialog.style}\",\n\t\t\t\"item\": {\n\t\t\t\t\"className\": \"listItem\",\n\t\t\t\t\"label\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t},\n\t\t\t\t\"description\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"javascript\": {\n\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\"onInitialize\": \"\"\n\t\t\t},\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"namedLayoutsJSON\": \"\"\n\t\t},\n\t\t\"fields\": [],\n\t\t\"items\": [],\n\t\t\"groups\": [],\n\t\t\"layouts\": [\n\t\t{\n\t\t\t\"layoutName\": \"default\",\n\t\t\t\"defaultLayout\": false,\n\t\t\t\"layoutDataType\": \"Data\",\n\t\t\t\"layoutDefinition\": \"\",\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"defaultTemplate\": \"\",\n\t\t\t\"postProcessJavascript\": \"\",\n\t\t\t\"layoutType\": \"Genie\",\n\t\t\t\"last_layoutGenieFieldSelected_c\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\",\n\t\t\t\"itemsArray\": [\n\t\t\t{\n\t\t\t\t\"idInternal\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\",\n\t\t\t\t\"controltype\": \"textbox\",\n\t\t\t\t\"displayName\": \"Item1_1\",\n\t\t\t\t\"indentLevel\": 0,\n\t\t\t\t\"isContainer\": false,\n\t\t\t\t\"firstIndex\": -1,\n\t\t\t\t\"LastIndex\": -1,\n\t\t\t\t\"parentSectionIndex\": -1,\n\t\t\t\t\"parentContainerIndex\": -1,\n\t\t\t\t\"__currentcontainer\": \"\",\n\t\t\t\t\"displayTree\": \"{data=3bae5e89-45f7-487d-b4f9-64028d220f4d}{B=White,Light Blue}{I:'$$control.edit'} TEXTBOX_1 (a) (flex: 1)  ¶\",\n\t\t\t\t\"W\": {\n\t\t\t\t\t\"type\": \"textbox\",\n\t\t\t\t\t\"id\": \"TEXTBOX_1\",\n\t\t\t\t\t\"show\": \"\",\n\t\t\t\t\t\"password\": false,\n\t\t\t\t\t\"description\": {\n\t\t\t\t\t\t\"text\": \"\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"iscontainer\": false,\n\t\t\t\t\t\"layout\": \"label-before\",\n\t\t\t\t\t\"label\": {\n\t\t\t\t\t\t\"text\": \"\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\",\n\t\t\t\t\t\t\"icon\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"control\": {\n\t\t\t\t\t\t\"placeholder\": \"\",\n\t\t\t\t\t\t\"width\": \"100%\",\n\t\t\t\t\t\t\"type\": \"text\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\",\n\t\t\t\t\t\t\"errorClassName\": \"\",\n\t\t\t\t\t\t\"multiLine\": false,\n\t\t\t\t\t\t\"theme\": \"\",\n\t\t\t\t\t\t\"icon\": {\n\t\t\t\t\t\t\t\"shown\": \"\",\n\t\t\t\t\t\t\t\"hidden\": \"\"\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"data\": {\n\t\t\t\t\t\t\"from\": \"a\",\n\t\t\t\t\t\t\"isComputed\": false,\n\t\t\t\t\t\t\"isSummary\": false,\n\t\t\t\t\t\t\"summaryField\": \"\",\n\t\t\t\t\t\t\"summaryRepeatId\": \"\",\n\t\t\t\t\t\t\"summaryType\": \"Count\",\n\t\t\t\t\t\t\"summaryFormat\": \"\",\n\t\t\t\t\t\t\"computedExpression\": \"\",\n\t\t\t\t\t\t\"computedExpressionFormat\": \"\",\n\t\t\t\t\t\t\"defaultvalue\": \"\",\n\t\t\t\t\t\t\"blank\": \"\",\n\t\t\t\t\t\t\"alwayssubmitvalue\": true,\n\t\t\t\t\t\t\"format\": \"\",\n\t\t\t\t\t\t\"displayformat\": \"date:<UXDefaultDateFormat> hh:mm:ss!!! hh:mm:ss\",\n\t\t\t\t\t\t\"required\": false,\n\t\t\t\t\t\t\"requiredErrorMessage\": \"Value is required\",\n\t\t\t\t\t\t\"validate\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"error\": {\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"showhideexpression\": \"\",\n\t\t\t\t\t\"multiline\": false,\n\t\t\t\t\t\"layoutjson\": \"\",\n\t\t\t\t\t\"showdatepicker\": false,\n\t\t\t\t\t\"dateformat\": \"MM/dd/yyyy\",\n\t\t\t\t\t\"subtheme\": \"\",\n\t\t\t\t\t\"container\": {\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"horizontalalignment\": \"Left\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"break\": \"After\",\n\t\t\t\t\t\"disableExpression\": \"\",\n\t\t\t\t\t\"readonlyExpression\": \"\",\n\t\t\t\t\t\"javascript\": {\n\t\t\t\t\t\t\"onFocus\": \"\",\n\t\t\t\t\t\t\"onBlur\": \"\",\n\t\t\t\t\t\t\"onKeyDown\": \"\",\n\t\t\t\t\t\t\"onKeyUp\": \"\",\n\t\t\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\t\t\"onSelect\": \"\",\n\t\t\t\t\t\t\"onCancel\": \"\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}]\n\t\t}],\n\t\t\"javascriptLocal\": [],\n\t\t\"css\": \"\",\n\t\t\"Javascript\": \"\"\n\t}\n}"
+                    },
                     "info": {
                         "level": 2,
                         "isContainerStart": false,
@@ -3333,12 +3339,6 @@
                         "parentPanelCardId": "d585c78a-36d0-4965-8fbd-37ab290ed0f2",
                         "break": true,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{Data=79c95fbd-4dbc-47d4-9803-7b7c792d4251}{I:'$$control.form'} [DETAIL_VIEW]<<break>>"
-                    },
-                    "formbox": {
-                        "height": "",
-                        "width": "100%",
-                        "fillPanelContainer": false,
-                        "definitionJSON": "{\n\t\"_state\": {\n\t\t\"showPane\": {\n\t\t\t\"css\": false,\n\t\t\t\"javascript\": false,\n\t\t\t\"items\": true,\n\t\t\t\"preview\": true\n\t\t},\n\t\t\"tabPage\": \"FormLayout\",\n\t\t\"flagShowLineNumbers\": false,\n\t\t\"LayoutSelected_n\": 1,\n\t\t\"fieldSelected_n\": 0,\n\t\t\"layoutGenieFieldSelected_c\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\\r\\n\",\n\t\t\"fieldselected_c\": \"\",\n\t\t\"itemSelected_c\": \"\",\n\t\t\"groupSelected_c\": \"\",\n\t\t\"cssMode\": 1,\n\t\t\"jsmode\": 1,\n\t\t\"selected_javascriptLocal_c\": \"\",\n\t\t\"flagPreviewOpen\": false\n\t},\n\t\"formview\": {\n\t\t\"datasource\": {\n\t\t},\n\t\t\"formProperties\": {\n\t\t\t\"hasMultipleLayouts\": false,\n\t\t\t\"theme\": \"{dialog.style}\",\n\t\t\t\"item\": {\n\t\t\t\t\"className\": \"listItem\",\n\t\t\t\t\"label\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t},\n\t\t\t\t\"description\": {\n\t\t\t\t\t\"style\": \"\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"javascript\": {\n\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\"onInitialize\": \"\"\n\t\t\t},\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"namedLayoutsJSON\": \"\"\n\t\t},\n\t\t\"fields\": [],\n\t\t\"items\": [],\n\t\t\"groups\": [],\n\t\t\"layouts\": [\n\t\t{\n\t\t\t\"layoutName\": \"default\",\n\t\t\t\"defaultLayout\": false,\n\t\t\t\"layoutDataType\": \"Data\",\n\t\t\t\"layoutDefinition\": \"\",\n\t\t\t\"responsiveRulesJSON\": \"\",\n\t\t\t\"defaultTemplate\": \"\",\n\t\t\t\"postProcessJavascript\": \"\",\n\t\t\t\"layoutType\": \"Genie\",\n\t\t\t\"last_layoutGenieFieldSelected_c\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\",\n\t\t\t\"itemsArray\": [\n\t\t\t{\n\t\t\t\t\"idInternal\": \"3bae5e89-45f7-487d-b4f9-64028d220f4d\",\n\t\t\t\t\"controltype\": \"textbox\",\n\t\t\t\t\"displayName\": \"Item1_1\",\n\t\t\t\t\"indentLevel\": 0,\n\t\t\t\t\"isContainer\": false,\n\t\t\t\t\"firstIndex\": -1,\n\t\t\t\t\"LastIndex\": -1,\n\t\t\t\t\"parentSectionIndex\": -1,\n\t\t\t\t\"parentContainerIndex\": -1,\n\t\t\t\t\"__currentcontainer\": \"\",\n\t\t\t\t\"displayTree\": \"{data=3bae5e89-45f7-487d-b4f9-64028d220f4d}{B=White,Light Blue}{I:'$$control.edit'} TEXTBOX_1 (a) (flex: 1)  ¶\",\n\t\t\t\t\"W\": {\n\t\t\t\t\t\"type\": \"textbox\",\n\t\t\t\t\t\"id\": \"TEXTBOX_1\",\n\t\t\t\t\t\"show\": \"\",\n\t\t\t\t\t\"password\": false,\n\t\t\t\t\t\"description\": {\n\t\t\t\t\t\t\"text\": \"\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"iscontainer\": false,\n\t\t\t\t\t\"layout\": \"label-before\",\n\t\t\t\t\t\"label\": {\n\t\t\t\t\t\t\"text\": \"\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\",\n\t\t\t\t\t\t\"icon\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"control\": {\n\t\t\t\t\t\t\"placeholder\": \"\",\n\t\t\t\t\t\t\"width\": \"100%\",\n\t\t\t\t\t\t\"type\": \"text\",\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\",\n\t\t\t\t\t\t\"errorClassName\": \"\",\n\t\t\t\t\t\t\"multiLine\": false,\n\t\t\t\t\t\t\"theme\": \"\",\n\t\t\t\t\t\t\"icon\": {\n\t\t\t\t\t\t\t\"shown\": \"\",\n\t\t\t\t\t\t\t\"hidden\": \"\"\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"data\": {\n\t\t\t\t\t\t\"from\": \"a\",\n\t\t\t\t\t\t\"isComputed\": false,\n\t\t\t\t\t\t\"isSummary\": false,\n\t\t\t\t\t\t\"summaryField\": \"\",\n\t\t\t\t\t\t\"summaryRepeatId\": \"\",\n\t\t\t\t\t\t\"summaryType\": \"Count\",\n\t\t\t\t\t\t\"summaryFormat\": \"\",\n\t\t\t\t\t\t\"computedExpression\": \"\",\n\t\t\t\t\t\t\"computedExpressionFormat\": \"\",\n\t\t\t\t\t\t\"defaultvalue\": \"\",\n\t\t\t\t\t\t\"blank\": \"\",\n\t\t\t\t\t\t\"alwayssubmitvalue\": true,\n\t\t\t\t\t\t\"format\": \"\",\n\t\t\t\t\t\t\"displayformat\": \"date:<UXDefaultDateFormat> hh:mm:ss!!! hh:mm:ss\",\n\t\t\t\t\t\t\"required\": false,\n\t\t\t\t\t\t\"requiredErrorMessage\": \"Value is required\",\n\t\t\t\t\t\t\"validate\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"error\": {\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"showhideexpression\": \"\",\n\t\t\t\t\t\"multiline\": false,\n\t\t\t\t\t\"layoutjson\": \"\",\n\t\t\t\t\t\"showdatepicker\": false,\n\t\t\t\t\t\"dateformat\": \"MM/dd/yyyy\",\n\t\t\t\t\t\"subtheme\": \"\",\n\t\t\t\t\t\"container\": {\n\t\t\t\t\t\t\"style\": \"\",\n\t\t\t\t\t\t\"horizontalalignment\": \"Left\",\n\t\t\t\t\t\t\"className\": \"\"\n\t\t\t\t\t},\n\t\t\t\t\t\"break\": \"After\",\n\t\t\t\t\t\"disableExpression\": \"\",\n\t\t\t\t\t\"readonlyExpression\": \"\",\n\t\t\t\t\t\"javascript\": {\n\t\t\t\t\t\t\"onFocus\": \"\",\n\t\t\t\t\t\t\"onBlur\": \"\",\n\t\t\t\t\t\t\"onKeyDown\": \"\",\n\t\t\t\t\t\t\"onKeyUp\": \"\",\n\t\t\t\t\t\t\"onChange\": \"\",\n\t\t\t\t\t\t\"onSelect\": \"\",\n\t\t\t\t\t\t\"onCancel\": \"\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}]\n\t\t}],\n\t\t\"javascriptLocal\": [],\n\t\t\"css\": \"\",\n\t\t\"Javascript\": \"\"\n\t}\n}"
                     }
                 },
                 "precalc": {
@@ -3460,9 +3460,9 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": true,
-        "selected": "f5da1d92-e09e-43d5-916c-87e9d716bb7c\n",
+        "selected": "a99c667b-1092-4d68-810e-88264b95c03e\n",
         "designPaneIndex": 1,
-        "masterPaneC": "controls",
+        "masterPaneC": "XbasicFunctions",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 35,
         "clientSideEventIndexC": "35",
@@ -3471,6 +3471,8 @@
         "embeddedMode": false,
         "_style_hassubthemeTweaks": false,
         "repeatingSectionsAreDirty": true,
+        "containerSubTypeNew": "",
+        "containerSubTypeOld": "",
         "flagDropdownCascadingChanged": false,
         "toolBox_value": "",
         "addinBuildNumber": "5691",
@@ -3478,7 +3480,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "488",
+        "_buildCount": "496",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3576,7 +3578,7 @@
             "__panelButtons": "",
             "flagLoadFirestore": false,
             "__freeformLayoutsJS": "",
-            "_jsOnChangeFunctions": "function onChange_RECORD_COUNT_0407a3c0dc7043ac8045e70e69d8e4ef(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('RECORD_COUNT');};",
+            "_jsOnChangeFunctions": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};",
             "_jsOnClickFunctions": ""
         },
         "FieldsInRepeatingSectionsDeletedBySecurity": "",
@@ -3645,7 +3647,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240730163327966",
+        "A5SaveTimeStamp": "20240914131929015",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7  ",
@@ -3748,8 +3750,9 @@
         "_alphasoftwareBucketName": "",
         "staticHTMLFileJSON": "",
         "__flagRecursive": false,
-        "__idinternalCurrentControl": "0407a3c0-dc70-43ac-8045-e70e69d8e4ef",
-        "__nameCurrentControl": "RECORD_COUNT",
+        "_flagForceRecalcChildren": true,
+        "__idinternalCurrentControl": "a99c667b-1092-4d68-810e-88264b95c03e",
+        "__nameCurrentControl": "list1",
         "_containerstorecalc": "",
         "a_UnboundActionJavascript": [
             {
@@ -3807,15 +3810,12 @@
         "actionJavascriptUnboundLastEdited": "7851927a-54a8-488e-9f3a-03a43995f3fc",
         "informixFix": false,
         "__suppressContainerWarnings": "",
-        "_flagForceRecalcChildren": true,
-        "containerSubTypeNew": "",
-        "containerSubTypeOld": "",
         "prerendered": {
             "_styledataVersion": 4,
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

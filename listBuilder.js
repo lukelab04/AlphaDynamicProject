@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -49,13 +64,22 @@ var DETAIL_FORM_NAME = "DETAIL_VIEW";
 var SEPARATOR = '___';
 var objTimeFormat = function () { return A5.__tfmt; };
 var objDatetimeFormat = function () { return A5.__dtfmt + ' ' + objTimeFormat(); };
-var ValidationError = /** @class */ (function () {
+var ValidationError = /** @class */ (function (_super) {
+    __extends(ValidationError, _super);
     function ValidationError(message) {
-        this.name = "Validation Error";
-        this.message = message;
+        var _this = _super.call(this, message) || this;
+        _this.name = "Validation Error";
+        _this.message = message;
+        return _this;
     }
+    ValidationError.prototype.newFn = function () {
+        return 10;
+    };
+    ValidationError.prototype.toString = function () {
+        return this.name + ": " + this.message;
+    };
     return ValidationError;
-}());
+}(Error));
 function stringReprToFn(s) {
     return eval(s);
 }
@@ -105,8 +129,25 @@ function validateConfig(config) {
         }
     }
     else if (config.dataSource.type == 'sql') {
-        if (!existsAndIs(config.dataSource, "table", "string"))
-            throw existsIsErr("config.dataSource", "table", "string");
+        if ('table' in config.dataSource) {
+            if (!existsAndIs(config.dataSource, "table", "string"))
+                throw existsIsErr("config.dataSource", "table", "string");
+            if ('filters' in config.dataSource) {
+                if (!(config.dataSource.filters instanceof Array)) {
+                    throw new ValidationError("Expected `config.dataSource.filters` to be an array");
+                }
+                else {
+                    config.dataSource.filters.forEach(function (f) { return validateFilter(f); });
+                }
+            }
+        }
+        else if ('sql' in config.dataSource) {
+            if (!existsAndIs(config.dataSource, "sql", "string"))
+                throw existsIsErr("config.dataSource", "sql", "string");
+        }
+        else {
+            throw new ValidationError("Expected `config.dataSource` to have a prop `table` or a prop `sql`");
+        }
     }
     else {
         throw new ValidationError('Expected `config.dataSource.type` to be `json` or `sql`');
@@ -215,6 +256,35 @@ function validateEndpoint(endpoint) {
     }
     return endpoint;
 }
+function validateFilter(filter) {
+    if (filter == null || typeof filter != 'object')
+        throw new ValidationError("Expected list filter to be an object");
+    if (!existsAndIs(filter, "columnName", "string"))
+        throw existsIsErr("filter", "columnName", "string");
+    if (!existsAndIs(filter, "columnVal", "string"))
+        throw existsIsErr("filter", "columnVal", "string");
+    if (!existsAndIs(filter, "op", "string"))
+        throw existsIsErr("filter", "op", "string");
+    if (!existsAndIsOrNone(filter, "type", "string"))
+        throw existsIsErr("filter", "type", "string");
+    if (!existsAndIs(filter, "connector", "string")) {
+        throw existsIsErr("filter", "connector", "string");
+    }
+    else {
+        if (filter.connector != 'AND' && filter.connector != 'OR') {
+            throw new ValidationError('Expected "filter.connector" to be "AND" or "OR"');
+        }
+    }
+    if (!existsAndIsOrNone(filter, "quantifier", "string")) {
+        throw existsIsErr("filter", "quantifier", "string");
+    }
+    else {
+        if ('quantifier' in filter && filter.quantifier != 'ALL' && filter.quantifier != 'SOME') {
+            throw new ValidationError('Expected "filter.quantifier" to be "ALL" or "SOME"');
+        }
+    }
+    return filter;
+}
 function alphaTypeToEditType(t) {
     switch (t.toLowerCase()) {
         case 'c': return 'text';
@@ -245,9 +315,18 @@ function jsTypeToAlphaType(t) {
         default: return 'c';
     }
 }
-function getSchema(obj, table, callback) {
-    obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "tableName=" + table, {
-        onComplete: callback
+function getSchema(obj, table) {
+    return new Promise(function (resolve) {
+        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "tableName=" + encodeURIComponent(table), {
+            onComplete: resolve
+        });
+    });
+}
+function getSchemaCustomSql(obj, sql) {
+    return new Promise(function (resolve) {
+        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "sql=" + encodeURIComponent(sql), {
+            onComplete: resolve
+        });
     });
 }
 function fetch(obj, url, options) {
@@ -266,59 +345,61 @@ function fetch(obj, url, options) {
     });
 }
 var DynamicList = /** @class */ (function () {
-    function DynamicList(obj, config, filters, args, onComplete) {
-        if (filters === void 0) { filters = []; }
-        if (args === void 0) { args = []; }
-        if (onComplete === void 0) { onComplete = (function () { }); }
-        var _this = this;
+    function DynamicList() {
         this.nestedPath = [];
         this.dataScopeManager = new DataScopeManager({});
-        this.permanentFilters = filters;
+        this.permanentFilters = [];
         this.searchFilters = [];
         this.buttonFns = {};
         this.onRender = [];
-        this.obj = obj;
-        this.listBox = null;
-        this.config = jQuery.extend({}, config);
+        this.config = undefined;
         this.data = [];
         this.rawData = [];
-        this.schema = {};
-        try {
-            validateConfig(this.config);
-        }
-        catch (e) {
-            alert("Error while validating List Config. Check error logs.");
-            throw e;
-        }
-        if (this.config.onInitialize) {
-            stringReprToFn(this.config.onInitialize)(this, args);
-        }
-        obj.getControl('LIST1')._size = function () { };
-        obj.getControl('LIST1')._resize = function () { };
-        obj.saveDynamicListEdits = function () { return _this.saveDynamicListEdits(); };
-        this.fetchSchema(function () {
-            _this.settings = _this.buildSettings();
-            _this.buildList();
-            _this.dataScopeManager = new DataScopeManager(_this.schema);
-            _this.reRender(function () {
-                try {
-                    validateConfigSchema(_this.config, _this.dataScopeManager);
-                }
-                catch (e) {
-                    alert("Error while validating List Config. Check error logs.");
-                    throw e;
-                }
-                if (typeof onComplete == 'function')
-                    onComplete(_this);
-            });
-        });
+        this.schema = undefined;
     }
-    DynamicList.prototype.reRender = function (callback) {
+    DynamicList.makeDynamicList = function (obj, config, filters, args) {
+        if (filters === void 0) { filters = []; }
+        if (args === void 0) { args = []; }
+        return new Promise(function (resolve) {
+            var list = new DynamicList();
+            list.permanentFilters = filters;
+            list.searchFilters = [];
+            list.buttonFns = {};
+            list.onRender = [];
+            list.obj = obj;
+            list.listBox = null;
+            list.config = jQuery.extend({}, config);
+            list.data = [];
+            list.rawData = [];
+            list.schema = {};
+            validateConfig(list.config);
+            if (list.config.onInitialize) {
+                stringReprToFn(list.config.onInitialize)(list, args);
+            }
+            obj.getControl('LIST1')._size = function () { };
+            obj.getControl('LIST1')._resize = function () { };
+            obj.saveDynamicListEdits = function () { return list.saveDynamicListEdits(); };
+            resolve(list);
+        })
+            .then(function (list) { return list.fetchSchema(); })
+            .then(function (list) {
+            list.settings = list.buildSettings();
+            list.buildList();
+            list.dataScopeManager = new DataScopeManager(list.schema);
+            return list.reRender();
+        })
+            .then(function (renderedList) {
+            validateConfigSchema(renderedList.config, renderedList.dataScopeManager);
+            return renderedList;
+        });
+    };
+    DynamicList.prototype.reRender = function () {
         var _this = this;
-        this.fetchData(function () {
-            _this.populateListBox();
-            if (callback)
-                callback();
+        return new Promise(function (resolve) {
+            _this.fetchData(function () {
+                _this.populateListBox();
+                resolve(_this);
+            });
         });
     };
     DynamicList.prototype.setStaticData = function (data) {
@@ -349,11 +430,14 @@ var DynamicList = /** @class */ (function () {
             _this.obj.refreshClientSideComputations(true);
             _this.reRender();
         };
-        if (this.config.dataSource.type == 'sql') {
+        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + this.config.dataSource.table
                 + "&dirty=" + encodeURI(JSON.stringify(harvest)), {
                 onComplete: onComplete,
             });
+        }
+        else if (this.config.dataSource.type == 'sql' && 'sql' in this.config.dataSource) {
+            throw new Error("todo");
         }
         else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
             var newRows_1 = [];
@@ -1489,7 +1573,7 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.fetchData = function (callback) {
         var _this = this;
-        if (this.config.dataSource.type == 'sql') {
+        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             var columns_1 = [];
             this.config.mappings.forEach(function (c) {
                 columns_1.push(c.columnName);
@@ -1499,13 +1583,16 @@ var DynamicList = /** @class */ (function () {
             if (this.config.searchOptions.paginate) {
                 paginate = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, ", getPage: ").concat(this.listBox._state.page, "}"));
             }
-            this.obj.ajaxCallback("", "", "getAllDataForTable", "", "columns=" + encodeURIComponent(JSON.stringify(columns_1))
-                + "&tableName=" + encodeURIComponent(this.config.dataSource.table)
+            this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
                 + "&filters=" + encodeURIComponent(filters)
                 + paginate, {
                 onComplete: function () {
-                    _this.data = _this.obj.stateInfo.allListData;
-                    _this.rawData = _this.obj.stateInfo.allListData;
+                    var response = _this.obj.stateInfo.apiResult;
+                    if ("err" in response) {
+                        throw new Error(response.err);
+                    }
+                    _this.data = _this.obj.stateInfo.apiResult.ok;
+                    _this.rawData = _this.obj.stateInfo.apiResult.ok;
                     var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : _this.obj.stateInfo.numRowsAvailable);
                     _this.listBox._state = {
                         pageSize: pageSize,
@@ -1513,6 +1600,45 @@ var DynamicList = /** @class */ (function () {
                         pageCount: Math.ceil(_this.obj.stateInfo.numRowsAvailable / pageSize),
                         recordCount: _this.obj.stateInfo.numRowsAvailable,
                     };
+                    if (_this.data === undefined) {
+                        console.error("Error fetching data, defaulting to empty.");
+                        _this.data = [];
+                        _this.rawData = [];
+                    }
+                    _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
+                    _this.data = _this.dataScopeManager.flattenData(_this.data);
+                    callback();
+                }
+            });
+        }
+        else if (this.config.dataSource.type == 'sql') {
+            var paginate = '';
+            if (this.config.searchOptions.paginate) {
+                paginate = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, "}"));
+            }
+            var filters = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
+            this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
+                + "&filters=" + encodeURIComponent(filters)
+                + paginate, {
+                onComplete: function () {
+                    var response = _this.obj.stateInfo.apiResult;
+                    if ("err" in response) {
+                        throw new Error(response.err);
+                    }
+                    _this.data = _this.obj.stateInfo.apiResult.ok;
+                    _this.rawData = _this.obj.stateInfo.apiResult.ok;
+                    // let pageSize = (this.config.searchOptions.paginate ? this.config.searchOptions.paginate.pageSize : this.obj.stateInfo.numRowsAvailable);
+                    // this.listBox._state = {
+                    //     pageSize: pageSize,
+                    //     page: this.listBox._state.page,
+                    //     pageCount: Math.ceil(this.obj.stateInfo.numRowsAvailable / pageSize),
+                    //     recordCount: this.obj.stateInfo.numRowsAvailable,
+                    // };
+                    if (_this.data === undefined) {
+                        console.error("Error fetching data, defaulting to empty.");
+                        _this.data = [];
+                        _this.rawData = [];
+                    }
                     _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
                     _this.data = _this.dataScopeManager.flattenData(_this.data);
                     callback();
@@ -1654,7 +1780,7 @@ var DynamicList = /** @class */ (function () {
         window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         setFormDetailView(this.obj, this.listBox);
     };
-    DynamicList.prototype.fetchSchema = function (callback) {
+    DynamicList.prototype.fetchSchema = function () {
         var _this = this;
         this.schema = {};
         var buildSchemaFromData = function (data) {
@@ -1695,11 +1821,35 @@ var DynamicList = /** @class */ (function () {
             };
             data.forEach(function (d) { return Object.assign(_this.schema, buildFromInstance(d)); });
         };
-        if (this.config.dataSource.type == 'sql') {
-            getSchema(this.obj, this.config.dataSource.table, function () {
+        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
+            return getSchema(this.obj, this.config.dataSource.table).then(function () {
                 var sqlSchema = _this.obj.stateInfo.schema.jsonOutput.column;
                 sqlSchema.forEach(function (item) { return _this.schema[item.name] = { alphaType: item.alphaType }; });
-                callback();
+                return _this;
+            });
+        }
+        else if (this.config.dataSource.type == 'sql') {
+            var filters_1 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
+            return new Promise(function (resolve, reject) {
+                return _this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(_this.config.name)
+                    + "&filters=" + encodeURIComponent(filters_1), {
+                    onComplete: function () {
+                        var response = _this.obj.stateInfo.apiResult;
+                        if ("err" in response) {
+                            reject(new Error(response.err));
+                        }
+                        var data = _this.obj.stateInfo.apiResult.ok;
+                        if (_this.data === undefined) {
+                            console.error("Error fetching data, defaulting to empty.");
+                            data = [];
+                        }
+                        if (_this.config.dataSource.preprocess) {
+                            data = stringReprToFn(_this.config.dataSource.preprocess)(data);
+                        }
+                        buildSchemaFromData(data);
+                        resolve(_this);
+                    }
+                });
             });
         }
         else if (this.config.dataSource.type == 'json' && 'static' in this.config.dataSource) {
@@ -1708,21 +1858,24 @@ var DynamicList = /** @class */ (function () {
             if (preprocess)
                 staticData = stringReprToFn(preprocess)(staticData);
             buildSchemaFromData(staticData);
-            callback();
+            return Promise.resolve(this);
         }
         else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
             var data = this.filtersAsSimpleObj();
             var url = this.populateUrlParams(this.config.dataSource.endpoints.fetch.endpoint, data);
             var options = this.getFetchOptions(this.config.dataSource.endpoints.fetch);
-            fetch(this.obj, url, options)
+            return fetch(this.obj, url, options)
                 .then(function (res) {
                 var data = JSON.parse(res.body);
                 var preprocess = _this.config.dataSource.preprocess;
                 if (preprocess)
                     data = stringReprToFn(preprocess)(data);
                 buildSchemaFromData(data);
-                callback();
+                return _this;
             });
+        }
+        else {
+            return Promise.resolve(this);
         }
     };
     return DynamicList;

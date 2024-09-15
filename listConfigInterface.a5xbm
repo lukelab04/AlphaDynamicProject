@@ -1,0 +1,249 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+
+exports.requestConfig = requestConfig
+exports.saveConfig = saveConfig
+
+' Input: e.configName (string)
+' Output: {ok : JSON configuration (mapping, searchOptions, buttons only)} or {err: Error Message }
+
+function requestConfig as c (e as p)
+	dim username as c = context.security.currentuser
+	
+	if .not. context.security.callresult.success then 
+		username = ""
+	end if
+	
+	'DIM a SQL arguments object
+	dim args as sql::arguments
+	args.add("username", username)
+	
+	if e.data("configName") == "" then 
+		requestConfig = "{ \"err\": \"property configName cannot be empty\" }"
+		end 
+	else 
+		args.add("listname", e.configName)
+	end if 
+	
+	dim userSql as c
+	dim globalSql as c
+	userSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings  WHERE USER_NAME = :username AND CONFIG_NAME = :listname AND GLOBAL = .f."
+	globalSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
+	
+	dim userMappings as p
+	dim globalConfig as p
+	userMappings = fetchFromDb(userSql, args)
+	globalConfig = fetchFromDb(globalSql, args)
+	
+	if globalConfig.data("err") <> "" then 
+		requestConfig = "{\"err\": " + json_generate(globalConfig.err) + "}"
+		end
+	end if 
+	
+	if globalConfig.ok.getJson() == "" then 
+		requestConfig = "{\"err\": \"Config does not exist\"}"
+		end 
+	end if
+	
+	globalConfig = globalConfig.ok
+	
+	if userMappings.data("ok") <> "" .and. userMappings.ok.getJson() <> "" then 
+		globalConfig.setProperty("mappings", userMappings.ok)
+	end if
+	
+	requestConfig = "{\"ok\": " + globalConfig.getJson() + "}"
+end function
+
+' Take SQL and Args, query database, return as JSON object
+' Returns { ok: Obj } or { err: errMsg }
+function fetchFromDb as p (sql as c, args as sql::arguments)
+	dim returnObj as p
+	
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(sql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = js_escape(cn.callresult.text)
+		returnObj.err = errortext 
+		fetchFromDb = returnObj
+		cn.close()
+		end
+	end if
+	'DIM a SQL::Resultset object
+	dim rs as sql::resultset
+	rs = cn.resultset
+	'get the JSON from the query
+	dim json as extension::json
+	json.setJson(rs.tostring())
+	returnObj.ok = json
+	fetchFromDb = returnObj
+	
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()
+end function
+
+' Input: e.global -- Flag to save as global (will fail, depending on user)
+' Input: e.configName -- Name to save the config under
+' Input: e.payload
+' 	If global is true, then this is the entire configuration 
+' 	If global is false, then this is just the mapping portion of the config
+function saveConfig as c (e as p) 
+	if e.data("global") == "" then 
+		saveConfig = "{err: \"Field 'global' is required\"}"
+		end 
+	else if e.data("configName") == "" then 
+		saveConfig = "{err: \"Field 'configName' is required\"}"
+		end 
+	else if e.data("payload") == "" then 
+		saveConfig = "{err: \"Field 'payload' is required\"}"
+		end 
+	end if
+	
+	dim saveGlobal as L
+	if e.global == "true" then 
+		saveGlobal = .t.
+	else 
+		saveGlobal = .f.
+	end if
+	
+	dim username as c = context.security.currentuser
+	if .not. context.security.callresult.success then 
+		username = ""
+	end if
+
+	' Ensure user is logged in
+	if username == "" then 
+		saveConfig = "{ err: \"User is not logged in.\"}"
+		end 
+	end if
+	
+	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
+	' User is trying to save globally, but isn't an admin?
+	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) .and. saveGlobal then 
+		saveConfig = "{ err: \"User does not have permissions to save globally.\"}"
+		end 
+	end if
+	
+	'DIM a SQL arguments object
+	dim args as sql::arguments
+	args.add("listname", e.configName)
+	args.add("username", username)
+	args.add("global", saveGlobal)
+	
+	dim sql as c
+	dim already_exists as l = config_exists(username, saveGlobal, e.configName)
+	
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	cn.ReportNotFoundAsWarning = .t.
+	
+	if already_exists then
+		if saveGlobal then
+			args.add("config", e.payload)
+			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .t.", args)
+		else
+			args.add("config", e.payload)
+			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .f. AND USER_NAME = :username", args)
+		end if
+	else 
+		if saveGlobal then
+			args.add("config", e.payload)
+			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
+		else 
+			dim exists_globally as l = config_exists("", .t., e.configName)
+			if .not. exists_globally then 
+				saveConfig = "{ err: \"Cannot save user config when no corresponding global config exists\"}"
+			end if
+			args.add("config", e.payload)
+			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
+		end if 
+	end if
+	
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = js_escape(cn.callresult.text)
+		saveConfig = "console.error('" + errortext + "');"
+		cn.close()
+		end
+	end if
+	
+	saveConfig = "alert('Config saved.');"
+	cn.close()
+	
+end function
+
+
+function config_exists as l (username as c, global as l, configName as c)
+	'DIM a SQL arguments object
+	dim args as sql::arguments
+	args.add("listname", configName)
+	args.add("username", username)
+	
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	
+	
+	dim sql as c
+	
+	if global then 
+		sql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
+	else 
+		sql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND USER_NAME = :username AND GLOBAL = .f."
+	end if
+	
+	
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute(sql,args)
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		errortext = js_escape(cn.callresult.text)
+		config_exists = .f.
+		cn.close()
+		end
+	end if
+	'DIM a SQL::Resultset object
+	dim rs as sql::resultset
+	rs = cn.resultset
+	'get the JSON from the query
+	dim json as c 
+	
+	if rs.tostring() == "" then
+		config_exists = .f.
+	else
+		config_exists = .t.
+	end if
+	
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()	
+end function
+
+
+	

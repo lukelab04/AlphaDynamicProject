@@ -3,29 +3,107 @@
 'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
 'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
 
-' Input: e.tableName
-' Input: [e.columns]
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
+' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
-function getTableData (e as p) as c
+function querySqlWithFilters (e as p) as c 
+	dim configInterface as p
+	dim config as c
+	dim configJson as extension::json
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+	configJson.setJson(config)
 	
-	if json_get_array_length(e.columns) = 0 then 
-		getTableData = ";"
+	if configJson.hasProperty("err") then 
+		querySqlWithFilters = configJson 
 		end 
 	end if
 	
-	dim args as sql::arguments
-	dim filterStr as c
-	filterStr = buildConstraint(e, args)
+	dim pageOptions as a
+	dim filters as extension::Json
 	
-	dim columns as p
-	columns = json_parse(e.columns)
+	if e.data("pageOptions") <> "" then 
+		pageOptions = e.pageOptions
+	else 
+		pageOptions = null_value()
+	end if 
+	
+	filters.setJson(e.filters)
+	
+	configJson = configJson.getProperty("ok")
+	' If the config's datasource has the 'table' property, then 
+	' we construct the SQL query given information from mappings & filters.
+	if configJson.getProperty("dataSource").hasProperty("table") then
+		dim columns[0] as a
+		for i = 0 to configJson.getProperty("mappings").getLength() - 1
+			dim index as n
+			index = columns.append(1)
+			columns[index] = configJson.getProperty("mappings").getIndexed(i).getProperty("columnName")
+		next
+		
+		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, filters)
+	else
+		dim sql as c 
+		sql = configJson.getProperty("dataSource").getProperty("sql")
+		dim existingFilters as extension::json 
+		existingFilters = configJson.getProperty("dataSource").getProperty("filters")
+		for i = 0 to filters.getLength() - 1
+			existingFilters.push(filters.getIndexed(i))
+		next
+		
+		
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, existingFilters)
+	end if
+	
+end function
+
+function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::json) as c 
+	'DIM an Xbasic AlphaDAO connection object
+	dim cn as sql::connection
+	dim flag as l
+	dim args as sql::arguments
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	
+	dim filterStr as c
+	filterStr = buildConstraint(filters, args, cn)
+	
+	if len(filterStr) <> 0 then 
+		sql = sql + " WHERE " + filterStr
+	end if
+	
+	dim result as p 
+	result = runSqlFetch(cn, sql, args, pageOptions)
+	
+	if result.data("err") then 
+		getTableDataFromSql = "{\"err\": " + json_generate(result.err) + "}"
+	else 
+		getTableDataFromSql = "{\"ok\": " + result.ok + ", \"count\": " + 0 + "}"
+	end if
+	
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()
+end function
+
+function getTableData (tableName as c, columns as p, pageOptions as a, filters as extension::json) as c
 	
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
+	
+	if columns.size == 0 then 
+		getTableData = "{\"ok\": []}"
+		end 
+	end if
+	
+	dim args as sql::arguments
+	dim filterStr as c
+	filterStr = buildConstraint(filters, args, cn)
+	
+
 	dim sql as c
 	dim selectPart as c 
 	dim fromPart as c
@@ -37,11 +115,16 @@ function getTableData (e as p) as c
 	for each col in columns
 		selectPart = selectPart + "[" + col.value + "],"
 	next
+	
+	if selectPart == "" then 
+		selectPart = " * "
+	end if
+	
 	if right(selectPart, 1) == "," then 
 		selectPart = substr(selectPart, 1, len(selectPart) - 1)
 	end if
 	
-	fromPart = " [" + e.tableName + "]"
+	fromPart = " [" + tableName + "]"
 	
 	if len(filterStr) <> 0 then 
 		wherePart = " " + filterStr
@@ -51,14 +134,35 @@ function getTableData (e as p) as c
 	
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
-	if e.data("pageOptions") = "" then 
+	dim data as p 
+	data = runSqlFetch(cn, sql, args, pageOptions)
+	
+	if data.data("err") <> "" then 
+		getTableData = "{\"err\": " + json_generate(data.err) + "}"
+		end 
+	end if 
+	
+	dim count as n
+	count = sql_count(cn, tableName, "*", wherePart, args);
+	getTableData = "{\"ok\": " + data.ok + ", \"count\": " + count + "}"
+	
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()
+	
+end function
+
+' Return an object like { ok: Json } | { err: errMsg }
+function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
+	dim result as p 
+	
+	if pageOptions == null_value() then 
 		rowStart = 1
 		getRows = -1
 	else
 		dim pageOptions as p
-		pageOptions = json_parse(e.pageOptions)
-		rowStart = 1 + (pageOptions.pageSize * (pageOptions.getPage - 1))
-		getRows = pageOptions.pageSize
+		rowStart = 1 + (pageOptions.getProperty("pageSize") * (pageOptions.getProperty("getPage") - 1))
+		getRows = pageOptions.getProperty("pageSize")
 	end if
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -70,7 +174,8 @@ function getTableData (e as p) as c
 		'report the error, close the database and then end the script
 		dim errortext as c 
 		errortext = js_escape(cn.callresult.text)
-		getTableData = "console.error('" +  errortext + "');"
+		result.err = errortext
+		runSqlFetch = result
 		cn.close()
 		end
 	end if
@@ -80,30 +185,42 @@ function getTableData (e as p) as c
 	dim cr as sql::CallResult 
 	cr = cn.CallResult
 	
-	dim count as n
-	count = sql_count(cn, e.tableName, "*", wherePart, args);
-	
 	'get the JSON from the query
 	dim json as c 
 	json = rs.toJSON(getRows, rowStart)
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
-	cn.close()
-
-	getTableData = ("{dialog.object}.stateInfo.allListData = " + json + ";" + "{dialog.object}.stateInfo.numRowsAvailable = " + count + ";")
-	
+	result.ok = json 
+	runSqlFetch = result
 end function
 
+' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 function countRowsWithFilter(e as p) as c
-	dim args as sql::arguments
-	dim filterStr as c
-	filterStr = buildConstraint(e, args)
-	
+		
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
+	
+	dim args as sql::arguments
+	dim filtersJson as extension::json 
+	filtersJson.setJson(e.filters)
+	dim filterStr as c
+	filterStr = buildConstraint(filtersJson, args, cn)
+	
+	dim configInterface as p
+	dim config as c
+	dim configJson as extension::json
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+	configJson.setJson(config)
+	
+	if configJson.hasProperty("err") then 
+		countRowsWithFilter = "{dialog.object}.stateInfo.numRowsAvailable = " + 0 + ";"
+		end 
+	end if
+	
+	configJson = configJson.getProperty("ok")
+
 	dim wherePart as c
 	
 	if len(filterStr) <> 0 then 
@@ -113,7 +230,7 @@ function countRowsWithFilter(e as p) as c
 	end if
 	
 	dim count as n
-	count = sql_count(cn, e.tableName, "*", wherePart, args);
+	count = sql_count(cn, configJson.getProperty("dataSource").getProperty("table"), "*", wherePart, args);
 	
 	if count < 0 then 
 		count = 0
@@ -122,48 +239,50 @@ function countRowsWithFilter(e as p) as c
 	countRowsWithFilter = "{dialog.object}.stateInfo.numRowsAvailable = " + count + ";"
 end function
 
-function buildConstraint(e as p, args as sql::arguments) as c
-	dim filterText as c
-	filterText = *html_unescape(e.filters, "utf8")
-	
-	dim filters as p
-	filters = json_parse(filterText)
-	
+function buildConstraint(filters as extension::json, args as sql::arguments, connection as sql::connection) as c	
 	dim args as sql::arguments
 	dim filterStr as c
 	filterStr = ""
 
-	if filters.size() == 0 then 
+	if filters.getLength() == 0 then 
 		filterStr = "";
 	else
 		dim argCounter as n
+		dim filter as p
 		argCounter = 0
-		for each filter in filters
-			if filter.value.data("op") == "" then 
-				filter.value.op = "="
+		for i = 0 to filters.getLength() - 1
+			filter = filters.getIndexed(i)
+			if .not. (filter.hasProperty("op")) .or. (.not. isSafeOp(filter.getProperty("op"))) then 
+				filter.setProperty("op", "=")
 			end if 
 			
-			if filter.value.data("connector") == "" then 
-				filter.value.connector = "AND"
+			if .not. (filter.hasProperty("connector")) .or. (.not. isSafeConnector(filter.getProperty("connector"))) then 
+				filter.setProperty("connector", "AND")
 			end if
 			
-			if filter.value.data("type") == "" then 
-				filter.value.type = "c"
+			if .not. (filter.hasProperty("type")) then 
+				filter.setProperty("type", "c")
 			end if
-			
-			filterStr = filterStr + "[" + filter.value.columnName + "] " + filter.value.op + " :" + "argNum" + argCounter + " " + filter.value.connector + " "
-			args.add("argNum" + argCounter, convert_type(filter.value.columnVal, filter.value.type));
+			filterStr = filterStr + "[" + connection.generateNativeColumnName(filter.getProperty("columnName")) + "] " + filter.getProperty("op") + " :argNum" + argCounter + " " + filter.getProperty("connector") + " "
+			args.add("argNum" + argCounter, convert_type(filter.getProperty("columnVal"), filter.getProperty("type")))
 			argCounter = argCounter + 1
-		next filter
+		next
 	end if
 	
 	if len(filterStr) != 0 then
 		' Get rid of AND or OR
 		filterStr = substr(filterStr, 1, len(filterStr) - 4)
 	end if
-	
 	buildConstraint = filterStr
 end function
+
+function isSafeConnector as l (conn as c) 
+	isSafeConnector = (conn == "AND" .or. conn == "OR")
+end function
+
+function isSafeOp as l (op as c)
+	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE")
+end function 
 
 ' Input: Table Name
 ' Input: dirty (from 'harvestList')
@@ -403,4 +522,5 @@ exports.getTableData = getTableData
 exports.updateTableData = updateTableData
 exports.countRowsWithFilter = countRowsWithFilter
 exports.performFetch = performFetch
+exports.querySqlWithFilters = querySqlWithFilters
 
