@@ -339,7 +339,20 @@ function buildConfigForm(adminConfig, allColumns) {
                                                 ],
                                                 onChange: function (_1, _2) { }
                                             }),
-                                            columnVal: singleInput("string", "Value"),
+                                            columnVal: singleInput("object", "Column Value", {
+                                                type: "object",
+                                                staticKeys: {
+                                                    tag: singleInput("dropdown", "Value Type", {
+                                                        type: "dropdown",
+                                                        dropdownItems: [
+                                                            { text: "Argument", value: "arg" },
+                                                            { text: "Static Value", value: "value" }
+                                                        ],
+                                                        onChange: function (_1, _2) { }
+                                                    }),
+                                                    value: singleInput("string", "Value")
+                                                }
+                                            }),
                                             connector: singleInput("dropdown", "Logical Connector", {
                                                 type: "dropdown",
                                                 default: "AND",

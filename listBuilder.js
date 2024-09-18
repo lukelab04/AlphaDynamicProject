@@ -261,8 +261,12 @@ function validateFilter(filter) {
         throw new ValidationError("Expected list filter to be an object");
     if (!existsAndIs(filter, "columnName", "string"))
         throw existsIsErr("filter", "columnName", "string");
-    if (!existsAndIs(filter, "columnVal", "string"))
-        throw existsIsErr("filter", "columnVal", "string");
+    if (!existsAndIs(filter, "columnVal", {}))
+        throw existsIsErr("filter", "columnVal", "object");
+    if (!existsAndIs(filter.columnVal, "tag", "string"))
+        throw existsIsErr("filter.columnVal", "tag", "string");
+    if (!existsAndIs(filter.columnVal, "value", "string"))
+        throw existsIsErr("filter.columnVal", "value", "string");
     if (!existsAndIs(filter, "op", "string"))
         throw existsIsErr("filter", "op", "string");
     if (!existsAndIsOrNone(filter, "type", "string"))
@@ -1566,7 +1570,7 @@ var DynamicList = /** @class */ (function () {
         }
         return [{
                 columnName: foreignColName,
-                columnVal: thisVal,
+                columnVal: { tag: "value", value: thisVal.toString() },
                 connector: 'AND',
                 op: '='
             }];
@@ -2555,7 +2559,7 @@ var DynamicListSearch = /** @class */ (function () {
                     }
                     filters.push({
                         columnName: ops.searchField,
-                        columnVal: columnVal,
+                        columnVal: { tag: 'value', value: columnVal.toString() },
                         connector: 'AND',
                         op: op,
                         type: ops.type,
@@ -2565,7 +2569,7 @@ var DynamicListSearch = /** @class */ (function () {
             filters.forEach(function (e) {
                 if (e.op == '..x..') {
                     e.op = 'LIKE';
-                    e.columnVal = '%' + e.columnVal + '%';
+                    e.columnVal = { tag: 'value', value: '%' + e.columnVal + '%' };
                 }
                 if (e.columnVal instanceof Date) {
                     e.columnVal = e.columnVal.toFormat(objDatetimeFormat());
