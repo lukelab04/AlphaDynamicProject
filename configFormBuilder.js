@@ -1249,6 +1249,7 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
                         displayErrorMessage(res.err);
                         console.error(res.err);
                     }
+                    obj.applyConfigChanges();
                 }
             });
         }
@@ -1270,6 +1271,7 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
                         displayErrorMessage(res.err);
                         console.error(res.err);
                     }
+                    obj.applyConfigChanges();
                 }
             });
         }

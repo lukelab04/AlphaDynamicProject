@@ -142,6 +142,7 @@ function manageConfigForm(adminConfig, obj, list, search, config, filters, args,
                 }
                 if (list == null || search == null)
                     return;
+                list.destructor();
                 var newSearch;
                 DynamicList.makeDynamicList(embeddedList, config, filters, args).then(function (newList) {
                     newSearch = new DynamicListSearch(newList, embeddedSearch);

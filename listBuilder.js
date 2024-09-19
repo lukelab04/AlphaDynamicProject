@@ -361,6 +361,10 @@ var DynamicList = /** @class */ (function () {
         this.rawData = [];
         this.schema = undefined;
     }
+    DynamicList.prototype.destructor = function () {
+        if (this.listBox.destroy)
+            this.listBox.destroy();
+    };
     DynamicList.makeDynamicList = function (obj, config, filters, args) {
         if (filters === void 0) { filters = []; }
         if (args === void 0) { args = []; }
