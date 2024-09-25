@@ -182,8 +182,19 @@ function validateListBtn(btn) {
         throw new ValidationError("Expected list button to be of type `object`");
     if (!existsAndIs(btn, "columnTitle", ""))
         throw existsIsErr("config.buttons", "columnTitle", "string");
-    if (!existsAndIs(btn, "onClick", "string"))
-        throw existsIsErr("config.buttons", "onClick", "string");
+    if (!existsAndIs(btn, "onClick", {}))
+        throw existsIsErr("config.buttons", "onClick", "object");
+    if ('function' in btn.onClick) {
+        if (!existsAndIs(btn.onClick, "function", "string"))
+            throw existsIsErr("config.buttons.function", "action", "string");
+    }
+    else if ('action' in btn.onClick) {
+        if (!existsAndIs(btn.onClick, "action", "string"))
+            throw existsIsErr("config.buttons.action", "action", "string");
+    }
+    else {
+        throw new ValidationError('Expected button.onClick to have either a field "function" or a field "action"');
+    }
     if (!existsAndIsOrNone(btn, "title", "string"))
         throw existsIsErr("config.buttons", "title", "string");
     if (!existsAndIsOrNone(btn, "icon", "string"))
@@ -402,12 +413,9 @@ var DynamicList = /** @class */ (function () {
         });
     };
     DynamicList.prototype.reRender = function () {
-        var _this = this;
-        return new Promise(function (resolve) {
-            _this.fetchData(function () {
-                _this.populateListBox();
-                resolve(_this);
-            });
+        return this.fetchData().then(function (list) {
+            list.populateListBox();
+            return list;
         });
     };
     DynamicList.prototype.setStaticData = function (data) {
@@ -425,6 +433,13 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.openDetailView = function () {
         this.obj.runAction('Navigate Detail View');
+    };
+    DynamicList.prototype.newDetailViewRecord = function () {
+        var _this = this;
+        var makeForm = function () { return _this.buildDetailViewForm(); };
+        var openForm = function () { return _this.obj.runAction('Navigate Detail View'); };
+        var makeNew = function () { return _this.listBox.newDetailViewRecord(); };
+        A5.executeThisThenThat(makeForm, openForm, makeNew);
     };
     DynamicList.prototype.saveDynamicListEdits = function () {
         var _this = this;
@@ -1374,9 +1389,14 @@ var DynamicList = /** @class */ (function () {
             'selectable': true,
             onClick: function (idx, v, args) {
                 var data = _this.listBox._data[_this.listBox._dataMap[idx]];
-                (function (rowNumber, value, ia, data, lObj, listObj) {
-                    stringReprToFn(button.onClick)(tmpThis);
-                }(idx, v, args, data, _this.listBox, _this.listBox));
+                if ('function' in button.onClick) {
+                    (function (rowNumber, value, ia, data, lObj, listObj) {
+                        stringReprToFn(button.onClick.function)(tmpThis);
+                    }(idx, v, args, data, _this.listBox, _this.listBox));
+                }
+                else {
+                    _this.obj.runAction(button.onClick.action);
+                }
             }
         };
         return {
@@ -1405,7 +1425,14 @@ var DynamicList = /** @class */ (function () {
             return {
                 html: (_a = button.title) !== null && _a !== void 0 ? _a : null,
                 icon: '',
-                onClick: function () { return stringReprToFn(button.onClick)(_this); },
+                onClick: function () {
+                    if ('function' in button.onClick) {
+                        stringReprToFn(button.onClick.function)(_this);
+                    }
+                    else {
+                        _this.obj.runAction(button.onClick.action);
+                    }
+                },
             };
         };
         var menuData = [];
@@ -1490,9 +1517,19 @@ var DynamicList = /** @class */ (function () {
         }
         return defn;
     };
-    DynamicList.prototype.buildDetailViewForm = function (listId, rowNum) {
+    DynamicList.prototype.buildDetailViewForm = function (rowNum) {
         var _a;
-        var _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
+        var _d = {};
+        if (rowNum != undefined) {
+            _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
+        }
+        else {
+            this.config.mappings.forEach(function (mapping) {
+                if (mapping.inDetailView) {
+                    _d[mapping.columnName] = "";
+                }
+            });
+        }
         for (var _i = 0, _b = this.config.mappings; _i < _b.length; _i++) {
             var mapping = _b[_i];
             var val = _d[mapping.columnName];
@@ -1579,78 +1616,75 @@ var DynamicList = /** @class */ (function () {
                 op: '='
             }];
     };
-    DynamicList.prototype.fetchData = function (callback) {
+    DynamicList.prototype.fetchData = function () {
         var _this = this;
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             var columns_1 = [];
             this.config.mappings.forEach(function (c) {
                 columns_1.push(c.columnName);
             });
-            var filters = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
-            var paginate = '';
+            var filters_1 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
+            var paginate_1 = '';
             if (this.config.searchOptions.paginate) {
-                paginate = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, ", getPage: ").concat(this.listBox._state.page, "}"));
+                paginate_1 = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, ", getPage: ").concat(this.listBox._state.page, "}"));
             }
-            this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
-                + "&filters=" + encodeURIComponent(filters)
-                + paginate, {
-                onComplete: function () {
-                    var response = _this.obj.stateInfo.apiResult;
-                    if ("err" in response) {
-                        throw new Error(response.err);
+            return new Promise(function (resolve, reject) {
+                _this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(_this.config.name)
+                    + "&filters=" + encodeURIComponent(filters_1)
+                    + paginate_1, {
+                    onComplete: function () {
+                        var response = _this.obj.stateInfo.apiResult;
+                        if ("err" in response) {
+                            reject(new Error(response.err));
+                        }
+                        _this.data = _this.obj.stateInfo.apiResult.ok;
+                        _this.rawData = _this.obj.stateInfo.apiResult.ok;
+                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : _this.obj.stateInfo.numRowsAvailable);
+                        _this.listBox._state = {
+                            pageSize: pageSize,
+                            page: _this.listBox._state.page,
+                            pageCount: Math.ceil(_this.obj.stateInfo.numRowsAvailable / pageSize),
+                            recordCount: _this.obj.stateInfo.numRowsAvailable,
+                        };
+                        if (_this.data === undefined) {
+                            console.error("Error fetching data, defaulting to empty.");
+                            _this.data = [];
+                            _this.rawData = [];
+                        }
+                        _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
+                        _this.data = _this.dataScopeManager.flattenData(_this.data);
+                        resolve(_this);
                     }
-                    _this.data = _this.obj.stateInfo.apiResult.ok;
-                    _this.rawData = _this.obj.stateInfo.apiResult.ok;
-                    var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : _this.obj.stateInfo.numRowsAvailable);
-                    _this.listBox._state = {
-                        pageSize: pageSize,
-                        page: _this.listBox._state.page,
-                        pageCount: Math.ceil(_this.obj.stateInfo.numRowsAvailable / pageSize),
-                        recordCount: _this.obj.stateInfo.numRowsAvailable,
-                    };
-                    if (_this.data === undefined) {
-                        console.error("Error fetching data, defaulting to empty.");
-                        _this.data = [];
-                        _this.rawData = [];
-                    }
-                    _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
-                    _this.data = _this.dataScopeManager.flattenData(_this.data);
-                    callback();
-                }
+                });
             });
         }
         else if (this.config.dataSource.type == 'sql') {
-            var paginate = '';
+            var paginate_2 = '';
             if (this.config.searchOptions.paginate) {
-                paginate = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, "}"));
+                paginate_2 = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, "}"));
             }
-            var filters = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
-            this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
-                + "&filters=" + encodeURIComponent(filters)
-                + paginate, {
-                onComplete: function () {
-                    var response = _this.obj.stateInfo.apiResult;
-                    if ("err" in response) {
-                        throw new Error(response.err);
+            var filters_2 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
+            return new Promise(function (resolve, reject) {
+                _this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(_this.config.name)
+                    + "&filters=" + encodeURIComponent(filters_2)
+                    + paginate_2, {
+                    onComplete: function () {
+                        var response = _this.obj.stateInfo.apiResult;
+                        if ("err" in response) {
+                            reject(new Error(response.err));
+                        }
+                        _this.data = _this.obj.stateInfo.apiResult.ok;
+                        _this.rawData = _this.obj.stateInfo.apiResult.ok;
+                        if (_this.data === undefined) {
+                            console.error("Error fetching data, defaulting to empty.");
+                            _this.data = [];
+                            _this.rawData = [];
+                        }
+                        _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
+                        _this.data = _this.dataScopeManager.flattenData(_this.data);
+                        resolve(_this);
                     }
-                    _this.data = _this.obj.stateInfo.apiResult.ok;
-                    _this.rawData = _this.obj.stateInfo.apiResult.ok;
-                    // let pageSize = (this.config.searchOptions.paginate ? this.config.searchOptions.paginate.pageSize : this.obj.stateInfo.numRowsAvailable);
-                    // this.listBox._state = {
-                    //     pageSize: pageSize,
-                    //     page: this.listBox._state.page,
-                    //     pageCount: Math.ceil(this.obj.stateInfo.numRowsAvailable / pageSize),
-                    //     recordCount: this.obj.stateInfo.numRowsAvailable,
-                    // };
-                    if (_this.data === undefined) {
-                        console.error("Error fetching data, defaulting to empty.");
-                        _this.data = [];
-                        _this.rawData = [];
-                    }
-                    _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
-                    _this.data = _this.dataScopeManager.flattenData(_this.data);
-                    callback();
-                }
+                });
             });
         }
         else if (this.config.dataSource.type == 'json' && 'static' in this.config.dataSource) {
@@ -1660,7 +1694,7 @@ var DynamicList = /** @class */ (function () {
             this.rawData = this.data;
             this.dataScopeManager.setPathFromConfig(this.config, this.data);
             this.data = this.dataScopeManager.flattenData(this.data);
-            callback();
+            return Promise.resolve(this);
         }
         else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
             var endpoint = void 0;
@@ -1674,7 +1708,7 @@ var DynamicList = /** @class */ (function () {
             var options = this.getFetchOptions(endpoint);
             var data = this.filtersAsSimpleObj();
             url = encodeURI(this.populateUrlParams(endpoint.endpoint, data));
-            fetch(this.obj, url, options)
+            return fetch(this.obj, url, options)
                 .then(function (json) {
                 var data = JSON.parse(json.body);
                 if (_this.config.dataSource.preprocess)
@@ -1683,8 +1717,11 @@ var DynamicList = /** @class */ (function () {
                 _this.rawData = _this.data;
                 _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
                 _this.data = _this.dataScopeManager.flattenData(_this.data);
-                callback();
+                return _this;
             });
+        }
+        else {
+            throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
         }
     };
     DynamicList.prototype.getFetchOptions = function (endpoint, dataOverride) {
@@ -1784,7 +1821,7 @@ var DynamicList = /** @class */ (function () {
         var _this = this;
         this.listBox = new A5.ListBox(this.obj.getPointer('LIST_CONTAINER').id, [], this.settings);
         this.listBox._hostComponentId = this.obj.dialogId;
-        this.listBox._listSystemOnClickPopulateJSONForm = function (rowNum) { return _this.buildDetailViewForm(LIST_NAME, rowNum); };
+        this.listBox._listSystemOnClickPopulateJSONForm = function (rowNum) { return _this.buildDetailViewForm(rowNum); };
         window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         setFormDetailView(this.obj, this.listBox);
     };
@@ -1837,10 +1874,10 @@ var DynamicList = /** @class */ (function () {
             });
         }
         else if (this.config.dataSource.type == 'sql') {
-            var filters_1 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
+            var filters_3 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
             return new Promise(function (resolve, reject) {
                 return _this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(_this.config.name)
-                    + "&filters=" + encodeURIComponent(filters_1), {
+                    + "&filters=" + encodeURIComponent(filters_3), {
                     onComplete: function () {
                         var response = _this.obj.stateInfo.apiResult;
                         if ("err" in response) {

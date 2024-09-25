@@ -68,6 +68,7 @@ function initialize(obj, configName, embeddedList, embeddedSearch, filters, args
             returnObj.search = search;
             returnObj.configUx = obj;
             manageConfigForm(isAdmin, obj, list, search, config, filters, args, embeddedList, embeddedSearch);
+            embeddedList.initialize(list);
         }).catch(function (err) {
             if (err instanceof ValidationError) {
                 displayErrorMessage(err.toString());
@@ -148,6 +149,7 @@ function manageConfigForm(adminConfig, obj, list, search, config, filters, args,
                     newSearch = new DynamicListSearch(newList, embeddedSearch);
                     Object.assign(list, newList);
                     Object.assign(search, newSearch);
+                    embeddedList.initialize(list);
                     show(dataOverride);
                 }).catch(function (e) { return displayErrorMessage(e.toString()); });
             };
@@ -170,7 +172,31 @@ function buildConfigForm(adminConfig, allColumns) {
             type: "object",
             staticKeys: {
                 columnTitle: singleInput('string', 'Column Title'),
-                onClick: singleInput('function', 'On Click Javascript'),
+                onClick: new Input({
+                    values: [
+                        {
+                            value: new Value("object", {
+                                type: "object",
+                                staticKeys: {
+                                    function: singleInput("string", "Javascript Code")
+                                }
+                            }),
+                            dropdownLabel: "Custom Javascript Function"
+                        },
+                        {
+                            value: new Value("object", {
+                                type: "object",
+                                staticKeys: {
+                                    action: singleInput("string", "Action Name")
+                                }
+                            }),
+                            dropdownLabel: "Javascript Action"
+                        }
+                    ],
+                    label: "Click Action",
+                    comments: '',
+                    validate: function () { return true; },
+                }),
                 title: singleInput('string', 'Button Text (Optional)', { type: "string", default: undefined }),
                 icon: singleInput('string', 'Button Icon (Optional)', { type: "string", default: undefined }),
             }
