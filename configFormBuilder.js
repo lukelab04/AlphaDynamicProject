@@ -178,7 +178,7 @@ var Value = /** @class */ (function () {
                     return this.options.default;
                 if (val === undefined || val == '')
                     throw new Error("Value must be filled out.");
-                return val;
+                return parseFloat(val);
             case 'boolean':
                 val = form.data[this.id];
                 // Doesn't really make sense for a categorical value to be undefined. But the code is here to deal with it in case

@@ -11,6 +11,7 @@
         "A5ContainerClassPadding": "0px",
         "A5ContainerClassPaddingForContainerWidthMode": "4px",
         "JavaScriptFunctionDeclarations": "\n",
+        "hasArguments": true,
         "layoutType": "ContainerWidth",
         "previewMode": "Default",
         "useDragScrolling": "Auto",
@@ -31,7 +32,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.querySqlWithFilters(e)\n\tgetAllDataForTable = \"{dialog.object}.stateInfo.apiResult = \" + result + \";\"\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction countRows as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tcountRows = stdQueries.countRowsWithFilter(e)\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
+        "XbasicFunctionDeclarations": "function getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim info as c\n\tschemaInfo = require(\"schemaInfo\")\n\tinfo = schemaInfo.getConnectionSchemaJSON(\"conn\", e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.schema = \" + info + \";\"\n\t\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.querySqlWithFilters(e)\n\tgetAllDataForTable = \"{dialog.object}.stateInfo.apiResult = \" + result + \";\"\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim info as c\n\tstdQueries = require(\"standardQueries\")\n\tupdateData = stdQueries.updateTableData(e)\n\t\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as c\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result + \";\"\n\t\nend function",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -175,8 +176,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2024-9-23",
-            "revisionnumber": 511
+            "dateLastEdited": "2024-9-30",
+            "revisionnumber": 519
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -943,23 +944,21 @@
                 "idInternal": "a99c667b-1092-4d68-810e-88264b95c03e",
                 "parentContainer": 8,
                 "displayODtree": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>",
-                "crc": "4294925626",
+                "crc": "4294949059",
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "containerStartIndex": 0,
                 "v": {
                     "controlType": "list",
                     "variableName": "list1",
                     "type": "Character",
+                    "localXbasic": "",
+                    "localJavascript": "",
+                    "controlContainerStyle": "",
+                    "cssGridItemPropertiesJSON": "",
                     "maxLength": -1,
                     "watermark": {
                         "text": "<FieldLabel>"
-                    },
-                    "precalc": {
-                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_LIST1'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'list1', flag: $if(showHide == '',true,false)});}\n}\n\n",
-                        "javascriptAbstractSetupCode": "",
-                        "_jsOnChangeFunction": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};",
-                        "controlHTMLInPanelCard": "in panel card",
-                        "javascript_listViewData": "{dialog.object}._listViewData['LIST1'] = [[dialog.listViewData.list1]]; ",
-                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['LIST1'] = [[dialog.listViewSettings.list1]]; ",
-                        "javascript_listview": "{dialog.object}._controls['LIST1'] =  { type: 'list',  data: {dialog.object}._listViewData['LIST1'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['LIST1'] }"
                     },
                     "lookup": {
                         "flagIsdefined": false,
@@ -967,6 +966,7 @@
                             "openLookupOnFocus": false
                         }
                     },
+                    "textboxSubTheme": "",
                     "textboxAutocorrect": true,
                     "textboxAutoCapitalize": true,
                     "label": "List1",
@@ -990,6 +990,8 @@
                         "trimTrailingSeparatorOnBlur": false
                     },
                     "showExpression": "false",
+                    "getFunction": "",
+                    "setFunction": "",
                     "onChange_ValidationOption": "Client-side only",
                     "dataBinding": {
                         "updateable": true,
@@ -1006,70 +1008,7 @@
                         "encrypted": false,
                         "encryptionkey": ""
                     },
-                    "textboxSubTheme": "",
-                    "getFunction": "",
-                    "setFunction": "",
-                    "datePicker": {
-                        "displayTimePicker": false,
-                        "openMethod": "ClickIcon",
-                        "dateFormat": "<Default>",
-                        "iconNumber": 2,
-                        "OKButtonLabel": "OK",
-                        "CancelButtonLabel": "Cancel",
-                        "userMustSelectFromDatePicker": false,
-                        "multiple": {
-                            "allow": false,
-                            "separators": ".."
-                        },
-                        "hasMask": false,
-                        "format": {
-                            "mask": ""
-                        },
-                        "timePickerOptionsDefined": false,
-                        "display": false,
-                        "useComboBoxes": true,
-                        "lowYear": 1950,
-                        "highYear": 2050,
-                        "switchYear": 30,
-                        "lowDate": "",
-                        "highDate": "",
-                        "disabledDays": "",
-                        "disabledDates": ""
-                    },
-                    "displayAsSlider": false,
-                    "flags": {
-                        "clientSideDefinition": false
-                    },
-                    "localXbasic": "",
-                    "localJavascript": "",
-                    "controlContainerStyle": "",
-                    "cssGridItemPropertiesJSON": "",
-                    "info": {
-                        "level": 4,
-                        "isContainerStart": false,
-                        "isTabControlStart": false,
-                        "isContainerEnd": false,
-                        "isTabControlEnd": false,
-                        "isTabPaneEnd": false,
-                        "lastItemInTabPane": false,
-                        "inContainer": true,
-                        "inCSSGridContainer": false,
-                        "inRepeatingSection": false,
-                        "inTabPane": false,
-                        "parentContainerID": "098af8a0-40f4-4bb1-8877-288ee1a23a79",
-                        "repeatingSectionParentId": "",
-                        "parentTabID": "",
-                        "parentTabPaneID": "",
-                        "index": 9,
-                        "color": "",
-                        "icon": "$$control.browse",
-                        "displayText": "[list1]",
-                        "parentPanelCardId": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
-                        "break": true,
-                        "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>"
-                    },
                     "listView": {
-                        "allchildren": "",
                         "listGUID": "27accd17-2b12-4ebf-ade6-a6e11be22a51",
                         "compressList": false,
                         "class": "<Default>",
@@ -1222,13 +1161,13 @@
                             "storedSchemaJSON": "",
                             "flagTableInfoHasBeenUpdated": false,
                             "connectionString": "::Name::conn",
-                            "selectType": "FieldsFromTable",
+                            "selectType": "CustomSQLStatement",
                             "tablename": "Invoice_Header",
                             "fieldlist": "CUSTOMER_ID,INV_DATE",
                             "filter": "",
                             "distinct": false,
                             "order": "",
-                            "sqlstatement": "SELECT CUSTOMER_ID, INV_DATE FROM Invoice_Header",
+                            "sqlstatement": "SELECT  \tCustomer.FIRSTNAME, \tInvoice_Header.INVOICE_NUMBER, \tInvoice_Header.INV_DATE, \tCustomer.LASTNAME  FROM Customer Customer \t INNER JOIN Invoice_Header Invoice_Header \t\t ON  Customer.CUSTOMER_ID = Invoice_Header.CUSTOMER_ID",
                             "portableSQL": true,
                             "sqlstatementforfieldlist": "",
                             "first": -1,
@@ -2235,15 +2174,15 @@
                                         "groupName": "Group1"
                                     },
                                     "unboundField": false,
+                                    "baseName": "Firstname",
                                     "display": "{data=3}{I:'$$control.smartField'} Firstname (C)",
-                                    "xbfunction": "",
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
                                     "controlHTML": "<span id=\"{dialog.componentName}.LIST1.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
                                     "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.LIST1.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
-                                    "baseName": "Firstname",
                                     "_templateEditingFreeform": "{Firstname}",
+                                    "xbfunction": "",
                                     "deleteField": false
                                 },
                                 {
@@ -2443,15 +2382,15 @@
                                         "groupName": "Group1"
                                     },
                                     "unboundField": false,
+                                    "baseName": "Lastname",
                                     "display": "{data=4}{I:'$$control.smartField'} Lastname (C)",
-                                    "xbfunction": "",
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
                                     "controlHTML": "<span id=\"{dialog.componentName}.LIST1.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
                                     "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.LIST1.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
-                                    "baseName": "Lastname",
                                     "_templateEditingFreeform": "{Lastname}",
+                                    "xbfunction": "",
                                     "deleteField": false
                                 }
                             ]
@@ -2675,6 +2614,114 @@
                                 }
                             ]
                         },
+                        "dataBinding": {
+                            "tablesArray": {
+                                "tables": [
+                                    {
+                                        "table": "Customer",
+                                        "owner": "",
+                                        "alias": "Customer",
+                                        "primaryKeyFields": "CUSTOMER_ID",
+                                        "assignPrimaryKeyClientSide": false,
+                                        "mapPrimaryKeyToListQuery": "",
+                                        "primaryKeyIsAutoIncrement": true,
+                                        "sequenceName": "",
+                                        "sqlInsertSequence": "",
+                                        "tableInfo": "CUSTOMER_ID=N|T|T|Integer32|!!|CUSTOMER_ID\nFIRSTNAME=C|F|T|NationalVaryingCharacter|!!|FIRSTNAME\nLASTNAME=C|F|T|NationalVaryingCharacter|!!|LASTNAME\nCOMPANY=C|F|T|NationalVaryingCharacter|!!|COMPANY\nPHONE=C|F|T|NationalVaryingCharacter|!!|PHONE\nFAX=C|F|T|NationalVaryingCharacter|!!|FAX\nBILL_ADDRESS1=C|F|T|NationalVaryingCharacter|!!|BILL_ADDRESS1\nBILL_ADDRESS2=C|F|T|NationalVaryingCharacter|!!|BILL_ADDRESS2\nBILL_CITY=C|F|T|NationalVaryingCharacter|!!|BILL_CITY\nBILL_STATE_REGION=C|F|T|NationalVaryingCharacter|!!|BILL_STATE_REGION\nBILL_POSTAL_CODE=C|F|T|NationalVaryingCharacter|!!|BILL_POSTAL_CODE\nBILL_COUNTRY=C|F|T|NationalVaryingCharacter|!!|BILL_COUNTRY\nSHIP_ADDRESS1=C|F|T|NationalVaryingCharacter|!!|SHIP_ADDRESS1\nSHIP_ADDRESS2=C|F|T|NationalVaryingCharacter|!!|SHIP_ADDRESS2\nSHIP_CITY=C|F|T|NationalVaryingCharacter|!!|SHIP_CITY\nSHIP_STATE_REGION=C|F|T|NationalVaryingCharacter|!!|SHIP_STATE_REGION\nSHIP_POSTAL_CODE=C|F|T|NationalVaryingCharacter|!!|SHIP_POSTAL_CODE\nSHIP_COUNTRY=C|F|T|NationalVaryingCharacter|!!|SHIP_COUNTRY\nSHIP_SAME=L|F|T|Boolean|!!|SHIP_SAME\nEMAIL=C|F|T|NationalVaryingCharacter|!!|EMAIL\nIMAGE=B|F|F|VaryingBinary|!!|IMAGE\nIMAGETHUMBNAIL=B|F|F|VaryingBinary|!!|IMAGETHUMBNAIL\nLATITUDE=C|F|T|NationalVaryingCharacter|!!|LATITUDE\nLONGITUDE=C|F|T|NationalVaryingCharacter|!!|LONGITUDE\n",
+                                        "tableInfoCRC": 4294907049,
+                                        "updateWhereClause": "{CUSTOMER_ID}=CUSTOMER_ID = :old_CUSTOMER_ID\n{FIRSTNAME}=(FIRSTNAME = :old_FIRSTNAME OR FIRSTNAME IS NULL AND :old_FIRSTNAME IS NULL)\n{LASTNAME}=(LASTNAME = :old_LASTNAME OR LASTNAME IS NULL AND :old_LASTNAME IS NULL)\n{COMPANY}=(COMPANY = :old_COMPANY OR COMPANY IS NULL AND :old_COMPANY IS NULL)\n{PHONE}=(PHONE = :old_PHONE OR PHONE IS NULL AND :old_PHONE IS NULL)\n{FAX}=(FAX = :old_FAX OR FAX IS NULL AND :old_FAX IS NULL)\n{BILL_ADDRESS1}=(BILL_ADDRESS1 = :old_BILL_ADDRESS1 OR BILL_ADDRESS1 IS NULL AND :old_BILL_ADDRESS1 IS NULL)\n{BILL_ADDRESS2}=(BILL_ADDRESS2 = :old_BILL_ADDRESS2 OR BILL_ADDRESS2 IS NULL AND :old_BILL_ADDRESS2 IS NULL)\n{BILL_CITY}=(BILL_CITY = :old_BILL_CITY OR BILL_CITY IS NULL AND :old_BILL_CITY IS NULL)\n{BILL_STATE_REGION}=(BILL_STATE_REGION = :old_BILL_STATE_REGION OR BILL_STATE_REGION IS NULL AND :old_BILL_STATE_REGION IS NULL)\n{BILL_POSTAL_CODE}=(BILL_POSTAL_CODE = :old_BILL_POSTAL_CODE OR BILL_POSTAL_CODE IS NULL AND :old_BILL_POSTAL_CODE IS NULL)\n{BILL_COUNTRY}=(BILL_COUNTRY = :old_BILL_COUNTRY OR BILL_COUNTRY IS NULL AND :old_BILL_COUNTRY IS NULL)\n{SHIP_ADDRESS1}=(SHIP_ADDRESS1 = :old_SHIP_ADDRESS1 OR SHIP_ADDRESS1 IS NULL AND :old_SHIP_ADDRESS1 IS NULL)\n{SHIP_ADDRESS2}=(SHIP_ADDRESS2 = :old_SHIP_ADDRESS2 OR SHIP_ADDRESS2 IS NULL AND :old_SHIP_ADDRESS2 IS NULL)\n{SHIP_CITY}=(SHIP_CITY = :old_SHIP_CITY OR SHIP_CITY IS NULL AND :old_SHIP_CITY IS NULL)\n{SHIP_STATE_REGION}=(SHIP_STATE_REGION = :old_SHIP_STATE_REGION OR SHIP_STATE_REGION IS NULL AND :old_SHIP_STATE_REGION IS NULL)\n{SHIP_POSTAL_CODE}=(SHIP_POSTAL_CODE = :old_SHIP_POSTAL_CODE OR SHIP_POSTAL_CODE IS NULL AND :old_SHIP_POSTAL_CODE IS NULL)\n{SHIP_COUNTRY}=(SHIP_COUNTRY = :old_SHIP_COUNTRY OR SHIP_COUNTRY IS NULL AND :old_SHIP_COUNTRY IS NULL)\n{SHIP_SAME}=SHIP_SAME = :old_SHIP_SAME\n{EMAIL}=(EMAIL = :old_EMAIL OR EMAIL IS NULL AND :old_EMAIL IS NULL)\n{IMAGE}=(IMAGE = :old_IMAGE OR IMAGE IS NULL AND :old_IMAGE IS NULL)\n{IMAGETHUMBNAIL}=(IMAGETHUMBNAIL = :old_IMAGETHUMBNAIL OR IMAGETHUMBNAIL IS NULL AND :old_IMAGETHUMBNAIL IS NULL)\n{LATITUDE}=(LATITUDE = :old_LATITUDE OR LATITUDE IS NULL AND :old_LATITUDE IS NULL)\n{LONGITUDE}=(LONGITUDE = :old_LONGITUDE OR LONGITUDE IS NULL AND :old_LONGITUDE IS NULL)\n",
+                                        "updateWhereClauseNative": "",
+                                        "allowInsert": true,
+                                        "allowUpdate": true,
+                                        "allowDelete": true,
+                                        "deleteType": "Hard",
+                                        "allowOptimizedDelete": false,
+                                        "deleteField": "",
+                                        "readonly": false,
+                                        "securityGroups_insert": "",
+                                        "securityGroups_update": "",
+                                        "securityGroups_delete": "",
+                                        "serversidePermission_insert": "",
+                                        "serversidePermission_update": "",
+                                        "serversidePermission_delete": "",
+                                        "joinDefinition": "",
+                                        "parentAlias": "",
+                                        "events": {
+                                            "beforeInsert": "",
+                                            "beforeUpdate": "",
+                                            "beforeDelete": "",
+                                            "afterInsert": "",
+                                            "afterUpdate": "",
+                                            "afterDelete": "",
+                                            "onWriteConflict": "",
+                                            "onSQLError": ""
+                                        },
+                                        "geography": {
+                                            "geocodeFieldDefinition": "",
+                                            "locationFieldDefinition": ""
+                                        },
+                                        "flagStoreLocationInformationC": "No",
+                                        "flagStoreLocationInformation": false,
+                                        "latField": "",
+                                        "lngField": "",
+                                        "flagUpdateLocationField": false,
+                                        "storeLocationWhen": "InsertOnly",
+                                        "locationFieldNameForLatLng": ""
+                                    },
+                                    {
+                                        "table": "Invoice_Header",
+                                        "owner": "",
+                                        "alias": "Invoice_Header",
+                                        "primaryKeyFields": "INVOICE_NUMBER",
+                                        "assignPrimaryKeyClientSide": false,
+                                        "mapPrimaryKeyToListQuery": "",
+                                        "primaryKeyIsAutoIncrement": true,
+                                        "sequenceName": "",
+                                        "sqlInsertSequence": "",
+                                        "tableInfo": "INVOICE_NUMBER=N|T|T|Integer32|!!|INVOICE_NUMBER\nCUSTOMER_ID=N|F|T|Integer32|!!|CUSTOMER_ID\nINV_DATE=T|F|T|DateTime|!!|INV_DATE\nDELIVERY_BY=C|F|T|NationalVaryingCharacter|!!|DELIVERY_BY\nPAY_METHOD=C|F|T|NationalVaryingCharacter|!!|PAY_METHOD\nSALES_REP=N|F|T|Integer32|!!|SALES_REP\nSALES_TAX=N|F|T|Double|!!|SALES_TAX\nDISCOUNT=N|F|T|Double|!!|DISCOUNT\nCC_NUMBER=C|F|T|NationalVaryingCharacter|!!|CC_NUMBER\nCC_EXPIRATION=C|F|T|NationalVaryingCharacter|!!|CC_EXPIRATION\n",
+                                        "tableInfoCRC": 4294910712,
+                                        "updateWhereClause": "{INVOICE_NUMBER}=INVOICE_NUMBER = :old_INVOICE_NUMBER\n{CUSTOMER_ID}=(CUSTOMER_ID = :old_CUSTOMER_ID OR CUSTOMER_ID IS NULL AND :old_CUSTOMER_ID IS NULL)\n{INV_DATE}=(INV_DATE = :old_INV_DATE OR INV_DATE IS NULL AND :old_INV_DATE IS NULL)\n{DELIVERY_BY}=(DELIVERY_BY = :old_DELIVERY_BY OR DELIVERY_BY IS NULL AND :old_DELIVERY_BY IS NULL)\n{PAY_METHOD}=(PAY_METHOD = :old_PAY_METHOD OR PAY_METHOD IS NULL AND :old_PAY_METHOD IS NULL)\n{SALES_REP}=(SALES_REP = :old_SALES_REP OR SALES_REP IS NULL AND :old_SALES_REP IS NULL)\n{SALES_TAX}=(SALES_TAX = :old_SALES_TAX OR SALES_TAX IS NULL AND :old_SALES_TAX IS NULL)\n{DISCOUNT}=(DISCOUNT = :old_DISCOUNT OR DISCOUNT IS NULL AND :old_DISCOUNT IS NULL)\n{CC_NUMBER}=(CC_NUMBER = :old_CC_NUMBER OR CC_NUMBER IS NULL AND :old_CC_NUMBER IS NULL)\n{CC_EXPIRATION}=(CC_EXPIRATION = :old_CC_EXPIRATION OR CC_EXPIRATION IS NULL AND :old_CC_EXPIRATION IS NULL)\n",
+                                        "updateWhereClauseNative": "",
+                                        "allowInsert": true,
+                                        "allowUpdate": true,
+                                        "allowDelete": true,
+                                        "deleteType": "Hard",
+                                        "allowOptimizedDelete": false,
+                                        "deleteField": "",
+                                        "readonly": false,
+                                        "securityGroups_insert": "",
+                                        "securityGroups_update": "",
+                                        "securityGroups_delete": "",
+                                        "serversidePermission_insert": "",
+                                        "serversidePermission_update": "",
+                                        "serversidePermission_delete": "",
+                                        "joinDefinition": "[\n{\n\tleft: 'CUSTOMER_ID',\n\tright: 'CUSTOMER_ID'\n}]",
+                                        "parentAlias": "Customer",
+                                        "events": {
+                                            "beforeInsert": "",
+                                            "beforeUpdate": "",
+                                            "beforeDelete": "",
+                                            "afterInsert": "",
+                                            "afterUpdate": "",
+                                            "afterDelete": "",
+                                            "onWriteConflict": "",
+                                            "onSQLError": ""
+                                        },
+                                        "geography": {
+                                            "geocodeFieldDefinition": "",
+                                            "locationFieldDefinition": ""
+                                        },
+                                        "flagStoreLocationInformationC": "No",
+                                        "flagStoreLocationInformation": false,
+                                        "latField": "",
+                                        "lngField": "",
+                                        "flagUpdateLocationField": false,
+                                        "storeLocationWhen": "InsertOnly",
+                                        "locationFieldNameForLatLng": ""
+                                    }
+                                ]
+                            }
+                        },
                         "odata": {
                             "url": "http://services.odata.org/V4/Northwind/Northwind.svc",
                             "serviceType": "OData",
@@ -2806,79 +2853,84 @@
                         "previewMode": false,
                         "__xbjs": "ps.__checkedImage = \"svgIcon=#alpha-icon-checkCircle:icon,24\"\nps.__uncheckedImage = \"svgIcon=#alpha-icon-circle:icon,24\"",
                         "_templateCSS": "\n",
-                        "optimizeJSONSize": true,
-                        "dataBinding": {
-                            "tablesArray": {
-                                "tables": [
-                                    {
-                                        "table": "Invoice_Header",
-                                        "owner": "",
-                                        "alias": "Invoice_Header",
-                                        "primaryKeyFields": "CUSTOMER_ID",
-                                        "assignPrimaryKeyClientSide": false,
-                                        "mapPrimaryKeyToListQuery": "",
-                                        "primaryKeyIsAutoIncrement": false,
-                                        "sequenceName": "",
-                                        "sqlInsertSequence": "",
-                                        "tableInfo": "INVOICE_NUMBER=N|T|T|Integer32|!!|INVOICE_NUMBER\nCUSTOMER_ID=N|F|T|Integer32|!!|CUSTOMER_ID\nINV_DATE=T|F|T|DateTime|!!|INV_DATE\nDELIVERY_BY=C|F|T|NationalVaryingCharacter|!!|DELIVERY_BY\nPAY_METHOD=C|F|T|NationalVaryingCharacter|!!|PAY_METHOD\nSALES_REP=N|F|T|Integer32|!!|SALES_REP\nSALES_TAX=N|F|T|Double|!!|SALES_TAX\nDISCOUNT=N|F|T|Double|!!|DISCOUNT\nCC_NUMBER=C|F|T|NationalVaryingCharacter|!!|CC_NUMBER\nCC_EXPIRATION=C|F|T|NationalVaryingCharacter|!!|CC_EXPIRATION\n",
-                                        "tableInfoCRC": 4294910712,
-                                        "updateWhereClause": "{INVOICE_NUMBER}=INVOICE_NUMBER = :old_INVOICE_NUMBER\n{CUSTOMER_ID}=(CUSTOMER_ID = :old_CUSTOMER_ID OR CUSTOMER_ID IS NULL AND :old_CUSTOMER_ID IS NULL)\n{INV_DATE}=(INV_DATE = :old_INV_DATE OR INV_DATE IS NULL AND :old_INV_DATE IS NULL)\n{DELIVERY_BY}=(DELIVERY_BY = :old_DELIVERY_BY OR DELIVERY_BY IS NULL AND :old_DELIVERY_BY IS NULL)\n{PAY_METHOD}=(PAY_METHOD = :old_PAY_METHOD OR PAY_METHOD IS NULL AND :old_PAY_METHOD IS NULL)\n{SALES_REP}=(SALES_REP = :old_SALES_REP OR SALES_REP IS NULL AND :old_SALES_REP IS NULL)\n{SALES_TAX}=(SALES_TAX = :old_SALES_TAX OR SALES_TAX IS NULL AND :old_SALES_TAX IS NULL)\n{DISCOUNT}=(DISCOUNT = :old_DISCOUNT OR DISCOUNT IS NULL AND :old_DISCOUNT IS NULL)\n{CC_NUMBER}=(CC_NUMBER = :old_CC_NUMBER OR CC_NUMBER IS NULL AND :old_CC_NUMBER IS NULL)\n{CC_EXPIRATION}=(CC_EXPIRATION = :old_CC_EXPIRATION OR CC_EXPIRATION IS NULL AND :old_CC_EXPIRATION IS NULL)\n",
-                                        "updateWhereClauseNative": "",
-                                        "allowInsert": true,
-                                        "allowUpdate": true,
-                                        "allowDelete": true,
-                                        "deleteType": "Hard",
-                                        "allowOptimizedDelete": false,
-                                        "deleteField": "",
-                                        "readonly": false,
-                                        "securityGroups_insert": "",
-                                        "securityGroups_update": "",
-                                        "securityGroups_delete": "",
-                                        "serversidePermission_insert": "",
-                                        "serversidePermission_update": "",
-                                        "serversidePermission_delete": "",
-                                        "joinDefinition": "",
-                                        "parentAlias": "",
-                                        "events": {
-                                            "beforeInsert": "",
-                                            "beforeUpdate": "",
-                                            "beforeDelete": "",
-                                            "afterInsert": "",
-                                            "afterUpdate": "",
-                                            "afterDelete": "",
-                                            "onWriteConflict": "",
-                                            "onSQLError": ""
-                                        },
-                                        "geography": {
-                                            "geocodeFieldDefinition": "",
-                                            "locationFieldDefinition": ""
-                                        },
-                                        "flagStoreLocationInformationC": "No",
-                                        "flagStoreLocationInformation": false,
-                                        "latField": "",
-                                        "lngField": "",
-                                        "flagUpdateLocationField": false,
-                                        "storeLocationWhen": "InsertOnly",
-                                        "locationFieldNameForLatLng": ""
-                                    }
-                                ]
-                            }
-                        }
+                        "allchildren": "",
+                        "optimizeJSONSize": true
+                    },
+                    "datePicker": {
+                        "displayTimePicker": false,
+                        "openMethod": "ClickIcon",
+                        "dateFormat": "<Default>",
+                        "iconNumber": 2,
+                        "OKButtonLabel": "OK",
+                        "CancelButtonLabel": "Cancel",
+                        "userMustSelectFromDatePicker": false,
+                        "multiple": {
+                            "allow": false,
+                            "separators": ".."
+                        },
+                        "hasMask": false,
+                        "format": {
+                            "mask": ""
+                        },
+                        "timePickerOptionsDefined": false,
+                        "display": false,
+                        "useComboBoxes": true,
+                        "lowYear": 1950,
+                        "highYear": 2050,
+                        "switchYear": 30,
+                        "lowDate": "",
+                        "highDate": "",
+                        "disabledDays": "",
+                        "disabledDates": ""
+                    },
+                    "info": {
+                        "level": 4,
+                        "isContainerStart": false,
+                        "isTabControlStart": false,
+                        "isContainerEnd": false,
+                        "isTabControlEnd": false,
+                        "isTabPaneEnd": false,
+                        "lastItemInTabPane": false,
+                        "inContainer": true,
+                        "inCSSGridContainer": false,
+                        "inRepeatingSection": false,
+                        "inTabPane": false,
+                        "parentContainerID": "098af8a0-40f4-4bb1-8877-288ee1a23a79",
+                        "repeatingSectionParentId": "",
+                        "parentTabID": "",
+                        "parentTabPaneID": "",
+                        "index": 9,
+                        "color": "",
+                        "icon": "$$control.browse",
+                        "displayText": "[list1]",
+                        "parentPanelCardId": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
+                        "break": true,
+                        "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [list1]<<break>>"
+                    },
+                    "displayAsSlider": false,
+                    "precalc": {
+                        "controlHTMLInPanelCard": "in panel card",
+                        "javascript_listViewData": "{dialog.object}._listViewData['LIST1'] = [[dialog.listViewData.list1]]; ",
+                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['LIST1'] = [[dialog.listViewSettings.list1]]; ",
+                        "javascript_listview": "{dialog.object}._controls['LIST1'] =  { type: 'list',  data: {dialog.object}._listViewData['LIST1'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applictions. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['LIST1'] }",
+                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_LIST1'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'LIST1'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'list1', flag: $if(showHide == '',true,false)});}\n}\n\n",
+                        "_jsOnChangeFunction": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};",
+                        "javascriptAbstractSetupCode": ""
+                    },
+                    "flags": {
+                        "clientSideDefinition": false
                     }
                 },
                 "precalc": {
+                    "columnInfo": "'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }\n",
                     "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.LIST1\" name=\"V.R{grid.rownumber}.LIST1\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.LIST1.CONTROL\"  class=\"{grid.componentName}_LIST1\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": "",
-                    "columnInfo": "'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }\n",
                     "listviewData": "[[%%[[list1]]%%]]",
                     "listviewSearchReplace": "[[dialog.listViewData.list1]] = tmpl.page_fields[9].precalc.listViewData",
                     "listViewHasBeenRendered": false,
                     "js_afterListInitialize": "var listObj = {UXPRERENDEREDALIAS}_DlgObj.getControl('LIST1');\nif(listObj) listObj._state.recordCount = 1;\nif(listObj) listObj._state.recordCountFormatted = '1';\nif(listObj) listObj._state.lastBreakValue = '<None>';\nif(listObj) listObj._state.pageCount = 0;\nif(listObj) listObj._state.pageSize = 20;\nif(listObj) {var ele = $('{UXPRERENDEREDALIAS}.list1.RECORDCOUNT'); if(ele) ele.innerHTML = listObj._state.recordCountFormatted;};\nif(listObj) listObj._state.paginated = true;\n\nif(listObj) listObj._state.highlight = {  };\nif(listObj) listObj._state.whereClause = '';\nif(listObj) listObj._state.whereParameters = '';\nlistObj._state.order = '';\n\t\t\n\t\tvar flagPersist = false;\n\t\tif(typeof listObj._flagPersistDataOK != 'undefined') { \n\t\t\tif(listObj._flagPersistDataOK) { \n\t\t\t\tvar data = listObj._data;\n\t\t\t\tlistObj.persistToStorage({mode:'populate', data: data, submode: 'ListViewData'});\n\t\t\t}\n\t\t}\n\t\t\n\t\t\n;\n{UXPRERENDEREDALIAS}_DlgObj._list_executeEvent('LIST1','afterRenderComplete',{});\n\nif(listObj._refreshStateMessages) listObj._refreshStateMessages();",
                     "list_CapturedFieldValueFromFirstRow": ""
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "containerStartIndex": 0
+                }
             },
             {
                 "controlType": "layout_directive_ContainerEnd",
@@ -3460,9 +3512,9 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": true,
-        "selected": "79c95fbd-4dbc-47d4-9803-7b7c792d4251\n",
+        "selected": "a99c667b-1092-4d68-810e-88264b95c03e\n",
         "designPaneIndex": 1,
-        "masterPaneC": "EventsClientSide",
+        "masterPaneC": "controls",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 13,
         "clientSideEventIndexC": "13",
@@ -3480,7 +3532,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "510",
+        "_buildCount": "518",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3578,7 +3630,7 @@
             "__panelButtons": "",
             "flagLoadFirestore": false,
             "__freeformLayoutsJS": "",
-            "_jsOnChangeFunctions": "function onChange_DETAIL_VIEW_79c95fbd4dbc47d498037b7c792d4251(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DETAIL_VIEW');};",
+            "_jsOnChangeFunctions": "function onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('LIST1');};",
             "_jsOnClickFunctions": ""
         },
         "FieldsInRepeatingSectionsDeletedBySecurity": "",
@@ -3647,7 +3699,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240923120539043",
+        "A5SaveTimeStamp": "20240930090713801",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7  ",
@@ -3755,8 +3807,8 @@
         "staticHTMLFileJSON": "",
         "__flagRecursive": false,
         "_flagForceRecalcChildren": true,
-        "__idinternalCurrentControl": "79c95fbd-4dbc-47d4-9803-7b7c792d4251",
-        "__nameCurrentControl": "DETAIL_VIEW",
+        "__idinternalCurrentControl": "a99c667b-1092-4d68-810e-88264b95c03e",
+        "__nameCurrentControl": "list1",
         "a_UnboundActionJavascript": [
             {
                 "idInternal": "f4e89063-e8d5-4585-ad72-01d4b925820f",
@@ -3832,7 +3884,6 @@
         "favoriteControls": "",
         "unboundActionShowOnNewActionMessage": true,
         "actionJavascriptUnboundLastEdited": "21dbf0a0-e9db-4747-99cb-8459f0cff60d",
-        "_containerstorecalc": "",
         "informixFix": false,
         "__suppressContainerWarnings": "",
         "arguments": [
@@ -3849,12 +3900,13 @@
                 "sr": "{TEST_ARG}=\"Smith\""
             }
         ],
+        "_containerstorecalc": "",
         "prerendered": {
             "_styledataVersion": 4,
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

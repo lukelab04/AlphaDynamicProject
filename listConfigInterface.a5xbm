@@ -166,7 +166,7 @@ function saveConfig as c (e as p)
 	else 
 		if saveGlobal then
 			args.add("config", e.payload)
-			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
+			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, NULL)", args)
 		else 
 			dim exists_globally as l = config_exists("", .t., e.configName)
 			if .not. exists_globally then 

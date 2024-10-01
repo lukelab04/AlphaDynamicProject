@@ -454,13 +454,16 @@ var DynamicList = /** @class */ (function () {
             _this.reRender();
         };
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + this.config.dataSource.table
+            this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + encodeURI(this.config.dataSource.table)
                 + "&dirty=" + encodeURI(JSON.stringify(harvest)), {
                 onComplete: onComplete,
             });
         }
         else if (this.config.dataSource.type == 'sql' && 'sql' in this.config.dataSource) {
-            throw new Error("todo");
+            this.obj.ajaxCallback("", "", "updateData", "", "customSql=" + encodeURI(this.config.dataSource.sql)
+                + "&dirty=" + encodeURI(JSON.stringify(harvest)), {
+                onComplete: onComplete,
+            });
         }
         else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
             var newRows_1 = [];
@@ -520,6 +523,7 @@ var DynamicList = /** @class */ (function () {
             columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
             this.makeMenuSetting(this.config.buttons[i], i, menuSettings, items);
         }
+        var dialogId = this.obj.dialogId;
         return {
             theme: this.obj.styleName,
             layout: 'Default',
@@ -808,20 +812,20 @@ var DynamicList = /** @class */ (function () {
             onItemDraw: function (ele, data, index) {
                 if (!('_rData' in this))
                     return;
-                var _dirtyRowClassName = "_{dialog.componentName}_LIST1_dirtyRow";
-                var _dirtyRowClassNameInherited = "_{dialog.componentName}_LIST1_dirtyRowInherited";
-                var _dirtyRowStyle = "_{dialog.componentName}_LIST1_dirtyRowStyle";
-                var _hasUnsyncedMediaFilesClassName = "_{dialog.componentName}_LIST1_hasUnsyncedMediaFiles";
-                var _errorRowClassName = "_{dialog.componentName}_LIST1_hasError";
-                var _errorRowClassNameInherited = "_{dialog.componentName}_LIST1_hasErrorInherited _{dialog.componentName}_LIST1_dirtyRowInherited";
-                var _errorRowClassNameInherited_1 = "_{dialog.componentName}_LIST1_hasErrorInherited";
-                var _errorRowClassNameInherited_2 = "_{dialog.componentName}_LIST1_dirtyRowInherited";
-                var _errorRowStyle = "_{dialog.componentName}_LIST1_hasErrorStyle";
-                var _newRowClassName = "_{dialog.componentName}_LIST1_newRow";
-                var _newRowStyle = "_{dialog.componentName}_LIST1_newRowStyle";
-                var _deletedRowClassName = "_{dialog.componentName}_LIST1_deletedRow";
-                var _deletedRowStyle = "_{dialog.componentName}_LIST1_deletedRowStyle";
-                var _deletedRowClassNameInherited = "_{dialog.componentName}_LIST1_deletedRowInherited";
+                var _dirtyRowClassName = "_".concat(dialogId, "_LIST1_dirtyRow");
+                var _dirtyRowClassNameInherited = "_".concat(dialogId, "_LIST1_dirtyRowInherited");
+                var _dirtyRowStyle = "_".concat(dialogId, "_LIST1_dirtyRowStyle");
+                var _hasUnsyncedMediaFilesClassName = "_".concat(dialogId, "_LIST1_hasUnsyncedMediaFiles");
+                var _errorRowClassName = "_".concat(dialogId, "_LIST1_hasError");
+                var _errorRowClassNameInherited = "_".concat(dialogId, "_LIST1_hasErrorInherited _").concat(dialogId, "_LIST1_dirtyRowInherited");
+                var _errorRowClassNameInherited_1 = "_".concat(dialogId, "_LIST1_hasErrorInherited");
+                var _errorRowClassNameInherited_2 = "_".concat(dialogId, "_LIST1_dirtyRowInherited");
+                var _errorRowStyle = "_".concat(dialogId, "_LIST1_hasErrorStyle");
+                var _newRowClassName = "_".concat(dialogId, "_LIST1_newRow");
+                var _newRowStyle = "_".concat(dialogId, "_LIST1_newRowStyle");
+                var _deletedRowClassName = "_".concat(dialogId, "_LIST1_deletedRow");
+                var _deletedRowStyle = "_".concat(dialogId, "_LIST1_deletedRowStyle");
+                var _deletedRowClassNameInherited = "_".concat(dialogId, "_LIST1_deletedRowInherited");
                 var __d = this._rData[index];
                 $rcn(ele, _dirtyRowClassName);
                 $rcn(ele, _dirtyRowClassNameInherited);
@@ -1639,12 +1643,12 @@ var DynamicList = /** @class */ (function () {
                         }
                         _this.data = _this.obj.stateInfo.apiResult.ok;
                         _this.rawData = _this.obj.stateInfo.apiResult.ok;
-                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : _this.obj.stateInfo.numRowsAvailable);
+                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : response.count);
                         _this.listBox._state = {
                             pageSize: pageSize,
                             page: _this.listBox._state.page,
-                            pageCount: Math.ceil(_this.obj.stateInfo.numRowsAvailable / pageSize),
-                            recordCount: _this.obj.stateInfo.numRowsAvailable,
+                            pageCount: Math.ceil(response.count / pageSize),
+                            recordCount: response.count,
                         };
                         if (_this.data === undefined) {
                             console.error("Error fetching data, defaulting to empty.");
@@ -1661,7 +1665,7 @@ var DynamicList = /** @class */ (function () {
         else if (this.config.dataSource.type == 'sql') {
             var paginate_2 = '';
             if (this.config.searchOptions.paginate) {
-                paginate_2 = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, "}"));
+                paginate_2 = "&pageOptions=" + encodeURIComponent("{pageSize: ".concat(this.config.searchOptions.paginate.pageSize, ", getPage: ").concat(this.listBox._state.page, "}"));
             }
             var filters_2 = JSON.stringify(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
             return new Promise(function (resolve, reject) {
@@ -1675,6 +1679,13 @@ var DynamicList = /** @class */ (function () {
                         }
                         _this.data = _this.obj.stateInfo.apiResult.ok;
                         _this.rawData = _this.obj.stateInfo.apiResult.ok;
+                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : response.count);
+                        _this.listBox._state = {
+                            pageSize: pageSize,
+                            page: _this.listBox._state.page,
+                            pageCount: Math.ceil(response.count / pageSize),
+                            recordCount: response.count,
+                        };
                         if (_this.data === undefined) {
                             console.error("Error fetching data, defaulting to empty.");
                             _this.data = [];

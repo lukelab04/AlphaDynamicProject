@@ -23,7 +23,7 @@ function querySqlWithFilters (e as p) as c
 	dim filters as extension::Json
 	
 	if e.data("pageOptions") <> "" then 
-		pageOptions = e.pageOptions
+		pageOptions = json_parse(e.pageOptions)
 	else 
 		pageOptions = null_value()
 	end if 
@@ -45,6 +45,7 @@ function querySqlWithFilters (e as p) as c
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
+		' Todo make it so that total num of records is populated
 		dim existingFilters as extension::json 
 		existingFilters = configJson.getProperty("dataSource").getProperty("filters")
 		for i = 0 to filters.getLength() - 1
@@ -76,7 +77,9 @@ function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::
 	if result.data("err") then 
 		getTableDataFromSql = "{\"err\": " + json_generate(result.err) + "}"
 	else 
-		getTableDataFromSql = "{\"ok\": " + result.ok + ", \"count\": " + 0 + "}"
+		dim count as n
+		count = customSqlCount(sql, args, cn)
+		getTableDataFromSql = "{\"ok\": " + result.ok + ", \"count\": " + count + "}"
 	end if
 	
 	'Clean up by freeing the resultset and then closing the database
@@ -158,9 +161,8 @@ function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Argumen
 		rowStart = 1
 		getRows = -1
 	else
-		dim pageOptions as p
-		rowStart = 1 + (pageOptions.getProperty("pageSize") * (pageOptions.getProperty("getPage") - 1))
-		getRows = pageOptions.getProperty("pageSize")
+		rowStart = 1 + (pageOptions.pageSize * (pageOptions.getPage - 1))
+		getRows = pageOptions.pageSize
 	end if
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -188,53 +190,6 @@ function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Argumen
 	json = rs.toJSON(getRows, rowStart)
 	result.ok = json 
 	runSqlFetch = result
-end function
-
-' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
-function countRowsWithFilter(e as p) as c
-		
-	'DIM an Xbasic AlphaDAO connection object
-	dim cn as sql::connection
-	dim flag as l
-	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
-	
-	dim args as sql::arguments
-	dim filtersJson as extension::json 
-	filtersJson.setJson(e.filters)
-	dim filterStr as c
-	filterStr = buildConstraint(filtersJson, args, cn, e)
-	
-	dim configInterface as p
-	dim config as c
-	dim configJson as extension::json
-	configInterface = require("listConfigInterface")
-	config = configInterface.requestConfig(e)
-	configJson.setJson(config)
-	
-	if configJson.hasProperty("err") then 
-		countRowsWithFilter = "{dialog.object}.stateInfo.numRowsAvailable = " + 0 + ";"
-		end 
-	end if
-	
-	configJson = configJson.getProperty("ok")
-
-	dim wherePart as c
-	
-	if len(filterStr) <> 0 then 
-		wherePart = " " + filterStr
-	else 
-		wherePart = " 1 = 1 "
-	end if
-	
-	dim count as n
-	count = sql_count(cn, configJson.getProperty("dataSource").getProperty("table"), "*", wherePart, args);
-	
-	if count < 0 then 
-		count = 0
-	end if 
-	
-	countRowsWithFilter = "{dialog.object}.stateInfo.numRowsAvailable = " + count + ";"
 end function
 
 function buildConstraint(filters as extension::json, args as sql::arguments, connection as sql::connection, e as p) as c	
@@ -290,16 +245,22 @@ function isSafeOp as l (op as c)
 	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE")
 end function 
 
-' Input: Table Name
+' Input: Table Name OR customSql
 ' Input: dirty (from 'harvestList')
 function updateTableData (e as p) as c
+	
+	dim isCustomSql as l
+	isCustomSql = prop_valid(e, "customSql")
 	
 	dim schemaInfo as p
 	dim info as c
 	dim schema as p
-	schemaInfo = require("schemaInfo")
-	info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
-	schema = json_parse(info)
+	
+	if .not. isCustomSql then 
+		schemaInfo = require("schemaInfo")
+		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
+		schema = json_parse(info)
+	end if
 	
 	dim dirty as p
 	dirty = json_parse(e.dirty)
@@ -312,7 +273,6 @@ function updateTableData (e as p) as c
 	
 	dim results as c
 	results = ""
-	
 	for each item in dirty
 		
 		dim shouldDelete as l
@@ -330,12 +290,24 @@ function updateTableData (e as p) as c
 		end if
 		
 		
-		if shouldDelete then 
-			results = results + runDeleteQuery(e, schema, item, cn)
+		if shouldDelete then
+			if isCustomSql then
+				results = results + runQueryWithCustomSql(e.customSql, item, cn, "delete")
+			else 
+				results = results + runDeleteQuery(e, schema, item, cn)
+			end if
 		else if shouldUpdate then 
-			results = results + runUpdateQuery(e, schema, item, cn)
+			if isCustomSql then 
+				results = results + runQueryWithCustomSql(e.customSql, item, cn, "update")
+			else 
+				results = results + runUpdateQuery(e, schema, item, cn)
+			end if
 		else if shouldInsert then
-			results = results + runInsertQuery(e, schema, item, cn)
+			if isCustomSql then
+				results = results + runQueryWithCustomSql(e.customSql, item, cn, "insert")
+			else 
+				results = results + runInsertQuery(e, schema, item, cn)
+			end if
 		end if
 	next item
 	
@@ -354,8 +326,12 @@ function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connect
 			continue 
 		end if
 		
-		if column.value.name == schema.primaryKey then 
-			args.set(schema.primaryKey, convert_type(item.value.data(schema.primaryKey), column.value.alphaType))
+		' Skip over adding in the primary key field if it is autogenerated. 
+		' If it is autogenerated, specifying it will result in a DB error.
+		' We *do* want to add it to the argument list, so that the WHERE clause can be specified. 
+		' But we should draw the value from _oldData, in case the user tried to change the primary key.
+		if .not. needExplicitPrimaryKey(schema) .and. (column.value.name == schema.primaryKey) then 
+			args.set(schema.primaryKey, convert_type(item.value._oldData.data(schema.primaryKey), column.value.alphaType))
 			continue
 		end if 
 		
@@ -387,6 +363,36 @@ function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	runUpdateQuery = ";"
 end function
 
+function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection, queryType as c)
+	debug(1)
+	dim query as sql::query 
+	query.parse(sql)
+	dim output as c
+	output = ""
+	
+	for each tableRef in query.selectTableReferences
+		dim e as p
+		e.tableName = tableRef.value.name
+		dim schemaInfo as p
+		dim info as c
+		dim schema as p
+		schemaInfo = require("schemaInfo")
+		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
+		schema = json_parse(info)
+		
+		if queryType == "insert" then 
+			output = output + runInsertQuery(e, schema, item, cn)
+		else if queryType == "update" then 
+			output = output + runUpdateQuery(e, schema, item, cn)
+		else if queryType == "delete" then 
+			output = output + runDeleteQuery(e, schema, item, cn)
+		end if
+	next field
+	
+	runQueryWithCustomSql = output
+	
+end function
+
 function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connection)
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
@@ -400,7 +406,7 @@ function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connect
 			continue 
 		end if
 		
-		if .not. needExplicitPrimaryKey(schema) then
+		if .not. needExplicitPrimaryKey(schema) .and. (column.value.name == schema.primaryKey) then 
 			continue
 		end if 
 		
@@ -439,6 +445,7 @@ function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	runInsertQuery = ";"
 end function
 
+' Return true if column is not autogenerated in any way
 function needExplicitPrimaryKey as l (schema as p)
 	dim pk as c 
 	pk = schema.primaryKey 
@@ -476,6 +483,25 @@ function runDeleteQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	runDeleteQuery = ";"
 end function
 
+' Given any sql select query with arguments, return number of rows matching the query
+function customSqlCount as n (query as c, args as sql::Arguments, cn as sql::Connection)
+	dim tmpQuery as sql::Query
+	dim realQuery as sql::query
+	tmpQuery.Parse("select count(*) from col")
+	realQuery.parse(query)
+	realQuery.Column.reset()
+	realQuery.Column.add(tmpQuery.Column.item(1))
+	
+	dim flag as l
+	flag = realQuery.Execute(cn, args)
+	if .not. flag then 
+		customSqlCount = 0
+		end 
+	else
+		customSqlCount = realQuery.ResultSet.data(1)
+		end
+	end if
+end function
 
 function performFetch as c (e as p)
 	dim settings as p
@@ -540,7 +566,6 @@ end function
 
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData
-exports.countRowsWithFilter = countRowsWithFilter
 exports.performFetch = performFetch
 exports.querySqlWithFilters = querySqlWithFilters
 
