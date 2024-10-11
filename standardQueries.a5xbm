@@ -56,7 +56,7 @@ function querySqlWithFilters (e as p) as c
 	
 end function
 
-function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::json, e as p) as c 
+function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::json, e as p) as c
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -364,15 +364,43 @@ function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connect
 end function
 
 function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection, queryType as c)
-	debug(1)
 	dim query as sql::query 
 	query.parse(sql)
 	dim output as c
 	output = ""
 	
-	for each tableRef in query.selectTableReferences
+	dim dependencies as extension::json
+	dependencies.setJson("{}")
+	
+	dim queryTableNames[0] as c
+	for each queryTableName in query.selectTableReferences
+		queryTableNames[] = queryTableName.value.name
+	next field
+	
+	dim entireSchema as sql::Schema
+	cn.GetSchema(entireSchema)
+	
+	dim orderedTableRefs as p
+	orderedTableRefs = entireSchema.TableInDependencyOrder
+	
+	dim orderedFilteredRefs[0] as c
+	for i = 1 to orderedTableRefs.count
+		if queryTableNames.find(orderedTableRefs[i].tableName) > 0 then 
+			orderedFilteredRefs[] = orderedTableRefs[i].tableName
+		end if
+	next
+	
+	if queryType == "delete" then
+		reversearray(orderedFilteredRefs)
+	end if
+	
+	dim querySuccess as l = .t.
+	
+	cn.BeginTransaction()
+	
+	for each tableName in orderedFilteredRefs
 		dim e as p
-		e.tableName = tableRef.value.name
+		e.tableName = tableName.value
 		dim schemaInfo as p
 		dim info as c
 		dim schema as p
@@ -380,16 +408,114 @@ function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection,
 		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
 		schema = json_parse(info)
 		
-		if queryType == "insert" then 
-			output = output + runInsertQuery(e, schema, item, cn)
+		dim thisOutput as c
+		
+		if queryType == "insert" then
+			dim itemJson as extension::json
+			itemJson.setJson(json_generate(item))
+			updateItemCols(cn, tableName, itemJson, dependencies)
+			property_from_json(item, itemJson.getJson())
+			
+			thisOutput = runInsertQuery(e, schema, item, cn)
+			
+			' The next step in this iteration may require data from this newly inserted data. 
+			' So, we will add all column info to the map.
+			addToDependencies (cn, tableName.value, item, dependencies)
 		else if queryType == "update" then 
-			output = output + runUpdateQuery(e, schema, item, cn)
+			thisOutput = runUpdateQuery(e, schema, item, cn)
 		else if queryType == "delete" then 
-			output = output + runDeleteQuery(e, schema, item, cn)
+			thisOutput = runDeleteQuery(e, schema, item, cn)
 		end if
-	next field
+		
+		if thisOutput <> ";" then 
+			' Failure 
+			output = output + thisOutput 
+			querySuccess = .f. 
+			exit for
+		end if 
+		output = output + thisOutput
+	next
+	
+	if .not. querySuccess then 
+		' Roll back transaction
+		cn.RollBackTransaction()
+	end if
+	
+	cn.CommitTransaction()
 	
 	runQueryWithCustomSql = output
+	
+end function
+
+' Loop through all columns that may be dependent on another table. 
+' If a dependent column *is* in dependencies and *isn't* already in item, then add it.
+function updateItemCols as v (cn as sql::Connection, tableName as c, item as extension::json, dependencies as extension::json)
+	dim tableInfo as sql::TableInfo
+	cn.GetTableInfo(tableInfo, tableName)
+	dim indexes as p
+	indexes = tableInfo.index 
+	
+	for i = 1 to indexes.count
+		dim index as p
+		index = indexes[i]
+		if .not. index.reference then 
+			continue 
+		end if 
+		
+		' Table that dependent columns are pointing at 
+		dim refTableName as c 
+		refTableName = index.referenceTable
+		
+		for j = 1 to index.column.count 
+			dim column as p 
+			column = index.column[j]
+			
+			' If this column was specified, skip
+			if item.hasProperty(column.name) then 
+				continue
+			end if 
+			
+			' Dependencies structured as table name -> columns
+			if dependencies.hasProperty(index.referenceTable) then 
+				dim depTbl as extension::json
+				depTbl = dependencies.getProperty(index.referenceTable)
+				if depTbl.hasProperty(column.referenceName) then
+					item.setProperty(column.name, depTbl.getProperty(column.referenceName))
+				end if
+			end if 
+			
+		next
+		
+	next
+	
+end function
+
+function addToDependencies as v (cn as sql::Connection, tableName as c, arguments as p, dependencies as extension::json)
+	dim result as p
+	dim id as n
+	dim tableInfo as sql::TableInfo
+	id = cn.CallResult.lastInsertedIdentity
+	cn.GetTableInfo(tableInfo, tableName)
+	
+	dim innerDeps as extension::json
+	innerDeps.setJson("{}")
+	
+	for i = 1 to tableInfo.column.count
+		dim col as p 
+		col = tableInfo.column[i]
+		dim primary as l 
+		primary = tableInfo.ColumnIsInPrimaryKey(i)
+		dim specified as l 
+		specified = prop_valid(arguments, col.name)
+		
+		if primary .and. (.not. specified) then 
+			innerDeps.setProperty(col.name, id)
+		else if specified 
+			innerDeps.setProperty(col.name, arguments.data(col.name))
+		end if
+	next
+	
+	dependencies.setProperty(tableName, innerDeps)
 	
 end function
 
@@ -397,7 +523,6 @@ function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
 	dim args as sql::arguments
-	
 	dim valueSql as c
 	valueSql = " VALUES ("
 	
@@ -491,7 +616,7 @@ function customSqlCount as n (query as c, args as sql::Arguments, cn as sql::Con
 	realQuery.parse(query)
 	realQuery.Column.reset()
 	realQuery.Column.add(tmpQuery.Column.item(1))
-	
+
 	dim flag as l
 	flag = realQuery.Execute(cn, args)
 	if .not. flag then 
@@ -562,7 +687,6 @@ function performFetch as c (e as p)
 	performFetch = json_generate(http_fetch(settings))
 	
 end function
-
 
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData
