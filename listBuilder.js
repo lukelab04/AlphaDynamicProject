@@ -1845,7 +1845,10 @@ var DynamicList = /** @class */ (function () {
                     return {};
                 var schema = {};
                 var _loop_2 = function (key) {
-                    if (instance[key] instanceof Array) {
+                    if (instance[key] === null) {
+                        return "continue";
+                    }
+                    else if (instance[key] instanceof Array) {
                         schema[key] = { array: {} };
                         var item_2 = schema[key];
                         if (!('array' in item_2))
