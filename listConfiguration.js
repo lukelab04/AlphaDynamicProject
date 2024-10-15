@@ -268,7 +268,31 @@ function buildConfigForm(adminConfig, allColumns) {
                     displayName: singleInput('string', 'Column Name to Display (Optional)', { type: "string", default: undefined }),
                     inList: singleInput('boolean', 'Show in List? (Optional)', { type: "boolean", default: true }),
                     inDetailView: singleInput('boolean', 'Show in Detail View? (Optional)', { type: "boolean", default: true }),
-                    editType: singleInput('string', 'Data Type (Optional)', { type: "string", default: 'text' }),
+                    editType: singleInput('dropdown', 'Data Type (Optional)', {
+                        default: 'text',
+                        type: 'dropdown',
+                        dropdownItems: [
+                            { text: 'Text', value: 'text' },
+                            { text: 'Dropdown', value: 'dropdown' },
+                            { text: 'Time', value: 'time' },
+                            { text: 'Date & Time', value: 'datetime' },
+                            { text: 'True/False', value: 'bool' },
+                            { text: 'Number', value: 'number' }
+                        ],
+                    }),
+                    serverDateFormat: singleInput('string', 'Server Date Format', {
+                        type: 'string',
+                        default: undefined,
+                    }, {
+                        show: function (i) {
+                            var _a;
+                            var p = i.parent;
+                            if (p == null)
+                                return true;
+                            var editType = (_a = p.selected().key("editType")) === null || _a === void 0 ? void 0 : _a.serialize();
+                            return typeof editType == 'string' && editType == 'datetime';
+                        }
+                    }),
                     width: singleInput('string', 'Column Width (Optional)', { type: "string", default: undefined }),
                     template: singleInput('string', 'Column Template (Optional)', { type: "string", default: undefined }),
                     dropdownConfig: singleInput('object', 'Dropdown Config (Optional)', {
@@ -316,7 +340,6 @@ function buildConfigForm(adminConfig, allColumns) {
                                 type: singleInput('dropdown', 'Input Type', {
                                     type: 'dropdown',
                                     dropdownItems: [{ value: 'json', text: 'json' }],
-                                    onChange: function (_1, _2) { }
                                 }),
                                 endpoints: singleInput('object', 'Endpoints', { type: 'object', dynamicKeys: endpoint, staticKeys: {}, default: {} }, {
                                     comments: 'Key can be fetch, search, add, update, or delete'
@@ -330,7 +353,7 @@ function buildConfigForm(adminConfig, allColumns) {
                         value: new Value('object', {
                             type: "object",
                             staticKeys: {
-                                type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'sql', text: 'sql' }], onChange: function (_1, _2) { } }),
+                                type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'sql', text: 'sql' }] }),
                                 table: singleInput('string', 'Table Name'),
                                 preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
                             }
@@ -341,7 +364,7 @@ function buildConfigForm(adminConfig, allColumns) {
                         value: new Value('object', {
                             type: "object",
                             staticKeys: {
-                                type: singleInput("dropdown", 'Input Type', { type: "dropdown", dropdownItems: [{ value: "sql", text: "sql" }], onChange: function (_1, _2) { } }),
+                                type: singleInput("dropdown", 'Input Type', { type: "dropdown", dropdownItems: [{ value: "sql", text: "sql" }] }),
                                 sql: singleInput('string', 'SQL Query', undefined, {
                                     comments: "Supply only the SELECT and FROM parts of the query. Specify filters in the `filters` section."
                                 }),
@@ -364,7 +387,6 @@ function buildConfigForm(adminConfig, allColumns) {
                                                     { text: "Greater Than or Equal To", value: ">=" },
                                                     { text: "Pattern", value: "LIKE" },
                                                 ],
-                                                onChange: function (_1, _2) { }
                                             }),
                                             columnVal: singleInput("object", "Column Value", {
                                                 type: "object",
@@ -375,7 +397,6 @@ function buildConfigForm(adminConfig, allColumns) {
                                                             { text: "Argument", value: "arg" },
                                                             { text: "Static Value", value: "value" }
                                                         ],
-                                                        onChange: function (_1, _2) { }
                                                     }),
                                                     value: singleInput("string", "Value")
                                                 }
@@ -387,7 +408,6 @@ function buildConfigForm(adminConfig, allColumns) {
                                                     { text: "And", value: "AND" },
                                                     { text: "Or", value: "OR" }
                                                 ],
-                                                onChange: function (_1, _2) { }
                                             })
                                         }
                                     })
@@ -401,7 +421,7 @@ function buildConfigForm(adminConfig, allColumns) {
                         value: new Value('object', {
                             type: "object",
                             staticKeys: {
-                                type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'json', text: 'json' }], onChange: function (_1, _2) { } }),
+                                type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'json', text: 'json' }] }),
                                 preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
                                 static: singleInput('array', 'Static Items', {
                                     type: "array",

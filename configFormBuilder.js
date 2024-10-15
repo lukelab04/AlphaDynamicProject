@@ -660,7 +660,9 @@ var Value = /** @class */ (function () {
                 onChange: function (change) {
                     if (_this.options.type != 'dropdown')
                         return;
-                    _this.options.onChange(change, _this);
+                    if (_this.options.onChange) {
+                        _this.options.onChange(change, _this);
+                    }
                 }
             },
             container: {
