@@ -8,9 +8,9 @@ loadClass("Result")
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 ' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
-function querySqlWithFilters as {Result} (e as p)
+function querySqlWithFilters as Result (e as p)
 	dim configInterface as p
-	dim config as {Result}
+	dim config as Result
 	dim configJson as extension::Json
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
@@ -56,7 +56,7 @@ function querySqlWithFilters as {Result} (e as p)
 	
 end function
 
-function getTableDataFromSql as {Result} (sql as c, pageOptions as a, filters as extension::json, e as p)
+function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as extension::json, e as p)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -71,7 +71,7 @@ function getTableDataFromSql as {Result} (sql as c, pageOptions as a, filters as
 		sql = sql + " WHERE " + filterStr
 	end if
 	
-	dim result as {Result}
+	dim result as Result
 	result = runSqlFetch(cn, sql, args, pageOptions)
 	
 	if .not. result.isSuccessful() then 
@@ -91,7 +91,7 @@ function getTableDataFromSql as {Result} (sql as c, pageOptions as a, filters as
 	cn.close()
 end function
 
-function getTableData as {Result} (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p)
+function getTableData as Result (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -140,7 +140,7 @@ function getTableData as {Result} (tableName as c, columns as p, pageOptions as 
 	
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
-	dim data as {Result}
+	dim data as Result
 	data = runSqlFetch(cn, sql, args, pageOptions)
 	
 	if .not. data.isSuccessful() then 
@@ -163,8 +163,8 @@ function getTableData as {Result} (tableName as c, columns as p, pageOptions as 
 end function
 
 
-function runSqlFetch as {Result} (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
-	dim result as {Result}
+function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
+	dim result as Result
 	
 	if pageOptions == null_value() then 
 		rowStart = 1
@@ -320,7 +320,7 @@ function updateTableData as v (e as p, resultsOut as p)
 
 end function
 
-function runUpdateQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
+function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
 	dim updateSql as c
 	updateSql = "UPDATE [" + e.tableName + "] SET "
 	dim args as sql::arguments
@@ -366,10 +366,10 @@ function runUpdateQuery as {Result} (e as p, schema as p, item as p, cn as sql::
 	runUpdateQuery = Result.success("")
 end function
 
-function runQueryWithCustomSql as {Result} (sql as c, item as p, cn as sql::connection, queryType as c)
+function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c)
 	dim query as sql::query 
 	query.parse(sql)
-	dim output as {Result} = Result.success("")
+	dim output as Result = Result.success("")
 	
 	dim dependencies as extension::json
 	dependencies.setJson("{}")
@@ -514,7 +514,7 @@ function addToDependencies as v (cn as sql::Connection, tableName as c, argument
 	
 end function
 
-function runInsertQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
+function runInsertQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
 	dim args as sql::arguments
@@ -578,7 +578,7 @@ function needExplicitPrimaryKey as l (schema as p)
 	needExplicitPrimaryKey = .f.
 end function
 
-function runDeleteQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
+function runDeleteQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
 	dim deleteSql as c
 	deleteSql = "DELETE FROM [" + e.tableName + "] WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
 	

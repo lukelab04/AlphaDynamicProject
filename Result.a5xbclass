@@ -5,19 +5,19 @@
 'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
 'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
 
-define class global Result
+define class Result
 	dim data as a 
 	dim isSuccess as l
 	
 	function [static] success as {Result} (val as a)
-		dim r as {Result} = new Result()
+		dim r as Result = new Result()
 		r.data = val
 		r.isSuccess = .t.
 		success = r
 	end function
 	
 	function [static] fail as {Result} (val as a)
-		dim r as {Result} = new Result()
+		dim r as Result = new Result()
 		r.data = val
 		r.isSuccess = .f.
 		fail = r

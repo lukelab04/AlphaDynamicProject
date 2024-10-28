@@ -12,7 +12,7 @@ loadClass("Result")
 ' Input: e.configName (string)
 ' Input: e.filters (filter array)
 ' Output: Result(ok: {data array, schema (if schema can be fetched), isAdmin (bool), config)
-function batchFetch as {Result} (e as p)
+function batchFetch as Result (e as p)
 	dim resultObj as extension::json 
 	resultObj.setJson("{}")
 	
@@ -86,7 +86,7 @@ end function
 ' Input: e.configName (string)
 ' Output: {ok : JSON configuration (mapping, searchOptions, buttons only)} or {err: Error Message }
 
-function requestConfig as {Result} (e as p)
+function requestConfig as Result (e as p)
 	dim username as c = context.security.currentuser
 	
 	if .not. context.security.callresult.success then 
@@ -109,7 +109,7 @@ function requestConfig as {Result} (e as p)
 	userSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings  WHERE USER_NAME = :username AND CONFIG_NAME = :listname AND GLOBAL = .f."
 	globalSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
 	
-	dim userMappings as {Result}
+	dim userMappings as Result
 	dim globalConfig as p
 	userMappings = fetchFromDb(userSql, args)
 	globalConfig = fetchFromDb(globalSql, args)
@@ -135,7 +135,7 @@ end function
 
 ' Take SQL and Args, query database, return as JSON object
 ' Returns { ok: Obj } or { err: errMsg }
-function fetchFromDb as {Result} (sql as c, args as sql::arguments)
+function fetchFromDb as Result (sql as c, args as sql::arguments)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -171,7 +171,7 @@ end function
 ' Input: e.payload
 ' 	If global is true, then this is the entire configuration 
 ' 	If global is false, then this is just the mapping portion of the config
-function saveConfig as {Result} (e as p) 
+function saveConfig as Result (e as p) 
 	if e.data("global") == "" then 
 		saveConfig = Result.fail("Field 'global' is required").toJson().getJson()
 		end 
