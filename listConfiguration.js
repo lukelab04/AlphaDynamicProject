@@ -8,6 +8,16 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
+function batchFetch(obj, configName, filters) {
+    configName = encodeURIComponent(configName);
+    var filterStr = encodeURIComponent(JSON.stringify(filters));
+    return new Promise(function (resolve, reject) {
+        obj.ajaxCallback('', '', 'batch_fetch', '', "configName=".concat(configName)
+            + "&filters=".concat(filterStr), {
+            onComplete: resolve
+        });
+    });
+}
 function requestListConfig(obj, configName) {
     configName = encodeURIComponent(configName);
     return new Promise(function (resolve, reject) {
@@ -23,66 +33,84 @@ function checkIfAdmin(obj) {
         });
     });
 }
+function tryRecoverConfig(obj, admin, configName) {
+    var response = obj.stateInfo.apiResponse;
+    if (response.err && !admin) {
+        alert('The configuration does not exist or has an error. Log in as an administrator to fix.');
+        throw new Error('The configuration does not exist or has an error. Log in as an administrator to fix.');
+    }
+    else if (response.err) {
+        return {
+            name: configName,
+            dataSource: {
+                type: 'json',
+                static: [],
+            },
+            mappings: [],
+            searchOptions: {},
+        };
+    }
+    var ok = response.ok;
+    if ('config' in ok)
+        return ok.config;
+    return ok;
+}
 function initialize(obj, configName, embeddedList, embeddedSearch, filters, args) {
     var isAdmin = false;
-    return checkIfAdmin(obj)
-        .then(function () {
+    return batchFetch(obj, configName, filters).then(function () {
         var _a;
-        if (((_a = obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.ok) == true) {
-            isAdmin = true;
+        if ((_a = obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.err) {
+            console.error("Error while batch fetching, reverting to slow fetch. Message: ", obj.stateInfo.apiResponse.err);
+            return checkIfAdmin(obj)
+                .then(function () {
+                var _a;
+                if (((_a = obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.ok) == true) {
+                    isAdmin = true;
+                }
+                else {
+                    isAdmin = false;
+                }
+            })
+                .then(function () { return requestListConfig(obj, configName); })
+                .then(function () {
+                var config = tryRecoverConfig(obj, isAdmin, configName);
+                return initList(filters, args, embeddedList, embeddedSearch, obj, {
+                    config: config,
+                    isAdmin: isAdmin,
+                });
+            });
         }
         else {
-            isAdmin = false;
+            return initList(filters, args, embeddedList, embeddedSearch, obj, obj.stateInfo.apiResponse.ok);
         }
-    })
-        .then(function () { return requestListConfig(obj, configName); })
-        .then(function () {
-        var apiResponse = obj.stateInfo.apiResponse;
-        var config;
-        if (apiResponse.err && !isAdmin) {
-            alert('The configuration does not exist or has an error. Log in as an administrator to fix.');
-            throw new Error('The configuration does not exist or has an error. Log in as an administrator to fix.');
-        }
-        else if (apiResponse.err) {
-            config = {
-                name: configName,
-                dataSource: {
-                    type: 'json',
-                    static: [],
-                },
-                mappings: [],
-                searchOptions: {},
-            };
-        }
-        else {
-            config = apiResponse.ok;
-        }
-        var returnObj = {
-            list: null,
-            search: null,
-            configUx: null,
-        };
-        DynamicList.makeDynamicList(embeddedList, config, filters, args).then(function (list) {
-            var search = new DynamicListSearch(list, embeddedSearch);
-            returnObj.list = list;
-            returnObj.search = search;
-            returnObj.configUx = obj;
-            manageConfigForm(isAdmin, obj, list, search, config, filters, args, embeddedList, embeddedSearch);
-            embeddedList.initialize(list);
-        }).catch(function (err) {
-            if (err instanceof ValidationError) {
-                displayErrorMessage(err.toString());
-            }
-            else {
-                displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
-                console.error(err.toString());
-            }
-            manageConfigForm(isAdmin, obj, null, null, config, filters, args, embeddedList, embeddedSearch);
-        });
-        return returnObj;
     });
 }
-function manageConfigForm(adminConfig, obj, list, search, config, filters, args, embeddedList, embeddedSearch) {
+function initList(filters, args, embeddedList, embeddedSearch, obj, d) {
+    var returnObj = {
+        list: null,
+        search: null,
+        configUx: null,
+    };
+    DynamicList.makeDynamicList(embeddedList, d, filters, args).then(function (list) {
+        var search = new DynamicListSearch(list, embeddedSearch);
+        returnObj.list = list;
+        returnObj.search = search;
+        returnObj.configUx = obj;
+        manageConfigForm(d.isAdmin, obj, list, search, d, filters, args, embeddedList, embeddedSearch);
+        embeddedList.initialize(list);
+    }).catch(function (err) {
+        if (err instanceof ValidationError) {
+            displayErrorMessage(err.toString());
+        }
+        else {
+            displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
+            console.error(err.toString());
+        }
+        manageConfigForm(d.isAdmin, obj, null, null, d, filters, args, embeddedList, embeddedSearch);
+    });
+    return returnObj;
+}
+function manageConfigForm(adminConfig, obj, list, search, preFetch, filters, args, embeddedList, embeddedSearch) {
     var allDataColumns = [];
     var allExpandableCols = [];
     var fillColInfo = function () {
@@ -111,7 +139,7 @@ function manageConfigForm(adminConfig, obj, list, search, config, filters, args,
                 return { value: void 0 };
             col.onSelect = function () {
                 var currData = configInput.serialize();
-                Object.assign(config.mappings, currData);
+                Object.assign(preFetch.config.mappings, currData);
                 list.dataScopeManager.setPath(col.value.split("___"));
                 show(currData);
             };
@@ -129,23 +157,23 @@ function manageConfigForm(adminConfig, obj, list, search, config, filters, args,
         var configInput = buildConfigForm(adminConfig, __spreadArray(__spreadArray([], allDataColumns, true), allExpandableCols, true));
         addColCallbacks(configInput);
         try {
-            reRender = buildFromConfig(obj, 'BUILDER', configInput, config.name, true);
-            var populateWith = adminConfig ? config : config.mappings;
+            reRender = buildFromConfig(obj, 'BUILDER', configInput, preFetch.config.name, true);
+            var populateWith = adminConfig ? preFetch.config : preFetch.config.mappings;
             var d = configInput.getPopulateDataFromObj(dataOverride ? dataOverride : populateWith);
             obj.setValue('BUILDER', JSON.stringify(d));
             obj.applyConfigChanges = function () {
                 var newConfig = configInput.serialize();
                 if (adminConfig) {
-                    config = newConfig;
+                    preFetch.config = newConfig;
                 }
                 else {
-                    config.mappings = newConfig;
+                    preFetch.config.mappings = newConfig;
                 }
                 if (list == null || search == null)
                     return;
                 list.destructor();
                 var newSearch;
-                DynamicList.makeDynamicList(embeddedList, config, filters, args).then(function (newList) {
+                DynamicList.makeDynamicList(embeddedList, preFetch, filters, args).then(function (newList) {
                     newSearch = new DynamicListSearch(newList, embeddedSearch);
                     Object.assign(list, newList);
                     Object.assign(search, newSearch);

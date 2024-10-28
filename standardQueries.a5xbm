@@ -3,19 +3,20 @@
 'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
 'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
 
+loadClass("Result")
+
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 ' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
-function querySqlWithFilters (e as p) as c 
+function querySqlWithFilters as {Result} (e as p)
 	dim configInterface as p
-	dim config as c
-	dim configJson as extension::json
+	dim config as {Result}
+	dim configJson as extension::Json
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
-	configJson.setJson(config)
 	
-	if configJson.hasProperty("err") then 
-		querySqlWithFilters = configJson.getJson()
+	if .not. config.isSuccessful() then 
+		querySqlWithFilters = config
 		end 
 	end if
 	
@@ -30,7 +31,7 @@ function querySqlWithFilters (e as p) as c
 	
 	filters.setJson(e.filters)
 	
-	configJson = configJson.getProperty("ok")
+	configJson = config.getInner()
 	' If the config's datasource has the 'table' property, then 
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
@@ -40,7 +41,6 @@ function querySqlWithFilters (e as p) as c
 			index = columns.append(1)
 			columns[index] = configJson.getProperty("mappings").getIndexed(i).getProperty("columnName")
 		next
-		
 		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, filters, e)
 	else
 		dim sql as c 
@@ -56,7 +56,7 @@ function querySqlWithFilters (e as p) as c
 	
 end function
 
-function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::json, e as p) as c
+function getTableDataFromSql as {Result} (sql as c, pageOptions as a, filters as extension::json, e as p)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -71,15 +71,19 @@ function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::
 		sql = sql + " WHERE " + filterStr
 	end if
 	
-	dim result as p 
+	dim result as {Result}
 	result = runSqlFetch(cn, sql, args, pageOptions)
 	
-	if result.data("err") then 
-		getTableDataFromSql = "{\"err\": " + json_generate(result.err) + "}"
+	if .not. result.isSuccessful() then 
+		getTableDataFromSql = result 
 	else 
 		dim count as n
 		count = customSqlCount(sql, args, cn)
-		getTableDataFromSql = "{\"ok\": " + result.ok + ", \"count\": " + count + "}"
+		dim data as extension::json 
+		data.setJson("{}")
+		data.setProperty("result", result.getInner())
+		data.setProperty("count", count)
+		getTableDataFromSql = Result.success(data)
 	end if
 	
 	'Clean up by freeing the resultset and then closing the database
@@ -87,16 +91,17 @@ function getTableDataFromSql (sql as c, pageOptions as a, filters as extension::
 	cn.close()
 end function
 
-function getTableData (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p) as c
-	
+function getTableData as {Result} (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
 	
-	if columns.size == 0 then 
-		getTableData = "{\"ok\": []}"
+	if columns.size == 0 then
+		dim data as extension::json 
+		data.setJson("[]")
+		getTableData = Result.success(data)
 		end 
 	end if
 	
@@ -135,17 +140,21 @@ function getTableData (tableName as c, columns as p, pageOptions as a, filters a
 	
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
-	dim data as p 
+	dim data as {Result}
 	data = runSqlFetch(cn, sql, args, pageOptions)
 	
-	if data.data("err") <> "" then 
-		getTableData = "{\"err\": " + json_generate(data.err) + "}"
-		end 
+	if .not. data.isSuccessful() then 
+		getTableData = data
+		end
 	end if 
 	
 	dim count as n
 	count = sql_count(cn, tableName, "*", wherePart, args);
-	getTableData = "{\"ok\": " + data.ok + ", \"count\": " + count + "}"
+	dim dataObj as extension::json 
+	dataObj.setJson("{}")
+	dataObj.setProperty("count", count)
+	dataObj.setProperty("result", data.getInner())
+	getTableData = Result.success(dataObj)
 	
 	'Clean up by freeing the resultset and then closing the database
 	cn.freeresult()
@@ -153,9 +162,9 @@ function getTableData (tableName as c, columns as p, pageOptions as a, filters a
 	
 end function
 
-' Return an object like { ok: Json } | { err: errMsg }
-function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
-	dim result as p 
+
+function runSqlFetch as {Result} (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
+	dim result as {Result}
 	
 	if pageOptions == null_value() then 
 		rowStart = 1
@@ -172,9 +181,7 @@ function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Argumen
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		result.err = errortext
+		result = Result.fail(cn.callresult.text)
 		runSqlFetch = result
 		cn.close()
 		end
@@ -186,9 +193,11 @@ function runSqlFetch as p (cn as sql::connection, sql as c, args as sql::Argumen
 	cr = cn.CallResult
 	
 	'get the JSON from the query
-	dim json as c 
-	json = rs.toJSON(getRows, rowStart)
-	result.ok = json 
+	dim jsonStr as c 
+	jsonStr = rs.toJSON(getRows, rowStart)
+	dim json as extension::json
+	json.setJson(jsonStr)
+	result = Result.success(json)
 	runSqlFetch = result
 end function
 
@@ -247,8 +256,8 @@ end function
 
 ' Input: Table Name OR customSql
 ' Input: dirty (from 'harvestList')
-function updateTableData (e as p) as c
-	
+' Input: resultsOut output parameter list of results
+function updateTableData as v (e as p, resultsOut as p)
 	dim isCustomSql as l
 	isCustomSql = prop_valid(e, "customSql")
 	
@@ -271,8 +280,6 @@ function updateTableData (e as p) as c
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::conn")
 	
-	dim results as c
-	results = ""
 	for each item in dirty
 		
 		dim shouldDelete as l
@@ -292,30 +299,28 @@ function updateTableData (e as p) as c
 		
 		if shouldDelete then
 			if isCustomSql then
-				results = results + runQueryWithCustomSql(e.customSql, item, cn, "delete")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "delete")
 			else 
-				results = results + runDeleteQuery(e, schema, item, cn)
+				resultsOut[] = runDeleteQuery(e, schema, item, cn)
 			end if
 		else if shouldUpdate then 
 			if isCustomSql then 
-				results = results + runQueryWithCustomSql(e.customSql, item, cn, "update")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "update")
 			else 
-				results = results + runUpdateQuery(e, schema, item, cn)
+				resultsOut[] = runUpdateQuery(e, schema, item, cn)
 			end if
 		else if shouldInsert then
 			if isCustomSql then
-				results = results + runQueryWithCustomSql(e.customSql, item, cn, "insert")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "insert")
 			else 
-				results = results + runInsertQuery(e, schema, item, cn)
+				resultsOut[] = runInsertQuery(e, schema, item, cn)
 			end if
 		end if
 	next item
-	
-	updateTableData = results
-	
+
 end function
 
-function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connection)
+function runUpdateQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
 	dim updateSql as c
 	updateSql = "UPDATE [" + e.tableName + "] SET "
 	dim args as sql::arguments
@@ -353,21 +358,18 @@ function runUpdateQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		runUpdateQuery = "console.error('" +  errortext + "');"
+		runUpdateQuery = Result.fail(cn.callresult.text)
 		cn.close()
 		end
 	end if
 	
-	runUpdateQuery = ";"
+	runUpdateQuery = Result.success("")
 end function
 
-function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection, queryType as c)
+function runQueryWithCustomSql as {Result} (sql as c, item as p, cn as sql::connection, queryType as c)
 	dim query as sql::query 
 	query.parse(sql)
-	dim output as c
-	output = ""
+	dim output as {Result} = Result.success("")
 	
 	dim dependencies as extension::json
 	dependencies.setJson("{}")
@@ -394,8 +396,6 @@ function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection,
 		reversearray(orderedFilteredRefs)
 	end if
 	
-	dim querySuccess as l = .t.
-	
 	cn.BeginTransaction()
 	
 	for each tableName in orderedFilteredRefs
@@ -408,35 +408,30 @@ function runQueryWithCustomSql as c (sql as c, item as p, cn as sql::connection,
 		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
 		schema = json_parse(info)
 		
-		dim thisOutput as c
-		
 		if queryType == "insert" then
 			dim itemJson as extension::json
 			itemJson.setJson(json_generate(item))
 			updateItemCols(cn, tableName, itemJson, dependencies)
 			property_from_json(item, itemJson.getJson())
 			
-			thisOutput = runInsertQuery(e, schema, item, cn)
+			output = runInsertQuery(e, schema, item, cn)
 			
 			' The next step in this iteration may require data from this newly inserted data. 
 			' So, we will add all column info to the map.
 			addToDependencies (cn, tableName.value, item, dependencies)
 		else if queryType == "update" then 
-			thisOutput = runUpdateQuery(e, schema, item, cn)
+			output = runUpdateQuery(e, schema, item, cn)
 		else if queryType == "delete" then 
-			thisOutput = runDeleteQuery(e, schema, item, cn)
+			output = runDeleteQuery(e, schema, item, cn)
 		end if
 		
-		if thisOutput <> ";" then 
+		if .not. output.isSuccessful() then 
 			' Failure 
-			output = output + thisOutput 
-			querySuccess = .f. 
 			exit for
 		end if 
-		output = output + thisOutput
 	next
 	
-	if .not. querySuccess then 
+	if .not. output.isSuccessful() then 
 		' Roll back transaction
 		cn.RollBackTransaction()
 	end if
@@ -519,7 +514,7 @@ function addToDependencies as v (cn as sql::Connection, tableName as c, argument
 	
 end function
 
-function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connection)
+function runInsertQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
 	dim args as sql::arguments
@@ -561,13 +556,11 @@ function runInsertQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		runInsertQuery = "console.error('" +  errortext + "');"
+		runInsertQuery = Result.fail(cn.CallResult.text)
 		cn.close()
 		end
 	end if
-	runInsertQuery = ";"
+	runInsertQuery = Result.success("")
 end function
 
 ' Return true if column is not autogenerated in any way
@@ -585,7 +578,7 @@ function needExplicitPrimaryKey as l (schema as p)
 	needExplicitPrimaryKey = .f.
 end function
 
-function runDeleteQuery as c (e as p, schema as p, item as p, cn as sql::connection)
+function runDeleteQuery as {Result} (e as p, schema as p, item as p, cn as sql::connection)
 	dim deleteSql as c
 	deleteSql = "DELETE FROM [" + e.tableName + "] WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
 	
@@ -599,13 +592,11 @@ function runDeleteQuery as c (e as p, schema as p, item as p, cn as sql::connect
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		runDeleteQuery = "console.error('" +  errortext + "');"
+		runDeleteQuery = Result.fail(cn.CallResult.text)
 		cn.close()
 		end
 	end if
-	runDeleteQuery = ";"
+	runDeleteQuery = Result.success("")
 end function
 
 ' Given any sql select query with arguments, return number of rows matching the query
@@ -628,6 +619,9 @@ function customSqlCount as n (query as c, args as sql::Arguments, cn as sql::Con
 	end if
 end function
 
+' e.options: (headers? pointer variable, body? string)
+' e.url: url
+' e.method? method
 function performFetch as c (e as p)
 	dim settings as p
 	dim settings.method as c

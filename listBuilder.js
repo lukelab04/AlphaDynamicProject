@@ -376,7 +376,7 @@ var DynamicList = /** @class */ (function () {
         if (this.listBox.destroy)
             this.listBox.destroy();
     };
-    DynamicList.makeDynamicList = function (obj, config, filters, args) {
+    DynamicList.makeDynamicList = function (obj, prefetch, filters, args) {
         if (filters === void 0) { filters = []; }
         if (args === void 0) { args = []; }
         return new Promise(function (resolve) {
@@ -387,7 +387,7 @@ var DynamicList = /** @class */ (function () {
             list.onRender = [];
             list.obj = obj;
             list.listBox = null;
-            list.config = jQuery.extend({}, config);
+            list.config = jQuery.extend({}, prefetch.config);
             list.data = [];
             list.rawData = [];
             list.schema = {};
@@ -398,25 +398,53 @@ var DynamicList = /** @class */ (function () {
             obj.getControl('LIST1')._size = function () { };
             obj.getControl('LIST1')._resize = function () { };
             obj.saveDynamicListEdits = function () { return list.saveDynamicListEdits(); };
-            resolve(list);
-        })
-            .then(function (list) { return list.fetchSchema(); })
-            .then(function (list) {
             list.settings = list.buildSettings();
             list.buildList();
-            list.dataScopeManager = new DataScopeManager(list.schema);
-            return list.reRender();
+            resolve(list);
         })
-            .then(function (renderedList) {
-            validateConfigSchema(renderedList.config, renderedList.dataScopeManager);
-            return renderedList;
-        });
-    };
-    DynamicList.prototype.reRender = function () {
-        return this.fetchData().then(function (list) {
-            list.populateListBox();
+            .then(function (list) {
+            if (prefetch.data === undefined || prefetch.data.length == 0) {
+                if (prefetch.schema === undefined) {
+                    // If we don't have the data, then this must not be SQL
+                    // Data fetching may need to flatten the results, 
+                    // which depends on schema, so that must 
+                    // be fetched first
+                    return list.fetchSchema(false).then(function (l) { return l.fetchData(); });
+                }
+                else {
+                    // Just fetch data 
+                    return list.fetchData();
+                }
+            }
+            else if (prefetch.schema === undefined) {
+                // If we have the data but not the schema, we can 
+                // build the schema 
+                list.setData(prefetch.data, true);
+                return list;
+            }
+            // Otherwise we have the data and schema and so we can continue
+            list.setData(prefetch.data, false);
+            list.mapRawSchema(prefetch.schema);
+            return list;
+        })
+            .then(function (list) {
+            list.dataScopeManager = new DataScopeManager(list.schema);
+            list.dataScopeManager.setPathFromConfig(list.config, list.rawData);
+            return list.reRender(false);
+        }).then(function (list) {
+            validateConfigSchema(list.config, list.dataScopeManager);
             return list;
         });
+    };
+    DynamicList.prototype.reRender = function (refetch) {
+        if (refetch) {
+            return this.fetchData().then(function (list) {
+                list.populateListBox();
+                return list;
+            });
+        }
+        this.populateListBox();
+        return Promise.resolve(this);
     };
     DynamicList.prototype.setStaticData = function (data) {
         this.config.dataSource = {
@@ -426,7 +454,7 @@ var DynamicList = /** @class */ (function () {
         };
         this.settings = this.buildSettings();
         this.buildList();
-        this.reRender();
+        this.reRender(true);
     };
     DynamicList.prototype.selection = function () {
         return this.data[this.listBox.selectionKey[0]];
@@ -445,13 +473,20 @@ var DynamicList = /** @class */ (function () {
         var _this = this;
         var harvest = this.listBox.harvestList();
         var onComplete = function () {
+            var result = _this.obj.stateInfo.apiResult;
+            if (result.err) {
+                var errMsgTxt_1 = "<p>There were errors while syncing data.</p> <ol>";
+                result.err.forEach(function (e) { return errMsgTxt_1 += "<li>".concat(e === null || e === void 0 ? void 0 : e.toString(), "</li>"); });
+                errMsgTxt_1 += "</ol>";
+                displayErrorMessage(errMsgTxt_1);
+            }
             _this.listBox.__fixData(_this.listBox);
             for (var i = 0; i < _this.listBox._data.length; i++) {
                 _this.listBox._data[i]._isDirty = false;
             }
             _this.listBox.populateUXControls();
             _this.obj.refreshClientSideComputations(true);
-            _this.reRender();
+            _this.reRender(true);
         };
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + encodeURI(this.config.dataSource.table)
@@ -955,7 +990,7 @@ var DynamicList = /** @class */ (function () {
                             else {
                                 _this.listBox._state.page = Number(target);
                             }
-                            _this.reRender();
+                            _this.reRender(true);
                         };
                         obj.listName = _this.listBox.listVariableName;
                         nObj.populate(obj);
@@ -1606,7 +1641,7 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.setFilterAndFetch = function (filters) {
         this.searchFilters = filters;
-        this.reRender();
+        this.reRender(true);
     };
     DynamicList.prototype.makeFilterFromSelected = function (colName, foreignColName) {
         var thisVal = '';
@@ -1619,6 +1654,30 @@ var DynamicList = /** @class */ (function () {
                 connector: 'AND',
                 op: '='
             }];
+    };
+    DynamicList.prototype.setData = function (rawData, buildSchema) {
+        var rawDataRows;
+        if ('count' in rawData) {
+            var pageSize = (this.config.searchOptions.paginate ? this.config.searchOptions.paginate.pageSize : rawData.count);
+            this.listBox._state = {
+                pageSize: pageSize,
+                page: this.listBox._state.page,
+                pageCount: Math.ceil(rawData.count / pageSize),
+                recordCount: rawData.count,
+            };
+            rawDataRows = rawData.result;
+        }
+        else {
+            rawDataRows = rawData;
+        }
+        if (this.config.dataSource.preprocess)
+            rawDataRows = stringReprToFn(this.config.dataSource.preprocess)(rawDataRows);
+        this.rawData = rawDataRows;
+        if (buildSchema)
+            this.buildSchemaFromRawData();
+        this.dataScopeManager = new DataScopeManager(this.schema);
+        this.dataScopeManager.setPathFromConfig(this.config, this.rawData);
+        this.data = this.dataScopeManager.flattenData(this.rawData);
     };
     DynamicList.prototype.fetchData = function () {
         var _this = this;
@@ -1641,22 +1700,12 @@ var DynamicList = /** @class */ (function () {
                         if ("err" in response) {
                             reject(new Error(response.err));
                         }
-                        _this.data = _this.obj.stateInfo.apiResult.ok;
-                        _this.rawData = _this.obj.stateInfo.apiResult.ok;
-                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : response.count);
-                        _this.listBox._state = {
-                            pageSize: pageSize,
-                            page: _this.listBox._state.page,
-                            pageCount: Math.ceil(response.count / pageSize),
-                            recordCount: response.count,
-                        };
+                        _this.setData(response.ok, false);
                         if (_this.data === undefined) {
                             console.error("Error fetching data, defaulting to empty.");
                             _this.data = [];
                             _this.rawData = [];
                         }
-                        _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
-                        _this.data = _this.dataScopeManager.flattenData(_this.data);
                         resolve(_this);
                     }
                 });
@@ -1677,22 +1726,12 @@ var DynamicList = /** @class */ (function () {
                         if ("err" in response) {
                             reject(new Error(response.err));
                         }
-                        _this.data = _this.obj.stateInfo.apiResult.ok;
-                        _this.rawData = _this.obj.stateInfo.apiResult.ok;
-                        var pageSize = (_this.config.searchOptions.paginate ? _this.config.searchOptions.paginate.pageSize : response.count);
-                        _this.listBox._state = {
-                            pageSize: pageSize,
-                            page: _this.listBox._state.page,
-                            pageCount: Math.ceil(response.count / pageSize),
-                            recordCount: response.count,
-                        };
+                        _this.setData(response.ok, false);
                         if (_this.data === undefined) {
                             console.error("Error fetching data, defaulting to empty.");
                             _this.data = [];
                             _this.rawData = [];
                         }
-                        _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
-                        _this.data = _this.dataScopeManager.flattenData(_this.data);
                         resolve(_this);
                     }
                 });
@@ -1700,11 +1739,7 @@ var DynamicList = /** @class */ (function () {
         }
         else if (this.config.dataSource.type == 'json' && 'static' in this.config.dataSource) {
             this.data = jQuery.extend(true, [], this.config.dataSource.static);
-            if (this.config.dataSource.preprocess)
-                this.data = stringReprToFn(this.config.dataSource.preprocess)(this.data);
-            this.rawData = this.data;
-            this.dataScopeManager.setPathFromConfig(this.config, this.data);
-            this.data = this.dataScopeManager.flattenData(this.data);
+            this.setData(this.data, false);
             return Promise.resolve(this);
         }
         else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
@@ -1722,12 +1757,7 @@ var DynamicList = /** @class */ (function () {
             return fetch(this.obj, url, options)
                 .then(function (json) {
                 var data = JSON.parse(json.body);
-                if (_this.config.dataSource.preprocess)
-                    data = stringReprToFn(_this.config.dataSource.preprocess)(data);
-                _this.data = data;
-                _this.rawData = _this.data;
-                _this.dataScopeManager.setPathFromConfig(_this.config, _this.data);
-                _this.data = _this.dataScopeManager.flattenData(_this.data);
+                _this.setData(data, false);
                 return _this;
             });
         }
@@ -1836,54 +1866,63 @@ var DynamicList = /** @class */ (function () {
         window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         setFormDetailView(this.obj, this.listBox);
     };
-    DynamicList.prototype.fetchSchema = function () {
+    DynamicList.prototype.buildSchemaFromRawData = function () {
         var _this = this;
-        this.schema = {};
-        var buildSchemaFromData = function (data) {
-            var buildFromInstance = function (instance) {
-                if (typeof instance != 'object')
-                    return {};
-                var schema = {};
-                var _loop_2 = function (key) {
-                    if (instance[key] === null) {
-                        return "continue";
-                    }
-                    else if (instance[key] instanceof Array) {
-                        schema[key] = { array: {} };
-                        var item_2 = schema[key];
-                        if (!('array' in item_2))
-                            return "break";
-                        instance[key].forEach(function (i, idx) {
-                            if (!('array' in item_2))
-                                return;
-                            if (typeof i != 'object') {
-                                item_2.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
-                            }
-                            else {
-                                Object.assign(item_2.array, buildFromInstance(i));
-                            }
-                        });
-                    }
-                    else if (typeof instance[key] == 'object') {
-                        schema[key] = { nested: buildFromInstance(instance[key]) };
-                    }
-                    else {
-                        schema[key] = { alphaType: jsTypeToAlphaType(typeof instance[key]) };
-                    }
-                };
-                for (var key in instance) {
-                    var state_1 = _loop_2(key);
-                    if (state_1 === "break")
-                        break;
+        var buildFromInstance = function (instance) {
+            if (typeof instance != 'object')
+                return {};
+            var schema = {};
+            var _loop_2 = function (key) {
+                if (instance[key] === null) {
+                    return "continue";
                 }
-                return schema;
+                else if (instance[key] instanceof Array) {
+                    schema[key] = { array: {} };
+                    var item_2 = schema[key];
+                    if (!('array' in item_2))
+                        return "break";
+                    instance[key].forEach(function (i, idx) {
+                        if (!('array' in item_2))
+                            return;
+                        if (typeof i != 'object') {
+                            item_2.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
+                        }
+                        else {
+                            Object.assign(item_2.array, buildFromInstance(i));
+                        }
+                    });
+                }
+                else if (typeof instance[key] == 'object') {
+                    schema[key] = { nested: buildFromInstance(instance[key]) };
+                }
+                else {
+                    schema[key] = { alphaType: jsTypeToAlphaType(typeof instance[key]) };
+                }
             };
-            data.forEach(function (d) { return Object.assign(_this.schema, buildFromInstance(d)); });
+            for (var key in instance) {
+                var state_1 = _loop_2(key);
+                if (state_1 === "break")
+                    break;
+            }
+            return schema;
         };
+        this.rawData.forEach(function (d) { return Object.assign(_this.schema, buildFromInstance(d)); });
+    };
+    DynamicList.prototype.mapRawSchema = function (s) {
+        var _this = this;
+        s.jsonOutput.column.forEach(function (item) { return _this.schema[item.name] = { alphaType: item.alphaType }; });
+    };
+    DynamicList.prototype.fetchSchema = function (reuseData) {
+        var _this = this;
+        if (reuseData) {
+            this.buildSchemaFromRawData();
+            return Promise.resolve(this);
+        }
+        this.schema = {};
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             return getSchema(this.obj, this.config.dataSource.table).then(function () {
-                var sqlSchema = _this.obj.stateInfo.schema.jsonOutput.column;
-                sqlSchema.forEach(function (item) { return _this.schema[item.name] = { alphaType: item.alphaType }; });
+                var sqlSchema = _this.obj.stateInfo.schema;
+                _this.mapRawSchema(sqlSchema);
                 return _this;
             });
         }
@@ -1897,15 +1936,12 @@ var DynamicList = /** @class */ (function () {
                         if ("err" in response) {
                             reject(new Error(response.err));
                         }
-                        var data = _this.obj.stateInfo.apiResult.ok;
+                        var data = response.ok.result;
                         if (_this.data === undefined) {
                             console.error("Error fetching data, defaulting to empty.");
                             data = [];
                         }
-                        if (_this.config.dataSource.preprocess) {
-                            data = stringReprToFn(_this.config.dataSource.preprocess)(data);
-                        }
-                        buildSchemaFromData(data);
+                        _this.setData(data, true);
                         resolve(_this);
                     }
                 });
@@ -1913,10 +1949,7 @@ var DynamicList = /** @class */ (function () {
         }
         else if (this.config.dataSource.type == 'json' && 'static' in this.config.dataSource) {
             var staticData = this.config.dataSource.static;
-            var preprocess = this.config.dataSource.preprocess;
-            if (preprocess)
-                staticData = stringReprToFn(preprocess)(staticData);
-            buildSchemaFromData(staticData);
+            this.setData(staticData, true);
             return Promise.resolve(this);
         }
         else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
@@ -1926,10 +1959,7 @@ var DynamicList = /** @class */ (function () {
             return fetch(this.obj, url, options)
                 .then(function (res) {
                 var data = JSON.parse(res.body);
-                var preprocess = _this.config.dataSource.preprocess;
-                if (preprocess)
-                    data = stringReprToFn(preprocess)(data);
-                buildSchemaFromData(data);
+                _this.setData(data, true);
                 return _this;
             });
         }
@@ -1976,6 +2006,8 @@ var DataScopeManager = /** @class */ (function () {
         return this.expandedIdxToRawIdx[n];
     };
     DataScopeManager.prototype.flattenData = function (data) {
+        if (this.path.length == 0)
+            return data;
         this.expandedIdxToRawIdx = {};
         var newData = [];
         // Given path part n, datapoint d

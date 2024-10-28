@@ -1,0 +1,54 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+
+'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
+'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
+
+define class global Result
+	dim data as a 
+	dim isSuccess as l
+	
+	function [static] success as {Result} (val as a)
+		dim r as {Result} = new Result()
+		r.data = val
+		r.isSuccess = .t.
+		success = r
+	end function
+	
+	function [static] fail as {Result} (val as a)
+		dim r as {Result} = new Result()
+		r.data = val
+		r.isSuccess = .f.
+		fail = r
+	end function 
+	
+	function isSuccessful as l ()
+		isSuccessful = isSuccess
+	end function
+	
+	function toJson as extension::json ()
+		dim json as extension::json
+		if isSuccess then 
+			json.setJson("{}")
+			json.setProperty("ok", data)
+		else 
+			json.setJson("{}")
+			json.setProperty("err", data)
+		end if
+		
+		toJson = json
+	end function
+	
+	function getInner as a () 
+		getInner = data 
+	end function
+	
+	function andThen as v (other as {Result})
+		if isSuccess then
+			isSuccess = other.isSuccess 
+			data = other.data
+		end if
+	end function
+end class
+

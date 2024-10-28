@@ -30,7 +30,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "function request_list_config as c (e as p)\n\tdim configInterface as p\n\tdim config as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tconfig = configInterface.requestConfig(e)\n\trequest_list_config = \"{dialog.object}.stateInfo.apiResponse = \" + config + \";\"\nend function\n\n' Input: e.global -- Flag to save as global (will fail, depending on user)\n' Input: e.configName -- Name to save the config under\n' Input: e.payload\n' \tIf global is true, then this is the entire configuration \n' \tIf global is false, then this is just the mapping portion of the config\nfunction save_config as c (e as p)\n\tdim configInterface as p\n\tdim config as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tresult = configInterface.saveConfig(e)\n\tsave_config = \"{dialog.object}.stateInfo.apiResponse = \" + result + \";\"\nend function\n\nfunction is_admin as c (e as p) \n\tdim username as c = context.security.currentuser\n\tif .not. context.security.callresult.success then \n\t\tusername = \"\"\n\tend if\n\t\n\tdim has_permissions as L = context.security.isUserInRole(username, \"ADMINISTRATOR\")\n\tif ((.not. context.security.callresult.success) .or. (.not. has_permissions)) then \n\t\tis_admin = \"{dialog.object}.stateInfo.apiResponse = { \\\"ok\\\": false };\"\n\t\tend \n\tend if\n\t\n\tis_admin = \"{dialog.object}.stateInfo.apiResponse = { \\\"ok\\\": true };\"\nend function\n",
+        "XbasicFunctionDeclarations": "function batch_fetch as c (e as p)\n\tdim configInterface as p\n\tdim batch as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tbatch = configInterface.batchFetch(e).toJson().getJson()\n\tbatch_fetch = \"{dialog.object}.stateInfo.apiResponse = \" + batch + \";\"\nend function\n\nfunction request_list_config as c (e as p)\n\tdim configInterface as p\n\tdim config as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tconfig = configInterface.requestConfig(e).toJson().getJson()\n\trequest_list_config = \"{dialog.object}.stateInfo.apiResponse = \" + config + \";\"\nend function\n\n' Input: e.global -- Flag to save as global (will fail, depending on user)\n' Input: e.configName -- Name to save the config under\n' Input: e.payload\n' \tIf global is true, then this is the entire configuration \n' \tIf global is false, then this is just the mapping portion of the config\nfunction save_config as c (e as p)\n\tdim configInterface as p\n\tdim result as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tresult = configInterface.saveConfig(e).toJson().getJson()\n\tsave_config = \"{dialog.object}.stateInfo.apiResponse = \" + result + \";\"\nend function\n\nfunction is_admin as c (e as p) \n\tdim username as c = context.security.currentuser\n\tif .not. context.security.callresult.success then \n\t\tusername = \"\"\n\tend if\n\t\n\tdim has_permissions as L = context.security.isUserInRole(username, \"ADMINISTRATOR\")\n\tif ((.not. context.security.callresult.success) .or. (.not. has_permissions)) then \n\t\tis_admin = \"{dialog.object}.stateInfo.apiResponse = { \\\"ok\\\": false };\"\n\t\tend \n\tend if\n\t\n\tis_admin = \"{dialog.object}.stateInfo.apiResponse = { \\\"ok\\\": true };\"\nend function\n",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -174,8 +174,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-6-28",
-            "dateLastEdited": "2024-9-14",
-            "revisionnumber": 1371
+            "dateLastEdited": "2024-10-21",
+            "revisionnumber": 1376
         },
         "CSSSubThemeDefinition": ".json-form-dropdown-hidden {\n\toverflow: hidden;\n\theight: 0px;\n}",
         "flagShowCommentsInTree": true,
@@ -580,7 +580,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "1370",
+        "_buildCount": "1375",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -739,7 +739,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20240914132435795",
+        "A5SaveTimeStamp": "20241021170431582",
         "forceChromeControl": true,
         "flagOptimizedUXTree": true,
         "flagReanalyzeContainers": false,
@@ -837,7 +837,6 @@
                 "name": ""
             }
         ],
-        "favoriteControls": "",
         "showJavascriptActions": false,
         "showResponsiveLayoutHelp": false,
         "_flagDoTreeview": true,
@@ -848,13 +847,14 @@
         },
         "__allowCascadingRecalc": true,
         "_choices": "base\nconfirm\ndeny\nleft\nright\nprimary\nsecondary\nraised\nsubtle\nicon\niconText\niconRaised\ncapsule\ncapsuleRaised\ncapsuleSubtle\ncapsuleSubtleRaised\ncircle\ncircleRaised\ncircleSubtle\ncircleSubtleRaised\n",
+        "favoriteControls": "",
         "versionNumber": 1,
         "prerendered": {
             "_styledataVersion": 4,
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

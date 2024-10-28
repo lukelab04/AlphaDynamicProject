@@ -5,11 +5,88 @@
 
 exports.requestConfig = requestConfig
 exports.saveConfig = saveConfig
+exports.batchFetch = batchFetch
+
+loadClass("Result")
+
+' Input: e.configName (string)
+' Input: e.filters (filter array)
+' Output: Result(ok: {data array, schema (if schema can be fetched), isAdmin (bool), config)
+function batchFetch as {Result} (e as p)
+	dim resultObj as extension::json 
+	resultObj.setJson("{}")
+	
+	dim config as p
+	config = requestConfig(e)
+	if .not. config.isSuccessful()
+		batchFetch = config 
+		end 
+	end if 
+	config = config.getInner()
+	resultObj.setProperty("config", config)
+	
+	dim admin as l
+	dim username as c = context.security.currentuser
+	if .not. context.security.callresult.success then 
+		username = ""
+	end if
+
+	' Ensure user is logged in
+	if username == "" then 
+		admin = .f.
+	end if
+	
+	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
+	if (.not. context.security.callresult.success) .or. (.not. has_permissions) then 
+		admin = .f.
+	else 
+		admin = .t.
+	end if
+	resultObj.setProperty("isAdmin", admin)
+	
+	dim schemaInfo as p 
+	schemaInfo = require("schemaInfo")
+	dim standardQueries as p 
+	standardQueries = require("standardQueries")
+	dim ds as extension::json 
+	ds = config.getProperty("dataSource")
+	
+	dim data as p
+	
+	if ds.hasProperty("table") then
+		dim schema as c
+		schema = schemaInfo.getConnectionSchemaJSON("conn", ds.getProperty("table"))
+		dim schemaJson as extension::json 
+		schemaJson.setJson(schema)
+		resultObj.setProperty("schema", schemaJson)
+	end if
+	
+	if ds.getProperty("type") == "sql" then
+		if config.getProperty("searchOptions").hasProperty("paginate") then
+			dim pageOpts as extension::json 
+			pageOpts.setJson("{}")
+			pageOpts.setProperty("pageSize", config.getProperty("searchOptions").getProperty("paginate").getProperty("pageSize"))
+			pageOpts.setProperty("getPage", 0)
+			e.pageOptions = pageOpts.getJson()
+		end if 
+		data = standardQueries.querySqlWithFilters(e)
+		if .not. data.isSuccessful() then 
+			batchFetch = data 
+			end
+		end if 
+		resultObj.setProperty("data", data.getInner())
+	else if ds.hasProperty("static") then 
+		resultObj.setProperty("data", ds.getProperty("static"))
+	end if
+	
+	batchFetch = Result.success(resultObj)
+	
+end function
 
 ' Input: e.configName (string)
 ' Output: {ok : JSON configuration (mapping, searchOptions, buttons only)} or {err: Error Message }
 
-function requestConfig as c (e as p)
+function requestConfig as {Result} (e as p)
 	dim username as c = context.security.currentuser
 	
 	if .not. context.security.callresult.success then 
@@ -21,7 +98,7 @@ function requestConfig as c (e as p)
 	args.add("username", username)
 	
 	if e.data("configName") == "" then 
-		requestConfig = "{ \"err\": \"property configName cannot be empty\" }"
+		requestConfig = Result.fail("property configName cannot be empty")
 		end 
 	else 
 		args.add("listname", e.configName)
@@ -32,35 +109,33 @@ function requestConfig as c (e as p)
 	userSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings  WHERE USER_NAME = :username AND CONFIG_NAME = :listname AND GLOBAL = .f."
 	globalSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
 	
-	dim userMappings as p
+	dim userMappings as {Result}
 	dim globalConfig as p
 	userMappings = fetchFromDb(userSql, args)
 	globalConfig = fetchFromDb(globalSql, args)
 	
-	if globalConfig.data("err") <> "" then 
-		requestConfig = "{\"err\": " + json_generate(globalConfig.err) + "}"
+	if .not. globalConfig.isSuccessful() then 
+		requestConfig = globalConfig
 		end
 	end if 
 	
-	if globalConfig.ok.getJson() == "" then 
-		requestConfig = "{\"err\": \"Config does not exist\"}"
+	if globalConfig.getInner().getJson() == "" then 
+		requestConfig = Result.fail("config does not exist")
 		end 
 	end if
 	
-	globalConfig = globalConfig.ok
+	globalConfig = globalConfig.getInner()
 	
-	if userMappings.data("ok") <> "" .and. userMappings.ok.getJson() <> "" then 
-		globalConfig.setProperty("mappings", userMappings.ok)
+	if userMappings.isSuccessful() .and. userMappings.getInner().getJson() <> "" then 
+		globalConfig.setProperty("mappings", userMappings.getInner())
 	end if
 	
-	requestConfig = "{\"ok\": " + globalConfig.getJson() + "}"
+	requestConfig = Result.success(globalConfig)
 end function
 
 ' Take SQL and Args, query database, return as JSON object
 ' Returns { ok: Obj } or { err: errMsg }
-function fetchFromDb as p (sql as c, args as sql::arguments)
-	dim returnObj as p
-	
+function fetchFromDb as {Result} (sql as c, args as sql::arguments)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -74,9 +149,7 @@ function fetchFromDb as p (sql as c, args as sql::arguments)
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
 		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		returnObj.err = errortext 
-		fetchFromDb = returnObj
+		fetchFromDb = Result.fail(cn.callResult.text)
 		cn.close()
 		end
 	end if
@@ -86,8 +159,7 @@ function fetchFromDb as p (sql as c, args as sql::arguments)
 	'get the JSON from the query
 	dim json as extension::json
 	json.setJson(rs.tostring())
-	returnObj.ok = json
-	fetchFromDb = returnObj
+	fetchFromDb = Result.success(json)
 	
 	'Clean up by freeing the resultset and then closing the database
 	cn.freeresult()
@@ -99,15 +171,15 @@ end function
 ' Input: e.payload
 ' 	If global is true, then this is the entire configuration 
 ' 	If global is false, then this is just the mapping portion of the config
-function saveConfig as c (e as p) 
+function saveConfig as {Result} (e as p) 
 	if e.data("global") == "" then 
-		saveConfig = "{err: \"Field 'global' is required\"}"
+		saveConfig = Result.fail("Field 'global' is required").toJson().getJson()
 		end 
 	else if e.data("configName") == "" then 
-		saveConfig = "{err: \"Field 'configName' is required\"}"
+		saveConfig = Result.fail("Field 'configName' is required").toJson().getJson()
 		end 
 	else if e.data("payload") == "" then 
-		saveConfig = "{err: \"Field 'payload' is required\"}"
+		saveConfig = Result.fail("Field 'payload' is required").toJson().getJson()
 		end 
 	end if
 	
@@ -125,14 +197,14 @@ function saveConfig as c (e as p)
 
 	' Ensure user is logged in
 	if username == "" then 
-		saveConfig = "{ err: \"User is not logged in.\"}"
+		saveConfig = Result.fail("User is not logged in").toJson().getJson()
 		end 
 	end if
 	
 	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
 	' User is trying to save globally, but isn't an admin?
 	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) .and. saveGlobal then 
-		saveConfig = "{ err: \"User does not have permissions to save globally.\"}"
+		saveConfig = Result.fail("User does not have permissions to save globally.").toJson().getJson()
 		end 
 	end if
 	
@@ -170,7 +242,7 @@ function saveConfig as c (e as p)
 		else 
 			dim exists_globally as l = config_exists("", .t., e.configName)
 			if .not. exists_globally then 
-				saveConfig = "{ err: \"Cannot save user config when no corresponding global config exists\"}"
+				saveConfig = Result.fail("Cannot save user config when no corresponding global config exists").toJson().getJson()
 			end if
 			args.add("config", e.payload)
 			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
@@ -180,14 +252,12 @@ function saveConfig as c (e as p)
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		saveConfig = "console.error('" + errortext + "');"
+		saveConfig = Result.fail(cn.callresult.text).toJson().getJson()
 		cn.close()
 		end
 	end if
 	
-	saveConfig = "alert('Config saved.');"
+	saveConfig = Result.success("")
 	cn.close()
 	
 end function
