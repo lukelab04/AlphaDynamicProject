@@ -144,6 +144,14 @@ function validateConfig(config) {
         else if ('sql' in config.dataSource) {
             if (!existsAndIs(config.dataSource, "sql", "string"))
                 throw existsIsErr("config.dataSource", "sql", "string");
+            if ('filters' in config.dataSource) {
+                if (!(config.dataSource.filters instanceof Array)) {
+                    throw new ValidationError("Expected `config.dataSource.filters` to be an array");
+                }
+                else {
+                    config.dataSource.filters.forEach(function (f) { return validateFilter(f); });
+                }
+            }
         }
         else {
             throw new ValidationError("Expected `config.dataSource` to have a prop `table` or a prop `sql`");
@@ -260,11 +268,8 @@ function validateEndpoint(endpoint) {
         throw existsIsErr(root, "headers", "object");
     if (!existsAndIsOrNone(endpoint, "callback", "string"))
         throw existsIsErr(root, "callback", "string");
-    if (!existsAndIs(endpoint, "endpoint", {}))
-        throw existsIsErr(root, "endpoint", "object");
-    if (!(existsAndIs(endpoint.endpoint, "template", "string") || existsAndIs(endpoint.endpoint, "getEndpointURL", "string"))) {
-        throw existsIsErr(root, "template or getEndpointURL", "string");
-    }
+    if (!existsAndIs(endpoint, "endpoint", "string"))
+        throw existsIsErr(root, "endpoint", "string");
     return endpoint;
 }
 function validateFilter(filter) {
@@ -344,12 +349,12 @@ function getSchemaCustomSql(obj, sql) {
         });
     });
 }
-function fetch(obj, url, options) {
+function fetch(obj, configName, endpoint) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            options = JSON.stringify(options);
             return [2 /*return*/, new Promise(function (resolve, reject) {
-                    obj.ajaxCallback("", "", "fetch", "", "url=".concat(encodeURIComponent(url), "&options=").concat(encodeURIComponent(options)), {
+                    obj.ajaxCallback("", "", "fetch", "", "configName=".concat(encodeURIComponent(configName))
+                        + (endpoint != undefined ? "&endpoint=".concat(encodeURIComponent(endpoint)) : ""), {
                         onComplete: function () {
                             var result = obj.stateInfo.fetchResult;
                             resolve(result);
@@ -371,12 +376,13 @@ var DynamicList = /** @class */ (function () {
         this.data = [];
         this.rawData = [];
         this.schema = undefined;
+        this.window = window;
     }
     DynamicList.prototype.destructor = function () {
         if (this.listBox.destroy)
             this.listBox.destroy();
     };
-    DynamicList.makeDynamicList = function (obj, prefetch, filters, args) {
+    DynamicList.makeDynamicList = function (obj, window, prefetch, filters, args) {
         if (filters === void 0) { filters = []; }
         if (args === void 0) { args = []; }
         return new Promise(function (resolve) {
@@ -384,6 +390,7 @@ var DynamicList = /** @class */ (function () {
             list.permanentFilters = filters;
             list.searchFilters = [];
             list.buttonFns = {};
+            list.window = window;
             list.onRender = [];
             list.obj = obj;
             list.listBox = null;
@@ -517,16 +524,14 @@ var DynamicList = /** @class */ (function () {
             });
             var allQueries_1 = [];
             var populateQueries = function (list, endpoint) {
-                list.forEach(function (rowData) {
+                list.forEach(function (_) {
                     var _a;
                     if (!('endpoints' in _this.config.dataSource))
                         return;
                     if (endpoint in _this.config.dataSource.endpoints) {
                         var ep = _this.config.dataSource.endpoints[endpoint];
-                        var ops = _this.getFetchOptions(ep, rowData);
                         allQueries_1.push({
-                            ops: ops,
-                            endpoint: _this.populateUrlParams(ep.endpoint, _this.filtersAsSimpleObj()),
+                            endpoint: endpoint,
                             callback: stringReprToFn((_a = ep.callback) !== null && _a !== void 0 ? _a : "() => { }"),
                         });
                     }
@@ -536,19 +541,20 @@ var DynamicList = /** @class */ (function () {
             populateQueries(updatedRows_1, 'update');
             populateQueries(deletedRows_1, 'delete');
             allQueries_1.forEach(function (q) {
-                fetch(_this.obj, q.endpoint, q.ops).then(q.callback);
+                fetch(_this.obj, _this.config.name, q.endpoint).then(q.callback);
             });
             onComplete();
         }
     };
     DynamicList.prototype.buildSettings = function () {
         var _this = this;
-        var columns = [];
-        var listFields = [];
-        var menuSettings = {};
-        var items = {};
+        var columns = this.window.Array();
+        var listFields = this.window.Array();
+        var menuSettings = this.window.Object();
+        var items = this.window.Object();
+        var listObj = this;
         if (!this.config.buttons)
-            this.config.buttons = [];
+            this.config.buttons = (this.window.Array());
         for (var _i = 0, _a = this.config.mappings; _i < _a.length; _i++) {
             var mapping = _a[_i];
             columns.push(this.buildColumnDefn(mapping));
@@ -929,7 +935,7 @@ var DynamicList = /** @class */ (function () {
                     $acn(ele, _hasUnsyncedMediaFilesClassName);
                 }
                 if (index == this._rData.length - 1) {
-                    var btns = document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
+                    var btns = listObj.window.document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
                     for (var i = 0; i < btns.length; i++) {
                         btns[i].parentElement.style.whiteSpace = 'normal';
                     }
@@ -1367,7 +1373,7 @@ var DynamicList = /** @class */ (function () {
                 }
             },
             onChange: function () {
-                var btns = document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
+                var btns = listObj.window.document.getElementsByClassName("".concat(LIST_NAME, "_BUTTON"));
                 for (var i = 0; i < btns.length; i++) {
                     btns[i].parentElement.style.whiteSpace = 'normal';
                 }
@@ -1744,19 +1750,19 @@ var DynamicList = /** @class */ (function () {
         }
         else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
             var endpoint = void 0;
-            var url = void 0;
             if (this.permanentFilters.length == 0 && this.searchFilters.length == 0) {
-                endpoint = this.config.dataSource.endpoints.fetch;
+                endpoint = "fetch";
             }
             else {
-                endpoint = this.config.dataSource.endpoints.search;
+                endpoint = "search";
             }
-            var options = this.getFetchOptions(endpoint);
-            var data = this.filtersAsSimpleObj();
-            url = encodeURI(this.populateUrlParams(endpoint.endpoint, data));
-            return fetch(this.obj, url, options)
+            return fetch(this.obj, this.config.name, endpoint)
                 .then(function (json) {
-                var data = JSON.parse(json.body);
+                if ('err' in json) {
+                    throw new Error(json.err);
+                }
+                var body = JSON.parse(json.ok);
+                var data = JSON.parse(body.body);
                 _this.setData(data, false);
                 return _this;
             });
@@ -1765,23 +1771,16 @@ var DynamicList = /** @class */ (function () {
             throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
         }
     };
-    DynamicList.prototype.getFetchOptions = function (endpoint, dataOverride) {
-        var data = dataOverride ? dataOverride : this.filtersAsSimpleObj();
-        var method = this.populateUrlParams({ template: endpoint.method }, data);
-        var headers = {};
-        var body = {};
-        for (var header in endpoint.headers) {
-            headers[header] = this.populateUrlParams({ template: endpoint.headers[header] }, data);
-        }
-        for (var item in endpoint.body) {
-            body[item] = this.populateUrlParams(endpoint.body[item], data);
-        }
-        return {
-            method: method,
-            headers: headers,
-            body: method == 'GET' ? undefined : JSON.stringify(body)
-        };
-    };
+    // getFetchOptions(endpoint: Endpoint) {
+    //     let method = endpoint.method;
+    //     let headers: Record<string, string> = endpoint.headers ?? {};
+    //     let body: Record<string, string> = endpoint.body ?? {};
+    //     return {
+    //         method: method,
+    //         headers: headers,
+    //         body: method == 'GET' ? undefined : body,
+    //     }
+    // }
     DynamicList.prototype.filtersAsSimpleObj = function () {
         var data = {};
         for (var _i = 0, _a = __spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true); _i < _a.length; _i++) {
@@ -1790,59 +1789,13 @@ var DynamicList = /** @class */ (function () {
         }
         return data;
     };
-    DynamicList.prototype.populateUrlParams = function (url, data) {
-        /* Filters like
-            columnName: string,
-            columnVal: any,
-            connector: 'AND' | 'OR',
-            op: string (like '+', 'LIKE', '/', etc),
-            type: string ('text', 'number', etc),
-        */
-        if ('getEndpointURL' in url) {
-            return stringReprToFn(url.getEndpointURL)(__spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true));
-        }
-        if (typeof url.template != 'string')
-            return "";
-        // Capture text contained within {...}. Ignore if \ precedes {.
-        var parts = url.template.split(/([^\\]|^)({[^}]*})/);
-        var final = "";
-        parts.forEach(function (part) {
-            if (part.length == 0)
-                return;
-            if (part[0] != '{') {
-                final += part;
-                return;
-            }
-            part = part.substring(1, part.length - 1);
-            // Capture words starting with $. Ignore if \ precedes the $.
-            var vars = part.split(/(?:[^\\]|^)(\$\w+)/);
-            var evalStr = '';
-            vars.forEach(function (v) {
-                if (v.length == 0)
-                    return;
-                if (v[0] != '$') {
-                    evalStr += v;
-                    return;
-                }
-                var varname = v.substring(1);
-                if (varname in data) {
-                    evalStr += '"' + data[varname].toString() + '"';
-                }
-                else {
-                    evalStr += '""';
-                }
-            });
-            final += eval(evalStr);
-        });
-        return final;
-    };
     DynamicList.prototype.addOnRenderCallback = function (f) {
         if (this.listBox != null)
             f();
         this.onRender.push(f);
     };
     DynamicList.prototype.updateRecordCount = function () {
-        var count = document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
+        var count = this.window.document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
         if (count) {
             count.innerHTML = "Records: " + this.listBox._rData.length;
         }
@@ -1860,10 +1813,10 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.buildList = function () {
         var _this = this;
-        this.listBox = new A5.ListBox(this.obj.getPointer('LIST_CONTAINER').id, [], this.settings);
+        this.listBox = new (this.window.A5).ListBox(this.obj.getPointer('LIST_CONTAINER').id, [], this.settings);
         this.listBox._hostComponentId = this.obj.dialogId;
         this.listBox._listSystemOnClickPopulateJSONForm = function (rowNum) { return _this.buildDetailViewForm(rowNum); };
-        window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
+        this.window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         setFormDetailView(this.obj, this.listBox);
     };
     DynamicList.prototype.buildSchemaFromRawData = function () {
@@ -1953,12 +1906,13 @@ var DynamicList = /** @class */ (function () {
             return Promise.resolve(this);
         }
         else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
-            var data = this.filtersAsSimpleObj();
-            var url = this.populateUrlParams(this.config.dataSource.endpoints.fetch.endpoint, data);
-            var options = this.getFetchOptions(this.config.dataSource.endpoints.fetch);
-            return fetch(this.obj, url, options)
+            return fetch(this.obj, this.config.name, "fetch")
                 .then(function (res) {
-                var data = JSON.parse(res.body);
+                if ('err' in res) {
+                    throw new Error(res.err);
+                }
+                var body = JSON.parse(res.ok);
+                var data = JSON.parse(body.body);
                 _this.setData(data, true);
                 return _this;
             });
@@ -2212,12 +2166,13 @@ function makeDetailButtons() {
     ]);
 }
 var DynamicListSearch = /** @class */ (function () {
-    function DynamicListSearch(dynamicList, obj) {
+    function DynamicListSearch(dynamicList, obj, window) {
         this.list = dynamicList;
         this.obj = obj;
         this.form = new FormBuilder(this.obj, "SearchForm");
         this.advForm = obj.getControl('AdvancedSearch');
         this.dynamicDropdowns = [];
+        this.window = window;
         this.advForm.data.fields = {};
         this.buildForms();
         this.form.render();
@@ -2248,7 +2203,7 @@ var DynamicListSearch = /** @class */ (function () {
             this.obj.setControlDisplay('SEARCHFORM' + '', true, 'display');
             this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
         }
-        document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
+        this.window.document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
         var allSearchCols = this.list.dataScopeManager.getAvailableDataColumns();
         var getPreferredColumnOptions = function (colName) {
             var col = { name: '', editType: 'text' };

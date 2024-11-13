@@ -84,7 +84,7 @@ function batchFetch as Result (e as p)
 end function
 
 ' Input: e.configName (string)
-' Output: {ok : JSON configuration (mapping, searchOptions, buttons only)} or {err: Error Message }
+' Output: {ok : JSON configuration} or {err: Error Message }
 
 function requestConfig as Result (e as p)
 	dim username as c = context.security.currentuser

@@ -30,8 +30,16 @@ function querySqlWithFilters as Result (e as p)
 	end if 
 	
 	filters.setJson(e.filters)
-	
 	configJson = config.getInner()
+	
+	if configJson.getProperty("dataSource").hasProperty("filters") then
+		dim existingFilters as extension::json 
+		existingFilters = configJson.getProperty("dataSource").getProperty("filters")
+		for i = 0 to existingFilters.getLength() - 1
+			filters.push(existingFilters.getIndexed(i))
+		next
+	end if
+	
 	' If the config's datasource has the 'table' property, then 
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
@@ -45,13 +53,7 @@ function querySqlWithFilters as Result (e as p)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		' Todo make it so that total num of records is populated
-		dim existingFilters as extension::json 
-		existingFilters = configJson.getProperty("dataSource").getProperty("filters")
-		for i = 0 to filters.getLength() - 1
-			existingFilters.push(filters.getIndexed(i))
-		next
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, existingFilters, e)
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, filters, e)
 	end if
 	
 end function
@@ -201,7 +203,7 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	runSqlFetch = result
 end function
 
-function buildConstraint(filters as extension::json, args as sql::arguments, connection as sql::connection, e as p) as c	
+function buildConstraint(filters as extension::json, args as sql::arguments, connection as sql::connection, e as p) as c
 	dim args as sql::arguments
 	dim filterStr as c
 	filterStr = ""
@@ -619,25 +621,94 @@ function customSqlCount as n (query as c, args as sql::Arguments, cn as sql::Con
 	end if
 end function
 
-' e.options: (headers? pointer variable, body? string)
-' e.url: url
-' e.method? method
-function performFetch as c (e as p)
+' e.configName string 
+' e.endpoint? fetch, search, etc
+
+' Values of the header, body, and url can be arbitrary xbasic expressions
+function performFetch as Result (e as p)
+	debug(1)
+	dim configInterface as p
+	dim config as p
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+	
+	if .not. config.isSuccessful() then 
+		performFetch = config 
+		end
+	end if
+	config = config.getInner()
+
+	
 	dim settings as p
+	dim settings.endpoint as c
 	dim settings.method as c
 	dim settings.host as c
+	dim settings.url as c
 	dim options as p
 	dim urlData as p
 	
-	if e.options <> "undefined" then
-		options = json_parse(e.options)
+	
+	if e.data("endpoint") == "" then 
+		settings.endpoint = "fetch"
 	else 
-		options = json_parse("{}")
+		settings.endpoint = e.endpoint
 	end if
 	
-	urlData = a5_split_url(e.url)
+		
+	dim endpointInfo as p
+	dim allEndpoints as p
+	if config.getProperty("dataSource").hasProperty("endpoints") then 
+		allEndpoints = config.getProperty("dataSource").getProperty("endpoints")
+		if allEndpoints.hasProperty(settings.endpoint) then 
+			endpointInfo = allEndpoints.getProperty(settings.endpoint)
+			settings.method = endpointInfo.getProperty("method")
+		else 
+			performFetch = Result.fail("Endpoint was not defined for method " + settings.endpoint)
+			end 
+		end if 
+	else 
+		performFetch = Result.fail("Datasource is not configured for API endpoints")
+		end 
+	end if
+	
+	if endpointInfo.hasProperty("headers") then
+		dim headers as p 
+		headers = json_parse(endpointInfo.getProperty("headers").getJson())
+		dim settings.header as c
+		settings.header = ""
+		
+		for each property in properties_enum(headers)
+			dim val as c
+			if .not. eval_valid(headers.data(property.value)) then
+				performFetch = Result.fail("Header property for key " + property.value + " is not a valid XBasic expression.")
+				end
+			end if
+			val = eval(headers.data(property.value))
+			settings.header = settings.header + property.value + ": " + val
+		next
+	end if
+	
+	if endpointInfo.hasProperty("body") then
+		dim bodyObj as p 
+		bodyObj = json_parse(endpointInfo.getProperty("body").getJson())
+		dim settings.body as c
+		dim bodyJson as extension::json 
+		bodyJson.setJson("{}")
+		for each property in properties_enum(bodyObj)
+			dim val as c
+			if .not. eval_valid(bodyObj.data(property.value)) then
+				performFetch = Result.fail("Body property for key " + property.value + " is not a valid XBasic expression.")
+				end
+			end if
+			val = eval(bodyObj.data(property.value))
+			bodyJson.setProperty(property.value, val)
+		next
+		
+		settings.body = bodyJson.getJson()
+	end if
+	
+	urlData = a5_split_url(eval(endpointInfo.getProperty("endpoint")))
 	settings.host = urlData.server
-
 	dim settings.page as c
 	settings.page = urlData.path + urlData.page
 	
@@ -646,39 +717,10 @@ function performFetch as c (e as p)
 		settings.query_string = urlData.query_string
 	end if
 	
-	
-	if prop_valid(options, "method") then 
-		settings.method = options.method
-	else 
-		settings.method = "GET"
-	end if 
-	
-	dim apiKeys as p
-	dim keysFilePath as c
-	keysFilePath = "./apiKeys.json"
-	apiKeys = json_parse(FILE.to_string(keysFilePath))
-	
-	if prop_valid(options, "headers") then
-		dim settings.header as c
-		settings.header = ""
-		for each property in properties_enum(options.headers)
-			dim val as c
-			val = options.headers.data(property.value)
-			if substr(val, 1, 7) == "__KEY__" then 
-				val = apiKeys.data(substr(val, 8))
-			end if
-			
-			settings.header = settings.header + property.value + ": " + val
-		next
-	end if
-	
-	if prop_valid(options, "body") then 
-		dim settings.body as c
-		settings.body = options.body
-	end if
+
 	
 	dim result as P
-	performFetch = json_generate(http_fetch(settings))
+	performFetch = Result.success(json_generate(http_fetch(settings)))
 	
 end function
 

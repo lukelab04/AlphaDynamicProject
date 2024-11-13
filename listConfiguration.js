@@ -55,7 +55,7 @@ function tryRecoverConfig(obj, admin, configName) {
         return ok.config;
     return ok;
 }
-function initialize(obj, configName, embeddedList, embeddedSearch, filters, args) {
+function initialize(obj, configName, embeddedList, listWindow, embeddedSearch, searchWindow, filters, args) {
     var isAdmin = false;
     return batchFetch(obj, configName, filters).then(function () {
         var _a;
@@ -74,29 +74,29 @@ function initialize(obj, configName, embeddedList, embeddedSearch, filters, args
                 .then(function () { return requestListConfig(obj, configName); })
                 .then(function () {
                 var config = tryRecoverConfig(obj, isAdmin, configName);
-                return initList(filters, args, embeddedList, embeddedSearch, obj, {
+                return initList(filters, args, embeddedList, listWindow, embeddedSearch, searchWindow, obj, {
                     config: config,
                     isAdmin: isAdmin,
                 });
             });
         }
         else {
-            return initList(filters, args, embeddedList, embeddedSearch, obj, obj.stateInfo.apiResponse.ok);
+            return initList(filters, args, embeddedList, listWindow, embeddedSearch, searchWindow, obj, obj.stateInfo.apiResponse.ok);
         }
     });
 }
-function initList(filters, args, embeddedList, embeddedSearch, obj, d) {
+function initList(filters, args, embeddedList, listWindow, embeddedSearch, searchWindow, obj, d) {
     var returnObj = {
         list: null,
         search: null,
         configUx: null,
     };
-    DynamicList.makeDynamicList(embeddedList, d, filters, args).then(function (list) {
-        var search = new DynamicListSearch(list, embeddedSearch);
+    DynamicList.makeDynamicList(embeddedList, listWindow, d, filters, args).then(function (list) {
+        var search = new DynamicListSearch(list, embeddedSearch, searchWindow);
         returnObj.list = list;
         returnObj.search = search;
         returnObj.configUx = obj;
-        manageConfigForm(d.isAdmin, obj, list, search, d, filters, args, embeddedList, embeddedSearch);
+        manageConfigForm(d.isAdmin, obj, list, listWindow, search, searchWindow, d, filters, args, embeddedList, embeddedSearch);
         embeddedList.initialize(list);
     }).catch(function (err) {
         if (err instanceof ValidationError) {
@@ -106,11 +106,11 @@ function initList(filters, args, embeddedList, embeddedSearch, obj, d) {
             displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
             console.error(err.toString());
         }
-        manageConfigForm(d.isAdmin, obj, null, null, d, filters, args, embeddedList, embeddedSearch);
+        manageConfigForm(d.isAdmin, obj, null, listWindow, null, searchWindow, d, filters, args, embeddedList, embeddedSearch);
     });
     return returnObj;
 }
-function manageConfigForm(adminConfig, obj, list, search, preFetch, filters, args, embeddedList, embeddedSearch) {
+function manageConfigForm(adminConfig, obj, list, listWindow, search, searchWindow, preFetch, filters, args, embeddedList, embeddedSearch) {
     var allDataColumns = [];
     var allExpandableCols = [];
     var fillColInfo = function () {
@@ -173,8 +173,8 @@ function manageConfigForm(adminConfig, obj, list, search, preFetch, filters, arg
                     return;
                 list.destructor();
                 var newSearch;
-                DynamicList.makeDynamicList(embeddedList, preFetch, filters, args).then(function (newList) {
-                    newSearch = new DynamicListSearch(newList, embeddedSearch);
+                DynamicList.makeDynamicList(embeddedList, listWindow, preFetch, filters, args).then(function (newList) {
+                    newSearch = new DynamicListSearch(newList, embeddedSearch, searchWindow);
                     Object.assign(list, newList);
                     Object.assign(search, newSearch);
                     embeddedList.initialize(list);
@@ -234,30 +234,10 @@ function buildConfigForm(adminConfig, allColumns) {
         type: "object",
         staticKeys: {
             method: singleInput('string', 'HTTP Method (GET, POST, etc)'),
-            endpoint: new Input({
-                values: [
-                    {
-                        value: new Value('object', {
-                            type: "object",
-                            staticKeys: {
-                                template: singleInput('string', 'Template String'),
-                            }
-                        }),
-                        dropdownLabel: 'Endpoint Template'
-                    },
-                    {
-                        value: new Value('object', {
-                            type: "object",
-                            staticKeys: {
-                                getEndpointURL: singleInput('function', 'Function to get endpoint'),
-                            }
-                        }),
-                        dropdownLabel: 'Endpoint Function'
-                    }
-                ],
-                label: 'Endpoint',
-                comments: 'The endpoint can be a string template or a function accepting list filters and returning a string URL',
-                validate: function () { return true; },
+            endpoint: singleInput('string', 'Endpoint', {
+                type: 'string',
+            }, {
+                comments: "XBasic Expression to evaluate"
             }),
             body: singleInput('object', 'Body (Optional)', {
                 type: "object",
@@ -352,6 +332,50 @@ function buildConfigForm(adminConfig, allColumns) {
         comments: "Add or remove columns for the list",
         validate: function () { return true; },
     });
+    var filters = singleInput('array', "Filters", {
+        default: [],
+        type: "array",
+        arrayInput: singleInput('object', "Filter", {
+            type: "object",
+            staticKeys: {
+                columnName: singleInput("string", "Column Name"),
+                op: singleInput("dropdown", "Operator", {
+                    default: "=",
+                    type: "dropdown",
+                    dropdownItems: [
+                        { text: "Equals", value: "=" },
+                        { text: "Not Equals", value: "<>" },
+                        { text: "Less Than", value: "<" },
+                        { text: "Less Than or Equal To", value: "<=" },
+                        { text: "Greater Than", value: ">" },
+                        { text: "Greater Than or Equal To", value: ">=" },
+                        { text: "Pattern", value: "LIKE" },
+                    ],
+                }),
+                columnVal: singleInput("object", "Column Value", {
+                    type: "object",
+                    staticKeys: {
+                        tag: singleInput("dropdown", "Value Type", {
+                            type: "dropdown",
+                            dropdownItems: [
+                                { text: "Argument", value: "arg" },
+                                { text: "Static Value", value: "value" }
+                            ],
+                        }),
+                        value: singleInput("string", "Value")
+                    }
+                }),
+                connector: singleInput("dropdown", "Logical Connector", {
+                    type: "dropdown",
+                    default: "AND",
+                    dropdownItems: [
+                        { text: "And", value: "AND" },
+                        { text: "Or", value: "OR" }
+                    ],
+                })
+            }
+        })
+    });
     if (!adminConfig)
         return mappings;
     return singleInput('object', 'List Configuration', {
@@ -383,6 +407,7 @@ function buildConfigForm(adminConfig, allColumns) {
                             staticKeys: {
                                 type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'sql', text: 'sql' }] }),
                                 table: singleInput('string', 'Table Name'),
+                                filters: filters,
                                 preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
                             }
                         }),
@@ -396,50 +421,7 @@ function buildConfigForm(adminConfig, allColumns) {
                                 sql: singleInput('string', 'SQL Query', undefined, {
                                     comments: "Supply only the SELECT and FROM parts of the query. Specify filters in the `filters` section."
                                 }),
-                                filters: singleInput('array', "Filters", {
-                                    default: [],
-                                    type: "array",
-                                    arrayInput: singleInput('object', "Filter", {
-                                        type: "object",
-                                        staticKeys: {
-                                            columnName: singleInput("string", "Column Name"),
-                                            op: singleInput("dropdown", "Operator", {
-                                                default: "=",
-                                                type: "dropdown",
-                                                dropdownItems: [
-                                                    { text: "Equals", value: "=" },
-                                                    { text: "Not Equals", value: "<>" },
-                                                    { text: "Less Than", value: "<" },
-                                                    { text: "Less Than or Equal To", value: "<=" },
-                                                    { text: "Greater Than", value: ">" },
-                                                    { text: "Greater Than or Equal To", value: ">=" },
-                                                    { text: "Pattern", value: "LIKE" },
-                                                ],
-                                            }),
-                                            columnVal: singleInput("object", "Column Value", {
-                                                type: "object",
-                                                staticKeys: {
-                                                    tag: singleInput("dropdown", "Value Type", {
-                                                        type: "dropdown",
-                                                        dropdownItems: [
-                                                            { text: "Argument", value: "arg" },
-                                                            { text: "Static Value", value: "value" }
-                                                        ],
-                                                    }),
-                                                    value: singleInput("string", "Value")
-                                                }
-                                            }),
-                                            connector: singleInput("dropdown", "Logical Connector", {
-                                                type: "dropdown",
-                                                default: "AND",
-                                                dropdownItems: [
-                                                    { text: "And", value: "AND" },
-                                                    { text: "Or", value: "OR" }
-                                                ],
-                                            })
-                                        }
-                                    })
-                                }),
+                                filters: filters,
                                 preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
                             }
                         }),
