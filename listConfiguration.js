@@ -57,7 +57,7 @@ function tryRecoverConfig(obj, admin, configName) {
 }
 function initialize(obj, configName, embeddedList, listWindow, embeddedSearch, searchWindow, filters, args) {
     var isAdmin = false;
-    return batchFetch(obj, configName, filters).then(function () {
+    return batchFetch(embeddedList, configName, filters).then(function () {
         var _a;
         if ((_a = obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.err) {
             console.error("Error while batch fetching, reverting to slow fetch. Message: ", obj.stateInfo.apiResponse.err);
@@ -81,7 +81,7 @@ function initialize(obj, configName, embeddedList, listWindow, embeddedSearch, s
             });
         }
         else {
-            return initList(filters, args, embeddedList, listWindow, embeddedSearch, searchWindow, obj, obj.stateInfo.apiResponse.ok);
+            return initList(filters, args, embeddedList, listWindow, embeddedSearch, searchWindow, obj, embeddedList.stateInfo.apiResponse.ok);
         }
     });
 }

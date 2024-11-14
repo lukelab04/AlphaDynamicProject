@@ -67,7 +67,15 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as e
 	flag = cn_open(cn,"::Name::conn")
 	
 	dim filterStr as c
-	filterStr = buildConstraint(filters, args, cn, e)
+	dim filterStrRes as Result
+	filterStrRes = buildConstraint(filters, args, cn, e)
+	
+	if .not. filterStrRes.isSuccessful() then 
+		getTableDataFromSql = filterStrRes 
+		end
+	else 
+		filterStr = filterStrRes.getInner()
+	end if
 	
 	if len(filterStr) <> 0 then 
 		sql = sql + " WHERE " + filterStr
@@ -108,9 +116,15 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	end if
 	
 	dim args as sql::arguments
+	dim filterStrRes as Result
 	dim filterStr as c
-	filterStr = buildConstraint(filters, args, cn, e)
-	
+	filterStrRes = buildConstraint(filters, args, cn, e)
+	if .not. filterStrRes.isSuccessful() then 
+		getTableData = filterStrRes 
+		end 
+	else 
+		filterStr = filterStrRes.getInner()
+	end if
 
 	dim sql as c
 	dim selectPart as c 
@@ -203,12 +217,12 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	runSqlFetch = result
 end function
 
-function buildConstraint(filters as extension::json, args as sql::arguments, connection as sql::connection, e as p) as c
+function buildConstraint as Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p)
 	dim args as sql::arguments
 	dim filterStr as c
 	filterStr = ""
 	if filters.getLength() == 0 then 
-		filterStr = "";
+		filterStr = ""
 	else
 		dim argCounter as n
 		dim filter as p
@@ -233,8 +247,13 @@ function buildConstraint(filters as extension::json, args as sql::arguments, con
 			if filter.getProperty("columnVal").getProperty("tag") == "value" then
 				args.add("argNum" + argCounter, convert_type(filter.getProperty("columnVal").getProperty("value"), filter.getProperty("type")))
 			else
-				dim argVal as c 
-				argVal = e.arguments.find(filter.getProperty("columnVal").getProperty("value")).data
+				dim argName as c = filter.getProperty("columnVal").getProperty("value")
+				if e.arguments.argumentNumber(argName) == -1 then 
+					buildConstraint = Result.fail("Argument " + argName + " does not exist")
+					end 
+				end if 
+				dim argVal as c
+				argVal = e.arguments.find(argName).data
 				args.add("argNum" + argCounter, convert_type(argVal, filter.getProperty("type")))
 			end if
 			argCounter = argCounter + 1
@@ -245,7 +264,7 @@ function buildConstraint(filters as extension::json, args as sql::arguments, con
 		' Get rid of AND or OR
 		filterStr = substr(filterStr, 1, len(filterStr) - 4)
 	end if
-	buildConstraint = filterStr
+	buildConstraint = Result.success(filterStr)
 end function
 
 function isSafeConnector as l (conn as c) 
@@ -626,7 +645,6 @@ end function
 
 ' Values of the header, body, and url can be arbitrary xbasic expressions
 function performFetch as Result (e as p)
-	debug(1)
 	dim configInterface as p
 	dim config as p
 	configInterface = require("listConfigInterface")
