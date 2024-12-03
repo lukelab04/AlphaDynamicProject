@@ -61,7 +61,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 var LIST_NAME = 'DYNAMIC_LIST';
 var DETAIL_FORM_NAME = "DETAIL_VIEW";
-var SEPARATOR = '___';
 var objTimeFormat = function () { return A5.__tfmt; };
 var objDatetimeFormat = function () { return A5.__dtfmt + ' ' + objTimeFormat(); };
 var ValidationError = /** @class */ (function (_super) {
@@ -183,7 +182,7 @@ function validateConfig(config) {
     return config;
 }
 function validateConfigSchema(config, manager) {
-    config.mappings.forEach(function (m) { return validateMappingSchema(m, manager); });
+    //config.mappings.forEach(m => validateMappingSchema(m, manager));
 }
 function validateListBtn(btn) {
     if (typeof btn != 'object' || btn == null)
@@ -231,6 +230,7 @@ function validateMapping(mapping) {
         if (mapping.editType == undefined || (mapping.editType != 'text'
             && mapping.editType != 'dropdown'
             && mapping.editType != 'time'
+            && mapping.editType != 'json'
             && mapping.editType != 'datetime'
             && mapping.editType != 'bool'
             && mapping.editType != 'number')) {
@@ -411,28 +411,12 @@ var DynamicList = /** @class */ (function () {
         })
             .then(function (list) {
             if (prefetch.data === undefined || prefetch.data.length == 0) {
-                if (prefetch.schema === undefined) {
-                    // If we don't have the data, then this must not be SQL
-                    // Data fetching may need to flatten the results, 
-                    // which depends on schema, so that must 
-                    // be fetched first
-                    return list.fetchSchema(false).then(function (l) { return l.fetchData(); });
-                }
-                else {
-                    // Just fetch data 
-                    return list.fetchData();
-                }
+                return list.fetchSchema(false).then(function (l) { return l.fetchData(); });
             }
-            else if (prefetch.schema === undefined) {
-                // If we have the data but not the schema, we can 
-                // build the schema 
+            else {
                 list.setData(prefetch.data, true);
                 return list;
             }
-            // Otherwise we have the data and schema and so we can continue
-            list.setData(prefetch.data, false);
-            list.mapRawSchema(prefetch.schema);
-            return list;
         })
             .then(function (list) {
             list.dataScopeManager = new DataScopeManager(list.schema);
@@ -1377,6 +1361,176 @@ var DynamicList = /** @class */ (function () {
                 for (var i = 0; i < btns.length; i++) {
                     btns[i].parentElement.style.whiteSpace = 'normal';
                 }
+            },
+            updateListFromUXControls: function () {
+                var _a, _b;
+                if (_this.listBox._updatingListFromUXControls)
+                    return false;
+                _this.listBox._updatingListFromUXControls = true;
+                var d = (_b = (_a = _this.detailView) === null || _a === void 0 ? void 0 : _a.serialize()) !== null && _b !== void 0 ? _b : {};
+                var d2 = {};
+                for (var n in d) {
+                    if (n.indexOf("*") != 0) {
+                        d2[n] = d[n];
+                    }
+                }
+                var r = _this.listBox.selection[0];
+                if (typeof r != 'undefined') {
+                    _this.listBox.updateTableRow(r, d2);
+                }
+                else {
+                    _this.listBox.addTableRow(d2, {
+                        setFocusToTargetRow: true
+                    });
+                }
+                // form.state.isDirty = false;
+                // form.refresh();
+                var arrState = _this.listBox.__captureDetailViewControlsDirtyState();
+                var dirtyControls = [];
+                for (var i = 0; i < arrState.length; i++) {
+                    if (arrState[i].isDirty)
+                        dirtyControls.push(arrState[i].field);
+                }
+                var _dlgObj = _this.obj;
+                var arr = _this.listBox._getControlsInDv();
+                for (var i = 0; i < arr.length; i++) {
+                    _dlgObj.clientSideValidateField(arr[i], 1, null);
+                }
+                var flagCSE = _this.listBox._hasClientSideError();
+                if (flagCSE) {
+                    _dlgObj._list_executeEvent(_this.listBox.listVariableName, 'detailView.hasClientSideValidationErrors', {});
+                    var msg = _this.listBox.customization.dv.clientSideErrorWarning;
+                    if (typeof msg != 'undefined' && msg != '')
+                        _this.listBox._showGlobalError(msg);
+                    _this.listBox._updatingListFromUXControls = false;
+                    return false;
+                }
+                else {
+                    _this.listBox._clearGlobalError();
+                }
+                var _route = _this.listBox._getRoute();
+                var _dlgObj = _this.obj;
+                var flagGetLocationData = _this.listBox._submitLocationInfo;
+                if (_dlgObj._embeddedMode || _dlgObj._livePreviewInBuilder)
+                    flagGetLocationData = false;
+                var that = _this.listBox;
+                if (flagGetLocationData) {
+                    var _locationHighAccuracy = _dlgObj.locationHighAccuracy;
+                    var _locationTimeout = _dlgObj.locationTimeout;
+                    var _locationMaximumAge = _dlgObj.locationMaximumAge;
+                    var classInst = _this.listBox;
+                    navigator.geolocation.getCurrentPosition(function (pos) {
+                        if (typeof _dlgObj._location == 'undefined')
+                            _dlgObj._location = {};
+                        _dlgObj._location.lat = pos.coords.latitude;
+                        _dlgObj._location.lng = pos.coords.longitude;
+                        classInst._updateListFromUXControlsLow();
+                        classInst.__modifyOldData(arrState);
+                        if (that.synchronizeImmediately) {
+                            var flagOnLine = _dlgObj._getOnlineStatus();
+                            if (flagOnLine) {
+                                _dlgObj.saveListEdits(that.listVariableName);
+                            }
+                            else { }
+                        }
+                        var dirtyClass = '';
+                        if (typeof that.dirtyControlClassName != 'undefined')
+                            dirtyClass = that.dirtyControlClassName;
+                        if (dirtyClass != '')
+                            that.populateUXControls();
+                        that._setRoute(_route);
+                        if (!that._restoringList)
+                            _dlgObj.persistVariablesToLocalStorage();
+                        _dlgObj.refreshClientSideComputations();
+                        return true;
+                    }, function (error) {
+                        delete _dlgObj._location;
+                        classInst._updateListFromUXControlsLow();
+                        classInst.__modifyOldData(arrState);
+                        if (that.synchronizeImmediately) {
+                            var flagOnLine = _dlgObj._getOnlineStatus();
+                            if (flagOnLine) {
+                                _dlgObj.saveListEdits(that.listVariableName);
+                            }
+                            else { }
+                        }
+                        var dirtyClass = '';
+                        if (typeof that.dirtyControlClassName != 'undefined')
+                            dirtyClass = that.dirtyControlClassName;
+                        if (dirtyClass != '')
+                            that.populateUXControls();
+                        that._setRoute(_route);
+                        if (!that._restoringList)
+                            _dlgObj.persistVariablesToLocalStorage();
+                        _dlgObj.refreshClientSideComputations();
+                        return true;
+                    }, {
+                        enableHighAccuracy: _locationHighAccuracy,
+                        timeout: _locationTimeout,
+                        maximumAge: _locationMaximumAge
+                    });
+                    _this.listBox._updatingListFromUXControls = false;
+                    return true;
+                }
+                else {
+                    _this.listBox.__modifyOldData(arrState);
+                    if (!(_this.listBox._JSONForm || _this.listBox._propertyGrid)) {
+                        _this.listBox._updateListFromUXControlsLow();
+                        _this.listBox.__setJSONFormsInFieldMapClean();
+                    }
+                }
+                _this.listBox._saveTFEdits();
+                _this.listBox._setRoute(_route);
+                if (!_this.listBox._restoringList)
+                    _dlgObj.persistVariablesToLocalStorage();
+                _dlgObj.refreshClientSideComputations();
+                if (_this.listBox.synchronizeImmediately) {
+                    var flagOnLine = _dlgObj._getOnlineStatus();
+                    if (flagOnLine) {
+                        _this.listBox.__modifyOldData(arrState);
+                        _dlgObj.saveListEdits(_this.listBox.listVariableName);
+                    }
+                    else {
+                        _this.listBox.__modifyOldData(arrState);
+                    }
+                }
+                var dirtyClass = '';
+                if (typeof _this.listBox.dirtyControlClassName != 'undefined')
+                    dirtyClass = _this.listBox.dirtyControlClassName;
+                if (dirtyClass != '')
+                    _this.listBox.populateUXControls();
+                if (_this.listBox.showHideDetailView)
+                    _this.listBox.__toggleDetailView('hide');
+                _this.listBox.__modifyOldData(arrState);
+                if (_this.listBox.__pkisguid && _this.listBox.__assignPKGuidClientSide) {
+                    var r_1 = _this.listBox.selection[0];
+                    if (typeof r_1 != 'undefined') {
+                        if (typeof _this.listBox._data[r_1][_this.listBox.__pkfieldname] != 'undefined' && _this.listBox._data[r_1][_this.listBox.__pkfieldname] == '') {
+                            var flagNewRow = _this.listBox._data[r_1]._isNewRow;
+                            if (flagNewRow) {
+                                var obj2 = {};
+                                obj2[_this.listBox.__pkfieldname] = A5.UUID();
+                                if (!_this.listBox.__stripcurlyfromguid) {
+                                    obj2[_this.listBox.__pkfieldname] = '{' + obj2[_this.listBox.__pkfieldname] + '}';
+                                }
+                                _this.listBox.updateTableRow(r_1, obj2);
+                            }
+                        }
+                    }
+                }
+                if (_this.listBox._detailView.method == 'JSONForm') {
+                    var _name = _this.listBox._JSONFormName;
+                    var jObj = _dlgObj.getControl(_name);
+                    if (jObj) {
+                        jObj.state.isDirtyImmediate = false;
+                        jObj.refresh();
+                    }
+                }
+                _dlgObj._list_executeEvent(_this.listBox.listVariableName, 'detailView.afterDetailViewSave', {
+                    dirtyFields: dirtyControls.toString()
+                });
+                _this.listBox.__indexDBAfterDetailViewSaveImages(dirtyControls.toString());
+                _this.listBox._updatingListFromUXControls = false;
             }
         };
     };
@@ -1563,7 +1717,8 @@ var DynamicList = /** @class */ (function () {
         return defn;
     };
     DynamicList.prototype.buildDetailViewForm = function (rowNum) {
-        var _a;
+        var _this = this;
+        var _a, _b;
         var _d = {};
         if (rowNum != undefined) {
             _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
@@ -1575,8 +1730,8 @@ var DynamicList = /** @class */ (function () {
                 }
             });
         }
-        for (var _i = 0, _b = this.config.mappings; _i < _b.length; _i++) {
-            var mapping = _b[_i];
+        for (var _i = 0, _c = this.config.mappings; _i < _c.length; _i++) {
+            var mapping = _c[_i];
             var val = _d[mapping.columnName];
             switch (mapping.editType) {
                 case "time":
@@ -1591,25 +1746,41 @@ var DynamicList = /** @class */ (function () {
         delete d['*key'];
         delete d['*renderIndex'];
         delete d['*value'];
-        var json = JSON.stringify(d);
-        var fb = new FormBuilder(this.obj, DETAIL_FORM_NAME);
+        // Expand any fields that are marked as nested json
+        for (var _e = 0, _f = this.config.mappings; _e < _f.length; _e++) {
+            var mapping = _f[_e];
+            if (mapping.editType == 'json') {
+                d[mapping.columnName] = JSON.parse(d[mapping.columnName]);
+            }
+        }
+        var inputs = {
+            type: 'object',
+            staticKeys: {}
+        };
+        var toInclude = new Set();
         var _loop_1 = function (mapping) {
             if (mapping.inDetailView) {
-                var input = (new FormInput())
-                    .withLabel((_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.columnName)
-                    .withStyle('width: 100%')
-                    .withVariable(mapping.columnName);
+                toInclude.add(mapping.columnName);
+                if (mapping.editType == 'json') {
+                    inputs.staticKeys[mapping.columnName] = this_1.buildSubDetailView(d[mapping.columnName], (_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.columnName);
+                    return "continue";
+                }
                 if (!mapping.editType)
                     mapping.editType = 'text';
+                var value = { type: 'string' };
                 switch (mapping.editType) {
-                    case 'text':
-                    case 'number': break;
+                    case 'number':
+                        value = {
+                            type: 'number'
+                        };
+                        break;
                     case 'dropdown':
                         if (mapping.dropdownConfig === undefined)
                             break;
                         // Static dropdown list
+                        var choices = [];
                         if ('choices' in mapping.dropdownConfig) {
-                            input = input.asDropdown(mapping.dropdownConfig.choices);
+                            choices = mapping.dropdownConfig.choices;
                         }
                         else if ('fromColumn' in mapping.dropdownConfig) {
                             var set_1 = new Set();
@@ -1620,30 +1791,99 @@ var DynamicList = /** @class */ (function () {
                                     return;
                                 set_1.add(d[mapping.dropdownConfig.fromColumn].toString());
                             });
-                            input = input.asDropdown(Array.from(set_1));
+                            choices = Array.from(set_1);
                         }
-                        break;
-                    case 'time':
-                        input = input.asTime("hh:mm AM");
-                        break;
-                    case 'datetime':
-                        input = input.asDateTime(objDatetimeFormat());
+                        value = {
+                            type: 'dropdown',
+                            dropdownItems: choices.map(function (x) {
+                                return {
+                                    value: x,
+                                    text: x
+                                };
+                            })
+                        };
                         break;
                     case 'bool':
-                        input = input.asBool();
+                        value = {
+                            type: 'boolean'
+                        };
+                        break;
+                    case 'time':
+                    case 'datetime':
+                    case 'text':
+                    default:
+                        value = {
+                            type: 'string'
+                        };
                         break;
                 }
-                fb.withElement(input);
+                inputs.staticKeys[mapping.columnName] = Input.singleInput(value.type, (_b = mapping.displayName) !== null && _b !== void 0 ? _b : mapping.columnName, value);
             }
         };
         var this_1 = this;
-        for (var _c = 0, _e = this.config.mappings; _c < _e.length; _c++) {
-            var mapping = _e[_c];
+        for (var _g = 0, _h = this.config.mappings; _g < _h.length; _g++) {
+            var mapping = _h[_g];
             _loop_1(mapping);
         }
-        fb.withElement(makeDetailButtons());
-        fb.render();
-        this.obj.setValue(DETAIL_FORM_NAME, json);
+        // If there are keys present in the data that aren't present 
+        // in the config, we'll get an error. So we need to remove those.
+        for (var key in d) {
+            if (!toInclude.has(key)) {
+                delete d[key];
+            }
+        }
+        var input = Input.singleInput('object', 'Detail View', inputs, {
+            mapSerialized: function (o) {
+                for (var _i = 0, _a = _this.config.mappings; _i < _a.length; _i++) {
+                    var mapping = _a[_i];
+                    if (mapping.editType == 'json') {
+                        o[mapping.columnName] = JSON.stringify(o[mapping.columnName]);
+                    }
+                }
+                return o;
+            }
+        });
+        this.detailView = input;
+        var bottomButtons = makeDetailButtons().getJSON();
+        buildFromConfig(this.obj, DETAIL_FORM_NAME, input, this.config.name, bottomButtons);
+        var populate = input.getPopulateDataFromObj(d);
+        this.obj.setValue(DETAIL_FORM_NAME, JSON.stringify(populate));
+    };
+    DynamicList.prototype.buildSubDetailView = function (dataPoint, label) {
+        if (!(typeof dataPoint == 'object'))
+            return Input.singleInput('', '');
+        if (dataPoint instanceof Array) {
+            return Input.singleInput('array', label, {
+                type: 'array',
+                arrayInput: this.buildSubDetailView(dataPoint[0], 'Element of ' + label)
+            });
+        }
+        else {
+            var staticKeys = {};
+            for (var key in dataPoint) {
+                switch (typeof dataPoint[key]) {
+                    case "bigint":
+                    case "number":
+                        staticKeys[key] = Input.singleInput('number', key);
+                        break;
+                    case "string": {
+                        staticKeys[key] = Input.singleInput('string', key);
+                        break;
+                    }
+                    case "boolean": {
+                        staticKeys[key] = Input.singleInput('boolean', key);
+                        break;
+                    }
+                    case "object": {
+                        staticKeys[key] = this.buildSubDetailView(dataPoint[key], key);
+                    }
+                }
+            }
+            return Input.singleInput('object', label, {
+                type: 'object',
+                staticKeys: staticKeys
+            });
+        }
     };
     DynamicList.prototype.setFilterAndFetch = function (filters) {
         this.searchFilters = filters;
@@ -1683,7 +1923,7 @@ var DynamicList = /** @class */ (function () {
             this.buildSchemaFromRawData();
         this.dataScopeManager = new DataScopeManager(this.schema);
         this.dataScopeManager.setPathFromConfig(this.config, this.rawData);
-        this.data = this.dataScopeManager.flattenData(this.rawData);
+        this.data = this.dataScopeManager.flattenData(this.rawData, this.config);
     };
     DynamicList.prototype.fetchData = function () {
         var _this = this;
@@ -1771,16 +2011,6 @@ var DynamicList = /** @class */ (function () {
             throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
         }
     };
-    // getFetchOptions(endpoint: Endpoint) {
-    //     let method = endpoint.method;
-    //     let headers: Record<string, string> = endpoint.headers ?? {};
-    //     let body: Record<string, string> = endpoint.body ?? {};
-    //     return {
-    //         method: method,
-    //         headers: headers,
-    //         body: method == 'GET' ? undefined : body,
-    //     }
-    // }
     DynamicList.prototype.filtersAsSimpleObj = function () {
         var data = {};
         for (var _i = 0, _a = __spreadArray(__spreadArray([], this.permanentFilters, true), this.searchFilters, true); _i < _a.length; _i++) {
@@ -1821,11 +2051,27 @@ var DynamicList = /** @class */ (function () {
     };
     DynamicList.prototype.buildSchemaFromRawData = function () {
         var _this = this;
-        var buildFromInstance = function (instance) {
+        var deepAssign = function (a, b) {
+            for (var key in b) {
+                if (key in a) {
+                    if (typeof b[key] == 'object') {
+                        deepAssign(a[key], b[key]);
+                    }
+                    else {
+                        a[key] = b[key];
+                    }
+                }
+                else {
+                    a[key] = b[key];
+                }
+            }
+        };
+        var buildFromInstance = function (instance, path) {
             if (typeof instance != 'object')
                 return {};
             var schema = {};
             var _loop_2 = function (key) {
+                var separator = _this.dataScopeManager.separator;
                 if (instance[key] === null) {
                     return "continue";
                 }
@@ -1841,12 +2087,12 @@ var DynamicList = /** @class */ (function () {
                             item_2.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
                         }
                         else {
-                            Object.assign(item_2.array, buildFromInstance(i));
+                            deepAssign(item_2.array, buildFromInstance(i, path + key + separator));
                         }
                     });
                 }
                 else if (typeof instance[key] == 'object') {
-                    schema[key] = { nested: buildFromInstance(instance[key]) };
+                    schema[key] = { nested: buildFromInstance(instance[key], path + key + separator) };
                 }
                 else {
                     schema[key] = { alphaType: jsTypeToAlphaType(typeof instance[key]) };
@@ -1859,11 +2105,13 @@ var DynamicList = /** @class */ (function () {
             }
             return schema;
         };
-        this.rawData.forEach(function (d) { return Object.assign(_this.schema, buildFromInstance(d)); });
+        this.rawData.forEach(function (d) { return deepAssign(_this.schema, buildFromInstance(d, "")); });
     };
     DynamicList.prototype.mapRawSchema = function (s) {
         var _this = this;
-        s.jsonOutput.column.forEach(function (item) { return _this.schema[item.name] = { alphaType: item.alphaType }; });
+        s.jsonOutput.column.forEach(function (item) {
+            return _this.schema[item.name] = { alphaType: item.alphaType };
+        });
     };
     DynamicList.prototype.fetchSchema = function (reuseData) {
         var _this = this;
@@ -1925,6 +2173,7 @@ var DynamicList = /** @class */ (function () {
 }());
 var DataScopeManager = /** @class */ (function () {
     function DataScopeManager(schema) {
+        this.separator = '___';
         this.schema = schema;
         this.path = [];
         this.expandedIdxToRawIdx = {};
@@ -1935,12 +2184,14 @@ var DataScopeManager = /** @class */ (function () {
             var dataPoint = data_1[_i];
             for (var _a = 0, _b = config.mappings; _a < _b.length; _a++) {
                 var mapping = _b[_a];
-                var path = mapping.columnName.split(SEPARATOR);
-                if (path.length > 1 && path[0] == SEPARATOR) {
-                    path[1] = SEPARATOR + path[1];
+                var path = mapping.columnName.split(this.separator);
+                if (path.length > 1 && path[0] == this.separator) {
+                    path[1] = this.separator + path[1];
                     path = path.slice(1);
                 }
                 var tmp = dataPoint;
+                // Iterate through parts of path, 
+                // descending through datapoint
                 for (var i = 0; i < path.length; i++) {
                     tmp = tmp[path[i]];
                     if (tmp instanceof Array) {
@@ -1954,12 +2205,12 @@ var DataScopeManager = /** @class */ (function () {
         }
     };
     DataScopeManager.prototype.strToPath = function (str) {
-        return str.split(SEPARATOR);
+        return str.split(this.separator);
     };
     DataScopeManager.prototype.getOriginalIndex = function (n) {
         return this.expandedIdxToRawIdx[n];
     };
-    DataScopeManager.prototype.flattenData = function (data) {
+    DataScopeManager.prototype.flattenData = function (data, config) {
         if (this.path.length == 0)
             return data;
         this.expandedIdxToRawIdx = {};
@@ -2011,9 +2262,9 @@ var DataScopeManager = /** @class */ (function () {
             if ('alphaType' in part)
                 result.push(prefix + key);
             else if ('nested' in part)
-                result.push.apply(result, this._getAvailableDataColumns(part.nested, prefix + key + SEPARATOR, path));
+                result.push.apply(result, this._getAvailableDataColumns(part.nested, prefix + key + this.separator, path));
             else if ('array' in part && path.length > 0 && path[0] == key)
-                result.push.apply(result, this._getAvailableDataColumns(part.array, prefix + key + SEPARATOR, path.slice(1)));
+                result.push.apply(result, this._getAvailableDataColumns(part.array, prefix + key + this.separator, path.slice(1)));
         }
         return result;
     };
@@ -2024,15 +2275,16 @@ var DataScopeManager = /** @class */ (function () {
             if ('alphaType' in part)
                 continue;
             else if ('nested' in part)
-                result.push.apply(result, this._getExpandableColumns(part.nested, prefix + key + SEPARATOR, path));
+                result.push.apply(result, this._getExpandableColumns(part.nested, prefix + key + this.separator, path));
             else if ('array' in part && path.length > 0 && path[0] == key)
-                result.push.apply(result, this._getExpandableColumns(part.array, prefix + key + SEPARATOR, path.slice(1)));
+                result.push.apply(result, this._getExpandableColumns(part.array, prefix + key + this.separator, path.slice(1)));
             else if ('array' in part)
                 result.push(prefix + key);
         }
         return result;
     };
     DataScopeManager.prototype.flattenDataPoint = function (point, schema, path, prefix) {
+        var _this = this;
         var final = [];
         var flattenIgnoreArray = function (point, schema, prefix) {
             var result = {};
@@ -2047,7 +2299,7 @@ var DataScopeManager = /** @class */ (function () {
                 else if ('alphaType' in part)
                     result[prefix + key] = point[key];
                 else if ('nested' in part)
-                    Object.assign(result, flattenIgnoreArray(point[key], part.nested, prefix + key + SEPARATOR));
+                    Object.assign(result, flattenIgnoreArray(point[key], part.nested, prefix + key + _this.separator));
             }
             return result;
         };
@@ -2062,7 +2314,7 @@ var DataScopeManager = /** @class */ (function () {
                 var subData = [];
                 for (var _i = 0, _a = point[key]; _i < _a.length; _i++) {
                     var dataPoint = _a[_i];
-                    subData.push.apply(subData, this.flattenDataPoint(dataPoint, part.array, path.slice(1), prefix + key + SEPARATOR));
+                    subData.push.apply(subData, this.flattenDataPoint(dataPoint, part.array, path.slice(1), prefix + key + this.separator));
                 }
                 subData.forEach(function (x) { return Object.assign(x, root); });
                 final.push.apply(final, subData);
@@ -2122,47 +2374,23 @@ function makeDetailButtons() {
         copyTemplate()
             .withHtml('Save')
             .withIcon('svgIcon=#alpha-icon-save:icon iconButton')
-            .withCheckDisabled({
-            "*a5type": "function",
-            "*data": "function (d) { return this._saveButtonIsDisabled() }"
-        })
-            .withClickHandler({
-            '*a5type': 'function',
-            '*data': 'function() { this._listDetailView("save") '
-        }),
+            .withCheckDisabled(function () { return this._saveButtonIsDisabled(); })
+            .withClickHandler(function () { this._listDetailView("save"); }),
         copyTemplate()
             .withHtml('New Record')
             .withIcon('svgIcon=#alpha-icon-docAdd:icon iconButton')
-            .withCheckDisabled({
-            "*a5type": "function",
-            "*data": "function (d) { return this._newRecordButtonIsDisabled() }"
-        })
-            .withClickHandler({
-            "*a5type": "function",
-            "*data": "function () { this._listDetailView('newrecord') }"
-        }),
+            .withCheckDisabled(function () { return this._newRecordButtonIsDisabled(); })
+            .withClickHandler(function () { this._listDetailView('newrecord'); }),
         copyTemplate()
             .withHtml('Delete Record')
             .withIcon('svgIcon=#alpha-icon-removeCircle:icon iconButton')
-            .withCheckDisabled({
-            "*a5type": "function",
-            "*data": "function (d) { return this._deleteRecordButtonIsDisabled() }"
-        })
-            .withClickHandler({
-            "*a5type": "function",
-            "*data": "function () { this._listDetailView('deleterecord')}"
-        }),
+            .withCheckDisabled(function () { return this._deleteRecordButtonIsDisabled(); })
+            .withClickHandler(function () { this._listDetailView('deleterecord'); }),
         copyTemplate()
             .withHtml('Reset')
             .withIcon('svgIcon=#alpha-icon-undo:icon iconButton')
-            .withCheckDisabled({
-            "*a5type": "function",
-            "*data": "function (d) { return this._resetRecordButtonIsDisabled() }"
-        })
-            .withClickHandler({
-            "*a5type": "function",
-            "*data": "function () { this._listDetailView('reset') }"
-        }),
+            .withCheckDisabled(function () { return this._resetRecordButtonIsDisabled(); })
+            .withClickHandler(function () { this._listDetailView('reset'); }),
     ]);
 }
 var DynamicListSearch = /** @class */ (function () {
@@ -2207,7 +2435,7 @@ var DynamicListSearch = /** @class */ (function () {
         var allSearchCols = this.list.dataScopeManager.getAvailableDataColumns();
         var getPreferredColumnOptions = function (colName) {
             var col = { name: '', editType: 'text' };
-            var schemaEntry = _this.findInSchema(colName.split(SEPARATOR), _this.list.schema);
+            var schemaEntry = _this.findInSchema(colName.split(_this.list.dataScopeManager.separator), _this.list.schema);
             if (schemaEntry && "alphaType" in schemaEntry) {
                 col.name = colName;
                 col.editType = alphaTypeToEditType(schemaEntry.alphaType);
@@ -2240,7 +2468,7 @@ var DynamicListSearch = /** @class */ (function () {
                     type: 'default',
                     format: '',
                     data: [],
-                    quantifier: this.list.dataScopeManager.inSubArray(colName.split(SEPARATOR))
+                    quantifier: this.list.dataScopeManager.inSubArray(colName.split(this.list.dataScopeManager.separator))
                 };
                 var editType = preferred.editType;
                 switch (editType) {
@@ -2358,7 +2586,7 @@ var DynamicListSearch = /** @class */ (function () {
                 var type;
                 for (var _i = 0, allSearchCols_2 = allSearchCols; _i < allSearchCols_2.length; _i++) {
                     var column = allSearchCols_2[_i];
-                    var item = _this.findInSchema(column.split(SEPARATOR), _this.list.schema);
+                    var item = _this.findInSchema(column.split(_this.list.dataScopeManager.separator), _this.list.schema);
                     if (item && column == col && 'alphaType' in item) {
                         type = alphaTypeToEditType(item.alphaType);
                         break;
@@ -2664,9 +2892,9 @@ var DynamicListSearch = /** @class */ (function () {
         lObj._searchPart.fieldMap = [];
         for (var _i = 0, _a = this.list.dataScopeManager.getAvailableDataColumns(); _i < _a.length; _i++) {
             var col = _a[_i];
-            var path = col.split(SEPARATOR);
+            var path = col.split(this.list.dataScopeManager.separator);
             if (path.length > 1 && path[0] == '') {
-                path[1] = SEPARATOR + path[1];
+                path[1] = this.list.dataScopeManager.separator + path[1];
                 path = path.slice(1);
             }
             var item = this.findInSchema(path, this.list.schema);

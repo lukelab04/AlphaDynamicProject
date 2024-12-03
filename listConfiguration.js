@@ -59,8 +59,8 @@ function initialize(obj, configName, embeddedList, listWindow, embeddedSearch, s
     var isAdmin = false;
     return batchFetch(embeddedList, configName, filters).then(function () {
         var _a;
-        if ((_a = obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.err) {
-            console.error("Error while batch fetching, reverting to slow fetch. Message: ", obj.stateInfo.apiResponse.err);
+        if ((_a = embeddedList.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.err) {
+            console.error("Error while batch fetching, reverting to slow fetch. Message: ", embeddedList.stateInfo.apiResponse.err);
             return checkIfAdmin(obj)
                 .then(function () {
                 var _a;
@@ -91,7 +91,8 @@ function initList(filters, args, embeddedList, listWindow, embeddedSearch, searc
         search: null,
         configUx: null,
     };
-    DynamicList.makeDynamicList(embeddedList, listWindow, d, filters, args).then(function (list) {
+    var dataCopy = jQuery.extend(true, {}, d);
+    DynamicList.makeDynamicList(embeddedList, listWindow, dataCopy, filters, args).then(function (list) {
         var search = new DynamicListSearch(list, embeddedSearch, searchWindow);
         returnObj.list = list;
         returnObj.search = search;
@@ -151,18 +152,90 @@ function manageConfigForm(adminConfig, obj, list, listWindow, search, searchWind
                 return state_1.value;
         }
     };
+    var runValidation = function (config) {
+        if ('name' in config) {
+            validateConfig(config);
+        }
+        else {
+            validateMapping(config);
+        }
+    };
+    var extractRelevantConfig = function (config, global) {
+        if (('name' in config) && global)
+            return config;
+        if (('name' in config) && !global)
+            return config.mappings;
+        // Global and no name means user isn't logged in 
+        if (global) {
+            throw new Error("Please log in as an administrator to save a list configuration globally.");
+        }
+        // Otherwise, the config is already just the mapping
+        return config;
+    };
+    var configObj;
+    var saveGlobal = function () {
+        try {
+            var maybeConfig = configObj.serialize();
+            runValidation(maybeConfig);
+            maybeConfig = extractRelevantConfig(maybeConfig, true);
+            var data = encodeURIComponent(JSON.stringify(maybeConfig));
+            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(list === null || list === void 0 ? void 0 : list.config.name, "&payload=").concat(data, "&global=").concat(true), {
+                onComplete: function () {
+                    var res = obj.stateInfo.apiResponse;
+                    if (res && res.err) {
+                        displayErrorMessage(res.err);
+                        console.error(res.err);
+                    }
+                    else {
+                        alert('Config saved.');
+                    }
+                    obj.applyConfigChanges();
+                }
+            });
+        }
+        catch (e) {
+            displayErrorMessage(e.toString());
+            console.error(e);
+        }
+    };
+    var saveUser = function () {
+        try {
+            var maybeConfig = configObj.serialize();
+            runValidation(maybeConfig);
+            maybeConfig = extractRelevantConfig(maybeConfig, false);
+            var data = encodeURIComponent(JSON.stringify(maybeConfig));
+            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(list === null || list === void 0 ? void 0 : list.config.name, "&payload=").concat(data, "&global=").concat(false), {
+                onComplete: function () {
+                    var res = obj.stateInfo.apiResponse;
+                    if (res && res.err) {
+                        displayErrorMessage(res.err);
+                        console.error(res.err);
+                    }
+                    else {
+                        alert('Config saved.');
+                    }
+                    obj.applyConfigChanges();
+                }
+            });
+        }
+        catch (e) {
+            displayErrorMessage(e.toString());
+            console.error(e);
+        }
+    };
     show = function (dataOverride) {
         if (dataOverride === void 0) { dataOverride = undefined; }
         fillColInfo();
-        var configInput = buildConfigForm(adminConfig, __spreadArray(__spreadArray([], allDataColumns, true), allExpandableCols, true));
-        addColCallbacks(configInput);
+        configObj = buildConfigForm(adminConfig, __spreadArray(__spreadArray([], allDataColumns, true), allExpandableCols, true));
+        addColCallbacks(configObj);
         try {
-            reRender = buildFromConfig(obj, 'BUILDER', configInput, preFetch.config.name, true);
+            var others = makeSQLSaveButtons(obj, saveUser, saveGlobal);
+            reRender = buildFromConfig(obj, 'BUILDER', configObj, preFetch.config.name, others);
             var populateWith = adminConfig ? preFetch.config : preFetch.config.mappings;
-            var d = configInput.getPopulateDataFromObj(dataOverride ? dataOverride : populateWith);
+            var d = configObj.getPopulateDataFromObj(dataOverride ? dataOverride : populateWith);
             obj.setValue('BUILDER', JSON.stringify(d));
             obj.applyConfigChanges = function () {
-                var newConfig = configInput.serialize();
+                var newConfig = configObj.serialize();
                 if (adminConfig) {
                     preFetch.config = newConfig;
                 }
@@ -173,7 +246,8 @@ function manageConfigForm(adminConfig, obj, list, listWindow, search, searchWind
                     return;
                 list.destructor();
                 var newSearch;
-                DynamicList.makeDynamicList(embeddedList, listWindow, preFetch, filters, args).then(function (newList) {
+                var prefetchCopy = jQuery.extend(true, {}, preFetch);
+                DynamicList.makeDynamicList(embeddedList, listWindow, prefetchCopy, filters, args).then(function (newList) {
                     newSearch = new DynamicListSearch(newList, embeddedSearch, searchWindow);
                     Object.assign(list, newList);
                     Object.assign(search, newSearch);
@@ -285,8 +359,14 @@ function buildConfigForm(adminConfig, allColumns) {
                             { text: 'Time', value: 'time' },
                             { text: 'Date & Time', value: 'datetime' },
                             { text: 'True/False', value: 'bool' },
-                            { text: 'Number', value: 'number' }
+                            { text: 'Number', value: 'number' },
+                            { text: 'JSON String', value: 'json' }
                         ],
+                        onChange: function (change, v) {
+                            var newVal = change.item.data;
+                            if (newVal == 'json') {
+                            }
+                        },
                     }),
                     serverDateFormat: singleInput('string', 'Server Date Format', {
                         type: 'string',
@@ -472,4 +552,116 @@ function buildConfigForm(adminConfig, allColumns) {
             buttons: btns,
         }
     });
+}
+// Helper function to make a button to serialize the form data
+function makeSQLSaveButtons(obj, saveUser, saveGlobal) {
+    return {
+        type: "group",
+        "id": "SERIALIZE_GROUP_" + uuidv4(),
+        container: {
+            style: 'width: 100%; display: flex; flex-direction: row;',
+        },
+        items: [
+            {
+                type: "button",
+                id: "SERIALIZE_BTN_" + uuidv4(),
+                control: {
+                    layout: "text",
+                    html: "<span class=\"\" style=\"\">Save to Current User</span>",
+                    "icon": "",
+                    "onClick": function () {
+                        saveUser();
+                    }
+                },
+                container: {
+                    style: ";",
+                    className: ""
+                },
+                data: { from: '' },
+                layout: "{content}"
+            },
+            {
+                type: "button",
+                id: "LOAD_BTN_" + uuidv4(),
+                control: {
+                    layout: "text",
+                    html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Save Globally </label></span>",
+                    icon: "",
+                    onClick: function () {
+                        saveGlobal();
+                    }
+                },
+                container: {
+                    style: ";",
+                    className: ""
+                },
+                data: { from: '' },
+                layout: "{content}"
+            },
+        ]
+    };
+}
+function makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback) {
+    return {
+        type: "group",
+        "id": "SERIALIZE_GROUP_" + uuidv4(),
+        container: {
+            style: 'width: 100%; display: flex; flex-direction: row;',
+        },
+        items: [
+            {
+                type: "button",
+                id: "SERIALIZE_BTN_" + uuidv4(),
+                control: {
+                    layout: "text",
+                    html: "<span class=\"\" style=\"\">Save</span>",
+                    "icon": "",
+                    "onClick": function () {
+                        writeToFileCallback();
+                    }
+                },
+                container: {
+                    style: ";",
+                    className: ""
+                },
+                data: { from: '' },
+                layout: "{content}"
+            },
+            {
+                type: "button",
+                id: "LOAD_BTN_" + uuidv4(),
+                control: {
+                    layout: "text",
+                    html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Load </label></span>",
+                    icon: "",
+                    onClick: function () {
+                        var input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'application/json';
+                        input.multiple = false;
+                        input.onchange = function (_) {
+                            var _a;
+                            var files = Array.from((_a = input.files) !== null && _a !== void 0 ? _a : []);
+                            if (files.length > 0) {
+                                var reader_1 = new FileReader();
+                                reader_1.readAsText(files[0]);
+                                reader_1.onloadend = function (res) {
+                                    var _a, _b;
+                                    var text = (_b = (_a = reader_1.result) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "";
+                                    loadFromFileCallback(JSON.parse(text));
+                                };
+                            }
+                        };
+                        input.click();
+                    }
+                },
+                container: {
+                    style: ";",
+                    className: ""
+                },
+                data: { from: '' },
+                layout: "{content}"
+            },
+        ]
+    };
 }

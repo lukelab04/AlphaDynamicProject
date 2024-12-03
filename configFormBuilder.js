@@ -17,12 +17,6 @@ function renderForm(obj, formName, items) {
 }
 // Mapping from ID to boolean so components can look up if they are hidden
 var SHOW_HIDE_MAP = {};
-// https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
-function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, function (c) {
-        return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16);
-    });
-}
 // Helper to make sure arguments are what they should be
 function typeCheck(x, type, msg) {
     if (typeof x !== type)
@@ -683,6 +677,7 @@ var Value = /** @class */ (function () {
 // Input = abstract thing or piece of data, Value = literal JSON value that can be entered into the form
 var Input = /** @class */ (function () {
     function Input(options) {
+        var _a;
         this.currDropdownValue = "";
         this.renderOptions = {
             keyName: '',
@@ -724,7 +719,6 @@ var Input = /** @class */ (function () {
         this.comments = typeCheck(options.comments, 'string', 'options.comments should be a string');
         this.validate = typeCheck(options.validate, 'function', 'options.validate should be a function');
         if (options.onPopulate) {
-            ;
             this.onPopulate = typeCheck(options.onPopulate, 'function', 'options.onPopulate should be a function');
         }
         else {
@@ -732,6 +726,8 @@ var Input = /** @class */ (function () {
         }
         // If show is undefined, just default to true
         this.show = options.show ? typeCheck(options.show, 'function', 'options.show should be a function') : (function () { return true; });
+        this.onPopulate = (_a = options.onPopulate) !== null && _a !== void 0 ? _a : undefined;
+        this.mapSerialized = options.mapSerialized;
     }
     // Helper function to return a 'values' array (used in the Input description) with a single value 
     // Takes value, an instance of the Value object
@@ -757,7 +753,8 @@ var Input = /** @class */ (function () {
             values: [],
             validate: (_b = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.validate) !== null && _b !== void 0 ? _b : (function () { return true; }),
             show: (_c = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.show) !== null && _c !== void 0 ? _c : (function () { return true; }),
-            onPopulate: (_d = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.onPopulate) !== null && _d !== void 0 ? _d : (function () { })
+            onPopulate: (_d = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.onPopulate) !== null && _d !== void 0 ? _d : (function () { }),
+            mapSerialized: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.mapSerialized
         };
         return new Input({
             values: [{ value: new Value(type, valOps), dropdownLabel: '' }],
@@ -766,6 +763,7 @@ var Input = /** @class */ (function () {
             validate: inputOps.validate,
             show: inputOps.show,
             onPopulate: inputOps.onPopulate,
+            mapSerialized: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.mapSerialized
         });
     };
     // Set the parent of this object and recursivley set parents of all children
@@ -790,6 +788,9 @@ var Input = /** @class */ (function () {
         try {
             var value = this.childMap[this.currDropdownValue].serialize();
             this.validate(value);
+            if (this.mapSerialized) {
+                value = this.mapSerialized(value);
+            }
             return value;
         }
         catch (e) {
@@ -827,6 +828,7 @@ var Input = /** @class */ (function () {
             validate: this.validate,
             show: this.show,
             onPopulate: (_a = this.onPopulate) !== null && _a !== void 0 ? _a : (function (_1, _2) { }),
+            mapSerialized: this.mapSerialized
         };
         for (var _i = 0, _b = this.values; _i < _b.length; _i++) {
             var value = _b[_i];
@@ -1185,8 +1187,7 @@ var Input = /** @class */ (function () {
 }());
 // Given obj (dialog.object), the form name, and a config object (instance of Input or Value), 
 // build and render a JSON Form.
-function buildFromConfig(obj, formName, configObj, listName, isSql) {
-    if (isSql === void 0) { isSql = false; }
+function buildFromConfig(obj, formName, configObj, listName, otherItems) {
     configObj.preprocess(obj, formName);
     if (!obj.stateInfo)
         obj.stateInfo = {};
@@ -1218,81 +1219,6 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
     var loadFromFileCallback = function (data) {
         populateFromData(obj, formName, configObj, reRender, data);
     };
-    var runValidation = function (config) {
-        if ('name' in config) {
-            validateConfig(config);
-        }
-        else {
-            validateMapping(config);
-        }
-    };
-    var extractRelevantConfig = function (config, global) {
-        if (('name' in config) && global)
-            return config;
-        if (('name' in config) && !global)
-            return config.mappings;
-        // Global and no name means user isn't logged in 
-        if (global) {
-            throw new Error("Please log in as an administrator to save a list configuration globally.");
-        }
-        // Otherwise, the config is already just the mapping
-        return config;
-    };
-    var saveGlobal = function () {
-        try {
-            var maybeConfig = configObj.serialize();
-            runValidation(maybeConfig);
-            maybeConfig = extractRelevantConfig(maybeConfig, true);
-            var data = encodeURIComponent(JSON.stringify(maybeConfig));
-            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(listName, "&payload=").concat(data, "&global=").concat(true), {
-                onComplete: function () {
-                    var res = obj.stateInfo.apiResponse;
-                    if (res && res.err) {
-                        displayErrorMessage(res.err);
-                        console.error(res.err);
-                    }
-                    else {
-                        alert('Config saved.');
-                    }
-                    obj.applyConfigChanges();
-                }
-            });
-        }
-        catch (e) {
-            displayErrorMessage(e.toString());
-            console.error(e);
-        }
-    };
-    var saveUser = function () {
-        try {
-            var maybeConfig = configObj.serialize();
-            runValidation(maybeConfig);
-            maybeConfig = extractRelevantConfig(maybeConfig, false);
-            var data = encodeURIComponent(JSON.stringify(maybeConfig));
-            obj.ajaxCallback('', '', 'save_config', '', "configName=".concat(listName, "&payload=").concat(data, "&global=").concat(false), {
-                onComplete: function () {
-                    var res = obj.stateInfo.apiResponse;
-                    if (res && res.err) {
-                        displayErrorMessage(res.err);
-                        console.error(res.err);
-                    }
-                    else {
-                        alert('Config saved.');
-                    }
-                    obj.applyConfigChanges();
-                }
-            });
-        }
-        catch (e) {
-            displayErrorMessage(e.toString());
-            console.error(e);
-        }
-    };
-    var bottomButtons;
-    if (!isSql)
-        bottomButtons = makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback);
-    else
-        bottomButtons = makeSQLSaveButtons(obj, saveUser, saveGlobal);
     // Callback to re render form. Saves current form data and restores it after re rendering.
     var reRender = function () {
         configObj.setParent();
@@ -1304,7 +1230,7 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
         catch (e) {
             displayErrorMessage(e.toString());
         }
-        renderForm(obj, formName, [form, bottomButtons]);
+        renderForm(obj, formName, [form, otherItems]);
         obj.setValue(formName, oldData);
     };
     function addObjAsTab(obj, tabTitle) {
@@ -1348,7 +1274,7 @@ function buildFromConfig(obj, formName, configObj, listName, isSql) {
         displayErrorMessage(e.toString());
         form = {};
     }
-    renderForm(obj, formName, [form, bottomButtons]);
+    renderForm(obj, formName, [form, otherItems]);
     return reRender;
 }
 // Helper function to populate the form given an existing JSON object representing the data
@@ -1406,117 +1332,5 @@ function wrapInTab(formJSON, title, id, mainId, obj) {
             style: "display: flex; flex-direction: row; justify-content: center; align-items: center;",
         },
         items: [formJSON],
-    };
-}
-// Helper function to make a button to serialize the form data
-function makeSerializeButton(obj, writeToFileCallback, loadFromFileCallback) {
-    return {
-        type: "group",
-        "id": "SERIALIZE_GROUP_" + uuidv4(),
-        container: {
-            style: 'width: 100%; display: flex; flex-direction: row;',
-        },
-        items: [
-            {
-                type: "button",
-                id: "SERIALIZE_BTN_" + uuidv4(),
-                control: {
-                    layout: "text",
-                    html: "<span class=\"\" style=\"\">Save</span>",
-                    "icon": "",
-                    "onClick": function () {
-                        writeToFileCallback();
-                    }
-                },
-                container: {
-                    style: ";",
-                    className: ""
-                },
-                data: { from: '' },
-                layout: "{content}"
-            },
-            {
-                type: "button",
-                id: "LOAD_BTN_" + uuidv4(),
-                control: {
-                    layout: "text",
-                    html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Load </label></span>",
-                    icon: "",
-                    onClick: function () {
-                        var input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'application/json';
-                        input.multiple = false;
-                        input.onchange = function (_) {
-                            var _a;
-                            var files = Array.from((_a = input.files) !== null && _a !== void 0 ? _a : []);
-                            if (files.length > 0) {
-                                var reader_1 = new FileReader();
-                                reader_1.readAsText(files[0]);
-                                reader_1.onloadend = function (res) {
-                                    var _a, _b;
-                                    var text = (_b = (_a = reader_1.result) === null || _a === void 0 ? void 0 : _a.toString()) !== null && _b !== void 0 ? _b : "";
-                                    loadFromFileCallback(JSON.parse(text));
-                                };
-                            }
-                        };
-                        input.click();
-                    }
-                },
-                container: {
-                    style: ";",
-                    className: ""
-                },
-                data: { from: '' },
-                layout: "{content}"
-            },
-        ]
-    };
-}
-function makeSQLSaveButtons(obj, saveUser, saveGlobal) {
-    return {
-        type: "group",
-        "id": "SERIALIZE_GROUP_" + uuidv4(),
-        container: {
-            style: 'width: 100%; display: flex; flex-direction: row;',
-        },
-        items: [
-            {
-                type: "button",
-                id: "SERIALIZE_BTN_" + uuidv4(),
-                control: {
-                    layout: "text",
-                    html: "<span class=\"\" style=\"\">Save to Current User</span>",
-                    "icon": "",
-                    "onClick": function () {
-                        saveUser();
-                    }
-                },
-                container: {
-                    style: ";",
-                    className: ""
-                },
-                data: { from: '' },
-                layout: "{content}"
-            },
-            {
-                type: "button",
-                id: "LOAD_BTN_" + uuidv4(),
-                control: {
-                    layout: "text",
-                    html: "<span class=\"\" style=\"\"><label for=\"loadFileElem\"> Save Globally </label></span>",
-                    icon: "",
-                    onClick: function () {
-                        saveGlobal();
-                    }
-                },
-                container: {
-                    style: ";",
-                    className: ""
-                },
-                data: { from: '' },
-                layout: "{content}"
-            },
-        ]
     };
 }

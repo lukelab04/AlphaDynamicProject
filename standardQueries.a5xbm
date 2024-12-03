@@ -134,9 +134,9 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	dim getRows as n
 	
 	selectPart = ""
-	for each col in columns
-		selectPart = selectPart + "[" + col.value + "],"
-	next
+'	for each col in columns
+'		selectPart = selectPart + "[" + col.value + "],"
+'	next
 	
 	if selectPart == "" then 
 		selectPart = " * "
