@@ -1,22 +1,11 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 // Take items (should be string representation of JSON) and render form
 function renderForm(obj, formName, items) {
-    items = items.filter(function (x) { return Boolean(x); });
+    items = items.filter((x) => Boolean(x));
     obj.setJSONFormItems(formName, items);
     obj.getControl(formName)._formBoxSize = "";
     obj.resizeFormBoxes();
 }
-// Mapping from ID to boolean so components can look up if they are hidden
-var SHOW_HIDE_MAP = {};
 // Helper to make sure arguments are what they should be
 function typeCheck(x, type, msg) {
     if (typeof x !== type)
@@ -26,8 +15,8 @@ function typeCheck(x, type, msg) {
 // Class to handle VALUES in the input. Numbers, strings, objects, arrays, etc.
 // The options can be of multiple forms. Null for strings, numbers, and functions, 
 // an object description for objects, or an Input instance for arrays.
-var Value = /** @class */ (function () {
-    function Value(type, options) {
+class Value {
+    constructor(type, options) {
         // Dialog object and form name
         this.obj = null;
         this.formName = "";
@@ -37,7 +26,7 @@ var Value = /** @class */ (function () {
         this.allArrayElems = {};
         SHOW_HIDE_MAP[this.id] = true;
         // Helper function to make sure object description matches what we expect
-        var validateObj = function (o) {
+        let validateObj = (o) => {
             if (!('staticKeys' in o) || !o.staticKeys) {
                 throw new Error("Expected input object to have field 'staticKeys'");
             }
@@ -45,15 +34,15 @@ var Value = /** @class */ (function () {
                 if (!(o.dynamicKeys instanceof Input))
                     throw new Error("Expected field 'dynamicKeys' to be an instance of Input");
             }
-            for (var prop in o.staticKeys) {
+            for (const prop in o.staticKeys) {
                 if (!(o.staticKeys[prop] instanceof Input))
-                    throw new Error("Key ".concat(prop, " is not associated with an instance of Input"));
+                    throw new Error(`Key ${prop} is not associated with an instance of Input`);
             }
         };
         // Helper function to make sure array description is an Input
-        var validateArr = function (options) {
+        let validateArr = (options) => {
             if (!('arrayInput' in options) || !(options.arrayInput instanceof Input))
-                throw new Error("Expected 'options.arrayInput' to be an instance of Input");
+                throw new Error(`Expected 'options.arrayInput' to be an instance of Input`);
         };
         // Set up class variables according to type of input
         switch (type) {
@@ -62,6 +51,7 @@ var Value = /** @class */ (function () {
             case 'boolean':
             case 'function':
             case 'dropdown':
+            case 'recursive':
                 this.options.type = type;
                 break;
             case 'object':
@@ -78,42 +68,92 @@ var Value = /** @class */ (function () {
                 this.allArrayElems = {};
                 break;
             default:
-                throw new Error("Value: Unknown type ".concat(type));
+                throw new Error(`Value: Unknown type ${type}`);
+        }
+    }
+    expandOneRecursionLevel() {
+        var _a;
+        switch (this.options.type) {
+            case 'string':
+            case 'number':
+            case 'boolean':
+            case 'function':
+            case 'dropdown':
+                return;
+            case 'recursive':
+                if (this.recursiveElement != undefined) {
+                    this.recursiveElement.expandOneRecursionLevel();
+                }
+                else {
+                    // Do not further expand
+                    this.recursiveElement = (_a = this.findRecursiveElem(this.options.recurseOn, this.parent)) === null || _a === void 0 ? void 0 : _a.cloneWithNewId();
+                }
+                return;
+            case 'array':
+                for (const prop in this.allArrayElems) {
+                    this.allArrayElems[prop].expandOneRecursionLevel();
+                }
+                this.options.arrayInput.expandOneRecursionLevel();
+                return;
+            case 'object':
+                for (const prop in this.options.staticKeys) {
+                    this.options.staticKeys[prop].expandOneRecursionLevel();
+                }
+                for (const prop in this.dynamicElems) {
+                    this.dynamicElems[prop].expandOneRecursionLevel();
+                }
+                if (this.options.dynamicKeys) {
+                    this.options.dynamicKeys.expandOneRecursionLevel();
+                }
+                return;
         }
     }
     // Helper method to find instances of Input that are included in this class's description 
     // (i.e. in Arrays or Objects) and set those Input parents to the parent specified here
-    Value.prototype.setParent = function (parent) {
+    setParent(parent) {
+        var _a;
+        this.parent = parent;
         switch (this.options.type) {
             case 'object':
-                for (var prop in this.options.staticKeys) {
+                for (const prop in this.options.staticKeys) {
                     this.options.staticKeys[prop].setParent(parent);
                 }
-                for (var prop in this.dynamicElems) {
+                for (const prop in this.dynamicElems) {
                     this.dynamicElems[prop].setParent(parent);
                 }
                 if (this.options.dynamicKeys)
                     this.options.dynamicKeys.setParent(parent);
                 return;
             case 'array':
-                for (var prop in this.allArrayElems) {
+                for (const prop in this.allArrayElems) {
                     this.allArrayElems[prop].setParent(parent);
                 }
                 this.options.arrayInput.setParent(parent);
                 return;
+            case 'recursive':
+                (_a = this.recursiveElement) === null || _a === void 0 ? void 0 : _a.setParent(parent);
+                return;
             default: return;
         }
-    };
+    }
     // Set the dialog object and form name for this and all children
-    Value.prototype.setObjAndFormName = function (obj, formName) {
+    setObjAndFormName(obj, formName) {
+        var _a;
         this.obj = obj;
         this.formName = formName;
         switch (this.options.type) {
+            case 'recursive':
+                if (this.recursiveElement) {
+                    if (this.recursiveElement.obj != obj || this.recursiveElement.formName != formName) {
+                        (_a = this.recursiveElement) === null || _a === void 0 ? void 0 : _a.setObjAndFormName(obj, formName);
+                    }
+                }
+                return;
             case 'object':
-                for (var prop in this.options.staticKeys) {
+                for (const prop in this.options.staticKeys) {
                     this.options.staticKeys[prop].setObjAndFormName(obj, formName);
                 }
-                for (var prop in this.dynamicElems) {
+                for (const prop in this.dynamicElems) {
                     this.dynamicElems[prop].setObjAndFormName(obj, formName);
                 }
                 if (this.options.dynamicKeys) {
@@ -121,23 +161,23 @@ var Value = /** @class */ (function () {
                 }
                 return;
             case 'array':
-                for (var prop in this.allArrayElems) {
+                for (const prop in this.allArrayElems) {
                     this.allArrayElems[prop].setObjAndFormName(obj, formName);
                 }
                 this.options.arrayInput.setObjAndFormName(obj, formName);
                 return;
             default: return;
         }
-    };
-    Value.prototype.propagateDefaults = function (hasDefault, val) {
+    }
+    propagateDefaults(hasDefault, val) {
         if (!('default' in this.options) && hasDefault)
             this.options.default = val;
         switch (this.options.type) {
             case 'object':
-                for (var prop in this.options.staticKeys) {
+                for (const prop in this.options.staticKeys) {
                     this.options.staticKeys[prop].propagateDefaults('default' in this.options, this.options.default);
                 }
-                for (var prop in this.dynamicElems) {
+                for (const prop in this.dynamicElems) {
                     this.dynamicElems[prop].propagateDefaults('default' in this.options, this.options.default);
                 }
                 if (this.options.dynamicKeys) {
@@ -145,18 +185,19 @@ var Value = /** @class */ (function () {
                 }
                 return;
             case 'array':
-                for (var prop in this.allArrayElems) {
+                for (const prop in this.allArrayElems) {
                     this.allArrayElems[prop].propagateDefaults('default' in this.options, this.options.default);
                 }
                 this.options.arrayInput.propagateDefaults('default' in this.options, this.options.default);
                 return;
         }
-    };
+    }
     // Return *value*
     // Will be a number, bool, string, array, etc
-    Value.prototype.serialize = function () {
-        var val;
-        var form = this.obj.getControl(this.formName);
+    serialize() {
+        var _a;
+        let val;
+        let form = this.obj.getControl(this.formName);
         switch (this.options.type) {
             // The simple input types can be parsed directly from the JSON
             case 'string':
@@ -193,18 +234,18 @@ var Value = /** @class */ (function () {
                 return val;
             case 'object':
                 // Collect all static & dynamic keys into objResult
-                var objResult = {};
-                for (var prop in this.options.staticKeys) {
-                    var input = this.options.staticKeys[prop];
+                let objResult = {};
+                for (const prop in this.options.staticKeys) {
+                    let input = this.options.staticKeys[prop];
                     objResult[prop] = input.serialize();
                 }
-                for (var prop in this.dynamicElems) {
-                    var input = this.dynamicElems[prop];
+                for (const prop in this.dynamicElems) {
+                    let input = this.dynamicElems[prop];
                     objResult[prop] = input.serialize();
                 }
                 // Undefined values can't be serialized anyway, so we'll clean them out
                 // This also makes it possible to see if we should use the default value for this object 
-                for (var key in objResult) {
+                for (const key in objResult) {
                     if (objResult[key] === undefined)
                         delete objResult[key];
                 }
@@ -216,8 +257,8 @@ var Value = /** @class */ (function () {
                     throw new Error('Object must specify at least one key.');
                 return objResult;
             case 'array':
-                var arrResult = [];
-                for (var prop in this.allArrayElems) {
+                let arrResult = [];
+                for (const prop in this.allArrayElems) {
                     arrResult.push(this.allArrayElems[prop].serialize());
                 }
                 if (arrResult.length == 0 && 'default' in this.options)
@@ -225,10 +266,16 @@ var Value = /** @class */ (function () {
                 if (arrResult.length == 0)
                     throw new Error('Array must have at least one element.');
                 return arrResult;
+            case 'recursive':
+                return (_a = this.recursiveElement) === null || _a === void 0 ? void 0 : _a.serialize();
         }
-    };
+    }
     // If this is an object, return the Input associated with this key
-    Value.prototype.key = function (name) {
+    // Alt. this can be recursive
+    key(name) {
+        var _a;
+        if (this.options.type == 'recursive')
+            return (_a = this.recursiveElement) === null || _a === void 0 ? void 0 : _a.selected().key(name);
         if (this.options.type !== 'object')
             return;
         if (this.options.staticKeys[name]) {
@@ -237,31 +284,51 @@ var Value = /** @class */ (function () {
         if (this.dynamicElems[name]) {
             return this.dynamicElems[name];
         }
-    };
+    }
     // If this is an array, return the Input associated with the index
-    Value.prototype.index = function (i) {
+    index(i) {
+        var _a;
+        if (this.options.type == 'recursive')
+            return (_a = this.recursiveElement) === null || _a === void 0 ? void 0 : _a.selected().index(i);
         if (this.options.type !== 'array')
             return;
         return Object.values(this.allArrayElems)[i];
-    };
+    }
+    findRecursiveElem(name, parent) {
+        if ((parent === null || parent === void 0 ? void 0 : parent.name) === name) {
+            return parent;
+        }
+        if (parent !== undefined)
+            return this.findRecursiveElem(name, parent.parent);
+        return undefined;
+    }
     // Return a JSON object that can be used to populate the form
     // Takes 'data', which is a JSON object *or JSON value* corresponding to this object
-    Value.prototype.getPopulateDataFromObj = function (data) {
+    getPopulateDataFromObj(data) {
+        var _a, _b, _c;
         // If data is undefined and we have a default, just return an object setting this item to our default
         if (data === undefined && 'default' in this.options) {
-            var d = {};
+            let d = {};
             d[this.id] = this.options.default;
             return d;
         }
-        var t = typeof data;
+        // Recursive elems just forward the request 
+        if (this.options.type == 'recursive') {
+            // Cloning will break the recursive link
+            if (!this.recursiveElement) {
+                this.recursiveElement = (_a = this.findRecursiveElem(this.options.recurseOn, this.parent)) === null || _a === void 0 ? void 0 : _a.cloneWithNewId();
+            }
+            return (_c = (_b = this.recursiveElement) === null || _b === void 0 ? void 0 : _b.getPopulateDataFromObj(data)) !== null && _c !== void 0 ? _c : {};
+        }
+        let t = typeof data;
         // Simple types can be set directly to 'data'
         if ((t == 'string' || t == 'boolean' || t == 'number') && this.options.type === t) {
-            var d = {};
+            let d = {};
             d[this.id] = data;
             return d;
         }
         if (t == 'string' && this.options.type == 'dropdown') {
-            var d = {};
+            let d = {};
             d[this.id] = data;
             return d;
         }
@@ -269,18 +336,17 @@ var Value = /** @class */ (function () {
         // Implies closures don't work, but the JSON object representation of whatever we are building
         // should be standalone anyway.
         if (t == 'string' && this.options.type === 'function') {
-            var d = {};
+            let d = {};
             d[this.id] = data.toString();
             return d;
         }
         // Handle arrays
         else if (t == 'object' && data instanceof Array && this.options.type == 'array') {
             this.allArrayElems = {};
-            var d = {};
-            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
-                var elem = data_1[_i];
+            let d = {};
+            for (const elem of data) {
                 // Make a new instance of the array element to hold this element of d
-                var input = this.options.arrayInput.cloneWithNewId();
+                let input = this.options.arrayInput.cloneWithNewId();
                 // We don't actually need the form, we just need to populate the child map,
                 // which is done when building the form
                 input.buildJSONForm();
@@ -291,22 +357,22 @@ var Value = /** @class */ (function () {
         }
         // Handle objects
         else if (t == 'object' && this.options.type == 'object') {
-            var d = {};
+            let d = {};
             // We will try to parse all remaining keys in d as a dynamic key.
             // So we should keep track of which keys we see while filling so we don't parse any twice.
-            var seen = {};
+            let seen = {};
             // If key corresponds to static entry, populate it.
-            for (var elem in this.options.staticKeys) {
+            for (const elem in this.options.staticKeys) {
                 // Ok if data[elem] undefined, input getPopulateDataFromObj will handle default items
                 Object.assign(d, this.options.staticKeys[elem].getPopulateDataFromObj(data[elem]));
                 seen[elem] = true;
             }
             // For remaining keys, try to parse according to dynamic keys
             this.dynamicElems = {};
-            for (var elem in data) {
+            for (const elem in data) {
                 if (seen[elem])
                     continue;
-                var input = this.options.dynamicKeys;
+                let input = this.options.dynamicKeys;
                 if (!input)
                     throw new Error('Could not parse keys ' + JSON.stringify(data));
                 input = input.cloneWithNewId();
@@ -319,15 +385,16 @@ var Value = /** @class */ (function () {
         }
         // Type didn't match anything we recognize
         else {
-            var str = JSON.stringify(data);
-            var label = this.parent ? 'Value ' + this.parent.label + ': ' : '';
+            let str = JSON.stringify(data);
+            let label = this.parent ? 'Value ' + this.parent.label + ': ' : '';
             throw new Error(label + 'Could not parse ' + (str ? str : 'empty value when no default was supplied'));
         }
-    };
+    }
     // Return an object containing key-value pairs for data currently in the form 
-    Value.prototype.getPopulateData = function () {
-        var data = {};
-        var form = this.obj.getControl(this.formName);
+    getPopulateData() {
+        var _a, _b, _c;
+        let data = {};
+        let form = this.obj.getControl(this.formName);
         switch (this.options.type) {
             case 'string':
             case 'number':
@@ -337,24 +404,29 @@ var Value = /** @class */ (function () {
                 data[this.id] = form.data[this.id];
                 return data;
             case 'object':
-                for (var prop in this.options.staticKeys) {
+                for (const prop in this.options.staticKeys) {
                     Object.assign(data, this.options.staticKeys[prop].getPopulateData());
                 }
-                for (var prop in this.dynamicElems) {
+                for (const prop in this.dynamicElems) {
                     Object.assign(data, this.dynamicElems[prop].getPopulateData());
                 }
                 return data;
             case 'array':
-                for (var prop in this.allArrayElems) {
+                for (const prop in this.allArrayElems) {
                     Object.assign(data, this.allArrayElems[prop].getPopulateData());
                 }
                 return data;
+            case 'recursive':
+                if (this.recursiveElement == undefined) {
+                    this.recursiveElement = (_a = this.findRecursiveElem(this.options.recurseOn, this.parent)) === null || _a === void 0 ? void 0 : _a.cloneWithNewId();
+                }
+                return (_c = (_b = this.recursiveElement) === null || _b === void 0 ? void 0 : _b.getPopulateData()) !== null && _c !== void 0 ? _c : {};
         }
-    };
+    }
     // Do a "fairly deep" clone of an object. The ID is new and all children will be cloned as well. 
     // Options will be kept. Array elements and dynamic keys are not kept.
-    Value.prototype.cloneWithNewId = function () {
-        var value = null;
+    cloneWithNewId() {
+        let value = null;
         switch (this.options.type) {
             // No special handling for basic input types
             case 'string':
@@ -366,12 +438,18 @@ var Value = /** @class */ (function () {
                 value.obj = this.obj;
                 value.formName = this.formName;
                 return value;
+            case 'recursive':
+                value = new Value(this.options.type, this.options);
+                value.obj = this.obj;
+                value.formName = this.formName;
+                value.recursiveElement = undefined;
+                return value;
             case 'object':
                 // Clone static & dynamic keys and return
-                var objOptions = { type: 'object', staticKeys: {} };
+                let objOptions = { type: 'object', staticKeys: {} };
                 if ('default' in this.options)
                     objOptions.default = this.options.default;
-                for (var prop in this.options.staticKeys) {
+                for (const prop in this.options.staticKeys) {
                     objOptions.staticKeys[prop] = this.options.staticKeys[prop].cloneWithNewId();
                 }
                 if (this.options.dynamicKeys) {
@@ -382,7 +460,7 @@ var Value = /** @class */ (function () {
                 value.setObjAndFormName(this.obj, this.formName);
                 return value;
             case 'array':
-                var arrOptions = { type: 'array', arrayInput: this.options.arrayInput.cloneWithNewId() };
+                let arrOptions = { type: 'array', arrayInput: this.options.arrayInput.cloneWithNewId() };
                 arrOptions.inline = this.options.inline;
                 if ('default' in this.options)
                     arrOptions.default = this.options.default;
@@ -390,10 +468,19 @@ var Value = /** @class */ (function () {
                 value.setObjAndFormName(this.obj, this.formName);
                 return value;
         }
-    };
+    }
     // Build the JSON form input element corresponding to this object instance. 
-    Value.prototype.buildFormInput = function (showMoveButtons, callbacks) {
+    buildFormInput(showMoveButtons, callbacks) {
+        var _a, _b;
         switch (this.options.type) {
+            case 'recursive':
+                // If recursive element doesn't exist, we should create it
+                // User should have a base case specified, so if we get here, 
+                // then we will definitely want to create it.
+                if (!this.recursiveElement) {
+                    this.recursiveElement = (_a = this.findRecursiveElem(this.options.recurseOn, this.parent)) === null || _a === void 0 ? void 0 : _a.cloneWithNewId();
+                }
+                return (_b = this.recursiveElement) === null || _b === void 0 ? void 0 : _b.buildJSONForm(showMoveButtons, callbacks);
             case 'string':
             case 'function':
             case 'number':
@@ -407,8 +494,8 @@ var Value = /** @class */ (function () {
             case 'array':
                 return this.buildArrayInput(callbacks);
         }
-    };
-    Value.prototype.buildOpenInTabButton = function (id, buttonText, onClick) {
+    }
+    buildOpenInTabButton(id, buttonText, onClick) {
         return {
             type: "button",
             id: id,
@@ -424,24 +511,28 @@ var Value = /** @class */ (function () {
             },
             layout: "{content}"
         };
-    };
+    }
     // Build JSON form input for an Object input
-    Value.prototype.buildObjectInput = function (showMoveButtons, callbacks) {
-        var _this = this;
+    buildObjectInput(showMoveButtons, callbacks) {
         if (this.options.type != 'object')
             return;
-        var allChildren = [];
-        var makeTabBtn = function (input, btnText, tabTitle) {
-            var openBtn = _this.buildOpenInTabButton(_this.id + "_OPEN_BTN_" + input.id, btnText, function () {
+        let allChildren = [];
+        let makeTabBtn = (input, btnText, tabTitle) => {
+            let openBtn = this.buildOpenInTabButton(this.id + "_OPEN_BTN_" + input.id, btnText, () => {
                 callbacks === null || callbacks === void 0 ? void 0 : callbacks.addObjAsTab(input, tabTitle);
             });
-            var _a = input.buildMoveButtons(callbacks), up = _a.up, down = _a.down;
+            let { up, down } = input.buildMoveButtons(callbacks);
             if (showMoveButtons) {
                 return {
                     type: "group",
-                    id: _this.id + "_MOVE_AND_OPEN_BTNS",
+                    id: this.id + "_MOVE_AND_OPEN_BTNS",
                     container: {
                         style: "display: flex; flex-direction: row; align-items: center; width: 100%;"
+                    },
+                    show: () => {
+                        let a = SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id];
+                        let b = input.show(input);
+                        return a && b;
                     },
                     items: [
                         up,
@@ -453,10 +544,10 @@ var Value = /** @class */ (function () {
             return openBtn;
         };
         // Get form JSON for all static & dynamic keys
-        for (var key in this.options.staticKeys) {
-            var input = this.options.staticKeys[key];
-            var inputType = input.selected();
-            var inputForm = null;
+        for (const key in this.options.staticKeys) {
+            let input = this.options.staticKeys[key];
+            let inputType = input.selected();
+            let inputForm = null;
             if (inputType && (inputType.options.type == 'object' || inputType.options.type == 'array') && !inputType.options.inline) {
                 inputForm = makeTabBtn(input, "Open " + key, input.label + " -- " + key);
             }
@@ -464,12 +555,12 @@ var Value = /** @class */ (function () {
                 inputForm = input.buildJSONForm(false, callbacks);
             allChildren.push(inputForm);
         }
-        for (var key in this.dynamicElems) {
-            var input = this.dynamicElems[key];
+        for (const key in this.dynamicElems) {
+            let input = this.dynamicElems[key];
             input.renderOptions.delete = true;
             input.renderOptions.keyName = key;
-            var inputType = input.selected();
-            var inputForm = null;
+            let inputType = input.selected();
+            let inputForm = null;
             if (inputType && (inputType.options.type == 'object' || inputType.options.type == 'array') && !inputType.options.inline) {
                 showMoveButtons = true;
                 inputForm = makeTabBtn(input, "Open " + key, input.label + ' -- ' + key);
@@ -479,25 +570,26 @@ var Value = /** @class */ (function () {
             allChildren.push(inputForm);
         }
         // Callback function to add a key to this object
-        var addDynamicKey = function () {
-            if (_this.options.type != 'object')
+        let addDynamicKey = () => {
+            if (this.options.type != 'object')
                 return;
-            var form = _this.obj.getControl(_this.formName);
+            let form = this.obj.getControl(this.formName);
             // Get the key name from the input box and make sure it isn't empty, isn't null, and doesn't already exist
-            var keyName = form.data[_this.id + "_ADD_KEY_INPUT"];
+            let keyName = form.data[this.id + "_ADD_KEY_INPUT"];
             // Reset key input
-            form.data[_this.id + "_ADD_KEY_INPUT"] = "";
+            form.data[this.id + "_ADD_KEY_INPUT"] = "";
             if (keyName == "" || !keyName)
                 return;
-            if (!_this.options.dynamicKeys)
+            if (!this.options.dynamicKeys)
                 return;
             // Clone dynamic keys input element, add it to this object instance, and re render
-            var newItem = _this.options.dynamicKeys.cloneWithNewId();
+            let newItem = this.options.dynamicKeys.cloneWithNewId();
+            newItem.expandOneRecursionLevel();
             newItem.buildJSONForm(true, callbacks);
-            _this.dynamicElems[keyName] = newItem;
+            this.dynamicElems[keyName] = newItem;
             callbacks === null || callbacks === void 0 ? void 0 : callbacks.reRender();
         };
-        var items = [];
+        let items = [];
         // If we have the ability to add dynamic keys, we need to add a button to create them
         if (this.options.dynamicKeys) {
             items = [
@@ -553,23 +645,22 @@ var Value = /** @class */ (function () {
                 style: "; width: 100%;display: flex; flex-direction: row; flex-flow: wrap; box-sizing: border-box;"
             },
             // Show if the show hide map says we should show
-            show: function () { return SHOW_HIDE_MAP[_this.id] === undefined ? true : SHOW_HIDE_MAP[_this.id]; },
+            show: () => { return SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id]; },
             items: allChildren,
         };
-    };
+    }
     // Build JSON form element from array input
-    Value.prototype.buildArrayInput = function (callbacks) {
-        var _this = this;
+    buildArrayInput(callbacks) {
         if (this.options.type != 'array')
             return;
-        var value = this.options.arrayInput;
+        let value = this.options.arrayInput;
         // Helper function to take an instance of Input and wrap it in a JSON form row (rows have buttons to delete)
-        var injectIntoRow = function (input) {
-            var inputForm = input.buildJSONForm(true, callbacks);
-            var id = "ARRAY_ROW_" + uuidv4();
+        let injectIntoRow = (input) => {
+            let inputForm = input.buildJSONForm(true, callbacks);
+            let id = "ARRAY_ROW_" + uuidv4();
             return {
                 type: "group",
-                show: function () { return SHOW_HIDE_MAP[id] === undefined ? true : SHOW_HIDE_MAP[id]; },
+                show: () => { return SHOW_HIDE_MAP[id] === undefined ? true : SHOW_HIDE_MAP[id]; },
                 id: id,
                 container: {
                     style: ";width: 100%; display: flex; flex-direction: row; flex-flow: wrap;"
@@ -580,9 +671,9 @@ var Value = /** @class */ (function () {
             };
         };
         // Callback for the add row onclick
-        var makeArrayRow = function () {
-            var input = value.cloneWithNewId();
-            _this.allArrayElems[input.id] = input;
+        let makeArrayRow = () => {
+            let input = value.cloneWithNewId();
+            this.allArrayElems[input.id] = input;
             callbacks === null || callbacks === void 0 ? void 0 : callbacks.reRender();
         };
         return {
@@ -591,8 +682,10 @@ var Value = /** @class */ (function () {
             container: {
                 style: "; width: 100%;display: flex; flex-direction: row; flex-flow: wrap; box-sizing: border-box;"
             },
-            show: function () { return SHOW_HIDE_MAP[_this.id] === undefined ? true : SHOW_HIDE_MAP[_this.id]; },
-            items: __spreadArray(__spreadArray([], Object.values(this.allArrayElems).map(injectIntoRow), true), [
+            show: () => { return SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id]; },
+            items: [
+                // allArrayElems are Input instances, so we need to map those to JSON forms
+                ...Object.values(this.allArrayElems).map(injectIntoRow),
                 {
                     type: "button",
                     id: this.id + "_ADD_BTN",
@@ -608,20 +701,19 @@ var Value = /** @class */ (function () {
                     },
                     layout: "{content}"
                 }
-            ], false)
+            ]
         };
-    };
+    }
     // Build input for "simple" values (number, bool, string, function)
-    Value.prototype.buildSimpleInput = function (editType) {
-        var _this = this;
-        var input = {
+    buildSimpleInput(editType) {
+        let input = {
             type: editType,
             id: this.id,
             data: {
                 from: this.id,
                 ensure: true,
             },
-            show: function () { return SHOW_HIDE_MAP[_this.id] === undefined ? true : SHOW_HIDE_MAP[_this.id]; },
+            show: () => { return SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id]; },
             control: {
                 placeholder: "",
                 width: "100%",
@@ -632,30 +724,29 @@ var Value = /** @class */ (function () {
             }
         };
         return input;
-    };
-    Value.prototype.buildDropdownInput = function () {
-        var _this = this;
+    }
+    buildDropdownInput() {
         if (this.options.type != 'dropdown')
             return;
-        var dropdown = {
+        let dropdown = {
             type: "picker",
             id: this.id,
             data: {
                 from: this.id,
                 ensure: true,
             },
-            show: function () { return SHOW_HIDE_MAP[_this.id] === undefined ? true : SHOW_HIDE_MAP[_this.id]; },
+            show: () => { return SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id]; },
             control: {
                 placeholder: "",
                 data: {
                     src: this.options.dropdownItems,
                     map: ["value", "text"],
                 },
-                onChange: function (change) {
-                    if (_this.options.type != 'dropdown')
+                onChange: (change) => {
+                    if (this.options.type != 'dropdown')
                         return;
-                    if (_this.options.onChange) {
-                        _this.options.onChange(change, _this);
+                    if (this.options.onChange) {
+                        this.options.onChange(change, this);
                     }
                 }
             },
@@ -664,9 +755,8 @@ var Value = /** @class */ (function () {
             }
         };
         return dropdown;
-    };
-    return Value;
-}());
+    }
+}
 // Class to handle an input for an *abstract* value.
 // For example, we may want an input to handle a shipping address. 
 // The exact information we need for that may vary by state or country. 
@@ -675,8 +765,8 @@ var Value = /** @class */ (function () {
 // values to encompass all of the options a user might need to input their address.
 // That is the core difference between this and the Value class. 
 // Input = abstract thing or piece of data, Value = literal JSON value that can be entered into the form
-var Input = /** @class */ (function () {
-    function Input(options) {
+class Input {
+    constructor(options) {
         var _a;
         this.currDropdownValue = "";
         this.renderOptions = {
@@ -699,13 +789,12 @@ var Input = /** @class */ (function () {
         this.id = "GROUP_" + uuidv4();
         SHOW_HIDE_MAP[this.id] = true;
         // Helper to validate that the 'values' array is of the expected form
-        var validateTypes = function (t) {
+        let validateTypes = (t) => {
             if (!(t instanceof Array))
                 throw new Error("Expected 'values' to be an Array");
             if (t.length == 0)
                 throw new Error("Expected 'values' to have at least one element");
-            for (var _i = 0, t_1 = t; _i < t_1.length; _i++) {
-                var item = t_1[_i];
+            for (const item of t) {
                 typeCheck(item, 'object', "All items in 'values' should be objects");
                 typeCheck(item.dropdownLabel, 'string', "Expected 'dropdownLabel' to be a string");
                 if (!item.value || !(item.value instanceof Value))
@@ -725,35 +814,37 @@ var Input = /** @class */ (function () {
             this.onPopulate = undefined;
         }
         // If show is undefined, just default to true
-        this.show = options.show ? typeCheck(options.show, 'function', 'options.show should be a function') : (function () { return true; });
+        this.show = options.show ? typeCheck(options.show, 'function', 'options.show should be a function') : (() => true);
         this.onPopulate = (_a = options.onPopulate) !== null && _a !== void 0 ? _a : undefined;
         this.mapSerialized = options.mapSerialized;
+        this.name = options.name;
     }
     // Helper function to return a 'values' array (used in the Input description) with a single value 
     // Takes value, an instance of the Value object
-    Input.singleValue = function (value) {
+    static singleValue(value) {
         return [{
                 value: value,
                 dropdownLabel: ''
             }];
-    };
+    }
     // Helper function to return an input that has just a single Value in the values array 
     // Takes a type string (object, array, number, etc)
     // Takes a label, used for the input
     // Takes options, which are used in the Value constructor (so you could pass in the object description, etc)
     // Takes show, a callback function, defaults to return true
-    Input.singleInput = function (type, label, valueOptions, inputOptions) {
+    static singleInput(type, label, valueOptions, inputOptions) {
         var _a, _b, _c, _d;
-        var valOps = valueOptions ? valueOptions : {
+        let valOps = valueOptions ? valueOptions : {
             type: type,
         };
-        var inputOps = {
+        let inputOps = {
+            name: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.name,
             label: label,
             comments: (_a = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.comments) !== null && _a !== void 0 ? _a : '',
             values: [],
-            validate: (_b = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.validate) !== null && _b !== void 0 ? _b : (function () { return true; }),
-            show: (_c = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.show) !== null && _c !== void 0 ? _c : (function () { return true; }),
-            onPopulate: (_d = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.onPopulate) !== null && _d !== void 0 ? _d : (function () { }),
+            validate: (_b = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.validate) !== null && _b !== void 0 ? _b : (() => true),
+            show: (_c = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.show) !== null && _c !== void 0 ? _c : (() => true),
+            onPopulate: (_d = inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.onPopulate) !== null && _d !== void 0 ? _d : (() => { }),
             mapSerialized: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.mapSerialized
         };
         return new Input({
@@ -763,30 +854,29 @@ var Input = /** @class */ (function () {
             validate: inputOps.validate,
             show: inputOps.show,
             onPopulate: inputOps.onPopulate,
-            mapSerialized: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.mapSerialized
+            mapSerialized: inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.mapSerialized,
+            name: inputOps.name
         });
-    };
+    }
     // Set the parent of this object and recursivley set parents of all children
-    Input.prototype.setParent = function (parent) {
+    setParent(parent) {
         this.parent = parent;
-        for (var _i = 0, _a = this.values; _i < _a.length; _i++) {
-            var item = _a[_i];
+        for (const item of this.values) {
             item.value.setParent(this);
         }
-    };
+    }
     // Set the dialog object and form name for this and all children
-    Input.prototype.setObjAndFormName = function (obj, formName) {
+    setObjAndFormName(obj, formName) {
         this.obj = obj;
         this.formName = formName;
-        for (var _i = 0, _a = this.values; _i < _a.length; _i++) {
-            var item = _a[_i];
+        for (const item of this.values) {
             item.value.setObjAndFormName(obj, formName);
         }
-    };
+    }
     // Return a JSON object representing the data in this class
-    Input.prototype.serialize = function () {
+    serialize() {
         try {
-            var value = this.childMap[this.currDropdownValue].serialize();
+            let value = this.childMap[this.currDropdownValue].serialize();
             this.validate(value);
             if (this.mapSerialized) {
                 value = this.mapSerialized(value);
@@ -794,67 +884,70 @@ var Input = /** @class */ (function () {
             return value;
         }
         catch (e) {
-            var errMsg = "<p>Errors while attempting to serialize input <b>".concat(this.label, "</b>:</p>");
+            let errMsg = `<p>Errors while attempting to serialize input <b>${this.label}</b>:</p>`;
             errMsg += '<div style = "margin-left: 1rem;">';
             errMsg += e.toString();
             errMsg += "</div>";
             throw errMsg;
         }
-    };
+    }
     // Return input corresponding to selected dropdown element
-    Input.prototype.selected = function () {
+    selected() {
         return this.childMap[this.currDropdownValue];
-    };
-    Input.prototype.propagateDefaults = function (hasDefault, val) {
-        for (var _i = 0, _a = this.values; _i < _a.length; _i++) {
-            var item = _a[_i];
+    }
+    propagateDefaults(hasDefault, val) {
+        for (const item of this.values) {
             item.value.propagateDefaults(hasDefault, val);
         }
-    };
-    Input.prototype.preprocess = function (obj, formName, parent) {
+    }
+    preprocess(obj, formName, parent) {
         this.setParent(parent);
         this.setObjAndFormName(obj, formName);
         this.propagateDefaults(false, undefined);
-    };
+    }
     // Similar to the method in Value. 
     // Clone this object with a new ID, and carry across the options specified. 
     // Children are also cloned with a new ID. 
-    Input.prototype.cloneWithNewId = function () {
+    cloneWithNewId() {
         var _a;
-        var newOptions = {
+        let newOptions = {
             values: [],
             label: this.label,
             comments: this.comments,
             validate: this.validate,
             show: this.show,
-            onPopulate: (_a = this.onPopulate) !== null && _a !== void 0 ? _a : (function (_1, _2) { }),
-            mapSerialized: this.mapSerialized
+            onPopulate: (_a = this.onPopulate) !== null && _a !== void 0 ? _a : ((_1, _2) => { }),
+            mapSerialized: this.mapSerialized,
+            name: this.name
         };
-        for (var _i = 0, _b = this.values; _i < _b.length; _i++) {
-            var value = _b[_i];
+        for (const value of this.values) {
             newOptions.values.push({
                 value: value.value.cloneWithNewId(),
                 dropdownLabel: value.dropdownLabel,
             });
         }
-        var i = new Input(newOptions);
+        let i = new Input(newOptions);
         i.renderOptions = JSON.parse(JSON.stringify(this.renderOptions));
         i.setParent(this.parent);
         i.setObjAndFormName(this.obj, this.formName);
         return i;
-    };
+    }
+    expandOneRecursionLevel() {
+        for (const valuedef of this.values) {
+            valuedef.value.expandOneRecursionLevel();
+        }
+    }
     // Return a JSON object that can be used to set the JSON Form data.
     // 'data' should be a JSON object or value.
-    Input.prototype.getPopulateDataFromObj = function (data) {
+    getPopulateDataFromObj(data) {
         // Loop through value definitions, searching for one that matches the data 
         // If none accept, return with false
-        var recentErrs = {};
-        for (var _i = 0, _a = this.values; _i < _a.length; _i++) {
-            var valuedef = _a[_i];
+        let recentErrs = {};
+        for (const valuedef of this.values) {
             // getPopulateDataFromObj can throw an error, but we don't want to instantly return failure in that case. 
             // Instead we want to try and find at least one that doesn't fail, and use that.
             try {
-                var d = valuedef.value.getPopulateDataFromObj(data);
+                let d = valuedef.value.getPopulateDataFromObj(data);
                 this.setDropdown({ item: { data: valuedef.dropdownLabel } });
                 if (this.onPopulate) {
                     this.onPopulate(this, data);
@@ -867,29 +960,28 @@ var Input = /** @class */ (function () {
                 recentErrs[valuedef.dropdownLabel] = e;
             }
         }
-        var errMsg = "<p>Errors while attempting to parse input <b>".concat(this.label, "</b>:</p>");
+        let errMsg = `<p>Errors while attempting to parse input <b>${this.label}</b>:</p>`;
         errMsg += '<div style = "margin-left: 1rem;">';
-        for (var _b = 0, _c = this.values; _b < _c.length; _b++) {
-            var valuedef = _c[_b];
+        for (const valuedef of this.values) {
             if (valuedef.dropdownLabel != '')
-                errMsg += "<p>For dropdown <b>".concat(valuedef.dropdownLabel, " </b></p>");
+                errMsg += `<p>For dropdown <b>${valuedef.dropdownLabel} </b></p>`;
             errMsg += recentErrs[valuedef.dropdownLabel].toString();
         }
         errMsg += "</div>";
         throw errMsg;
-    };
-    Input.prototype.getPopulateData = function () {
-        var d = {};
+    }
+    getPopulateData() {
+        let d = {};
         d[this.dropdownId] = this.currDropdownValue;
-        for (var prop in this.childMap) {
+        for (const prop in this.childMap) {
             Object.assign(d, this.childMap[prop].getPopulateData());
         }
         return d;
-    };
+    }
     // Helper function to select one of the dropdown values and update child visibility.
-    Input.prototype.setDropdown = function (changeInfo) {
-        var changedTo = changeInfo.item.data;
-        for (var dropdownLabel in this.childMap) {
+    setDropdown(changeInfo) {
+        let changedTo = changeInfo.item.data;
+        for (const dropdownLabel in this.childMap) {
             if (dropdownLabel == changedTo) {
                 SHOW_HIDE_MAP[this.childMap[dropdownLabel].id] = true;
             }
@@ -897,29 +989,26 @@ var Input = /** @class */ (function () {
                 SHOW_HIDE_MAP[this.childMap[dropdownLabel].id] = false;
             }
         }
-        var form = this.obj.getControl(this.formName);
+        let form = this.obj.getControl(this.formName);
         form.data[this.dropdownId] = changedTo;
         this.obj.setValue(this.formName, this.obj.getValue(this.formName));
         this.currDropdownValue = changedTo;
-    };
+    }
     // Return a JSON Form object based on this object instance
-    Input.prototype.buildJSONForm = function (showMoveBtns, callbacks) {
-        var _this = this;
-        if (showMoveBtns === void 0) { showMoveBtns = false; }
-        var childForms = [];
+    buildJSONForm(showMoveBtns = false, callbacks) {
+        let childForms = [];
         // We clear the child map in case children were removed (i.e. an Array element was deleted).
         // It will be re populated in the below loop anyway.
         this.childMap = {};
-        var first = true;
-        for (var _i = 0, _a = this.values; _i < _a.length; _i++) {
-            var item = _a[_i];
+        let first = true;
+        for (const item of this.values) {
             // Push each child's form to the child array
-            var component = item.value.buildFormInput(showMoveBtns, callbacks);
+            let component = item.value.buildFormInput(showMoveBtns, callbacks);
             childForms.push(component);
             // Don't want multiple children with the same label. 
             // Alt. option is to just overwrite or something but silent failure will likely come back to haunt us.
             if (this.childMap[item.dropdownLabel]) {
-                throw new Error("Multiple components with same dropdown label (".concat(item.dropdownLabel));
+                throw new Error(`Multiple components with same dropdown label (${item.dropdownLabel}`);
             }
             this.childMap[item.dropdownLabel] = item.value;
             // Only want to update the show hide map if this is the first render. 
@@ -932,22 +1021,21 @@ var Input = /** @class */ (function () {
         }
         this.initialRender = false;
         // Information used for the dropdown in the JSON Form
-        var textToVal = [];
-        for (var label in this.childMap) {
+        let textToVal = [];
+        for (const label in this.childMap) {
             textToVal.push({ text: label, value: label });
         }
         // Callback for when the user selects a new dropdown option
-        var onChange = function (info) {
-            _this.setDropdown(info);
+        let onChange = (info) => {
+            this.setDropdown(info);
         };
-        var header = this.makeHeader(textToVal, onChange, childForms, showMoveBtns, callbacks);
+        let header = this.makeHeader(textToVal, onChange, childForms, showMoveBtns, callbacks);
         return header;
-    };
+    }
     // Helper function to create a JSON Form group with a dropdown element placed in the upper right corner
-    Input.prototype.makeHeader = function (textToValue, onChange, children, showMoveBtns, callbacks) {
-        var _this = this;
-        var init = textToValue[0].value;
-        var dropdown = {
+    makeHeader(textToValue, onChange, children, showMoveBtns, callbacks) {
+        let init = textToValue[0].value;
+        let dropdown = {
             type: "picker",
             id: this.dropdownId,
             data: {
@@ -972,19 +1060,19 @@ var Input = /** @class */ (function () {
                 style: "min-width: 100px; background-color: #eaeaea; margin-left: auto;",
             }
         };
-        var collapse = {
+        let collapse = {
             type: "button",
             id: this.id + "_COLLAPSE_BTN",
             control: {
                 layout: "icon",
-                html: "<span class=\"\" style=\"\" id=\"".concat(this.id + '_COLLAPSE_ICON', "\"></span>"),
+                html: `<span class="" style="" id="${this.id + '_COLLAPSE_ICON'}"></span>`,
                 icon: "svgIcon=#alpha-icon-chevronRight:icon,24",
-                onClick: function () {
-                    SHOW_HIDE_MAP[_this.id + "_CHILDREN"] = !SHOW_HIDE_MAP[_this.id + "_CHILDREN"];
-                    _this.obj.setValue(_this.formName, _this.obj.getValue(_this.formName));
-                    var rotation = SHOW_HIDE_MAP[_this.id + '_CHILDREN'] ? 'rotate(90deg)' : 'rotate(0deg)';
+                onClick: () => {
+                    SHOW_HIDE_MAP[this.id + "_CHILDREN"] = !SHOW_HIDE_MAP[this.id + "_CHILDREN"];
+                    this.obj.setValue(this.formName, this.obj.getValue(this.formName));
+                    let rotation = SHOW_HIDE_MAP[this.id + '_CHILDREN'] ? 'rotate(90deg)' : 'rotate(0deg)';
                     document
-                        .getElementsByClassName(_this.id + '_COLLAPSE_ICON')[0]
+                        .getElementsByClassName(this.id + '_COLLAPSE_ICON')[0]
                         .querySelectorAll('svg')[0]
                         .style
                         .transform = rotation;
@@ -996,22 +1084,22 @@ var Input = /** @class */ (function () {
             },
             layout: "{content}"
         };
-        var deleteBtn = {
+        let deleteBtn = {
             type: 'button',
             id: this.id + "_DELETE_BTN",
             control: {
                 layout: 'icon',
                 icon: 'svgIcon=#alpha-icon-trash:icon,24',
-                onClick: function () {
-                    var parent = _this.parent;
+                onClick: () => {
+                    let parent = this.parent;
                     if (parent) {
-                        var selected = parent.selected();
+                        let selected = parent.selected();
                         if (selected.options.type == 'array') {
-                            delete selected.allArrayElems[_this.id];
+                            delete selected.allArrayElems[this.id];
                         }
                         else if (selected.options.type == 'object') {
-                            delete selected.dynamicElems[_this.renderOptions.keyName];
-                            callbacks === null || callbacks === void 0 ? void 0 : callbacks.deleteTab(_this.id, true);
+                            delete selected.dynamicElems[this.renderOptions.keyName];
+                            callbacks === null || callbacks === void 0 ? void 0 : callbacks.deleteTab(this.id, true);
                         }
                         else
                             return;
@@ -1025,7 +1113,7 @@ var Input = /** @class */ (function () {
             },
             layout: "{content}"
         };
-        var label = {
+        let label = {
             type: 'html',
             control: {
                 html: this.label,
@@ -1036,7 +1124,7 @@ var Input = /** @class */ (function () {
             },
             layout: '{content}',
         };
-        var keyName = {
+        let keyName = {
             type: 'html',
             control: {
                 html: this.renderOptions.keyName,
@@ -1047,7 +1135,7 @@ var Input = /** @class */ (function () {
             },
             layout: '{content}',
         };
-        var comments = {
+        let comments = {
             type: 'html',
             control: {
                 html: this.comments,
@@ -1058,12 +1146,12 @@ var Input = /** @class */ (function () {
             },
             layout: '{content}',
         };
-        var barItems = [];
+        let barItems = [];
         if (this.renderOptions.collapse)
             barItems.push(collapse);
         if (this.renderOptions.delete)
             barItems.push(deleteBtn);
-        var _a = this.buildMoveButtons(callbacks), up = _a.up, down = _a.down;
+        let { up, down } = this.buildMoveButtons(callbacks);
         if (showMoveBtns) {
             barItems.push(up);
             barItems.push(down);
@@ -1083,9 +1171,9 @@ var Input = /** @class */ (function () {
             },
             // In addition to the show hide map, we should take into account the function that the user has supplied 
             // to show or hide. Both must return true to display the component.
-            show: function () {
-                var a = SHOW_HIDE_MAP[_this.id] === undefined ? true : SHOW_HIDE_MAP[_this.id];
-                var b = _this.show(_this);
+            show: () => {
+                let a = SHOW_HIDE_MAP[this.id] === undefined ? true : SHOW_HIDE_MAP[this.id];
+                let b = this.show(this);
                 return a && b;
             },
             // Multiple input values => display the dropdown options 
@@ -1095,73 +1183,84 @@ var Input = /** @class */ (function () {
                     type: 'group',
                     id: this.id + "_HEADER",
                     container: {
-                        style: "; \n\t\t\t\t\t\t\twidth: 95%; \n\t\t\t\t\t\t\tdisplay: flex;\n\t\t\t\t\t\t\tflex-direction: row; \n\t\t\t\t\t\t\tbox-sizing: border-box;\n\t\t\t\t\t\t\tbackground-color: #eaeaea;\n\t\t\t\t\t\t\talign-items: center;\n\t\t\t\t\t\t\tborder: 1px solid black;\n\t\t\t\t\t\t\tflex-wrap: wrap;\n\t\t\t\t\t\t"
+                        style: `; 
+							width: 95%; 
+							display: flex;
+							flex-direction: row; 
+							box-sizing: border-box;
+							background-color: #eaeaea;
+							align-items: center;
+							border: 1px solid black;
+							flex-wrap: wrap;
+						`
                     },
                     items: barItems,
                 },
                 {
                     type: 'group',
-                    show: function () {
-                        return SHOW_HIDE_MAP[_this.id + "_CHILDREN"] === undefined ? true : SHOW_HIDE_MAP[_this.id + "_CHILDREN"];
+                    show: () => {
+                        return SHOW_HIDE_MAP[this.id + "_CHILDREN"] === undefined ? true : SHOW_HIDE_MAP[this.id + "_CHILDREN"];
                     },
                     id: this.id + "_CHILDREN",
                     container: {
-                        style: ";\n\t\t\t\t\t\t\twidth: 95%;\n\t\t\t\t\t\t\tborder: 1px solid black;\n\t\t\t\t\t\t\tborder-top: none;\n\t\t\t\t\t\t\tbox-sizing: border-box;\n\t\t\t\t\t\t"
+                        style: `;
+							width: 95%;
+							border: 1px solid black;
+							border-top: none;
+							box-sizing: border-box;
+						`
                     },
                     items: children,
                 }
             ]
         };
-    };
-    Input.prototype.buildMoveButtons = function (callbacks) {
-        var _this = this;
-        var moveBtnTemplate = function (dir) {
-            var icon = dir == 'UP' ? 'chevronUp' : 'chevronDown';
+    }
+    buildMoveButtons(callbacks) {
+        let moveBtnTemplate = (dir) => {
+            let icon = dir == 'UP' ? 'chevronUp' : 'chevronDown';
             return {
                 type: 'button',
-                id: _this.id + "_MOVE_" + dir + '_BTN',
+                id: this.id + "_MOVE_" + dir + '_BTN',
                 control: {
                     layout: 'icon',
                     icon: 'svgIcon=#alpha-icon-' + icon + ':icon,24',
-                    onClick: function () {
+                    onClick: () => {
                         var _a;
-                        var valContainer = (_a = _this.parent) === null || _a === void 0 ? void 0 : _a.selected();
+                        let valContainer = (_a = this.parent) === null || _a === void 0 ? void 0 : _a.selected();
                         if (valContainer == undefined)
                             return;
-                        var move = function (keys, key) {
-                            var idx = keys.indexOf(key);
+                        let move = (keys, key) => {
+                            let idx = keys.indexOf(key);
                             if (idx >= 0) {
                                 if (dir == 'UP' && idx > 0) {
-                                    var tmp = keys[idx - 1];
+                                    let tmp = keys[idx - 1];
                                     keys[idx - 1] = keys[idx];
                                     keys[idx] = tmp;
                                 }
                                 else if (dir == 'DOWN' && idx < keys.length - 1) {
-                                    var tmp = keys[idx + 1];
+                                    let tmp = keys[idx + 1];
                                     keys[idx + 1] = keys[idx];
                                     keys[idx] = tmp;
                                 }
                             }
                         };
-                        var reorderObj = function (keys, original) {
-                            var newObj = {};
-                            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-                                var id = keys_1[_i];
+                        let reorderObj = (keys, original) => {
+                            let newObj = {};
+                            for (const id of keys)
                                 newObj[id] = original[id];
-                            }
                             return newObj;
                         };
                         if (valContainer.options.type == 'array') {
-                            var valKeys = Object.keys(valContainer.allArrayElems);
-                            move(valKeys, _this.id);
+                            let valKeys = Object.keys(valContainer.allArrayElems);
+                            move(valKeys, this.id);
                             valContainer.allArrayElems = reorderObj(valKeys, valContainer.allArrayElems);
                         }
                         else if (valContainer.options.type == 'object') {
-                            var valKeys = Object.keys(valContainer.dynamicElems);
-                            var vals = Object.values(valContainer.dynamicElems);
-                            var idx = -1;
-                            for (var i = 0; i < vals.length; i++) {
-                                if (_this.id == vals[i].id) {
+                            let valKeys = Object.keys(valContainer.dynamicElems);
+                            let vals = Object.values(valContainer.dynamicElems);
+                            let idx = -1;
+                            for (let i = 0; i < vals.length; i++) {
+                                if (this.id == vals[i].id) {
                                     idx = i;
                                     break;
                                 }
@@ -1182,9 +1281,8 @@ var Input = /** @class */ (function () {
             };
         };
         return { up: moveBtnTemplate('UP'), down: moveBtnTemplate('DOWN') };
-    };
-    return Input;
-}());
+    }
+}
 // Given obj (dialog.object), the form name, and a config object (instance of Input or Value), 
 // build and render a JSON Form.
 function buildFromConfig(obj, formName, configObj, listName, otherItems) {
@@ -1192,38 +1290,14 @@ function buildFromConfig(obj, formName, configObj, listName, otherItems) {
     if (!obj.stateInfo)
         obj.stateInfo = {};
     // ID -> Input Object
-    var tabPanes = {};
+    let tabPanes = {};
     // Navigation Stack (empty means default tab)
-    var tabStack = [];
-    // Callback to pass into the form so that we can have a button that serializes the form
-    var writeToFileCallback = function () {
-        try {
-            var json = JSON.stringify(configObj.serialize());
-            var file = new Blob([json], { type: 'application/json' });
-            var a_1 = document.createElement('a');
-            var url_1 = URL.createObjectURL(file);
-            a_1.href = url_1;
-            a_1.download = 'ConfigurationJSON';
-            document.body.appendChild(a_1);
-            a_1.click();
-            setTimeout(function () {
-                document.body.removeChild(a_1);
-                window.URL.revokeObjectURL(url_1);
-            }, 0);
-        }
-        catch (e) {
-            displayErrorMessage(e.toString());
-        }
-        reRender();
-    };
-    var loadFromFileCallback = function (data) {
-        populateFromData(obj, formName, configObj, reRender, data);
-    };
+    let tabStack = [];
     // Callback to re render form. Saves current form data and restores it after re rendering.
-    var reRender = function () {
+    let reRender = () => {
         configObj.setParent();
-        var oldData = configObj.getPopulateData();
-        var form = {};
+        let oldData = configObj.getPopulateData();
+        let form = {};
         try {
             form = makeTabGroup(tabPanes, tabStack, obj, obj.styleName, allFormCallbacks, configObj.id);
         }
@@ -1244,7 +1318,7 @@ function buildFromConfig(obj, formName, configObj, listName, otherItems) {
     // If 'includeSelf', then the tab with tabId is also deleted
     function deleteTab(tabId, includeSelf) {
         while (tabStack.length > 0) {
-            var last = tabStack[tabStack.length - 1];
+            let last = tabStack[tabStack.length - 1];
             if (last == tabId) {
                 if (includeSelf) {
                     tabStack.pop();
@@ -1257,14 +1331,14 @@ function buildFromConfig(obj, formName, configObj, listName, otherItems) {
         }
         reRender();
     }
-    var allFormCallbacks = {
+    let allFormCallbacks = {
         reRender: reRender,
         addObjAsTab: addObjAsTab,
         deleteTab: deleteTab,
     };
     obj.stateInfo.callbacks = allFormCallbacks;
     tabPanes[configObj.id] = { object: configObj, title: configObj.label };
-    var form;
+    let form;
     try {
         // Don't need the form, but this sets some necessary information regarding dropdowns and child forms
         configObj.buildJSONForm();
@@ -1280,7 +1354,7 @@ function buildFromConfig(obj, formName, configObj, listName, otherItems) {
 // Helper function to populate the form given an existing JSON object representing the data
 function populateFromData(obj, formName, input, reRender, data) {
     try {
-        var d = input.getPopulateDataFromObj(data);
+        let d = input.getPopulateDataFromObj(data);
         obj.setValue(formName, JSON.stringify(d));
     }
     catch (e) {
@@ -1290,12 +1364,12 @@ function populateFromData(obj, formName, input, reRender, data) {
     reRender();
 }
 function makeTabGroup(tabPaneObjs, tabStack, obj, style, callbacks, mainId) {
-    var panes = [];
-    var defaultId = undefined;
-    var navTo = tabStack.length > 0 ? tabStack[tabStack.length - 1] : mainId;
-    for (var id in tabPaneObjs) {
-        var inner = tabPaneObjs[id].object.buildJSONForm(false, callbacks);
-        var pane = wrapInTab(inner, tabPaneObjs[id].title, id, mainId, obj);
+    let panes = [];
+    let defaultId = undefined;
+    let navTo = tabStack.length > 0 ? tabStack[tabStack.length - 1] : mainId;
+    for (let id in tabPaneObjs) {
+        let inner = tabPaneObjs[id].object.buildJSONForm(false, callbacks);
+        let pane = wrapInTab(inner, tabPaneObjs[id].title, id, mainId, obj);
         if (!defaultId && navTo == id)
             defaultId = pane.id;
         panes.push(pane);
@@ -1313,7 +1387,7 @@ function makeTabGroup(tabPaneObjs, tabStack, obj, style, callbacks, mainId) {
     };
 }
 function wrapInTab(formJSON, title, id, mainId, obj) {
-    var inner;
+    let inner;
     // Change in requirement means that we no longer want to x out tabs. But this code may be useful in the future.
     /* if (id == mainId) inner = title;
     else inner = `
@@ -1322,7 +1396,11 @@ function wrapInTab(formJSON, title, id, mainId, obj) {
             <p>${title}</p>
         </div>
     `; */
-    inner = "\n\t\t<div onclick=\"".concat(obj.dialogId + '_DlgObj', ".stateInfo.callbacks.deleteTab('").concat(id, "');\">\n\t\t\t<p>").concat(title, "</p>\n\t\t</div>\n\t");
+    inner = `
+		<div onclick="${obj.dialogId + '_DlgObj'}.stateInfo.callbacks.deleteTab('${id}');">
+			<p>${title}</p>
+		</div>
+	`;
     return {
         type: 'pane',
         id: 'TAB_PANE_' + uuidv4(),

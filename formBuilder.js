@@ -1,54 +1,50 @@
 "use strict";
 // https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
 function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, function (c) {
-        return (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16);
-    });
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
 }
-var FormBuilder = /** @class */ (function () {
-    function FormBuilder(obj, formName) {
+class FormBuilder {
+    constructor(obj, formName) {
         this.obj = obj;
         this.formName = formName;
         this.root = new FormGroup();
     }
-    FormBuilder.prototype.withElement = function (element) {
+    withElement(element) {
         this.root.withChild(element);
         return this;
-    };
-    FormBuilder.prototype.render = function () {
-        var items = [this.root.getJSON()];
+    }
+    render() {
+        let items = [this.root.getJSON()];
         A5.u.json.postparse(items);
         this.obj.setJSONFormItems(this.formName, items);
         this.obj.getControl(this.formName)._formBoxSize = "";
         this.obj.resizeFormBoxes();
-    };
-    return FormBuilder;
-}());
-var FormGroup = /** @class */ (function () {
-    function FormGroup() {
+    }
+}
+class FormGroup {
+    constructor() {
         this.children = [];
         this.style = 'display: flex; flex-direction: row; flex-flow: wrap;';
         this.layout = '';
         this.id = uuidv4() + '_GROUP';
     }
-    FormGroup.prototype.withStyle = function (style) {
+    withStyle(style) {
         this.style = style;
         return this;
-    };
-    FormGroup.prototype.withLayout = function (layout) {
+    }
+    withLayout(layout) {
         this.layout = layout;
         return this;
-    };
-    FormGroup.prototype.withChildren = function (children) {
-        var _a;
-        (_a = this.children).push.apply(_a, children);
+    }
+    withChildren(children) {
+        this.children.push(...children);
         return this;
-    };
-    FormGroup.prototype.withChild = function (child) {
+    }
+    withChild(child) {
         this.children.push(child);
         return this;
-    };
-    FormGroup.prototype.getJSON = function () {
+    }
+    getJSON() {
         return {
             type: 'group',
             id: this.id,
@@ -56,13 +52,12 @@ var FormGroup = /** @class */ (function () {
                 style: this.style,
             },
             layout: this.layout,
-            items: this.children.map(function (c) { return c.getJSON(); }),
+            items: this.children.map(c => c.getJSON()),
         };
-    };
-    return FormGroup;
-}());
-var FormInput = /** @class */ (function () {
-    function FormInput() {
+    }
+}
+class FormInput {
+    constructor() {
         this.type = 'edit';
         this.control = {
             placeholder: '',
@@ -75,23 +70,23 @@ var FormInput = /** @class */ (function () {
         this.variable = undefined;
         this.format = undefined;
     }
-    FormInput.prototype.withStyle = function (style) {
+    withStyle(style) {
         this.style = style;
         return this;
-    };
-    FormInput.prototype.withLabel = function (label) {
+    }
+    withLabel(label) {
         this.label = label;
         return this;
-    };
-    FormInput.prototype.withVariable = function (variable) {
+    }
+    withVariable(variable) {
         this.variable = variable;
         return this;
-    };
-    FormInput.prototype.withLayout = function (layout) {
+    }
+    withLayout(layout) {
         this.layout = layout;
         return this;
-    };
-    FormInput.prototype.asDateTime = function (format) {
+    }
+    asDateTime(format) {
         this.type = 'picker';
         this.control.picker = {
             type: 'date-time',
@@ -110,8 +105,8 @@ var FormInput = /** @class */ (function () {
             }
         };
         return this;
-    };
-    FormInput.prototype.asTime = function (format) {
+    }
+    asTime(format) {
         this.type = 'picker';
         this.control.picker = {
             type: 'date-time',
@@ -130,8 +125,8 @@ var FormInput = /** @class */ (function () {
             }
         };
         return this;
-    };
-    FormInput.prototype.asBool = function () {
+    }
+    asBool() {
         this.type = 'checkbox';
         this.control.icons = {
             on: "svgIcon=#alpha-icon-checkRounded:icon,24{}",
@@ -142,29 +137,29 @@ var FormInput = /** @class */ (function () {
             off: false,
         };
         return this;
-    };
-    FormInput.prototype.asDropdown = function (items, onChange) {
+    }
+    asDropdown(items, onChange) {
         this.type = 'picker';
         if (onChange)
             this.control.onChange = onChange;
         this.control.width = '100%';
         this.control.data = {
-            src: items.map(function (x) { return { text: x, value: x }; }),
+            src: items.map(x => { return { text: x, value: x }; }),
             map: ['value', 'text']
         };
         return this;
-    };
-    FormInput.prototype.getJSON = function () {
-        var output = {
+    }
+    getJSON() {
+        let output = {
             sectionLayout: '',
             type: this.type,
             id: this.id,
-            show: function () { return true; },
+            show: () => true,
             data: {
                 from: this.variable ? this.variable : this.id,
                 defaultValue: '',
                 ensure: this.variable ? true : false,
-                validate: function () { return true; },
+                validate: () => true,
             },
             label: {
                 text: this.label,
@@ -183,50 +178,49 @@ var FormInput = /** @class */ (function () {
             output.data.format = this.format;
         }
         return output;
-    };
-    return FormInput;
-}());
-var FormButton = /** @class */ (function () {
-    function FormButton() {
+    }
+}
+class FormButton {
+    constructor() {
         this.type = 'button';
-        this.disabled = function () { return false; };
+        this.disabled = () => false;
         this.layout = 'text';
         this.html = 'Button';
         this.btnStyle = '';
         this.containerStyle = '';
         this.icon = '';
-        this.onClick = function () { };
+        this.onClick = () => { };
         this._listName = '';
     }
-    FormButton.prototype.withCheckDisabled = function (disabled) {
+    withCheckDisabled(disabled) {
         this.disabled = disabled;
         return this;
-    };
-    FormButton.prototype.withLayout = function (layout) {
+    }
+    withLayout(layout) {
         this.layout = layout;
         return this;
-    };
-    FormButton.prototype.withHtml = function (html) {
+    }
+    withHtml(html) {
         this.html = html;
         return this;
-    };
-    FormButton.prototype.withBtnStyle = function (style) {
+    }
+    withBtnStyle(style) {
         this.btnStyle = style;
         return this;
-    };
-    FormButton.prototype.withContainerStyle = function (style) {
+    }
+    withContainerStyle(style) {
         this.containerStyle = style;
         return this;
-    };
-    FormButton.prototype.withIcon = function (icon) {
+    }
+    withIcon(icon) {
         this.icon = icon;
         return this;
-    };
-    FormButton.prototype.withClickHandler = function (onClick) {
+    }
+    withClickHandler(onClick) {
         this.onClick = onClick;
         return this;
-    };
-    FormButton.prototype.getJSON = function () {
+    }
+    getJSON() {
         return {
             type: this.type,
             disabled: this.disabled,
@@ -243,6 +237,5 @@ var FormButton = /** @class */ (function () {
                 className: '',
             }
         };
-    };
-    return FormButton;
-}());
+    }
+}

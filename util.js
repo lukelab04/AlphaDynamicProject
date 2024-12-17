@@ -1,7 +1,7 @@
 "use strict";
 function displayErrorMessage(msg) {
-    var errContainer;
-    var existing = document.getElementById("list-config-error-container");
+    let errContainer;
+    let existing = document.getElementById("list-config-error-container");
     if (existing) {
         existing.innerHTML = "";
         errContainer = existing;
@@ -10,11 +10,11 @@ function displayErrorMessage(msg) {
         errContainer = document.createElement('div');
         document.body.append(errContainer);
     }
-    var msgContainer = document.createElement('div');
+    let msgContainer = document.createElement('div');
     msgContainer.style.marginBottom = "2rem";
-    var ok = document.createElement('button');
+    let ok = document.createElement('button');
     ok.innerText = "OK";
-    ok.onclick = function () {
+    ok.onclick = () => {
         errContainer.style.display = "none";
     };
     msgContainer.innerHTML = msg;

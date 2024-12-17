@@ -11,7 +11,7 @@
         "A5ContainerClassPadding": "0px",
         "A5ContainerClassPaddingForContainerWidthMode": "4px",
         "cssIcons": "font-awesome",
-        "JavaScriptLinkedFiles": "formBuilder.js,listBuilder.js,configs.js,configFormBuilder.js,listConfiguration.js,util.js",
+        "JavaScriptLinkedFiles": "formBuilder.js,listBuilder.js,configs.js,configFormBuilder.js,listConfiguration.js,util.js,jsonForms.js",
         "JavaScriptFunctionDeclarations": "\nlet counter = 0;\nlet title = 'New Tab';\nfunction NEWPANELALIAS() {\n\treturn 'DYNAMIC_LIST_RUNTIME_' + counter.toString();\n}\n\nfunction newPanelTitle() {\n\treturn title;\n}\n\nfunction openNewPanel(configName, titleName, filters, args = []) {\n\ttitle = titleName;\n\tcounter += 1;\n\tlet open = () => {dialog.object}.runAction('Open Panel');\n\tlet build = () => {\n\t\tlet name = NEWPANELALIAS() + '_DlgObj';\n\t\tlet newObj = window[name];\n\t\tnewObj.populateDynamicElements(configName, filters, args);\n\t};\n\tA5.executeThisThenThat(open, build);\n}\n\n",
         "hasArguments": true,
         "layoutType": "ContainerWidth",
@@ -177,8 +177,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-1-20",
-            "dateLastEdited": "2024-11-22",
-            "revisionnumber": 436
+            "dateLastEdited": "2024-12-12",
+            "revisionnumber": 438
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -2400,20 +2400,15 @@
                 "lastIndex": 23,
                 "parentContainer": 2,
                 "crc": "4294928090",
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "containerStartIndex": 0,
-                "precalc": {
-                    "ControlHTML": "'xbasic\n\nv._dirty = .f.\n\n\n",
-                    "DesignViewHTML": ""
-                },
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "container": {
                         "id": "PANELCARD_8"
                     },
                     "panelInstance": {
+                        "sections": {
+                            "name": "<UsePanelId>",
+                            "renderMethod": "Auto-Create-Destroy"
+                        },
                         "resize": {
                             "allow": false,
                             "min": "",
@@ -2422,10 +2417,6 @@
                         "grip": {
                             "show": true,
                             "location": "50%"
-                        },
-                        "sections": {
-                            "name": "<UsePanelId>",
-                            "renderMethod": "Auto-Create-Destroy"
                         }
                     },
                     "panelCard": {
@@ -2469,6 +2460,8 @@
                         "pinchToZoom": false,
                         "centerContents": false
                     },
+                    "localxbasic": "",
+                    "localjavascript": "",
                     "info": {
                         "level": 2,
                         "isContainerStart": true,
@@ -2494,7 +2487,14 @@
                         "break": false,
                         "display": "{B=White,Light Blue} 21{T=.3}{C=Black,White}{B=White,Light Blue} 21{T=.3}{C=Black,White}{C=#104+150+112,White}{B=White,#104+150+112}{F=+B}{I:'vertline'}{I:'vertline'}{Data=c242725c_61db_4ccd_97ac_1119352894d4}{I:'$$web.panel.card'} [Panel Card: PANELCARD_8]"
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "'xbasic\n\nv._dirty = .f.\n\n\n",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "PageLayoutPart",
@@ -2503,22 +2503,7 @@
                 "idInternal": "9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f",
                 "parentContainer": 21,
                 "crc": "4294919301",
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": true,
-                "containerStartIndex": 0,
-                "inTabPane": true,
-                "inWindowContainer": false,
-                "hasParentTab": false,
-                "parentTabId": "",
-                "precalc": {
-                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
-                    "DesignViewHTML": "",
-                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_8','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_JSON_FIELD}\\nembeddedObj.populateDynamicElements(\"JSON Field\");';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_JSON_FIELD';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_8','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_JSON_FIELD'}\n\tvar jsToRun = PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
-                },
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "pageLayoutPart": {
                         "showMode": "When page is loaded",
                         "objectPosition": "To right of button",
@@ -2538,12 +2523,11 @@
                             "gridName": "example_layout_ux",
                             "componentType": "UX",
                             "alias": "JSON_FIELD",
-                            "customSettingOverridesJSON": "",
                             "useMasterStyle": true,
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
-                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_JSON_FIELD}\nembeddedObj.populateDynamicElements(\"JSON Field\");"
+                            "onLoadCompleteJavascript": "let embeddedObj = {dialog.EmbeddedUX_JSON_FIELD}\nembeddedObj.populateDynamicElements(\"JSON Field\");",
+                            "customSettingOverridesJSON": ""
                         },
-                        "useStaticHTML": false,
                         "report": {
                             "workingMessage": "<img src=\"css/A5System/Images/wait.gif\" /> Working...",
                             "moreRecordsTemplate": "<hr />Showing first [DisplayRecords] of [TotalRecords] records in query",
@@ -2597,6 +2581,7 @@
                         "a5wPage": {
                             "liveUpdate": false
                         },
+                        "useStaticHTML": false,
                         "inPanelCard": {
                             "fillPanelContainer": true,
                             "delayRenderTillVisible": true,
@@ -2610,8 +2595,10 @@
                             }
                         }
                     },
-                    "id": "PAGELAYOUTPART_8",
                     "controlContainerPreventFloat": true,
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "id": "PAGELAYOUTPART_8",
                     "class": "<Default>",
                     "style": "width:1.5in;",
                     "BreakType": "After",
@@ -2702,7 +2689,20 @@
                     "tabbedUI": {
                         "autoRefreshOnFocus": false
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "\t<div class=\"\">\n\t\t<div id=\"{alias}_DIVCONTAINER_9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f\"   ><img src=\"css/A5System/Images/wait.gif\" /> Working...</div>\n\t</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n\t\t",
+                    "DesignViewHTML": "",
+                    "pageLayoutPartJavascript": "{dialog.object}._functions.runAction_9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f = function(obj) {\n\t\n\t\n\n\n\tvar go = {};\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_8','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\n\tvar flagOKToRender = A5.u.element.shown(go.dialog2Div)\n\t\n\t\n\tvar onCompleteCode = 'let embeddedObj = {dialog.EmbeddedUX_JSON_FIELD}\\nembeddedObj.populateDynamicElements(\"JSON Field\");';\n\tvar callbackId = A5.UUID();\n\tvar objx = {dialog.object}._ajaxCallbackCompleteCode;\n\tif(typeof objx == 'undefined') objx = {};\n\tobjx[callbackId] = Function(onCompleteCode);\n\tvar go = new Object();\n\t\tgo.dialog2Name = 'example_layout_ux';\n\tgo.type = 'dialog2';\n\t\n\tgo.alias = '{alias}_JSON_FIELD';\n\tgo.workingMessage = '<img src=\"css/A5System/Images/wait.gif\" /> Working...';\n\tgo.flagTimer = 'F';\n\tgo.flagQueryEcho = 'F';\n\tgo.flagDebugMode = 'F';\n\tgo.userFilter = '';\n\tgo.baseFilter = '';\n\tgo.userOrder = '';\n\tgo.overrideSettings = 'style_name=`{pageLayout.style}`'+'||';\n\tgo.arguments = '';\n\t\n\t\n\t\t\n\n//embedded objects on a ux can be refreshed or reloaded. the function that renders the embedded object can be \n//called with an optional argument (true=reload). defaults to false, which does a refresh (on a grid)\n\nvar flagReload = false;\nif(typeof arguments[0] != 'undefined' && arguments[0] == true) {\n\tflagReload = true\n}\nif (flagReload) go.__useCachedGrid = false;\nelse go.__useCachedGrid = true;\n\n\n\tgo.localArguments = '';\n\tgo.linkDefinition = '';\n\tgo.placeHolderValues = '';\n\tgo.parameterBucket = $gvs('{alias}.PARAMETERBUCKET');\n\tgo.argumentValueBucket = $gvs('{alias}.ARGUMENTVALUES');\n\tgo.a5_default_path = '{PageLayout.a5_default_path}';\n\tgo.onLoadCompleteJavascript = 'run:'+callbackId;\n\t\n\tgo._runningInMobilePreview = {dialog.object}._mobilePreview;\n\t\n\tif(typeof tbiObj != 'undefined' && typeof tbiObj._workingPreviewHost != 'undefined') { \n\t\tgo._workingPreviewHost = tbiObj._workingPreviewHost;\n\t}\n\t\n\tif(typeof obj != 'undefined') { \n\t\tfor(var n in obj) { \n\t\t\tgo[n] = obj[n]\n\t\t}\n\t}\n\t\n\t\n\n\tif(typeof {grid.object}.gridId != 'undefined') go._thisGridAlias = {grid.object}.gridId;\n\tif(typeof {grid.object}.dialogId != 'undefined') go._thisGridAlias = {grid.object}.dialogId;\n\t\n\t\n\t//debugger;\n\t\n\tvar po = window[go._thisGridAlias + '_DlgObj'];\n\tif(po) { \n\t\tif(typeof po._embeddedUX == 'undefined') po._embeddedUX = [];\n\t\tpo._embeddedUX.push(go.alias);\n\t\t//alert(po._embeddedUX);\n\t\t\n\t}\n\t\n\t\n\n\tvar panelCardId = {dialog.object}.panelGetId('PANELCARD_8','body');\nif($(panelCardId + '.SCROLLWRAPPER')) panelCardId = panelCardId + '.SCROLLWRAPPER';\ngo.dialog2Div = panelCardId;\n\t\t\n\tvar flag = true; if(typeof flagOKToRender != 'undefined') flag = flagOKToRender;  flag = true;  if(flag) { var runMethod = 'precomputed';\nif({grid.object}._embeddedMode) runMethod = 'ajax';\nif({dialog.object}._staticHTMLMode) runMethod = 'precomputed';\nif(runMethod == 'ajax')if(typeof __showWaitMessage != 'undefined') __showWaitMessage.call()\nif(runMethod.toLowerCase() != 'ajax'  && typeof window['PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux'] == 'function') { \n\t//PRECOMPUTED_UX_COMPONENT: {functionName: 'PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux', uxname: 'example_layout_ux', alias: '{alias}_JSON_FIELD'}\n\tvar jsToRun = PRECOMPUTEDUX_d0ded08cb3e044de837d15f100c48e94_example_layout_ux(go);\n\teval(jsToRun);\n\t//must run code to initialize values\n\ttry{\n\t\tvar objx = window[go.alias.toUpperCase() + '_DlgObj'];\n\t\tobjx.populate(objx.originalValues[0]);\n\t}catch(e) {};\n\t\t\n\t\n\tif(typeof go.onLoadCompleteJavascript != 'undefined') { \n\t\tvar txt = go.onLoadCompleteJavascript.split(':')[1];\n\t\tif(typeof txt != 'undefined') { \n\t\t\tif(typeof {dialog.object}._ajaxCallbackCompleteCode != 'undefined') { \n\t\t\t\tsetTimeout(function() { \n\t\t\t\t\t{dialog.object}._ajaxCallbackCompleteCode[txt].call();\n\t\t\t\t},500);\n\t\t\t}\n\t\t}\n\t}\n\n} else {\n\tA5.component.runGenericComponent(go)\n}\n;}\n\t\n}\n"
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": true,
+                "containerStartIndex": 0,
+                "inTabPane": true,
+                "inWindowContainer": false,
+                "hasParentTab": false,
+                "parentTabId": ""
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -2710,9 +2710,6 @@
                 "idInternal": "8cabb493_13c4_4516_a577_fe4523ea13c9",
                 "parentContainer": 2,
                 "crc": "4294943210",
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "containerStartIndex": 21,
                 "v": {
                     "info": {
                         "level": 2,
@@ -2742,7 +2739,10 @@
                 "precalc": {
                     "ControlHTML": "'xbasic\nv._dirty = .f.\n",
                     "DesignViewHTML": ""
-                }
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "containerStartIndex": 21
             },
             {
                 "controlType": "layout_directive_PanelNavigatorEnd",
@@ -2860,7 +2860,7 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": true,
-        "selected": "9b5b3eb9_de4c_4dfd_86f0_b508ebf7001f\n",
+        "selected": "0e9a4ea2-d1a1-45c7-920c-67d4dad158f5\n",
         "designPaneIndex": 1,
         "masterPaneC": "controls",
         "serverSideEventIndex": 1,
@@ -2880,7 +2880,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "435",
+        "_buildCount": "437",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3049,7 +3049,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20241122163935928",
+        "A5SaveTimeStamp": "20241212214526017",
         "a_actionJavascript": [
             {
                 "actionGuid": "497996c7-01ef-45ce-a879-1fde3c3b4894      ",
@@ -3192,7 +3192,7 @@
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

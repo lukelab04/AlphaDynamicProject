@@ -173,13 +173,13 @@ end function
 ' 	If global is false, then this is just the mapping portion of the config
 function saveConfig as Result (e as p) 
 	if e.data("global") == "" then 
-		saveConfig = Result.fail("Field 'global' is required").toJson().getJson()
+		saveConfig = Result.fail("Field 'global' is required")
 		end 
 	else if e.data("configName") == "" then 
-		saveConfig = Result.fail("Field 'configName' is required").toJson().getJson()
+		saveConfig = Result.fail("Field 'configName' is required")
 		end 
 	else if e.data("payload") == "" then 
-		saveConfig = Result.fail("Field 'payload' is required").toJson().getJson()
+		saveConfig = Result.fail("Field 'payload' is required")
 		end 
 	end if
 	
@@ -197,14 +197,14 @@ function saveConfig as Result (e as p)
 
 	' Ensure user is logged in
 	if username == "" then 
-		saveConfig = Result.fail("User is not logged in").toJson().getJson()
+		saveConfig = Result.fail("User is not logged in")
 		end 
 	end if
 	
 	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
 	' User is trying to save globally, but isn't an admin?
 	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) .and. saveGlobal then 
-		saveConfig = Result.fail("User does not have permissions to save globally.").toJson().getJson()
+		saveConfig = Result.fail("User does not have permissions to save globally.")
 		end 
 	end if
 	
