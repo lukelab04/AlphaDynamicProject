@@ -176,8 +176,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2024-12-13",
-            "revisionnumber": 561
+            "dateLastEdited": "2024-12-26",
+            "revisionnumber": 565
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -631,10 +631,23 @@
                 "displayOD": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button]",
                 "displayODtree": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button:Synchronize]",
                 "crc": "4294943611",
+                "indentTree": 0,
+                "precalc": {
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": false,
+                "inTreeControl": false,
+                "containerStartIndex": 0,
                 "v": {
+                    "localxbasic": "",
+                    "localjavascript": "",
                     "buttonText": "Synchronize",
                     "Class": "<Default>",
                     "Style": "width: .75in;",
+                    "cssGridItemPropertiesJSON": "",
                     "BreakType": "None",
                     "breakHeight": ".1in",
                     "breakHorizontalSpace": ".1in",
@@ -657,6 +670,8 @@
                         "hoverImageName": "",
                         "displayDropdownIconOnButton": false,
                         "displayAsSplitButton": false,
+                        "showBadge": false,
+                        "badgeSettingsJSON": "",
                         "hyperlinkClass": "[class.gridHyperlinkButton]",
                         "hyperlinkImagePosition": "None",
                         "hyperlinkInlineStyle": "",
@@ -666,9 +681,7 @@
                         "pressedImageName": "",
                         "textClass": "",
                         "textInlineStyle": "",
-                        "type": "Button",
-                        "showBadge": false,
-                        "badgeSettingsJSON": ""
+                        "type": "Button"
                     },
                     "securityGroups": "",
                     "showHideExpn": "",
@@ -686,13 +699,6 @@
                         "javascriptAdvancedButton_control": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'] = new A5.Button({\n\tlayout: 'icon text',\n\tstyle: 'box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;',\n\ttip: 'Synchronize data - push local edits back to the server',\n\thtml: 'Synchronize',\n\ticon: '{images.GridRow.SaveRecord}',\n\tdisabledIcon: '{images.GridRow.SaveRecord.disabled}',\n\tonClick: function() { \n\n},\n\ttheme: '{grid.style}'\n});",
                         "javascriptAdvancedButton_bind": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].bind('{DIALOG.COMPONENTNAME}.V.R{DIALOG.ROWNUMBER}.BUTTON_DVSYNCHRONIZE_LIST1');"
                     },
-                    "javascript": {
-                        "onclick": ""
-                    },
-                    "consumedInSpecialPanelButton": false,
-                    "localxbasic": "",
-                    "localjavascript": "",
-                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -717,18 +723,12 @@
                         "break": false,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button: Synchronize]"
                     },
-                    "controlContainerStyle": ""
-                },
-                "indentTree": 0,
-                "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
-                    "DesignViewHTML": ""
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": false,
-                "inTreeControl": false,
-                "containerStartIndex": 0
+                    "javascript": {
+                        "onclick": ""
+                    },
+                    "controlContainerStyle": "",
+                    "consumedInSpecialPanelButton": false
+                }
             },
             {
                 "controlType": "layout_directive_statictext",
@@ -3511,7 +3511,7 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": true,
-        "selected": "79c95fbd-4dbc-47d4-9803-7b7c792d4251\n",
+        "selected": "e9483699_6277_4af5_8130_ab36809f6c7d\n",
         "designPaneIndex": 1,
         "masterPaneC": "controls",
         "serverSideEventIndex": 1,
@@ -3531,7 +3531,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "560",
+        "_buildCount": "564",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3698,7 +3698,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20241213120443778",
+        "A5SaveTimeStamp": "20241226230753949",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7   ",
@@ -3917,7 +3917,7 @@
             "output": {
                 "Head": {
                     "JavaScript": "*gzip:H4sIAAAAAAAAC5WMsQ6CQBAFexP/Aa/Hq+gOOjsqf2Cznq84PPGyuyD8vSQUFlaWM5NM0CipWGVrQesMi/mBZ96tq1Ri677Cc3Me1HXB79wdD+HfAU2Sfyanun/x/bIYZOTcp5uwJGi9NSJByRzBdp1GS08QRVW1NcPe4IcSfQAk7ywxxgAAAA==",
-                    "CSS_Link": "*gzip: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",
+                    "CSS_Link": "*gzip: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",
                     "title": "*gzip:H4sIAAAAAAAAC7MpySzJSbULjbDRh7AAiMez8hEAAAA="
                 },
                 "body": {

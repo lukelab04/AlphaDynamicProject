@@ -2273,8 +2273,9 @@ DLG1_DlgObj.getSavedListConfig = function(listName) {
 	requestListConfig(DLG1_DlgObj, listName);
 }
 DLG1_DlgObj.applyConfigChanges = () => {};
-DLG1_DlgObj.initialize = function(configName, embeddedList, listWin, embeddedSearch, searchWin, filters, args) {
-	return initialize(DLG1_DlgObj, configName, embeddedList, listWin, embeddedSearch, searchWin, filters, args);
+DLG1_DlgObj.initialize = function(ops) {
+	ops.obj = DLG1_DlgObj;
+	return initialize(ops);
 }
 		},
 		onOrientationChange: function(e) {
