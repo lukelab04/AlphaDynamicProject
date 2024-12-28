@@ -7652,7 +7652,7 @@ function fetch(obj, configName, endpoint) {
 class DynamicList {
     constructor() {
         this.nestedPath = [];
-        this.dataScopeManager = undefined;
+        this.dataScopeManager = new DataScopeManager({});
         this.permanentFilters = [];
         this.searchFilters = [];
         this.buttonFns = {};
@@ -7707,7 +7707,7 @@ class DynamicList {
             }
         })
             .then((list) => {
-            list.dataScopeManager = new DataScopeManager(list.schema, list.config);
+            list.dataScopeManager = new DataScopeManager(list.schema);
             return list.reRender(false);
         }).then((list) => {
             validateSchema(list.schema);
@@ -7837,8 +7837,36 @@ class DynamicList {
         if (!this.config.buttons)
             this.config.buttons = (this.window.Array());
         for (const mapping of this.config.mappings) {
-            columns.push(this.buildColumnDefn(mapping));
-            listFields.push(this.buildListFieldDefn(mapping));
+            if (mapping.subMappings && this.dataScopeManager.isFlattenedSubfield(mapping.subMappings)) {
+                let collectSubColumns = (s) => {
+                    if ('keys' in s) {
+                        let res = [];
+                        for (const key in s.keys) {
+                            res.push(...collectSubColumns(s.keys[key]));
+                        }
+                        return res;
+                    }
+                    else if ('arrayItem' in s) {
+                        return collectSubColumns(s.arrayItem);
+                    }
+                    else {
+                        return [{
+                                columnName: s.flattenedColumnName,
+                                displayName: s.displayName,
+                                inList: true,
+                                inDetailView: true
+                            }];
+                    }
+                };
+                collectSubColumns(mapping.subMappings).forEach(m => {
+                    columns.push(this.buildColumnDefn(m));
+                    listFields.push(this.buildListFieldDefn(m));
+                });
+            }
+            else {
+                columns.push(this.buildColumnDefn(mapping));
+                listFields.push(this.buildListFieldDefn(mapping));
+            }
         }
         for (let i = 0; i < this.config.buttons.length; i++) {
             columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
@@ -9332,7 +9360,7 @@ class DynamicList {
         this.rawData = rawDataRows;
         if (buildSchema)
             this.buildSchemaFromRawData();
-        this.dataScopeManager = new DataScopeManager(this.schema, this.config);
+        this.dataScopeManager = new DataScopeManager(this.schema);
         this.data = this.dataScopeManager.flattenData(this.rawData, this.config);
     }
     fetchData() {
@@ -9560,7 +9588,7 @@ class DynamicList {
     }
 }
 class DataScopeManager {
-    constructor(schema, config) {
+    constructor(schema) {
         this.schema = schema;
         this.path = [];
         this.expandedIdxToRawIdx = {};
