@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListBtnTypeSchema, SubMappingTypeSchema, SearchOptionsTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListBtnTypeSchema, NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema, SearchOptionsTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -61,10 +61,9 @@ const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Re
     ]),
     children: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(Self)),
 }));
-const SubMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Intersect([
+const NestedSubfieldTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Intersect([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         defaultValue: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-        displayName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self) }),
@@ -74,7 +73,26 @@ const SubMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
                 _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
                 _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
                 _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean')
-            ])
+            ]),
+            displayName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        })
+    ])
+]));
+const FlattenedSubfieldTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Intersect([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        defaultValue: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self) }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ arrayItem: Self }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+                _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
+                _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
+                _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean')
+            ]),
+            flattenedColumnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            displayName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
         })
     ])
 ]));
@@ -85,7 +103,7 @@ const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Ob
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
     serverDateFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-    subMappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(SubMappingTypeSchema),
+    subMappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema])),
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dropdownConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
@@ -100,11 +118,11 @@ const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.T
     onlyInclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())),
     onlyExclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())),
 });
-const SchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+const SchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ alphaType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ nested: Self }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ array: Self }),
-])));
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("nestedObject"),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("nestedArray")
+]));
 const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     onInitialize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
@@ -7634,7 +7652,7 @@ function fetch(obj, configName, endpoint) {
 class DynamicList {
     constructor() {
         this.nestedPath = [];
-        this.dataScopeManager = new DataScopeManager({});
+        this.dataScopeManager = undefined;
         this.permanentFilters = [];
         this.searchFilters = [];
         this.buttonFns = {};
@@ -7689,8 +7707,7 @@ class DynamicList {
             }
         })
             .then((list) => {
-            list.dataScopeManager = new DataScopeManager(list.schema);
-            list.dataScopeManager.setPathFromConfig(list.config, list.rawData);
+            list.dataScopeManager = new DataScopeManager(list.schema, list.config);
             return list.reRender(false);
         }).then((list) => {
             validateSchema(list.schema);
@@ -8338,7 +8355,6 @@ class DynamicList {
                 recordCount: 100,
             },
             _match: (data, field, val, obj) => {
-                var _a;
                 if (obj.qbf && obj.type == 'c')
                     val = $u.s.rTrim(val, ',');
                 let _v = val;
@@ -8489,14 +8505,15 @@ class DynamicList {
                         return result;
                     }
                 };
-                let path = this.dataScopeManager.strToPath(field);
-                if (this.dataScopeManager.inSubArray(path)) {
-                    let rawDataPoint = this.rawData[this.dataScopeManager.getOriginalIndex(data['*key'])];
-                    flag = matchNested((_a = obj.quantifier) !== null && _a !== void 0 ? _a : 'ALL', path, rawDataPoint);
-                }
-                else {
-                    flag = matches(data, field);
-                }
+                throw new Error("Unimplemented");
+                // let path = this.dataScopeManager.strToPath(field);
+                // if (this.dataScopeManager.inSubArray(path)) {
+                //     let rawDataPoint = this.rawData[this.dataScopeManager.getOriginalIndex(data['*key'] as unknown as number)];
+                //     flag = matchNested(obj.quantifier ?? 'ALL', path, rawDataPoint);
+                // } else {
+                //     flag = matches(data, field);
+                // }
+                flag = false;
                 if (flag) {
                     let lObj = this.listBox;
                     if (typeof lObj._state.highlight == 'undefined')
@@ -9186,13 +9203,13 @@ class DynamicList {
         this.obj.setValue(DETAIL_FORM_NAME, JSON.stringify(populateData));
     }
     buildSubDetailView(scheme, label, fullPath, data, onSave) {
-        var _a, _b, _c;
+        var _a;
         // Object type
         if ('keys' in scheme) {
             let form = {
                 type: 'object',
                 options: {
-                    label: (_a = scheme.displayName) !== null && _a !== void 0 ? _a : label,
+                    label: label,
                     requiredKeys: {},
                     inlineKeys: true,
                 }
@@ -9214,9 +9231,8 @@ class DynamicList {
                 type: 'button',
                 options: {
                     label: label,
-                    text: `Open ${(_b = scheme.displayName) !== null && _b !== void 0 ? _b : label} in new tab`,
+                    text: `Open ${label} in new tab`,
                     action: (e) => {
-                        var _a;
                         // Spawn new list
                         let newSchema = {
                             name: fullPath,
@@ -9230,7 +9246,7 @@ class DynamicList {
                         };
                         let ops = {
                             configName: fullPath,
-                            titleName: (_a = scheme.displayName) !== null && _a !== void 0 ? _a : label,
+                            titleName: label,
                             fallbackConfig: newSchema,
                             otherProps: {
                                 onSaveOverride: (list, newData) => {
@@ -9254,7 +9270,7 @@ class DynamicList {
             let form = {
                 type: 'simple',
                 options: {
-                    label: (_c = scheme.displayName) !== null && _c !== void 0 ? _c : label,
+                    label: (_a = scheme.displayName) !== null && _a !== void 0 ? _a : label,
                     type: scheme.editType
                 }
             };
@@ -9316,8 +9332,7 @@ class DynamicList {
         this.rawData = rawDataRows;
         if (buildSchema)
             this.buildSchemaFromRawData();
-        this.dataScopeManager = new DataScopeManager(this.schema);
-        this.dataScopeManager.setPathFromConfig(this.config, this.rawData);
+        this.dataScopeManager = new DataScopeManager(this.schema, this.config);
         this.data = this.dataScopeManager.flattenData(this.rawData, this.config);
     }
     fetchData() {
@@ -9461,41 +9476,25 @@ class DynamicList {
                 }
             }
         };
-        let buildFromInstance = (instance, path) => {
-            if (typeof instance != 'object')
+        let buildFromInstance = (instance) => {
+            if (typeof instance !== 'object')
                 return {};
-            let schema = {};
+            let s = {};
             for (const key in instance) {
-                let separator = this.dataScopeManager.separator;
-                if (instance[key] === null) {
-                    continue;
-                }
-                else if (instance[key] instanceof Array) {
-                    schema[key] = { array: {} };
-                    let item = schema[key];
-                    if (!('array' in item))
-                        break;
-                    instance[key].forEach((i, idx) => {
-                        if (!('array' in item))
-                            return;
-                        if (typeof i != 'object') {
-                            item.array[idx] = { alphaType: jsTypeToAlphaType(typeof i) };
-                        }
-                        else {
-                            deepAssign(item.array, buildFromInstance(i, path + key + separator));
-                        }
-                    });
-                }
-                else if (typeof instance[key] == 'object') {
-                    schema[key] = { nested: buildFromInstance(instance[key], path + key + separator) };
-                }
+                if (instance[key] instanceof Array)
+                    s[key] = 'nestedArray';
+                else if (typeof instance[key] === 'object')
+                    s[key] = 'nestedObject';
                 else {
-                    schema[key] = { alphaType: jsTypeToAlphaType(typeof instance[key]) };
+                    s[key] = {
+                        alphaType: jsTypeToAlphaType(typeof s[key])
+                    };
                 }
             }
-            return schema;
+            return s;
         };
-        this.rawData.forEach(d => deepAssign(this.schema, buildFromInstance(d, "")));
+        this.schema = {};
+        this.rawData.forEach(d => deepAssign(this.schema, buildFromInstance(d)));
     }
     mapRawSchema(s) {
         s.jsonOutput.column.forEach((item) => this.schema[item.name] = { alphaType: item.alphaType });
@@ -9561,151 +9560,174 @@ class DynamicList {
     }
 }
 class DataScopeManager {
-    constructor(schema) {
-        this.separator = '___';
+    constructor(schema, config) {
         this.schema = schema;
         this.path = [];
         this.expandedIdxToRawIdx = {};
     }
-    setPathFromConfig(config, data) {
-        this.path = [];
-        for (const dataPoint of data) {
-            for (const mapping of config.mappings) {
-                let path = mapping.columnName.split(this.separator);
-                if (path.length > 1 && path[0] == this.separator) {
-                    path[1] = this.separator + path[1];
-                    path = path.slice(1);
-                }
-                let tmp = dataPoint;
-                // Iterate through parts of path, 
-                // descending through datapoint
-                for (let i = 0; i < path.length; i++) {
-                    tmp = tmp[path[i]];
-                    if (tmp instanceof Array) {
-                        this.path = path.slice(0, i + 1);
-                        return;
-                    }
-                    if (tmp == undefined)
-                        break;
-                }
-            }
-        }
-    }
-    strToPath(str) {
-        return str.split(this.separator);
-    }
-    getOriginalIndex(n) {
-        return this.expandedIdxToRawIdx[n];
-    }
     flattenData(data, config) {
-        if (this.path.length == 0)
-            return data;
-        this.expandedIdxToRawIdx = {};
-        let newData = [];
-        // Given path part n, datapoint d
-        // Flatten data around d, ignoring any arrays
-        // Enter array n, if it exists
-        // Repeat for part n + 1, datapoint d[n]
-        for (let i = 0; i < data.length; i++) {
-            let dataPoint = data[i];
-            let newItems = this.flattenDataPoint(dataPoint, this.schema, this.path, "");
-            let startIdx = newData.length;
-            let endIdx = startIdx + newItems.length;
-            for (let j = startIdx; j < endIdx; j++) {
-                this.expandedIdxToRawIdx[j] = i;
+        debugger;
+        let result = [];
+        for (const dataPoint of data) {
+            // Separate into expanded and not expanded 
+            let expandedParts = {};
+            let toExpand = [];
+            for (const mapping of config.mappings) {
+                // This field *should* be expanded
+                if (mapping.subMappings !== undefined && this.isFlattenedSubfield(mapping.subMappings)) {
+                    toExpand.push(mapping);
+                }
+                else {
+                    expandedParts[mapping.columnName] = dataPoint[mapping.columnName];
+                }
             }
-            newData.push(...newItems);
-        }
-        return newData;
-    }
-    getAvailableDataColumns() {
-        return this._getAvailableDataColumns(this.schema, '', this.path);
-    }
-    getExpandableColumns() {
-        return this._getExpandableColumns(this.schema, "", this.path);
-    }
-    setPath(path) {
-        this.path = path;
-    }
-    inSubArray(path) {
-        let part = this.schema;
-        for (let i = 0; i < path.length; i++) {
-            let tmp = part[path[i]];
-            if (tmp == undefined)
-                return false;
-            if ('nested' in tmp)
-                part = tmp.nested;
-            else if ('array' in tmp)
-                return true;
-            else
-                return false;
-        }
-        return false;
-    }
-    _getAvailableDataColumns(schema, prefix, path) {
-        let result = [];
-        for (const key in schema) {
-            let part = schema[key];
-            if ('alphaType' in part)
-                result.push(prefix + key);
-            else if ('nested' in part)
-                result.push(...this._getAvailableDataColumns(part.nested, prefix + key + this.separator, path));
-            else if ('array' in part && path.length > 0 && path[0] == key)
-                result.push(...this._getAvailableDataColumns(part.array, prefix + key + this.separator, path.slice(1)));
+            // Nothing to add
+            if (toExpand.length == 0)
+                result.push(expandedParts);
+            else {
+                let expandSub = (idx) => {
+                    if (idx == toExpand.length - 1) {
+                        return this.flattenSubfieldData(toExpand[idx].subMappings, dataPoint[toExpand[idx].columnName]);
+                    }
+                    else {
+                        let nextLevel = expandSub(idx + 1);
+                        let thisLevel = this.flattenSubfieldData(toExpand[idx].subMappings, dataPoint[toExpand[idx].columnName]);
+                        let output = [];
+                        for (const dp1 of nextLevel) {
+                            for (const dp2 of thisLevel) {
+                                // Perform Cartesian product of the two datapoints
+                                output.push(Object.assign(dp1, dp2));
+                            }
+                        }
+                        return output;
+                    }
+                };
+                let expandedSubs = expandSub(0);
+                for (const elem of expandedSubs) {
+                    result.push(Object.assign(elem, expandedParts));
+                }
+            }
         }
         return result;
     }
-    _getExpandableColumns(schema, prefix, path) {
+    flattenSubfieldData(sub, data) {
         let result = [];
-        for (const key in schema) {
-            let part = schema[key];
-            if ('alphaType' in part)
-                continue;
-            else if ('nested' in part)
-                result.push(...this._getExpandableColumns(part.nested, prefix + key + this.separator, path));
-            else if ('array' in part && path.length > 0 && path[0] == key)
-                result.push(...this._getExpandableColumns(part.array, prefix + key + this.separator, path.slice(1)));
-            else if ('array' in part)
-                result.push(prefix + key);
+        if ('flattenedColumnName' in sub) {
+            let o = {};
+            o[sub.flattenedColumnName] = data;
+            result.push(o);
+            return result;
         }
-        return result;
-    }
-    flattenDataPoint(point, schema, path, prefix) {
-        let final = [];
-        let flattenIgnoreArray = (point, schema, prefix) => {
-            let result = {};
-            for (const key in schema) {
-                let part = schema[key];
-                if (!(typeof point == "object") && 'alphaType' in part)
-                    result[prefix + key] = point;
-                else if (!(key in point))
-                    continue;
-                else if ('array' in part)
-                    continue;
-                else if ('alphaType' in part)
-                    result[prefix + key] = point[key];
-                else if ('nested' in part)
-                    Object.assign(result, flattenIgnoreArray(point[key], part.nested, prefix + key + this.separator));
+        else if ('arrayItem' in sub) {
+            data.forEach(d => result.push(...this.flattenSubfieldData(sub.arrayItem, d)));
+            return result;
+        }
+        else {
+            // As with the top level, we separate the keys
+            let expandedElems = {};
+            // toExpand is a list of expanded sub-array elements
+            let toExpand = [];
+            for (const key in sub.keys) {
+                let flattened = this.flattenSubfieldData(sub.keys[key], data[key]);
+                // Expanded to 1 elem means no nested arrays
+                if (flattened.length == 1) {
+                    Object.assign(expandedElems, flattened[0]);
+                }
+                else {
+                    toExpand.push(flattened);
+                }
+            }
+            if (toExpand.length == 0)
+                return [expandedElems];
+            // Similar idea with the top level, basically Cartesian product
+            let expandSub = (index) => {
+                if (index == toExpand.length - 1)
+                    return toExpand[index];
+                else {
+                    let nextLevel = expandSub(index + 1);
+                    let results = [];
+                    for (const dp1 of toExpand[index]) {
+                        for (const dp2 of nextLevel) {
+                            results.push(Object.assign(dp1, dp2));
+                        }
+                    }
+                    return results;
+                }
+            };
+            let expandedSubs = expandSub(0);
+            for (const sub of expandedSubs) {
+                result.push(Object.assign(sub, expandedElems));
             }
             return result;
-        };
-        let root = flattenIgnoreArray(point, schema, prefix);
-        if (path.length == 0)
-            return [root];
-        for (const key in schema) {
-            let part = schema[key];
-            if (!(key in point))
-                continue;
-            else if ('array' in part && path.length > 0 && path[0] == key) {
-                let subData = [];
-                for (const dataPoint of point[key]) {
-                    subData.push(...this.flattenDataPoint(dataPoint, part.array, path.slice(1), prefix + key + this.separator));
+        }
+    }
+    isFlattenedSubfield(sub) {
+        if ('keys' in sub) {
+            for (const key in sub.keys) {
+                if (this.isFlattenedSubfield(sub.keys[key]))
+                    return true;
+            }
+            return false;
+        }
+        else if ('arrayItem' in sub) {
+            return this.isFlattenedSubfield(sub.arrayItem);
+        }
+        else {
+            return 'flattenedColumnName' in sub;
+        }
+    }
+    getAvailableColumns(config) {
+        let allAvailable = [];
+        for (const mapping of config.mappings) {
+            if (mapping.subMappings !== undefined) {
+                // Each sub mapping may be specified as part of the list
+                if (this.isFlattenedSubfield(mapping.subMappings)) {
+                    allAvailable.push(...this.getAvailableFlattenedCols(mapping.subMappings));
+                    continue;
                 }
-                subData.forEach(x => Object.assign(x, root));
-                final.push(...subData);
+            }
+            allAvailable.push(mapping.columnName);
+        }
+        return allAvailable;
+    }
+    getAvailableFlattenedCols(sub) {
+        let res = [];
+        if ('keys' in sub) {
+            for (const key in sub) {
+                res.push(...this.getAvailableFlattenedCols(sub[key]));
             }
         }
-        return final;
+        else if ('arrayItem' in sub) {
+            res.push(...this.getAvailableFlattenedCols(sub.arrayItem));
+        }
+        else {
+            res.push(sub.flattenedColumnName);
+        }
+        return res;
+    }
+    getAllTopLevelColumns(config) {
+        let allAvailable = new Set();
+        for (const mapping of config.mappings) {
+            allAvailable.add(mapping.columnName);
+        }
+        // Add items that may not appear in the mappings
+        for (const key in this.schema) {
+            allAvailable.add(key);
+        }
+        let result = [];
+        allAvailable.forEach(col => {
+            for (const mapping of config.mappings) {
+                if (mapping.columnName == col) {
+                    result.push({ displayName: mapping.displayName, columnName: col });
+                    return;
+                }
+            }
+            result.push({ columnName: col });
+        });
+        return result;
+    }
+    quantifiable(colName) {
+        return false;
     }
 }
 function setFormDetailView(obj, listBox) {
@@ -9814,10 +9836,10 @@ class DynamicListSearch {
             this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
         }
         this.window.document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
-        let allSearchCols = this.list.dataScopeManager.getAvailableDataColumns();
+        let allSearchCols = this.list.dataScopeManager.getAvailableColumns(this.list.config);
         let getPreferredColumnOptions = (colName) => {
             let col = { name: '', editType: 'text' };
-            let schemaEntry = this.findInSchema(colName.split(this.list.dataScopeManager.separator), this.list.schema);
+            let schemaEntry = undefined;
             if (schemaEntry && "alphaType" in schemaEntry) {
                 col.name = colName;
                 col.editType = alphaTypeToEditType(schemaEntry.alphaType);
@@ -9849,7 +9871,7 @@ class DynamicListSearch {
                     type: 'default',
                     format: '',
                     data: [],
-                    quantifier: this.list.dataScopeManager.inSubArray(colName.split(this.list.dataScopeManager.separator))
+                    quantifier: this.list.dataScopeManager.quantifiable(colName)
                 };
                 let editType = preferred.editType;
                 switch (editType) {
@@ -9965,11 +9987,12 @@ class DynamicListSearch {
                 var _a;
                 let type;
                 for (const column of allSearchCols) {
-                    let item = this.findInSchema(column.split(this.list.dataScopeManager.separator), this.list.schema);
-                    if (item && column == col && 'alphaType' in item) {
-                        type = alphaTypeToEditType(item.alphaType);
-                        break;
-                    }
+                    throw new Error("Unimplemented");
+                    // let item = this.findInSchema(column.split(this.list.dataScopeManager.separator), this.list.schema);
+                    // if (item && column == col && 'alphaType' in item) {
+                    //     type = alphaTypeToEditType(item.alphaType);
+                    //     break;
+                    // }
                 }
                 for (const mapping of this.list.config.mappings) {
                     if (mapping.columnName == col) {
@@ -10108,7 +10131,7 @@ class DynamicListSearch {
     }
     setListSearchFns() {
         let lObj = this.list.listBox;
-        let allSearchCols = this.list.dataScopeManager.getAvailableDataColumns();
+        let allSearchCols = this.list.dataScopeManager.getAvailableColumns(this.list.config);
         if (lObj.searchList)
             return;
         lObj.searchList = (x) => {
@@ -10291,15 +10314,15 @@ class DynamicListSearch {
         lObj._searchPart = {};
         lObj._searchFieldOptions = {};
         lObj._searchPart.fieldMap = [];
-        for (const col of this.list.dataScopeManager.getAvailableDataColumns()) {
-            let path = col.split(this.list.dataScopeManager.separator);
-            if (path.length > 1 && path[0] == '') {
-                path[1] = this.list.dataScopeManager.separator + path[1];
-                path = path.slice(1);
-            }
-            let item = this.findInSchema(path, this.list.schema);
+        for (const col of this.list.dataScopeManager.getAvailableColumns(this.list.config)) {
+            // let path = col.split(this.list.dataScopeManager.separator);
+            // if (path.length > 1 && path[0] == '') {
+            //     path[1] = this.list.dataScopeManager.separator + path[1];
+            //     path = path.slice(1);
+            // }
+            let item = undefined;
             if (item && 'alphaType' in item) {
-                let type = item.alphaType.toLowerCase();
+                //let type = item.alphaType.toLowerCase();
                 lObj._searchPart.fieldMap.push({
                     control: 'SearchForm::' + col,
                     field: col,
@@ -10309,7 +10332,7 @@ class DynamicListSearch {
                     option: 2,
                     qbs: true,
                     searchField: col,
-                    type: type,
+                    type: 'edit',
                     dateFormat: objDatetimeFormat()
                 };
             }
@@ -10713,38 +10736,29 @@ function initList(ops) {
 }
 function manageConfigForm(ops) {
     let allDataColumns = [];
-    let allExpandableCols = [];
     let configForm;
     let fillColInfo = () => {
         if (ops.list === undefined)
             return;
-        allDataColumns = ops.list.dataScopeManager.getAvailableDataColumns().map(c => {
+        allDataColumns = ops.list.dataScopeManager.getAllTopLevelColumns(ops.list.config).map(m => {
+            var _a;
             return {
-                text: c.split("___").join('.'),
-                value: c,
-                onSelect: () => { }
-            };
-        });
-        allExpandableCols = ops.list.dataScopeManager.getExpandableColumns().map(c => {
-            return {
-                text: "Open nested item " + c.split("___").join("."),
-                value: c,
-                onSelect: () => { }
+                text: (_a = m.displayName) !== null && _a !== void 0 ? _a : m.columnName,
+                value: m.columnName,
             };
         });
     };
     let show;
     let addColCallbacks = () => {
-        for (let col of allExpandableCols) {
-            col.onSelect = () => {
-                if (ops.list === undefined)
-                    return;
-                let currData = configForm.serialize();
-                Object.assign(ops.preFetch.config.mappings, currData);
-                ops.list.dataScopeManager.setPath(col.value.split("___"));
-                show(currData);
-            };
-        }
+        // for (let col of allExpandableCols) {
+        //     col.onSelect = () => {
+        //         if (ops.list === undefined) return;
+        //         let currData = configForm.serialize();
+        //         Object.assign(ops.preFetch.config.mappings, currData);
+        //         ops.list.dataScopeManager.setPath(col.value.split("___"));
+        //         show(currData as any);
+        //     }
+        // }
     };
     let runValidation = (config) => {
         if ('name' in config) {
@@ -10821,7 +10835,7 @@ function manageConfigForm(ops) {
     };
     show = (dataOverride = undefined) => {
         fillColInfo();
-        configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, [...allDataColumns, ...allExpandableCols]);
+        configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, allDataColumns);
         addColCallbacks();
         try {
             let others = makeSQLSaveButtons(ops.obj, saveUser, saveGlobal);
@@ -11053,8 +11067,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
         ],
         default: 'text'
     };
-    let subMappings = {
-        label: "Sub-Mappings",
+    let nestedSubMappings = {
+        label: "Nested Sub-Mappings",
         name: 'subMapping',
         definitions: {
             'JSON Value': {
@@ -11119,16 +11133,6 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                             }
                         },
                         optionalKeys: {
-                            displayName: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Display Name',
-                                        type: 'string'
-                                    }
-                                }
-                            },
                             defaultValue: {
                                 defaultValue: "",
                                 definition: {
@@ -11171,6 +11175,56 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                             }
                         },
                         optionalKeys: {
+                            defaultValue: {
+                                defaultValue: "",
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'Default Value (JavaScript expression)',
+                                        type: 'string'
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            },
+        }
+    };
+    let flattenedSubMappings = {
+        label: "Flattened Sub-Mappings",
+        name: 'subMapping',
+        definitions: {
+            'JSON Value': {
+                defaultValue: {
+                    editType: 'string',
+                    flattenedColumnName: ''
+                },
+                definition: {
+                    type: 'object',
+                    options: {
+                        label: 'JSON Value',
+                        requiredKeys: {
+                            editType: {
+                                type: 'dropdown',
+                                options: {
+                                    label: 'Edit Type',
+                                    dropdownItems: [
+                                        { value: 'string', 'text': 'String' },
+                                        { value: 'number', 'text': 'Number' },
+                                        { value: 'boolean', 'text': 'Boolean' },
+                                    ]
+                                }
+                            },
+                            flattenedColumnName: {
+                                type: 'simple',
+                                options: {
+                                    label: "Flattened Column Name",
+                                    type: 'string'
+                                }
+                            }
+                        },
+                        optionalKeys: {
                             displayName: {
                                 defaultValue: "",
                                 definition: {
@@ -11181,6 +11235,79 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                     }
                                 }
                             },
+                            defaultValue: {
+                                defaultValue: "",
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'Default Value (JavaScript expression)',
+                                        type: 'string'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            'JSON Array': {
+                defaultValue: { arrayItem: { editType: 'string', flattenedColumnName: '' } },
+                definition: {
+                    type: 'object',
+                    options: {
+                        label: 'JSON Array',
+                        requiredKeys: {
+                            arrayItem: {
+                                type: 'recursive',
+                                options: {
+                                    label: 'Array Item',
+                                    recurseOn: 'subMapping'
+                                }
+                            }
+                        },
+                        optionalKeys: {
+                            defaultValue: {
+                                defaultValue: "",
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'Default Value (JavaScript expression)',
+                                        type: 'string'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            'JSON Object': {
+                defaultValue: { keys: {} },
+                definition: {
+                    type: 'object',
+                    options: {
+                        label: 'JSON Object',
+                        requiredKeys: {
+                            keys: {
+                                type: 'object',
+                                options: {
+                                    label: 'Keys',
+                                    requiredKeys: {},
+                                    newKeyTemplate: {
+                                        defaultValue: {
+                                            editType: 'string',
+                                            flattenedColumnName: '',
+                                        },
+                                        definition: {
+                                            type: 'recursive',
+                                            options: {
+                                                label: 'Keys',
+                                                recurseOn: 'subMapping'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        optionalKeys: {
                             defaultValue: {
                                 defaultValue: "",
                                 definition: {
@@ -11218,13 +11345,13 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                             label: 'Column Name',
                             dropdownItems: allColumns,
                             onSelect: (e, d) => {
-                                let selected = e.item.data;
-                                for (const colInfo of allColumns) {
-                                    if (colInfo.value == selected && colInfo.onSelect) {
-                                        colInfo.onSelect();
-                                        return;
-                                    }
-                                }
+                                // let selected = e.item.data;
+                                // for (const colInfo of allColumns) {
+                                //     if (colInfo.value == selected && colInfo.onSelect) {
+                                //         colInfo.onSelect();
+                                //         return;
+                                //     }
+                                // }
                             }
                         }
                     }
@@ -11273,7 +11400,28 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                         },
                         definition: {
                             type: 'multi',
-                            options: subMappings
+                            options: {
+                                label: 'Sub-Mapping Type',
+                                definitions: {
+                                    'Nested Sub-Fields': {
+                                        defaultValue: { editType: 'string' },
+                                        definition: {
+                                            type: 'multi',
+                                            options: nestedSubMappings
+                                        }
+                                    },
+                                    'Flattened Sub-Mappings': {
+                                        defaultValue: {
+                                            editType: 'string',
+                                            flattenedColumnName: ''
+                                        },
+                                        definition: {
+                                            type: 'multi',
+                                            options: flattenedSubMappings
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     serverDateFormat: {
