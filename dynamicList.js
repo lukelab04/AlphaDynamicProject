@@ -135,12 +135,14 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
             type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
             table: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
             type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
             sql: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
@@ -7622,9 +7624,10 @@ function jsTypeToAlphaType(t) {
         default: return 'c';
     }
 }
-function getSchema(obj, table) {
+function getSchema(obj, table, connection) {
     return new Promise((resolve) => {
-        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "tableName=" + encodeURIComponent(table), {
+        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "tableName=" + encodeURIComponent(table)
+            + "&connectionName=" + encodeURIComponent(connection), {
             onComplete: resolve
         });
     });
@@ -7747,6 +7750,7 @@ class DynamicList {
         A5.executeThisThenThat(makeForm, openForm, makeNew);
     }
     saveDynamicListEdits() {
+        var _a, _b;
         if (this.onSaveOverride) {
             let data = this.listBox._data.map(row => {
                 let newRow = {};
@@ -7779,13 +7783,15 @@ class DynamicList {
         };
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + encodeURI(this.config.dataSource.table)
-                + "&dirty=" + encodeURI(JSON.stringify(harvest)), {
+                + "&dirty=" + encodeURI(JSON.stringify(harvest))
+                + "&connectionName=" + encodeURIComponent((_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn'), {
                 onComplete: onComplete,
             });
         }
         else if (this.config.dataSource.type == 'sql' && 'sql' in this.config.dataSource) {
             this.obj.ajaxCallback("", "", "updateData", "", "customSql=" + encodeURI(this.config.dataSource.sql)
-                + "&dirty=" + encodeURI(JSON.stringify(harvest)), {
+                + "&dirty=" + encodeURI(JSON.stringify(harvest))
+                + "&connectionName=" + encodeURIComponent((_b = this.config.dataSource.connectionString) !== null && _b !== void 0 ? _b : 'conn'), {
                 onComplete: onComplete,
             });
         }
@@ -8914,7 +8920,7 @@ class DynamicList {
                 let data = this.listBox._data[this.listBox._dataMap[idx]];
                 if ('function' in button.onClick) {
                     (function (rowNumber, value, ia, data, lObj, listObj) {
-                        (0,types.stringReprToFn)(button.onClick.function)(tmpThis);
+                        (0,types.stringReprToFn)(button.onClick.function)(tmpThis, rowNumber, data);
                     }(idx, v, args, data, this.listBox, this.listBox));
                 }
                 else {
@@ -9261,30 +9267,7 @@ class DynamicList {
                     label: label,
                     text: `Open ${label} in new tab`,
                     action: (e) => {
-                        // Spawn new list
-                        let newSchema = {
-                            name: fullPath,
-                            dataSource: {
-                                type: 'json',
-                                jsonData: JSON.stringify(data)
-                            },
-                            mappings: [],
-                            searchOptions: {},
-                            buttons: [],
-                        };
-                        let ops = {
-                            configName: fullPath,
-                            titleName: label,
-                            fallbackConfig: newSchema,
-                            otherProps: {
-                                onSaveOverride: (list, newData) => {
-                                    Object.assign(data, newData);
-                                    onSave(newData);
-                                },
-                                dataOverride: data,
-                            }
-                        };
-                        openNewPanel(ops);
+                        this.openSublistFromNested(fullPath, label, data, onSave);
                     },
                     onSerialize: () => {
                         return data;
@@ -9304,6 +9287,38 @@ class DynamicList {
             };
             return form;
         }
+    }
+    openSublistFromNested(name, label, data, onSave) {
+        let newSchema = {
+            name: name,
+            dataSource: {
+                type: 'json',
+                jsonData: JSON.stringify(data)
+            },
+            mappings: [],
+            searchOptions: {},
+            buttons: [],
+        };
+        let ops = {
+            configName: name,
+            titleName: label,
+            fallbackConfig: newSchema,
+            otherProps: {
+                onSaveOverride: (list, newData) => {
+                    Object.assign(data, newData);
+                    onSave(newData);
+                },
+                dataOverride: data,
+            }
+        };
+        openNewPanel(ops);
+    }
+    linkSublistToField(name, label, columnName, populateWith, currRow, currData) {
+        let onSave = (newData) => {
+            currData[columnName] = JSON.stringify(newData);
+            this.listBox.updateRow(currRow, currData);
+        };
+        this.openSublistFromNested(name, label, populateWith, onSave);
     }
     makeObviousDefault(scheme) {
         if ('editType' in scheme) {
@@ -9511,7 +9526,7 @@ class DynamicList {
             for (const key in instance) {
                 if (instance[key] instanceof Array)
                     s[key] = 'nestedArray';
-                else if (typeof instance[key] === 'object')
+                else if (typeof instance[key] === 'object' && instance[key] !== null)
                     s[key] = 'nestedObject';
                 else {
                     s[key] = {
@@ -9528,13 +9543,14 @@ class DynamicList {
         s.jsonOutput.column.forEach((item) => this.schema[item.name] = { alphaType: item.alphaType });
     }
     fetchSchema(reuseData) {
+        var _a;
         if (reuseData) {
             this.buildSchemaFromRawData();
             return Promise.resolve(this);
         }
         this.schema = {};
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            return getSchema(this.obj, this.config.dataSource.table).then(() => {
+            return getSchema(this.obj, this.config.dataSource.table, (_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn').then(() => {
                 let sqlSchema = this.obj.stateInfo.schema;
                 this.mapRawSchema(sqlSchema);
                 return this;
@@ -9594,7 +9610,6 @@ class DataScopeManager {
         this.expandedIdxToRawIdx = {};
     }
     flattenData(data, config) {
-        debugger;
         let result = [];
         for (const dataPoint of data) {
             // Separate into expanded and not expanded 
@@ -11723,6 +11738,16 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                     label: 'Preprocess Function'
                                                 }
                                             }
+                                        },
+                                        connectionString: {
+                                            defaultValue: 'conn',
+                                            definition: {
+                                                type: 'simple',
+                                                options: {
+                                                    type: 'string',
+                                                    label: "Connection String"
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -11762,6 +11787,16 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                 options: {
                                                     type: 'function',
                                                     label: 'Preprocess Function'
+                                                }
+                                            }
+                                        },
+                                        connectionString: {
+                                            defaultValue: 'conn',
+                                            definition: {
+                                                type: 'simple',
+                                                options: {
+                                                    type: 'string',
+                                                    label: "Connection String"
                                                 }
                                             }
                                         }

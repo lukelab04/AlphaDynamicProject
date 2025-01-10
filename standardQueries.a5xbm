@@ -40,6 +40,15 @@ function querySqlWithFilters as Result (e as p)
 		next
 	end if
 	
+	dim ds as p
+	dim cnString as c
+	ds = configJson.getProperty("dataSource")
+	if ds.hasProperty("connectionString") then 
+		cnString = ds.getProperty("connectionString")
+	else 
+		cnString = "conn"
+	end if
+	
 	' If the config's datasource has the 'table' property, then 
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
@@ -49,22 +58,22 @@ function querySqlWithFilters as Result (e as p)
 			index = columns.append(1)
 			columns[index] = configJson.getProperty("mappings").getIndexed(i).getProperty("columnName")
 		next
-		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, filters, e)
+		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, filters, e, cnString)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, filters, e)
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, filters, e, cnString)
 	end if
 	
 end function
 
-function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as extension::json, e as p)
+function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as extension::json, e as p, connName as c)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	dim args as sql::arguments
 	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
+	flag = cn_open(cn,"::Name::" + connName)
 	
 	dim filterStr as c
 	dim filterStrRes as Result
@@ -101,12 +110,12 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as e
 	cn.close()
 end function
 
-function getTableData as Result (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p)
+function getTableData as Result (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p, connName as c)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
+	flag = cn_open(cn,"::Name::" + connName)
 	
 	if columns.size == 0 then
 		dim data as extension::json 
@@ -278,7 +287,7 @@ end function
 ' Input: Table Name OR customSql
 ' Input: dirty (from 'harvestList')
 ' Input: resultsOut output parameter list of results
-function updateTableData as v (e as p, resultsOut as p)
+function updateTableData as v (e as p, resultsOut as p, connName as c)
 	dim isCustomSql as l
 	isCustomSql = prop_valid(e, "customSql")
 	
@@ -288,7 +297,7 @@ function updateTableData as v (e as p, resultsOut as p)
 	
 	if .not. isCustomSql then 
 		schemaInfo = require("schemaInfo")
-		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
+		info = schemaInfo.getConnectionSchemaJSON(connName, e.tableName)
 		schema = json_parse(info)
 	end if
 	
@@ -299,7 +308,7 @@ function updateTableData as v (e as p, resultsOut as p)
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
+	flag = cn_open(cn,"::Name::" + connName)
 	
 	for each item in dirty
 		
@@ -320,19 +329,19 @@ function updateTableData as v (e as p, resultsOut as p)
 		
 		if shouldDelete then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "delete")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "delete", connName)
 			else 
 				resultsOut[] = runDeleteQuery(e, schema, item, cn)
 			end if
 		else if shouldUpdate then 
 			if isCustomSql then 
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "update")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "update", connName)
 			else 
 				resultsOut[] = runUpdateQuery(e, schema, item, cn)
 			end if
 		else if shouldInsert then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "insert")
+				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "insert", connName)
 			else 
 				resultsOut[] = runInsertQuery(e, schema, item, cn)
 			end if
@@ -387,7 +396,7 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	runUpdateQuery = Result.success("")
 end function
 
-function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c)
+function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c, cnString as c)
 	dim query as sql::query 
 	query.parse(sql)
 	dim output as Result = Result.success("")
@@ -426,7 +435,7 @@ function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connec
 		dim info as c
 		dim schema as p
 		schemaInfo = require("schemaInfo")
-		info = schemaInfo.getConnectionSchemaJSON("conn", e.tableName)
+		info = schemaInfo.getConnectionSchemaJSON(cnString, e.tableName)
 		schema = json_parse(info)
 		
 		if queryType == "insert" then
@@ -735,9 +744,6 @@ function performFetch as Result (e as p)
 		settings.query_string = urlData.query_string
 	end if
 	
-
-	
-	dim result as P
 	performFetch = Result.success(json_generate(http_fetch(settings)))
 	
 end function

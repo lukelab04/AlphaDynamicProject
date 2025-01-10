@@ -51,11 +51,18 @@ function batchFetch as Result (e as p)
 	dim ds as extension::json 
 	ds = config.getProperty("dataSource")
 	
+	dim connectionString as c 
+	if ds.hasProperty("connectionString") then 
+		connectionString = ds.getProperty("connectionString")
+	else 
+		connectionString = "conn"
+	end if
+	
 	dim data as p
 	
 	if ds.hasProperty("table") then
 		dim schema as c
-		schema = schemaInfo.getConnectionSchemaJSON("conn", ds.getProperty("table"))
+		schema = schemaInfo.getConnectionSchemaJSON(connectionString, ds.getProperty("table"))
 		dim schemaJson as extension::json 
 		schemaJson.setJson(schema)
 		resultObj.setProperty("schema", schemaJson)
@@ -111,8 +118,8 @@ function requestConfig as Result (e as p)
 	
 	dim userMappings as Result
 	dim globalConfig as p
-	userMappings = fetchFromDb(userSql, args)
-	globalConfig = fetchFromDb(globalSql, args)
+	userMappings = fetchFromDb(userSql, args, "conn")
+	globalConfig = fetchFromDb(globalSql, args, "conn")
 	
 	if .not. globalConfig.isSuccessful() then 
 		requestConfig = globalConfig
@@ -135,12 +142,12 @@ end function
 
 ' Take SQL and Args, query database, return as JSON object
 ' Returns { ok: Obj } or { err: errMsg }
-function fetchFromDb as Result (sql as c, args as sql::arguments)
+function fetchFromDb as Result (sql as c, args as sql::arguments, connectionString as c)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
 	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
+	flag = cn_open(cn,"::Name::" + connectionString)
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
 	cn.PortableSQLEnabled = .t.
 	'execute the SQL - pass in the sql::arguments object
