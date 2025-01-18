@@ -62,6 +62,7 @@ loadConnectionStrings(gv, _SSRS_ConnectionStrings, "SSRS")
 Dim _AlphaDAO_ConnectionStrings as c 
 _AlphaDAO_ConnectionStrings = <<%txt%
 conn|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL3KXo+isyWws2OOOiUUqqwumi8OrkMxUleEUgwF4/TOCwXrCNYN4yVWfddk5VVsbXM=
+conn2|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL3KXo+isyWws2OOOiUUqqwumi8OrkMxUleEUgwF4/TOC6dZmC3kyzPGUeSxbN96PLLj5EFVGbXawo/i+7bgq7xl
 %txt%
 
 'Create a global collection called '_A5_AlphaDAO_ConnectionStrings'
@@ -328,7 +329,13 @@ DIM responseHeaders as P
 DIM responseHeaders.includeInsecureHeaders as L
 DIM responseHeaders.additionalHeaders as C
 DIM pdfReferenceDevice as C
-DIM __token as C = "2898b5a7f96c4d2a83d6bc0d50bc9894"
+DIM application as P
+DIM application.onAppstart as C
+DIM application.library as C
+DIM publish as P
+DIM publish.onPublish as C
+DIM publish.library as C
+DIM __token as C = "9a13b9f0e94d4c8584a4746a792e72ba"
 %txt%
 
 dim gv as p 
@@ -339,10 +346,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 202447470614471708
-gv.__buildNumberExe__ = 8867
-gv.__buildNumberAddins__ = 5691
-gv.__guid = "3226f78f-0967-4e5a-b820-1764424841c7"
+gv.__A5PublishTimestamp = 2025313117183120818
+gv.__buildNumberExe__ = 9529
+gv.__buildNumberAddins__ = 5718
+gv.__guid = "c0b11fc1-5d74-4db9-95ed-cb7bd9e86efc"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

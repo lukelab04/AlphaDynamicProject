@@ -62,7 +62,15 @@ function batchFetch as Result (e as p)
 	
 	if ds.hasProperty("table") then
 		dim schema as c
-		schema = schemaInfo.getConnectionSchemaJSON(connectionString, ds.getProperty("table"))
+		dim schemaRes as Result
+		schemaRes = schemaInfo.getConnectionSchemaJSON(connectionString, ds.getProperty("table"))
+		if schemaRes.isSuccessful() then 
+			schema = schemaRes.getInner()
+		else 
+			batchFetch = schemaRes 
+			end 
+		end if
+		
 		dim schemaJson as extension::json 
 		schemaJson.setJson(schema)
 		resultObj.setProperty("schema", schemaJson)

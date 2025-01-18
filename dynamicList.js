@@ -9551,8 +9551,11 @@ class DynamicList {
         this.schema = {};
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             return getSchema(this.obj, this.config.dataSource.table, (_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn').then(() => {
-                let sqlSchema = this.obj.stateInfo.schema;
-                this.mapRawSchema(sqlSchema);
+                let response = this.obj.stateInfo.apiResult;
+                if ('err' in response) {
+                    throw new Error(response.err);
+                }
+                this.mapRawSchema(response.ok);
                 return this;
             });
         }
@@ -10763,6 +10766,7 @@ function initList(ops) {
             displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
             console.error(err.toString());
         }
+        returnObj.configUx = ops.obj;
         manageConfigForm({
             obj: ops.obj,
             listWindow: ops.listWindow,
@@ -10825,13 +10829,12 @@ function manageConfigForm(ops) {
         return config;
     };
     let saveGlobal = () => {
-        var _a;
         try {
             let maybeConfig = configForm.serialize();
             runValidation(maybeConfig);
             maybeConfig = extractRelevantConfig(maybeConfig, true);
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
-            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${(_a = ops.list) === null || _a === void 0 ? void 0 : _a.config.name}&payload=${data}&global=${true}`, {
+            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${true}`, {
                 onComplete: () => {
                     let res = ops.obj.stateInfo.apiResponse;
                     if (res && res.err) {
@@ -10851,13 +10854,12 @@ function manageConfigForm(ops) {
         }
     };
     let saveUser = () => {
-        var _a;
         try {
             let maybeConfig = configForm.serialize();
             runValidation(maybeConfig);
             maybeConfig = extractRelevantConfig(maybeConfig, false);
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
-            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${(_a = ops.list) === null || _a === void 0 ? void 0 : _a.config.name}&payload=${data}&global=${false}`, {
+            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${false}`, {
                 onComplete: () => {
                     let res = ops.obj.stateInfo.apiResponse;
                     if (res && res.err) {

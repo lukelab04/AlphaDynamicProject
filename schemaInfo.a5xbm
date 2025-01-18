@@ -3,8 +3,9 @@
 'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
 'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
 
+loadClass("Result")
 
-function getConnectionSchemaJSON as c (connectionString as c, tableName as c)
+function getConnectionSchemaJSON as Result (connectionString as c, tableName as c)
 	
 	dim cn as sql::connection 
 	dim s as sql::schema
@@ -12,19 +13,23 @@ function getConnectionSchemaJSON as c (connectionString as c, tableName as c)
 	dim primaryKey as c 
 	dim JSONOutput as c
 	dim table as sql::TableInfo
+	dim res as Result
 	
 	if (.not. cn.open("::Name::" + connectionString)) then
-		error_generate("Could not open connection (connection string '" + connectionString + "').")
-	end if 
+		getConnectionSchemaJSON = Result.fail("Could not open connection (connection string '" + connectionString + "').")
+		end
+	end if
 	
-	if (.not. cn.GetSchema(s)) then 
-		error_generate("Could not get schema for connection '" + connectionString + "'.")
+	if (.not. cn.GetSchema(s)) then
+		getConnectionSchemaJSON = Result.fail("Could not get schema for connection '" + connectionString + "'.")
+		end
 	end if 
 	
 	n = s.TableNumber(tableName)
 	
 	if (n < 0) then 
-		error_generate("Table '" + tableName + "' does not exist for connection string '" + connectionString + "'.")
+		getConnectionSchemaJSON = Result.fail("Table '" + tableName + "' does not exist for connection string '" + connectionString + "'.")
+		end
 	end if 
 	
 	table = s.table[n]
@@ -33,7 +38,7 @@ function getConnectionSchemaJSON as c (connectionString as c, tableName as c)
 	
 	cn.Close()
 	
-	getConnectionSchemaJSON = "{\"primaryKey\":\"" + primaryKey + "\", \"jsonOutput\": " + JSONOutput + "}"
+	getConnectionSchemaJSON = Result.success("{\"primaryKey\":\"" + primaryKey + "\", \"jsonOutput\": " + JSONOutput + "}")
 	
 end function
 

@@ -297,7 +297,13 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	
 	if .not. isCustomSql then 
 		schemaInfo = require("schemaInfo")
-		info = schemaInfo.getConnectionSchemaJSON(connName, e.tableName)
+		dim schemaRes as Result
+		schemaRes = schemaInfo.getConnectionSchemaJSON(connName, e.tableName)
+		if schemaRes.isSuccess then 
+			info = schemaRes.getInner()
+		else 
+			end 
+		end if
 		schema = json_parse(info)
 	end if
 	
@@ -379,6 +385,12 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 		updateSql = substr(updateSql, 1, len(updateSql) - 1)
 	end if
 	
+	' User forgot to put primary ID in their mappings
+	if typeof(args.find(schema.primaryKey)) == "V" then 
+		runUpdateQuery = Result.fail("Primary key must be specified in the mappings.")
+		end
+	end if
+	
 	updateSql = updateSql + " WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
@@ -434,8 +446,17 @@ function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connec
 		dim schemaInfo as p
 		dim info as c
 		dim schema as p
+		dim schemaRes as Result
 		schemaInfo = require("schemaInfo")
-		info = schemaInfo.getConnectionSchemaJSON(cnString, e.tableName)
+		
+		schemaRes = schemaInfo.getConnectionSchemaJSON(cnString, e.tableName)
+		if schemaRes.isSuccessful() then 
+			info = schemaRes.getInner()
+		else 
+			runQueryWithCustomSql = schemaRes
+			end
+		end if
+		
 		schema = json_parse(info)
 		
 		if queryType == "insert" then
