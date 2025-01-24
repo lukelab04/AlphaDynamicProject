@@ -49,6 +49,13 @@ function querySqlWithFilters as Result (e as p)
 		cnString = "conn"
 	end if
 	
+	dim sortOptions as a 
+	sortOptions = null_value()
+	
+	if configJson.getProperty("dataSource").hasProperty("serverSort") then
+		sortOptions = configJson.getProperty("dataSource").getProperty("serverSort")
+	end if
+	
 	' If the config's datasource has the 'table' property, then 
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
@@ -58,16 +65,16 @@ function querySqlWithFilters as Result (e as p)
 			index = columns.append(1)
 			columns[index] = configJson.getProperty("mappings").getIndexed(i).getProperty("columnName")
 		next
-		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, filters, e, cnString)
+		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, filters, e, cnString)
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString)
 	end if
 	
 end function
 
-function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as extension::json, e as p, connName as c)
+function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -91,7 +98,7 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as e
 	end if
 	
 	dim result as Result
-	result = runSqlFetch(cn, sql, args, pageOptions)
+	result = runSqlFetch(cn, sql, args, pageOptions, sortOptions)
 	
 	if .not. result.isSuccessful() then 
 		getTableDataFromSql = result 
@@ -110,7 +117,7 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, filters as e
 	cn.close()
 end function
 
-function getTableData as Result (tableName as c, columns as p, pageOptions as a, filters as extension::json, e as p, connName as c)
+function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -166,7 +173,7 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
 	dim data as Result
-	data = runSqlFetch(cn, sql, args, pageOptions)
+	data = runSqlFetch(cn, sql, args, pageOptions, sortOptions)
 	
 	if .not. data.isSuccessful() then 
 		getTableData = data
@@ -187,8 +194,14 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	
 end function
 
-
-function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a)
+' pageOptions (or null)
+' 	pageSize: int
+' 	getPage: int
+'
+' sortOptions
+'	columnName: string
+' 	order: "asc" | "desc"
+function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a, sortOptions as a)
 	dim result as Result
 	
 	if pageOptions == null_value() then 
@@ -198,6 +211,15 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 		rowStart = 1 + (pageOptions.pageSize * (pageOptions.getPage - 1))
 		getRows = pageOptions.pageSize
 	end if
+	
+	if sortOptions <> null_value() then
+		sql = sql + " ORDER BY "
+		for i = 1 to sortOptions.getLength()
+			sql = sql + " [" + cn.GenerateNativeColumnName(sortOptions.getIndexed(i - 1).getProperty("columnName")) + "] " + sortOptions.getIndexed(i - 1).getProperty("order") + ","
+		next
+		sql = substr(sql, 1, len(sql) - 1)
+	end if
+		
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
 	cn.PortableSQLEnabled = .t.

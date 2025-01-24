@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListBtnTypeSchema, NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema, SearchOptionsTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListBtnTypeSchema, NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -123,6 +123,10 @@ const SchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Rec
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("nestedObject"),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("nestedArray")
 ]));
+const ServerSortTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    order: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('asc'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('desc')])
+}));
 const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     onInitialize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
@@ -137,6 +141,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
             table: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
             connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
+            serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -144,6 +149,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
             sql: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
             connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
+            serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -10796,17 +10802,6 @@ function manageConfigForm(ops) {
         });
     };
     let show;
-    let addColCallbacks = () => {
-        // for (let col of allExpandableCols) {
-        //     col.onSelect = () => {
-        //         if (ops.list === undefined) return;
-        //         let currData = configForm.serialize();
-        //         Object.assign(ops.preFetch.config.mappings, currData);
-        //         ops.list.dataScopeManager.setPath(col.value.split("___"));
-        //         show(currData as any);
-        //     }
-        // }
-    };
     let runValidation = (config) => {
         if ('name' in config) {
             validateConfig(config);
@@ -10881,7 +10876,6 @@ function manageConfigForm(ops) {
     show = (dataOverride = undefined) => {
         fillColInfo();
         configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, allDataColumns);
-        addColCallbacks();
         try {
             let others = makeSQLSaveButtons(ops.obj, saveUser, saveGlobal);
             let populateWith = ops.preFetch.isAdmin ? ops.preFetch.config : ops.preFetch.config.mappings;
@@ -11388,16 +11382,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                         type: 'dropdown',
                         options: {
                             label: 'Column Name',
-                            dropdownItems: allColumns,
-                            onSelect: (e, d) => {
-                                // let selected = e.item.data;
-                                // for (const colInfo of allColumns) {
-                                //     if (colInfo.value == selected && colInfo.onSelect) {
-                                //         colInfo.onSelect();
-                                //         return;
-                                //     }
-                                // }
-                            }
+                            dropdownItems: allColumns
                         }
                     }
                 },
@@ -11639,6 +11624,35 @@ function buildConfigForm(obj, adminConfig, allColumns) {
             }
         }
     };
+    let serverSort = {
+        label: "Server-side Sorting",
+        defaultValue: { columnName: '', order: 'asc' },
+        itemTemplate: {
+            type: 'object',
+            options: {
+                label: "Column Sorting Option",
+                requiredKeys: {
+                    columnName: {
+                        type: 'dropdown',
+                        options: {
+                            label: 'Column to Sort On',
+                            dropdownItems: allColumns,
+                        }
+                    },
+                    order: {
+                        type: 'dropdown',
+                        options: {
+                            label: 'Order',
+                            dropdownItems: [
+                                { text: 'Ascending', value: 'asc' },
+                                { text: 'Descending', value: 'desc' }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    };
     let form = {
         label: 'List Configuration',
         requiredKeys: {
@@ -11731,6 +11745,13 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                 options: filters
                                             }
                                         },
+                                        serverSort: {
+                                            defaultValue: [],
+                                            definition: {
+                                                type: 'array',
+                                                options: serverSort
+                                            }
+                                        },
                                         preprocess: {
                                             defaultValue: () => { },
                                             definition: {
@@ -11790,6 +11811,13 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                     type: 'function',
                                                     label: 'Preprocess Function'
                                                 }
+                                            }
+                                        },
+                                        serverSort: {
+                                            defaultValue: [],
+                                            definition: {
+                                                type: 'array',
+                                                options: serverSort
                                             }
                                         },
                                         connectionString: {
