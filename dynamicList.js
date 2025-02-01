@@ -7848,6 +7848,7 @@ class DynamicList {
         let listObj = this;
         if (!this.config.buttons)
             this.config.buttons = (this.window.Array());
+        columns.push(this.buildCheckboxColumn());
         for (const mapping of this.config.mappings) {
             if (mapping.subMappings && this.dataScopeManager.isFlattenedSubfield(mapping.subMappings)) {
                 let collectSubColumns = (s) => {
@@ -7880,11 +7881,55 @@ class DynamicList {
                 listFields.push(this.buildListFieldDefn(mapping));
             }
         }
+        console.warn("MOVE THIS HERE!!!");
         for (let i = 0; i < this.config.buttons.length; i++) {
             columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
             this.makeMenuSetting(this.config.buttons[i], i, menuSettings, items);
         }
         let dialogId = this.obj.dialogId;
+        items['__toggleCheck'] = {
+            "selectable": false,
+            "onClick": (index, v, args) => {
+                var data = this.listBox._data[this.listBox._dataMap[index]];
+                data.__selected = !data.__selected;
+                var src = this.listBox.__checkedImage;
+                if (!data.__selected)
+                    src = this.listBox.__uncheckedImage;
+                let id = this.obj.dialogId + '.' + LIST_NAME;
+                var ele = $(`${id}.CHECKBOX` + data['*key']);
+                A5.u.icon.update(ele.children[0], src);
+                this.listBox._size();
+                if (this.listBox.onCheckRow) {
+                    var e = { data: data, renderIndex: data['*renderIndex'], rowNumber: data['*key'], value: data['*value'], checked: data.__selected };
+                    this.listBox.onCheckRow(e);
+                }
+            }
+        };
+        items['__toggleAll'] = {
+            "selectable": false,
+            "onClick": (index, v, args) => {
+                var data = this.listBox._data[this.listBox._dataMap[index]];
+                var allrowschecked = true;
+                let lObj = this.listBox;
+                for (var i = 0; i < lObj._rData.length; i++) {
+                    if (typeof lObj._rData[i]['__selected'] == 'undefined' || lObj._rData[i]['__selected'] == false) {
+                        allrowschecked = false;
+                    }
+                }
+                if (!allrowschecked) {
+                    lObj.checkAllRows();
+                    lObj._allrowschecked = true;
+                }
+                else {
+                    lObj.unCheckAllRows();
+                    lObj._allrowschecked = false;
+                }
+                var e2 = { data: lObj._data };
+                if (lObj && lObj.onCheckRow)
+                    lObj.onCheckRow(e2);
+                this.listBox.refresh();
+            }
+        };
         return {
             theme: this.obj.styleName,
             layout: 'Default',
@@ -7980,6 +8025,29 @@ class DynamicList {
                             break;
                     }
                 }
+            },
+            getCheckedRows: () => {
+                let r = [];
+                let _d = this.listBox._data;
+                for (let i = 0; i < _d.length; i++) {
+                    if (_d[i].__selected)
+                        r.push(i);
+                }
+                return r;
+            },
+            unCheckAllRows: () => {
+                let _d = this.listBox._rData;
+                for (let i = 0; i < _d.length; i++) {
+                    _d[i]['__selected'] = false;
+                }
+                this.listBox.refresh();
+            },
+            checkAllRows: () => {
+                let _d = this.listBox._rData;
+                for (let i = 0; i < _d.length; i++) {
+                    _d[i]['__selected'] = true;
+                }
+                this.listBox.refresh();
             },
             _onSelect: (index) => this.listBox.onSelect(index),
             _hasDetailView: true,
@@ -8516,44 +8584,14 @@ class DynamicList {
                     }
                     return flag;
                 };
-                let matchNested = (quantifier, path, d) => {
-                    if (path.length == 0)
-                        return false;
-                    if (path.length == 1) {
-                        return matches(d, path[0]);
-                    }
-                    else {
-                        let item = d[path[0]];
-                        if (!(item instanceof Array))
-                            return false;
-                        let results = [];
-                        for (const d of item) {
-                            let m = matchNested(quantifier, path.slice(1), d);
-                            results.push(m);
-                        }
-                        let result;
-                        if (results.length == 0) {
-                            result = false;
-                        }
-                        else {
-                            result = results.reduce((a, b) => {
-                                if (quantifier == 'SOME')
-                                    return a || b;
-                                return a && b;
-                            });
-                        }
-                        return result;
-                    }
-                };
-                throw new Error("Unimplemented");
-                // let path = this.dataScopeManager.strToPath(field);
-                // if (this.dataScopeManager.inSubArray(path)) {
-                //     let rawDataPoint = this.rawData[this.dataScopeManager.getOriginalIndex(data['*key'] as unknown as number)];
-                //     flag = matchNested(obj.quantifier ?? 'ALL', path, rawDataPoint);
-                // } else {
-                //     flag = matches(data, field);
-                // }
-                flag = false;
+                let topLevel = this.dataScopeManager.getAllTopLevelColumns(this.config).map(x => x.columnName);
+                if (topLevel.includes(field)) {
+                    flag = matches(data, field);
+                }
+                else {
+                    // TODO
+                    flag = false;
+                }
                 if (flag) {
                     let lObj = this.listBox;
                     if (typeof lObj._state.highlight == 'undefined')
@@ -8656,9 +8694,11 @@ class DynamicList {
                     }
                 }
             },
-            onListDraw: (data, startIndex) => {
+            __checkedImage: 'svgIcon=#alpha-icon-checkCircle:icon,24',
+            __uncheckedImage: 'svgIcon=#alpha-icon-circle:icon,24',
+            onListDraw: function (data, startIndex) {
                 if (A5.flags.isMobile) {
-                    $e.add(this.listBox.contId + '.CONTENT', 'abstractdown', (e) => {
+                    $e.add(this.contId + '.CONTENT', 'abstractdown', (e) => {
                         let ele = e.target;
                         let tag = '';
                         if (ele && typeof ele.tagName == 'string')
@@ -8666,28 +8706,28 @@ class DynamicList {
                         if (tag != 'input' && tag != 'textarea')
                             $e.preventDefault(e);
                     });
-                    this.listBox._hasrun = true;
-                    this.listBox._allrowschecked = true;
-                    let d = this.listBox._rData;
-                    for (let i = 0; i < d.length; i++) {
-                        if (!d[i].__selected) {
-                            this.listBox._allrowschecked = false;
-                            break;
-                        }
-                    }
-                    if (d.length == 0)
-                        this.listBox._allrowschecked = false;
-                    let h;
-                    if (this.listBox._allrowschecked) {
-                        h = A5.u.icon.html(this.listBox.__checkedImage);
-                    }
-                    else {
-                        h = A5.u.icon.html(this.listBox.__uncheckedImage);
-                    }
-                    let _id = this.obj.dialogId + '.' + this.listBox.listVariableName + '.CHECKBOXALL';
-                    let ele = $(_id);
-                    ele.innerHTML = h;
                 }
+                this._hasrun = true;
+                this._allrowschecked = true;
+                let d = this._rData;
+                for (let i = 0; i < d.length; i++) {
+                    if (!d[i].__selected) {
+                        this._allrowschecked = false;
+                        break;
+                    }
+                }
+                if (d.length == 0)
+                    this._allrowschecked = false;
+                let h;
+                if (this._allrowschecked) {
+                    h = A5.u.icon.html(this.__checkedImage);
+                }
+                else {
+                    h = A5.u.icon.html(this.__uncheckedImage);
+                }
+                let _id = listObj.obj.dialogId + '.' + this.listVariableName + '.CHECKBOXALL';
+                let ele = $(_id);
+                ele.innerHTML = h;
             },
             onChange: () => {
                 let btns = listObj.window.document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
@@ -8867,6 +8907,42 @@ class DynamicList {
             }
         };
     }
+    buildCheckboxColumn() {
+        let id = this.obj.dialogId + '.' + LIST_NAME;
+        let checked = A5.u.icon.html("svgIcon=#alpha-icon-checkCircle:icon,24");
+        let unchecked = A5.u.icon.html("svgIcon=#alpha-icon-circle:icon,24");
+        let template = `
+            <div 
+                style="display: inline-block;" 
+                id="${id + '.CHECKBOX{*key}'}" 
+                a5-item="__toggleCheck"
+            >
+                {*if <defined<__selected>>}
+                    {*if __selected}
+                        ${checked}
+                    {*else}
+                        ${unchecked}
+                    {*endif}
+                {*else}
+                    ${unchecked}
+                {*endif}
+            </div>`;
+        return {
+            header: {
+                html: `<span id="${id + '.CHECKBOXALL'}" a5-item="__toggleAll"></span>`
+            },
+            _name: '<CheckBoxSelect>',
+            _type: '',
+            resize: true,
+            rcw: 0,
+            data: {
+                template: template.replace(/(\r\n|\n|\r|\t)/gm, ""),
+                style: 'text-align: left; text-overflow: clip !important; white-space: normal !important;'
+            },
+            order: false,
+            width: '50px'
+        };
+    }
     buildColumnDefn(mapping) {
         var _a, _b, _c;
         let template = mapping.columnName;
@@ -8890,7 +8966,7 @@ class DynamicList {
                 template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${mapping.columnName}.I.{*dataRow}"> ${template} </span>`
             },
             width: (_c = mapping.width) !== null && _c !== void 0 ? _c : 'flex(1)',
-            resize: false,
+            resize: true,
             order: mapping.columnName,
         };
     }
@@ -8908,7 +8984,7 @@ class DynamicList {
                 },
                 _name: button.columnTitle,
                 _type: 'Menu',
-                resize: false,
+                resize: true,
                 rcw: 0,
                 data: {
                     template: `
@@ -8938,7 +9014,7 @@ class DynamicList {
             header: { html: button.columnTitle },
             _name: btnNumber.toString(),
             _type: 'Button',
-            resize: false,
+            resize: true,
             rcw: 0,
             data: {
                 template: `
@@ -9742,6 +9818,60 @@ class DataScopeManager {
         }
         return allAvailable;
     }
+    getSearchableColumns(config) {
+        var _a, _b;
+        let result = [];
+        for (const mapping of config.mappings) {
+            if (mapping.subMappings !== undefined) {
+                if (this.isFlattenedSubfield(mapping.subMappings)) {
+                    let sub = this.getSearchableFlattenedCols(mapping.subMappings);
+                    result.push(...sub);
+                }
+            }
+            else {
+                result.push({
+                    displayName: (_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.columnName,
+                    columnName: mapping.columnName,
+                    quantifiable: false,
+                    alphaType: (_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text'
+                });
+            }
+        }
+        return result;
+    }
+    getSearchableFlattenedCols(sub) {
+        var _a;
+        let result = [];
+        if ('keys' in sub) {
+            for (const key in sub.keys) {
+                result.push(...this.getSearchableFlattenedCols(sub.keys[key]));
+            }
+        }
+        else if ('arrayItem' in sub) {
+            result.push(...this.getSearchableFlattenedCols(sub.arrayItem));
+        }
+        else {
+            let e = 'text';
+            switch (sub.editType) {
+                case 'string':
+                    e = 'text';
+                    break;
+                case 'number':
+                    e = 'number';
+                    break;
+                case 'boolean':
+                    e = 'bool';
+                    break;
+            }
+            result.push({
+                displayName: (_a = sub.displayName) !== null && _a !== void 0 ? _a : sub.flattenedColumnName,
+                columnName: sub.flattenedColumnName,
+                quantifiable: true,
+                alphaType: e
+            });
+        }
+        return result;
+    }
     getAvailableFlattenedCols(sub) {
         let res = [];
         if ('keys' in sub) {
@@ -9861,6 +9991,7 @@ class DynamicListSearch {
         this.window = window;
         this.advForm.data.fields = {};
         this.buildForms();
+        debugger;
         this.form.render();
     }
     findInSchema(path, schema) {
@@ -9888,45 +10019,27 @@ class DynamicListSearch {
             this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
         }
         this.window.document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
-        let allSearchCols = this.list.dataScopeManager.getAvailableColumns(this.list.config);
-        let getPreferredColumnOptions = (colName) => {
-            let col = { name: '', editType: 'text' };
-            let schemaEntry = undefined;
-            if (schemaEntry && "alphaType" in schemaEntry) {
-                col.name = colName;
-                col.editType = alphaTypeToEditType(schemaEntry.alphaType);
-            }
-            this.list.config.mappings.forEach(m => {
-                var _a, _b;
-                if (m.columnName == colName) {
-                    col.name = (_a = m.displayName) !== null && _a !== void 0 ? _a : m.columnName;
-                    col.editType = (_b = m.editType) !== null && _b !== void 0 ? _b : col.editType;
-                }
-            });
-            return col;
-        };
-        for (const colName of allSearchCols) {
+        let allSearchCols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
+        for (const colInfo of allSearchCols) {
             let include = this.list.config.searchOptions.onlyInclude;
             let exclude = this.list.config.searchOptions.onlyExclude;
             let shouldInclude = true;
             if (include)
-                shouldInclude = include.includes(colName);
+                shouldInclude = include.includes(colInfo.columnName);
             else if (exclude)
-                shouldInclude = !exclude.includes(colName);
+                shouldInclude = !exclude.includes(colInfo.columnName);
             if (shouldInclude) {
-                let preferred = getPreferredColumnOptions(colName);
                 let element = (new FormInput())
-                    .withLabel(preferred.name)
-                    .withVariable(colName)
+                    .withLabel(colInfo.displayName)
+                    .withVariable(colInfo.columnName)
                     .withStyle('width: 100%');
                 let advancedControl = {
                     type: 'default',
                     format: '',
                     data: [],
-                    quantifier: this.list.dataScopeManager.quantifiable(colName)
+                    quantifier: colInfo.quantifiable
                 };
-                let editType = preferred.editType;
-                switch (editType) {
+                switch (colInfo.editType) {
                     case 'text':
                     case 'number': break;
                     case 'time':
@@ -9947,7 +10060,7 @@ class DynamicListSearch {
                     case 'dropdown':
                         let dropdownConfig;
                         for (const mapping of this.list.config.mappings) {
-                            if (mapping.columnName == colName) {
+                            if (mapping.columnName == colInfo.columnName) {
                                 dropdownConfig = mapping.dropdownConfig;
                                 break;
                             }
@@ -9966,12 +10079,12 @@ class DynamicListSearch {
                         advancedControl.type = 'combolist';
                 }
                 this.form.withElement(element);
-                this.advForm.data.fields[colName] = {
+                this.advForm.data.fields[colInfo.columnName] = {
                     control: advancedControl,
                     default: {
                         op: '='
                     },
-                    label: preferred.name
+                    label: colInfo.displayName
                 };
             }
         }
@@ -10036,20 +10149,10 @@ class DynamicListSearch {
             obj.advancedSearchControl = 'AdvancedSearch';
             obj.queryData = JSON.parse(query[0]);
             let getEditType = (col) => {
-                var _a;
-                let type;
+                let type = 'text';
                 for (const column of allSearchCols) {
-                    throw new Error("Unimplemented");
-                    // let item = this.findInSchema(column.split(this.list.dataScopeManager.separator), this.list.schema);
-                    // if (item && column == col && 'alphaType' in item) {
-                    //     type = alphaTypeToEditType(item.alphaType);
-                    //     break;
-                    // }
-                }
-                for (const mapping of this.list.config.mappings) {
-                    if (mapping.columnName == col) {
-                        return (_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text';
-                    }
+                    if (column.columnName == col)
+                        return column.editType;
                 }
                 return type;
             };
@@ -10089,7 +10192,7 @@ class DynamicListSearch {
         };
         this.form.withElement((new FormButton())
             .withHtml("Search")
-            .withClickHandler(() => {
+            .withClickHandler((x) => {
             this.list.listBox.searchList({ searchMode: 'auto' });
         }));
         this.form.withElement((new FormButton())
@@ -10183,7 +10286,7 @@ class DynamicListSearch {
     }
     setListSearchFns() {
         let lObj = this.list.listBox;
-        let allSearchCols = this.list.dataScopeManager.getAvailableColumns(this.list.config);
+        let allSearchCols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
         if (lObj.searchList)
             return;
         lObj.searchList = (x) => {
@@ -10221,17 +10324,17 @@ class DynamicListSearch {
             let aco = {};
             let _highlight = {};
             let values = [];
-            allSearchCols.forEach((colName, i) => {
+            allSearchCols.forEach((colDefn, i) => {
                 let val;
                 if (!searchObj) {
                     val = this.obj.getValue(map[i].control);
                     if (val != undefined && val != '')
-                        values.push({ index: i, item: val, name: colName });
+                        values.push({ index: i, item: val, name: colDefn.columnName });
                 }
                 else {
                     for (const e of searchObj.queryData) {
                         if (e.columnName == map[i].field)
-                            values.push({ index: i, item: e, name: colName });
+                            values.push({ index: i, item: e, name: colDefn.columnName });
                     }
                 }
             });
@@ -10293,7 +10396,7 @@ class DynamicListSearch {
             for (let i = 0; i < map.length; i++) {
                 let val = this.obj.getValue(map[i].control);
                 if (val != '' && val != undefined) {
-                    let ops = lObj._searchFieldOptions[allSearchCols[i]];
+                    let ops = lObj._searchFieldOptions[allSearchCols[i].columnName];
                     let columnVal = '';
                     let op = '';
                     if (ops.type == 'text') {
@@ -10366,28 +10469,19 @@ class DynamicListSearch {
         lObj._searchPart = {};
         lObj._searchFieldOptions = {};
         lObj._searchPart.fieldMap = [];
-        for (const col of this.list.dataScopeManager.getAvailableColumns(this.list.config)) {
-            // let path = col.split(this.list.dataScopeManager.separator);
-            // if (path.length > 1 && path[0] == '') {
-            //     path[1] = this.list.dataScopeManager.separator + path[1];
-            //     path = path.slice(1);
-            // }
-            let item = undefined;
-            if (item && 'alphaType' in item) {
-                //let type = item.alphaType.toLowerCase();
-                lObj._searchPart.fieldMap.push({
-                    control: 'SearchForm::' + col,
-                    field: col,
-                    dateFormat: objDatetimeFormat()
-                });
-                lObj._searchFieldOptions[col] = {
-                    option: 2,
-                    qbs: true,
-                    searchField: col,
-                    type: 'edit',
-                    dateFormat: objDatetimeFormat()
-                };
-            }
+        for (const col of this.list.dataScopeManager.getSearchableColumns(this.list.config)) {
+            lObj._searchPart.fieldMap.push({
+                control: 'SearchForm::' + col.columnName,
+                field: col.columnName,
+                dateFormat: objDatetimeFormat()
+            });
+            lObj._searchFieldOptions[col.columnName] = {
+                option: 2,
+                qbs: true,
+                searchField: col.columnName,
+                type: col.editType,
+                dateFormat: objDatetimeFormat()
+            };
         }
     }
 }
@@ -10770,7 +10864,12 @@ function initList(ops) {
         }
         else {
             displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
-            console.error(err.toString());
+            if (err instanceof Error) {
+                console.error("Error: ", err.name, "Message: ", err.message, "Stack Trace: ", err.stack);
+            }
+            else {
+                console.error(err.toString());
+            }
         }
         returnObj.configUx = ops.obj;
         manageConfigForm({

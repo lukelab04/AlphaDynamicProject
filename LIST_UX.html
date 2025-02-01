@@ -2539,7 +2539,7 @@ var DLG1_DlgObj = new A5.DialogComponentHelper('DLG1',{
 	_embeddedMode: true,
 	_livePreviewInBuilder: false,
 	componentGUID: '05f864ff-bdc6-4b04-98b3-3dcdbf371552',
-	columnInfo: {'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: false, dataType: 'C'  },'DETAIL_VIEW': {info: {controlType: 'formbox'}, hiddenVal: false, type: 'input,label', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }},
+	columnInfo: {'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: true, dataType: 'C'  },'DETAIL_VIEW': {info: {controlType: 'formbox'}, hiddenVal: false, type: 'input,label', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }},
 	originalValues: [{
 	"LIST1": "",
 	"DETAIL_VIEW": ""
@@ -3010,6 +3010,61 @@ DLG1_DlgObj._listViewSettings['LIST1'] = {
 			onErrorFunction: function(e) { }
 		}
 	},
+	getCheckedRows: function() {var r = [];
+var _d = this._data;
+for(var i = 0; i < _d.length; i++) {
+	if(_d[i].__selected) {
+		r.push(i);
+	}
+}
+return r;
+  },
+	getCheckedValues: function() {var r = [];
+var _d = this._data;
+for(var i = 0; i < _d.length; i++) {
+	if(_d[i].__selected) {
+		r.push(_d[i]['*value']);
+	}
+}
+return r;
+ },
+	setCheckedRows: function(arr) {var _d = this._data;
+for(var i = 0; i < _d.length; i++) {
+	if(arr.indexOf(i)>-1) _d[i]['__selected'] = true;
+}
+this.refresh();
+ },
+	setCheckedValues: function(arr) {var _d = this._data;
+var val;
+for(var i = 0; i < _d.length; i++) {
+	_d[i]['__selected'] = false;
+}
+for(var i = 0; i < _d.length; i++) {
+	val = _d[i]['*value']
+	if(arr.indexOf(val)>-1) _d[i]['__selected'] = true;
+}
+this.refresh();
+ },
+	unCheckAllRows: function() {var _d = this._data;
+for(var i = 0; i < _d.length; i++) {
+	_d[i]['__selected'] = false;
+}
+this.refresh();
+ },
+	checkAllRows: function() {var _d = this._rData;
+for(var i = 0; i < _d.length; i++) {
+	_d[i]['__selected'] = true;
+}
+this.refresh();
+ },
+	listFilterOnCheckedColumns: function() { 		var v = this.getCheckedValues();
+		var data = [];
+		data.push(A5.ajax.buildURLParam('_keys',JSON.stringify(v)))
+		data.push('__list='+this.listVariableName)
+		d = data.join('&');
+		window[this._hostComponentId + '_DlgObj'].ajaxCallback('','','system:filterListOnCheckedColumns','',d)
+	}
+	,
 	_incrementalRefreshAfterLoad: function() { },
 	_dvmode: 'enter',
 	_hasDetailView: true,
@@ -3419,42 +3474,22 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 			columns: [
 			{
 				header: {
-					html: 'Customer id',
-					style: 'text-align: right;'
+					html: '<span id="DLG1.LIST1.CHECKBOXALL" a5-item="__toggleAll"></span>'
 				},
 				separator: {
-					location: 'none',
+					location: 'right',
 					style: 'background-color: gray;',
-					width: '1px'
+					width: '1pt'
 				},
-				_name: 'CUSTOMER_ID',
+				_name: '<CheckBoxSelect>',
 				_type: '',
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '{CUSTOMER_ID}',
-					style: 'text-align: right; padding-right:10px;'
+					template: '<div style="display:inline-block;" id="DLG1.LIST1.CHECKBOX{*key}" a5-item="__toggleCheck">{*if <defined<__selected>>}{*if __selected}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-checkCircle"  pointer-events="none" /></svg>{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}</div>',
+					style: 'text-align: left; text-overflow:clip !important;'
 				},
-				order: 'CUSTOMER_ID',
-				width: 'flex(1)'
-			},
-			{
-				header: {
-					html: 'Inv date'
-				},
-				separator: {
-					location: 'none',
-					style: 'background-color: gray;',
-					width: '1px'
-				},
-				_name: 'INV_DATE',
-				_type: '',
-				resize: false,
-				rcw: 0,
-				data: {
-					template: '{INV_DATE}'
-				},
-				order: 'INV_DATE',
+				order: false,
 				width: 'flex(1)'
 			},
 			{
@@ -3462,9 +3497,9 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 					html: 'Button'
 				},
 				separator: {
-					location: 'none',
+					location: 'right',
 					style: 'background-color: gray;',
-					width: '1px'
+					width: '1pt'
 				},
 				_name: 'BUTTON',
 				_type: '',
@@ -3474,6 +3509,44 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 					template: '<span id="DLG1.LIST1.BUTTON.I.{*dataRow}"><button  a5-item="_systemButtononClick_BUTTON"  id="DLG1.LIST1.BUTTON.BTN.{*dataRow}"  class="button" style="cursor:pointer;" title="">Press Me&nbsp;{@A5.u.icon.html(<escape<\'svgIcon=#alpha-icon-edit:icon,24\'>>)}</button></span>&nbsp;'
 				},
 				order: false,
+				width: 'flex(1)'
+			},
+			{
+				header: {
+					html: 'Firstname'
+				},
+				separator: {
+					location: 'right',
+					style: 'background-color: gray;',
+					width: '1pt'
+				},
+				_name: 'Firstname',
+				_type: '',
+				resize: false,
+				rcw: 0,
+				data: {
+					template: '<span id="DLG1.LIST1.FIRSTNAME.I.{*dataRow}">{Firstname}</span>'
+				},
+				order: 'Firstname',
+				width: 'flex(1)'
+			},
+			{
+				header: {
+					html: 'Lastname'
+				},
+				separator: {
+					location: 'right',
+					style: 'background-color: gray;',
+					width: '1pt'
+				},
+				_name: 'Lastname',
+				_type: '',
+				resize: false,
+				rcw: 0,
+				data: {
+					template: '<span id="DLG1.LIST1.LASTNAME.I.{*dataRow}">{Lastname}</span>'
+				},
+				order: 'Lastname',
 				width: 'flex(1)'
 			},
 			{
@@ -3492,7 +3565,9 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 			}],
 			_hasRCW: false,
 			_horizontalScrolling: false,
-			_hasColumnSeparators: false
+			_hasColumnSeparators: true,
+			_linecolor: 'gray',
+			_linethickness: '1pt'
 		}
 	},
 	columnSeparators: function(state) { 				var lyt = this.layouts[this.layout];
@@ -3578,6 +3653,7 @@ ele.innerHTML = h
 		afterServerSideSummaryCompute: function(summary) {},
 		afterRefreshListIncremental: function(e) {},
 		onNamedQuerySelect: function(e) {},
+		onFirestoreLoaded: function(e) {},
 		onFirestoreAuthStateChanged: function(e) {},
 		onFirestoreLogin: function(e) {},
 		onFirestoreLogout: function(e) {},
@@ -4263,6 +4339,8 @@ if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 	}
 }
 ,
+	multiple: true,
+	separator: ',',
 	header: {
 		html: ''
 	},
@@ -4414,6 +4492,41 @@ if(this.multiple ) return;
 	"onClick": function(index,v,args) { 					var data = this._data[this._dataMap[index]];
 					(function(rowNumber,value,ia,data,lObj,listObj) { console.log('button click') }(index,v,args,data,this,this))
 				}
+},
+'__toggleCheck' : {
+	"selectable": false,
+	"onClick": function(index,v,args) { 					var data = this._data[this._dataMap[index]];
+					(function(rowNumber,value,ia,data,lObj,listObj) { 	
+data.__selected = !data.__selected;
+var src = lObj.__checkedImage;
+if(!data.__selected) src = lObj.__uncheckedImage;
+var ele = $('DLG1.LIST1.CHECKBOX'+data['*key']);
+A5.u.icon.update(ele.children[0],src);
+lObj._size();
+if(lObj.onCheckRow) {
+	var e = {data: data, renderIndex: data['*renderIndex'], rowNumber: data['*key'], value: data['*value'], checked: data.__selected};
+	lObj.onCheckRow(e);
+} 
+ }(index,v,args,data,this,this))
+				}
+},
+'__toggleAll' : {
+	"selectable": false,
+	"onClick": function(index,v,args) { 					var data = this._data[this._dataMap[index]];
+					(function(rowNumber,value,ia,data,lObj,listObj) { var allrowschecked = true;
+ for(var i = 0; i < lObj._rData.length; i++) {
+  if(typeof lObj._rData[i]['__selected'] == 'undefined' || lObj._rData[i]['__selected'] == false) { allrowschecked = false}
+ }
+ if(!allrowschecked){
+   lObj.checkAllRows();
+   lObj._allrowschecked = true;
+ }else{
+  lObj.unCheckAllRows();
+  lObj._allrowschecked = false;
+ }
+ var e2 = {data: lObj._data};
+ if(lObj && lObj.onCheckRow) lObj.onCheckRow(e2); }(index,v,args,data,this,this))
+				}
 }
 },
 	_searchHighlighting: false,
@@ -4457,7 +4570,7 @@ if (typeof window['cordova'] == 'undefined') {
 if(flagCordova) { 
 	if(this.__flagPersist) { 
 		if(this.__persistWhere.toLowerCase() == 'indexdb') { 
-			alert('Error. App is running as a Cordova app. You cannot set the persist location to \'IndexedDB\' for Cordova applictions. You must set the persist location to \'FileSystem\'');
+			alert('Error. App is running as a Cordova app. You cannot set the persist location to \'IndexedDB\' for Cordova applications. You must set the persist location to \'FileSystem\'');
 		}
 	}
 }
@@ -4471,6 +4584,7 @@ try{
 		}
 	}
 }catch(e){};
+;this._host = DLG1_DlgObj.dialogId;
 if(typeof this.__flagHasFixedColumnFooters != 'undefined') { 
 	if(this.__flagHasFixedColumnFooters) { 
 		this.refresh();
@@ -20394,9 +20508,9 @@ DLG1_DlgObj.__info = {
 	"createdBy": "lukes",
 	"lastUpdatedBy": "",
 	"dateCreated": "2024-4-17",
-	"dateLastEdited": "2025-1-17",
+	"dateLastEdited": "2025-1-31",
 	"comments": "",
-	"revisionnumber": 570
+	"revisionnumber": 576
 }
 A5.__csdfmt = (obj) =>{ if(obj) return obj.stateInfo.__dtfmt};DLG1_DlgObj._workingPreview = false;
 $u.decimal = '.';
