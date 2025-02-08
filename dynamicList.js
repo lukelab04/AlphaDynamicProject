@@ -112,7 +112,6 @@ const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Ob
     ]))
 });
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-    paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
     advancedSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     serverSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     onlyInclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())),
@@ -142,6 +141,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
             connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
             serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
+            paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -150,6 +150,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
             connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
             filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
             serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
+            paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -160,6 +161,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
     ]),
     mappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(MappingTypeSchema),
     searchOptions: SearchOptionsTypeSchema,
+    multiSelect: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     buttons: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListBtnTypeSchema),
 });
 const PrefetchedDataTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -6913,7 +6915,9 @@ class ObjectForm extends Form {
             if (optional) {
                 input = this.wrapInOptional(input, key);
             }
-            allChildren.push(input);
+            if (!(this.entries[key] instanceof ConstForm)) {
+                allChildren.push(input);
+            }
         }
         if (this.options.newKeyTemplate !== undefined) {
             allChildren.push(...[
@@ -7567,7 +7571,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
-const LIST_NAME = 'DYNAMIC_LIST';
+const LIST_NAME = 'LIST1';
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
 const objTimeFormat = () => A5.__tfmt;
 const objDatetimeFormat = () => A5.__dtfmt + ' ' + objTimeFormat();
@@ -7662,8 +7666,12 @@ class DynamicList {
     constructor() {
         this.nestedPath = [];
         this.dataScopeManager = new DataScopeManager({});
+        // Used in _match
+        this.searchMemoizationNeedsRebuild = false;
+        this.searchMemoization = {};
         this.permanentFilters = [];
         this.searchFilters = [];
+        this.orderings = [];
         this.buttonFns = {};
         this.onRender = [];
         this.config = undefined;
@@ -7716,7 +7724,9 @@ class DynamicList {
             }
         })
             .then((list) => {
-            list.dataScopeManager = new DataScopeManager(list.schema);
+            if (Object.keys(list.dataScopeManager.expandedIdxToRawIdx).length == 0) {
+                list.dataScopeManager = new DataScopeManager(list.schema);
+            }
             return list.reRender(false);
         }).then((list) => {
             validateSchema(list.schema);
@@ -7848,7 +7858,9 @@ class DynamicList {
         let listObj = this;
         if (!this.config.buttons)
             this.config.buttons = (this.window.Array());
-        columns.push(this.buildCheckboxColumn());
+        if (this.config.multiSelect === true) {
+            columns.push(this.buildCheckboxColumn());
+        }
         for (const mapping of this.config.mappings) {
             if (mapping.subMappings && this.dataScopeManager.isFlattenedSubfield(mapping.subMappings)) {
                 let collectSubColumns = (s) => {
@@ -7881,7 +7893,6 @@ class DynamicList {
                 listFields.push(this.buildListFieldDefn(mapping));
             }
         }
-        console.warn("MOVE THIS HERE!!!");
         for (let i = 0; i < this.config.buttons.length; i++) {
             columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
             this.makeMenuSetting(this.config.buttons[i], i, menuSettings, items);
@@ -7974,6 +7985,35 @@ class DynamicList {
                         let result = this.listBox.updateListFromUXControls();
                         return result;
                     }
+                }
+            },
+            setOrder: (order) => {
+                if (this.listBox.onBeforeOrder.constructor == Function) {
+                    let res = this.listBox.onBeforeOrder.call(this.listBox, order);
+                    if (typeof res == 'boolean') {
+                        if (!res)
+                            return false;
+                    }
+                }
+                this.listBox.order = order;
+                if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+                    let colName = Object.keys(order)[0];
+                    if (order[colName]) {
+                        // Remove from current sorting, if applicable
+                        this.orderings = this.orderings.filter(o => o.columnName != colName);
+                        let ordering = order[colName] > 0 ? 'asc' : 'desc';
+                        this.orderings.push({
+                            columnName: colName,
+                            order: ordering
+                        });
+                    }
+                    else {
+                        this.orderings = [];
+                    }
+                    this.reRender(true);
+                }
+                else {
+                    this.listBox.populate(this.listBox._data, true, false, false);
                 }
             },
             onSelect: (index) => {
@@ -8102,7 +8142,7 @@ class DynamicList {
                 }
             },
             footer: {
-                show: Boolean(this.config.searchOptions.paginate),
+                show: 'paginate' in this.config.dataSource,
                 html: '<div id="DYNAMIC_LIST_NAVIGATOR" style="width: 100%; text-align: center;"></div>'
             },
             _mediaFields: [],
@@ -8329,7 +8369,7 @@ class DynamicList {
             },
             _navBarId: 'DYNAMIC_LIST_NAVIGATOR',
             _refreshStateMessages: () => {
-                if (!this.config.searchOptions.paginate)
+                if (!('paginate' in this.config.dataSource))
                     return;
                 if (this.obj._listStateChange)
                     this.obj._listStateChange(this.listBox.listVariableName);
@@ -8584,13 +8624,41 @@ class DynamicList {
                     }
                     return flag;
                 };
+                if (this.searchMemoizationNeedsRebuild) {
+                    this.searchMemoization = {};
+                    this.data.forEach((data, index) => {
+                        this.searchMemoization[index] = matches(data, field);
+                    });
+                }
                 let topLevel = this.dataScopeManager.getAllTopLevelColumns(this.config).map(x => x.columnName);
                 if (topLevel.includes(field)) {
                     flag = matches(data, field);
                 }
                 else {
-                    // TODO
-                    flag = false;
+                    let row = data['*key'];
+                    let unflattenedIndex = this.dataScopeManager.expandedIdxToRawIdx[row];
+                    if (obj.quantifier === 'ALL') {
+                        // If every row belonging to this parent index matches,
+                        // then we match.
+                        let allMatch = true;
+                        this.data.forEach((_, index) => {
+                            if (this.dataScopeManager.expandedIdxToRawIdx[index] != unflattenedIndex)
+                                return;
+                            allMatch = allMatch && this.searchMemoization[index];
+                        });
+                        flag = allMatch;
+                    }
+                    else {
+                        // If *some* row belonging to the parent index matches,
+                        // then we match
+                        let someMatch = false;
+                        this.data.forEach((_, index) => {
+                            if (this.dataScopeManager.expandedIdxToRawIdx[index] != unflattenedIndex)
+                                return;
+                            someMatch = someMatch || this.searchMemoization[index];
+                        });
+                        flag = someMatch;
+                    }
                 }
                 if (flag) {
                     let lObj = this.listBox;
@@ -8707,27 +8775,29 @@ class DynamicList {
                             $e.preventDefault(e);
                     });
                 }
-                this._hasrun = true;
-                this._allrowschecked = true;
-                let d = this._rData;
-                for (let i = 0; i < d.length; i++) {
-                    if (!d[i].__selected) {
-                        this._allrowschecked = false;
-                        break;
+                if (listObj.config.multiSelect === true) {
+                    this._hasrun = true;
+                    this._allrowschecked = true;
+                    let d = this._rData;
+                    for (let i = 0; i < d.length; i++) {
+                        if (!d[i].__selected) {
+                            this._allrowschecked = false;
+                            break;
+                        }
                     }
+                    if (d.length == 0)
+                        this._allrowschecked = false;
+                    let h;
+                    if (this._allrowschecked) {
+                        h = A5.u.icon.html(this.__checkedImage);
+                    }
+                    else {
+                        h = A5.u.icon.html(this.__uncheckedImage);
+                    }
+                    let _id = listObj.obj.dialogId + '.' + this.listVariableName + '.CHECKBOXALL';
+                    let ele = $(_id);
+                    ele.innerHTML = h;
                 }
-                if (d.length == 0)
-                    this._allrowschecked = false;
-                let h;
-                if (this._allrowschecked) {
-                    h = A5.u.icon.html(this.__checkedImage);
-                }
-                else {
-                    h = A5.u.icon.html(this.__uncheckedImage);
-                }
-                let _id = listObj.obj.dialogId + '.' + this.listVariableName + '.CHECKBOXALL';
-                let ele = $(_id);
-                ele.innerHTML = h;
             },
             onChange: () => {
                 let btns = listObj.window.document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
@@ -9440,7 +9510,13 @@ class DynamicList {
     setData(rawData, buildSchema) {
         let rawDataRows;
         if ('count' in rawData) {
-            let pageSize = (this.config.searchOptions.paginate ? this.config.searchOptions.paginate.pageSize : rawData.count);
+            let pageSize;
+            if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+                pageSize = this.config.dataSource.paginate.pageSize;
+            }
+            else {
+                pageSize = rawData.count;
+            }
             this.listBox._state = {
                 pageSize: pageSize,
                 page: this.listBox._state.page,
@@ -9461,19 +9537,28 @@ class DynamicList {
         this.data = this.dataScopeManager.flattenData(this.rawData, this.config);
     }
     fetchData() {
+        // There is a bug where the parent somehow doesn't point to the most recent list object
+        // During a refresh, the message is something like "cannot set property whiteSpace of undefined"
+        // This is the fix
+        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
+        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+        let paginate = '';
+        if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+            paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.dataSource.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
+        }
+        let sortOptions = '';
+        if (this.orderings.length > 0) {
+            sortOptions = '&sortOptions=' + encodeURIComponent(JSON.stringify(this.orderings));
+        }
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             let columns = [];
             this.config.mappings.forEach((c) => {
                 columns.push(c.columnName);
             });
-            let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-            let paginate = '';
-            if (this.config.searchOptions.paginate) {
-                paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.searchOptions.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
-            }
             return new Promise((resolve, reject) => {
                 this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
                     + "&filters=" + encodeURIComponent(filters)
+                    + sortOptions
                     + paginate, {
                     onComplete: () => {
                         let response = this.obj.stateInfo.apiResult;
@@ -9492,14 +9577,10 @@ class DynamicList {
             });
         }
         else if (this.config.dataSource.type == 'sql') {
-            let paginate = '';
-            if (this.config.searchOptions.paginate) {
-                paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.searchOptions.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
-            }
-            let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
             return new Promise((resolve, reject) => {
                 this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
                     + "&filters=" + encodeURIComponent(filters)
+                    + sortOptions
                     + paginate, {
                     onComplete: () => {
                         let response = this.obj.stateInfo.apiResult;
@@ -9691,12 +9772,11 @@ class DynamicList {
 class DataScopeManager {
     constructor(schema) {
         this.schema = schema;
-        this.path = [];
         this.expandedIdxToRawIdx = {};
     }
     flattenData(data, config) {
         let result = [];
-        for (const dataPoint of data) {
+        data.forEach((dataPoint, originalIndex) => {
             // Separate into expanded and not expanded 
             let expandedParts = {};
             let toExpand = [];
@@ -9710,8 +9790,10 @@ class DataScopeManager {
                 }
             }
             // Nothing to add
-            if (toExpand.length == 0)
+            if (toExpand.length == 0) {
+                this.expandedIdxToRawIdx[result.length] = originalIndex;
                 result.push(expandedParts);
+            }
             else {
                 let expandSub = (idx) => {
                     if (idx == toExpand.length - 1) {
@@ -9732,10 +9814,11 @@ class DataScopeManager {
                 };
                 let expandedSubs = expandSub(0);
                 for (const elem of expandedSubs) {
+                    this.expandedIdxToRawIdx[result.length] = originalIndex;
                     result.push(Object.assign(elem, expandedParts));
                 }
             }
-        }
+        });
         return result;
     }
     flattenSubfieldData(sub, data) {
@@ -9991,7 +10074,6 @@ class DynamicListSearch {
         this.window = window;
         this.advForm.data.fields = {};
         this.buildForms();
-        debugger;
         this.form.render();
     }
     findInSchema(path, schema) {
@@ -10375,6 +10457,7 @@ class DynamicListSearch {
             let expn_str = expn.join('');
             let fnText = 'if (' + expn_str + ') { return true; } else { return false; }';
             let searchFn = new Function('data', fnText);
+            this.list.searchMemoizationNeedsRebuild = true;
             lObj.setFilter(searchFn);
         };
         lObj._setSearchOps = function (obj, obj_i) {
@@ -11752,6 +11835,21 @@ function buildConfigForm(obj, adminConfig, allColumns) {
             }
         }
     };
+    let paginate = {
+        type: 'object',
+        options: {
+            label: 'Pagination Options',
+            requiredKeys: {
+                pageSize: {
+                    type: 'simple',
+                    options: {
+                        label: 'Page Size',
+                        type: 'number'
+                    }
+                }
+            }
+        }
+    };
     let form = {
         label: 'List Configuration',
         requiredKeys: {
@@ -11861,6 +11959,10 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                 }
                                             }
                                         },
+                                        paginate: {
+                                            defaultValue: { pageSize: 10 },
+                                            definition: paginate,
+                                        },
                                         connectionString: {
                                             defaultValue: 'conn',
                                             definition: {
@@ -11918,6 +12020,10 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                 type: 'array',
                                                 options: serverSort
                                             }
+                                        },
+                                        paginate: {
+                                            defaultValue: { pageSize: 10 },
+                                            definition: paginate,
                                         },
                                         connectionString: {
                                             defaultValue: 'conn',
@@ -12007,24 +12113,6 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                 }
                             }
                         },
-                        paginate: {
-                            defaultValue: { pageSize: 10 },
-                            definition: {
-                                type: 'object',
-                                options: {
-                                    label: 'Pagination Options',
-                                    requiredKeys: {
-                                        pageSize: {
-                                            type: 'simple',
-                                            options: {
-                                                label: 'Page Size',
-                                                type: 'number'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
                         onlyInclude: {
                             defaultValue: [],
                             definition: {
@@ -12064,6 +12152,16 @@ function buildConfigForm(obj, adminConfig, allColumns) {
             }
         },
         optionalKeys: {
+            multiSelect: {
+                defaultValue: false,
+                definition: {
+                    type: 'simple',
+                    options: {
+                        label: "Allow Multiple Column Selection",
+                        type: 'boolean'
+                    }
+                }
+            },
             onInitialize: {
                 defaultValue: () => { },
                 definition: {

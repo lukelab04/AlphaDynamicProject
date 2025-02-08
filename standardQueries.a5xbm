@@ -8,6 +8,7 @@ loadClass("Result")
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 ' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
+' Input: e.sortOptions like {"columnName": name "order": "asc" | "desc"}[] or NOTHING
 function querySqlWithFilters as Result (e as p)
 	dim configInterface as p
 	dim config as Result
@@ -55,6 +56,18 @@ function querySqlWithFilters as Result (e as p)
 	if configJson.getProperty("dataSource").hasProperty("serverSort") then
 		sortOptions = configJson.getProperty("dataSource").getProperty("serverSort")
 	end if
+	
+	if e.data("sortOptions") <> "" then
+		if sortOptions == null_value() then
+			sortOptions = new extension::JSON()
+			sortOptions.setJson("[]")
+		end if
+		dim sortOptionsArr as extension::json 
+		sortOptionsArr.setJson(e.sortOptions)
+		for i = 0 to sortOptionsArr.getLength() - 1
+			sortOptions.push(sortOptionsArr.getIndexed(i))
+		next
+	end if 
 	
 	' If the config's datasource has the 'table' property, then 
 	' we construct the SQL query given information from mappings & filters.

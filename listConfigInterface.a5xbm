@@ -77,10 +77,10 @@ function batchFetch as Result (e as p)
 	end if
 	
 	if ds.getProperty("type") == "sql" then
-		if config.getProperty("searchOptions").hasProperty("paginate") then
+		if config.getProperty("dataSource").hasProperty("paginate") then
 			dim pageOpts as extension::json 
 			pageOpts.setJson("{}")
-			pageOpts.setProperty("pageSize", config.getProperty("searchOptions").getProperty("paginate").getProperty("pageSize"))
+			pageOpts.setProperty("pageSize", config.getProperty("dataSource").getProperty("paginate").getProperty("pageSize"))
 			pageOpts.setProperty("getPage", 0)
 			e.pageOptions = pageOpts.getJson()
 		end if 
