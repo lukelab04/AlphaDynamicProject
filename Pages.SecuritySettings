@@ -171,12 +171,7 @@
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},
 	{
-		"page": "list_config_editor.a5wcmp",
-		"action": "login",
-		"groups": "161c21868ea64acc935dd6963619ed19,GROUP2,02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR"
-	},
-	{
-		"page": "record_counter_ux.a5wcmp",
+		"page": "LIST_UX.html",
 		"action": "login",
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},
@@ -186,7 +181,7 @@
 		"groups": ""
 	},
 	{
-		"page": "LIST_UX.html",
+		"page": "LIST_CONFIGURE_UX.html",
 		"action": "login",
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},

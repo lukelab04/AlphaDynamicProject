@@ -6807,6 +6807,16 @@ class SimpleForm extends Form {
         let input = {
             type: editType,
             id: this.id,
+            control: {
+                onChange: () => {
+                    let formObj = this.obj.getControl(this.formName);
+                    if (formObj.state === undefined) {
+                        formObj.state = {};
+                    }
+                    formObj.isDirtyImmediate = true;
+                    formObj.refresh();
+                }
+            },
             data: {
                 from: this.id,
                 ensure: true
@@ -7571,7 +7581,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
-const LIST_NAME = 'LIST1';
+const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
 const objTimeFormat = () => A5.__tfmt;
 const objDatetimeFormat = () => A5.__dtfmt + ' ' + objTimeFormat();
@@ -7827,6 +7837,7 @@ class DynamicList {
                 }
             });
             let allQueries = [];
+            let queryPopulateErrors = [];
             let populateQueries = (list, endpoint) => {
                 list.forEach(_ => {
                     var _a;
@@ -7839,11 +7850,22 @@ class DynamicList {
                             callback: (0,types.stringReprToFn)((_a = ep.callback) !== null && _a !== void 0 ? _a : "() => { }"),
                         });
                     }
+                    else {
+                        let errMsgTxt = `<p>The necessary endpoint (${endpoint}) is not defined for this list.</p>`;
+                        queryPopulateErrors.push(errMsgTxt);
+                    }
                 });
             };
             populateQueries(newRows, 'add');
             populateQueries(updatedRows, 'update');
             populateQueries(deletedRows, 'delete');
+            if (queryPopulateErrors.length > 0) {
+                let msg = "<p>There were errors while synchronizing the list.</p><ul>";
+                queryPopulateErrors.forEach(x => msg += x);
+                msg += "</ul>";
+                displayErrorMessage(msg);
+                return;
+            }
             allQueries.forEach(q => {
                 fetch(this.obj, this.config.name, q.endpoint).then(q.callback);
             });
@@ -8017,8 +8039,8 @@ class DynamicList {
                 }
             },
             onSelect: (index) => {
-                // Will be assigned by Alpha later
-                this.listBox.populateUXControls();
+                let populateControls = this.listBox.populateUXControls.bind(this.listBox);
+                populateControls();
                 this.listBox._selectedRow = this.listBox.selection[0];
                 this.obj._listRowSelect(LIST_NAME, this.listBox);
                 this.listBox._selectedRow = this.listBox.selection[0];
@@ -9465,6 +9487,7 @@ class DynamicList {
         };
         openNewPanel(ops);
     }
+    // Open a new list with data that persists to a field on the current list
     linkSublistToField(name, label, columnName, populateWith, currRow, currData) {
         let onSave = (newData) => {
             currData[columnName] = JSON.stringify(newData);
@@ -9490,6 +9513,13 @@ class DynamicList {
         else {
             return this.makeObviousDefault(scheme.arrayItem);
         }
+    }
+    launchNewPanel(configName, titleName, filters = []) {
+        openNewPanel({
+            configName: configName,
+            titleName: titleName,
+            filters: filters,
+        });
     }
     setFilterAndFetch(filters) {
         this.searchFilters = filters;
@@ -9646,7 +9676,7 @@ class DynamicList {
     updateRecordCount() {
         let count = this.window.document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
         if (count) {
-            count.innerHTML = "Records: " + this.listBox._rData.length;
+            count.innerHTML = "Records: " + this.listBox._state.recordCount;
         }
     }
     populateListBox() {
@@ -10021,6 +10051,10 @@ function setFormDetailView(obj, listBox) {
         }
         else if (mode == 'deleterecord') {
             lObj.deleteRow();
+            let formObj = this.obj.getControl(DETAIL_FORM_NAME);
+            formObj.isDirtyImmediate = true;
+            formObj.refresh();
+            this.obj.refreshClientSideComputations(true);
         }
         else if (mode == 'newrecord') {
             lObj.newDetailViewRecord();
