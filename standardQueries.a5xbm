@@ -386,21 +386,10 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	''open the connection object to connect to the Database
 	flag = cn_open(cn,"::Name::" + connName)
 	
+	dim mappings as extension::json 
+	mappings = configJson.getProperty("mappings")
+	
 	for each item in dirty
-		' Make sure no read-only fields are in the columns to be changed
-		for each column in schema.jsonOutput.column
-			if prop_valid(item.value, column.value.name) == .f. then 
-				continue
-			end if
-			
-			dim mappingInfo as Result
-			mappingInfo = getMappingFromMappings(configJson.getProperty("mappings"), column.value.name)
-			if mappingInfo.isSuccessful() .and. mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
-				resultsOut[] = Result.fail("Cannot modify read-only field " + column.value.name)
-				goto loop_end
-			end if
-		next
-		
 		dim shouldDelete as l
 		dim shouldUpdate as l
 		dim shouldInsert as l
@@ -417,30 +406,28 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 		
 		if shouldDelete then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "delete", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "delete", connName, mappings)
 			else 
 				resultsOut[] = runDeleteQuery(queryInfo, schema, item, cn)
 			end if
 		else if shouldUpdate then 
 			if isCustomSql then 
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "update", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "update", connName, mappings)
 			else 
-				resultsOut[] = runUpdateQuery(queryInfo, schema, item, cn)
+				resultsOut[] = runUpdateQuery(queryInfo, schema, item, cn, mappings)
 			end if
 		else if shouldInsert then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "insert", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "insert", connName, mappings)
 			else 
 				resultsOut[] = runInsertQuery(queryInfo, schema, item, cn)
 			end if
 		end if
-		' So that we can jump out of the nested loop if the column is readonly
-		loop_end:
 	next item
 
 end function
 
-function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
+function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::connection, mappings as extension::json)
 	dim updateSql as c
 	updateSql = "UPDATE [" + e.tableName + "] SET "
 	dim args as sql::arguments
@@ -458,6 +445,14 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 		if .not. needExplicitPrimaryKey(schema) .and. (column.value.name == schema.primaryKey) then 
 			args.set(schema.primaryKey, convert_type(item.value._oldData.data(schema.primaryKey), column.value.alphaType))
 			continue
+		else
+			' As with the above, we may need read only fields to be specified, but we must set them to _oldData
+			dim mappingInfo as Result
+			mappingInfo = getMappingFromMappings(mappings, column.value.name)
+			if mappingInfo.isSuccessful() .and. mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
+				args.set(column.value.name, convert_type(item.value._oldData.data(column.value.name), column.value.alphaType))
+				continue
+			end if
 		end if 
 		
 		args.set(column.value.name, convert_type(item.value.data(column.value.name), column.value.alphaType))
@@ -492,7 +487,7 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	runUpdateQuery = Result.success("")
 end function
 
-function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c, cnString as c)
+function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c, cnString as c, mappings as extension::json)
 	dim query as sql::query 
 	query.parse(sql)
 	dim output as Result = Result.success("")
@@ -555,7 +550,7 @@ function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connec
 			' So, we will add all column info to the map.
 			addToDependencies (cn, tableName.value, item, dependencies)
 		else if queryType == "update" then 
-			output = runUpdateQuery(e, schema, item, cn)
+			output = runUpdateQuery(e, schema, item, cn, mappings)
 		else if queryType == "delete" then 
 			output = runDeleteQuery(e, schema, item, cn)
 		end if
