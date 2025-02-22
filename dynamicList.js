@@ -102,6 +102,7 @@ const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Ob
     inList: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
+    readOnly: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     serverDateFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     subMappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema])),
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
@@ -7093,8 +7094,11 @@ class ObjectForm extends Form {
         for (const key in data) {
             if (viewedKeys.has(key))
                 continue;
-            if (this.options.newKeyTemplate === undefined)
+            if (this.options.newKeyTemplate === undefined) {
+                if (this.options.skipUnknownKeys === true)
+                    continue;
                 throw new PopulateError("New key template is undefined.");
+            }
             let newEntry = Form.makeFormFromOption(this.obj, this.options.newKeyTemplate.definition, this, this.formName);
             this.entries[key] = newEntry;
             Object.assign(populateData, newEntry.initializeWithData(data[key]));
@@ -7776,7 +7780,7 @@ class DynamicList {
         A5.executeThisThenThat(makeForm, openForm, makeNew);
     }
     saveDynamicListEdits() {
-        var _a, _b;
+        var _a;
         if (this.onSaveOverride) {
             let data = this.listBox._data.map(row => {
                 let newRow = {};
@@ -7807,17 +7811,10 @@ class DynamicList {
             this.obj.refreshClientSideComputations(true);
             this.reRender(true);
         };
-        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            this.obj.ajaxCallback("", "", "updateData", "", "tableName=" + encodeURI(this.config.dataSource.table)
+        if (this.config.dataSource.type == 'sql') {
+            this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURI(this.config.name)
                 + "&dirty=" + encodeURI(JSON.stringify(harvest))
                 + "&connectionName=" + encodeURIComponent((_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn'), {
-                onComplete: onComplete,
-            });
-        }
-        else if (this.config.dataSource.type == 'sql' && 'sql' in this.config.dataSource) {
-            this.obj.ajaxCallback("", "", "updateData", "", "customSql=" + encodeURI(this.config.dataSource.sql)
-                + "&dirty=" + encodeURI(JSON.stringify(harvest))
-                + "&connectionName=" + encodeURIComponent((_b = this.config.dataSource.connectionString) !== null && _b !== void 0 ? _b : 'conn'), {
                 onComplete: onComplete,
             });
         }
@@ -9551,12 +9548,13 @@ class DynamicList {
                 pageSize: pageSize,
                 page: this.listBox._state.page,
                 pageCount: Math.ceil(rawData.count / pageSize),
-                recordCount: rawData.count,
+                recordCount: rawData.count
             };
             rawDataRows = rawData.result;
         }
         else {
             rawDataRows = rawData;
+            this.listBox._state.recordCount = undefined;
         }
         if (this.config.dataSource.preprocess)
             rawDataRows = (0,types.stringReprToFn)(this.config.dataSource.preprocess)(rawDataRows);
@@ -9565,6 +9563,9 @@ class DynamicList {
             this.buildSchemaFromRawData();
         this.dataScopeManager = new DataScopeManager(this.schema);
         this.data = this.dataScopeManager.flattenData(this.rawData, this.config);
+        if (this.listBox._state.recordCount === undefined) {
+            this.listBox._state.recordCount = this.data.length;
+        }
     }
     fetchData() {
         // There is a bug where the parent somehow doesn't point to the most recent list object
@@ -10426,6 +10427,7 @@ class DynamicListSearch {
                 let rowCount = lObj._rData.length;
                 this.obj._list_executeEvent(lObj.listVariableName, 'afterSearchComplete', { searchMode: 'search', searchWhere: mode, recordsInQuery: rowCount });
             }
+            this.list.listBox._state.recordCount = lObj._rData.length;
             this.list.updateRecordCount();
         };
         lObj._searchPartSubmit_clientSideFilter = (searchObj) => {
@@ -11587,6 +11589,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
         itemTemplate: {
             type: 'object',
             options: {
+                skipUnknownKeys: true,
                 onPopulate(data, form) {
                     let d = data;
                     let name = d.displayName ? d.displayName : d.columnName;
@@ -11762,6 +11765,18 @@ function buildConfigForm(obj, adminConfig, allColumns) {
     };
     if (!adminConfig)
         return Form.create(obj, makeTab({ type: 'array', options: mappings }), 'BUILDER');
+    // Read-only option is available to admins only
+    let mappingOps = mappings.itemTemplate.options;
+    mappingOps.optionalKeys['readOnly'] = {
+        defaultValue: false,
+        definition: {
+            type: 'simple',
+            options: {
+                type: 'boolean',
+                label: 'Read-Only'
+            }
+        }
+    };
     let filters = {
         label: 'List Filters',
         defaultValue: {

@@ -187,6 +187,7 @@ end function
 ' 	If global is true, then this is the entire configuration 
 ' 	If global is false, then this is just the mapping portion of the config
 function saveConfig as Result (e as p) 
+	debug(1)
 	if e.data("global") == "" then 
 		saveConfig = Result.fail("Field 'global' is required")
 		end 
@@ -242,12 +243,26 @@ function saveConfig as Result (e as p)
 	cn.PortableSQLEnabled = .t.
 	cn.ReportNotFoundAsWarning = .t.
 	
+	dim userSuppliedConfig as extension::json 
+	dim globalConfig as a
+	dim maybeGlobalConfig as Result
+	userSuppliedConfig.setJson(e.payload)
+	maybeGlobalConfig = requestConfig(e)
+	
+	if maybeGlobalConfig.isSuccessful() then 
+		globalConfig = maybeGlobalConfig.data
+	else 
+		globalConfig = null_value()
+	end if
+	
 	if already_exists then
 		if saveGlobal then
 			args.add("config", e.payload)
 			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .t.", args)
 		else
-			args.add("config", e.payload)
+			' saveGlobal false, so not admin
+			userSuppliedConfig = screenUserConfig(userSuppliedConfig, globalConfig)
+			args.add("config", userSuppliedConfig.getJson())
 			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .f. AND USER_NAME = :username", args)
 		end if
 	else 
@@ -255,11 +270,13 @@ function saveConfig as Result (e as p)
 			args.add("config", e.payload)
 			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, NULL)", args)
 		else 
+			' saveGlobal false, so not admin
+			userSuppliedConfig = screenUserConfig(userSuppliedConfig, globalConfig)
 			dim exists_globally as l = config_exists("", .t., e.configName)
 			if .not. exists_globally then 
 				saveConfig = Result.fail("Cannot save user config when no corresponding global config exists").toJson().getJson()
 			end if
-			args.add("config", e.payload)
+			args.add("config", userSuppliedConfig.getJson())
 			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
 		end if 
 	end if
@@ -275,6 +292,23 @@ function saveConfig as Result (e as p)
 	saveConfig = Result.success("")
 	cn.close()
 	
+end function
+
+' Call only if the user is not an administrator
+' userConfig should be just the Mapping portion of the config, supplied by the front end
+' savedConfig should be the entire config from the DB OR a null value (this function will choose defaults)
+' Function ensures user has not changed admin only options (like readonly) and returns a screened JSON object
+function screenUserConfig as p (userConfig as p, savedConfig as a) 
+	dim officialMappings as extension::json 
+	officialMappings = savedConfig.getProperty("mappings")
+	
+	if officialMappings <> null_value() .and. officialMappings.hasProperty("readOnly") then 
+		userConfig.setProperty("readOnly", officialMappings.getProperty("readOnly"))
+	else
+		userConfig.setProperty("readOnly", .f.)
+	end if
+	
+	screenUserConfig = userConfig
 end function
 
 

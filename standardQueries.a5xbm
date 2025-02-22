@@ -319,27 +319,62 @@ function isSafeOp as l (op as c)
 	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE")
 end function 
 
-' Input: Table Name OR customSql
+function getMappingFromMappings as Result (mappings as extension::json, column as c)
+	for i = 0 to mappings.getLength() - 1
+		dim m as extension::json 
+		if mappings.getIndexed(i).getProperty("columnName") == column then 
+			getMappingFromMappings = Result.success(mappings.getIndexed(i))
+			end 
+		end if
+	next
+	getMappingFromMappings = Result.fail("Mapping " + column + " was not specified.")
+end function
+
+' Input: configName
 ' Input: dirty (from 'harvestList')
 ' Input: resultsOut output parameter list of results
 function updateTableData as v (e as p, resultsOut as p, connName as c)
+	dim configInterface as p
+	dim config as Result
+	dim configJson as extension::Json
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+	
+	if .not. config.isSuccessful() then 
+		resultsOut[] = config 
+		end
+	else 
+		configJson = config.getInner()
+	end if
+	
+	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
+		resultsOut[] = Result.fail("Cannot update table data for non-SQL list")
+		end 
+	end if 
+	
 	dim isCustomSql as l
-	isCustomSql = prop_valid(e, "customSql")
+	isCustomSql = configJson.getProperty("dataSource").hasProperty("sql")
 	
 	dim schemaInfo as p
 	dim info as c
 	dim schema as p
 	
-	if .not. isCustomSql then 
+	dim queryInfo as p 
+	
+	if .not. isCustomSql then
+		queryInfo.tableName = configJson.getProperty("dataSource").getProperty("table")
+		
 		schemaInfo = require("schemaInfo")
 		dim schemaRes as Result
-		schemaRes = schemaInfo.getConnectionSchemaJSON(connName, e.tableName)
+		schemaRes = schemaInfo.getConnectionSchemaJSON(connName, queryInfo.tableName)
 		if schemaRes.isSuccess then 
 			info = schemaRes.getInner()
 		else 
 			end 
 		end if
 		schema = json_parse(info)
+	else 
+		queryInfo.sql = configJson.getProperty("dataSource").getProperty("sql")
 	end if
 	
 	dim dirty as p
@@ -352,6 +387,19 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	flag = cn_open(cn,"::Name::" + connName)
 	
 	for each item in dirty
+		' Make sure no read-only fields are in the columns to be changed
+		for each column in schema.jsonOutput.column
+			if prop_valid(item.value, column.value.name) == .f. then 
+				continue
+			end if
+			
+			dim mappingInfo as Result
+			mappingInfo = getMappingFromMappings(configJson.getProperty("mappings"), column.value.name)
+			if mappingInfo.isSuccessful() .and. mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
+				resultsOut[] = Result.fail("Cannot modify read-only field " + column.value.name)
+				goto loop_end
+			end if
+		next
 		
 		dim shouldDelete as l
 		dim shouldUpdate as l
@@ -367,26 +415,27 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 			shouldUpdate = .t.
 		end if
 		
-		
 		if shouldDelete then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "delete", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "delete", connName)
 			else 
-				resultsOut[] = runDeleteQuery(e, schema, item, cn)
+				resultsOut[] = runDeleteQuery(queryInfo, schema, item, cn)
 			end if
 		else if shouldUpdate then 
 			if isCustomSql then 
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "update", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "update", connName)
 			else 
-				resultsOut[] = runUpdateQuery(e, schema, item, cn)
+				resultsOut[] = runUpdateQuery(queryInfo, schema, item, cn)
 			end if
 		else if shouldInsert then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(e.customSql, item, cn, "insert", connName)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "insert", connName)
 			else 
-				resultsOut[] = runInsertQuery(e, schema, item, cn)
+				resultsOut[] = runInsertQuery(queryInfo, schema, item, cn)
 			end if
 		end if
+		' So that we can jump out of the nested loop if the column is readonly
+		loop_end:
 	next item
 
 end function
