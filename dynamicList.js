@@ -6825,7 +6825,8 @@ class SimpleForm extends Form {
             container: {
                 style: "; flex: 1 1;",
                 className: ""
-            }
+            },
+            readonly: () => { var _a; return (_a = this.options.readonly) !== null && _a !== void 0 ? _a : false; },
         };
         return this.makeInput({
             children: [input],
@@ -6877,7 +6878,7 @@ class ObjectForm extends Form {
         return result;
     }
     buildJsonForm() {
-        var _a, _b;
+        var _a, _b, _c;
         let allChildren = [];
         let parentTab = this.findParentTab(this.parent);
         for (const key in this.entries) {
@@ -6908,7 +6909,7 @@ class ObjectForm extends Form {
             let onDelete = undefined;
             let itemIsStatic = key in this.options.requiredKeys || key in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
             if (!itemIsStatic) {
-                let onDelete = () => {
+                onDelete = () => {
                     delete this.entries[key];
                     this.reRender();
                 };
@@ -6922,8 +6923,8 @@ class ObjectForm extends Form {
                 inline: this.options.inlineKeys === true,
                 idPrefix: key
             });
-            let optional = key in ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {});
-            if (optional) {
+            let optional = ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {})[key];
+            if (optional && ((_c = optional.inline) !== null && _c !== void 0 ? _c : false) == false) {
                 input = this.wrapInOptional(input, key);
             }
             if (!(this.entries[key] instanceof ConstForm)) {
@@ -7721,8 +7722,8 @@ class DynamicList {
             if (list.config.onInitialize) {
                 (0,types.stringReprToFn)(list.config.onInitialize)(list, (_b = ops.args) !== null && _b !== void 0 ? _b : []);
             }
-            ops.obj.getControl('LIST1')._size = () => { };
-            ops.obj.getControl('LIST1')._resize = () => { };
+            ops.obj.getControl(LIST_NAME)._size = () => { };
+            ops.obj.getControl(LIST_NAME)._resize = () => { };
             ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
             list.settings = list.buildSettings();
             list.buildList();
@@ -8298,20 +8299,20 @@ class DynamicList {
             onItemDraw: function (ele, data, index) {
                 if (!('_rData' in this))
                     return;
-                let _dirtyRowClassName = `_${dialogId}_LIST1_dirtyRow`;
-                let _dirtyRowClassNameInherited = `_${dialogId}_LIST1_dirtyRowInherited`;
-                let _dirtyRowStyle = `_${dialogId}_LIST1_dirtyRowStyle`;
-                let _hasUnsyncedMediaFilesClassName = `_${dialogId}_LIST1_hasUnsyncedMediaFiles`;
-                let _errorRowClassName = `_${dialogId}_LIST1_hasError`;
-                let _errorRowClassNameInherited = `_${dialogId}_LIST1_hasErrorInherited _${dialogId}_LIST1_dirtyRowInherited`;
-                let _errorRowClassNameInherited_1 = `_${dialogId}_LIST1_hasErrorInherited`;
-                let _errorRowClassNameInherited_2 = `_${dialogId}_LIST1_dirtyRowInherited`;
-                let _errorRowStyle = `_${dialogId}_LIST1_hasErrorStyle`;
-                let _newRowClassName = `_${dialogId}_LIST1_newRow`;
-                let _newRowStyle = `_${dialogId}_LIST1_newRowStyle`;
-                let _deletedRowClassName = `_${dialogId}_LIST1_deletedRow`;
-                let _deletedRowStyle = `_${dialogId}_LIST1_deletedRowStyle`;
-                let _deletedRowClassNameInherited = `_${dialogId}_LIST1_deletedRowInherited`;
+                let _dirtyRowClassName = `_${dialogId}_${LIST_NAME}_dirtyRow`;
+                let _dirtyRowClassNameInherited = `_${dialogId}_${LIST_NAME}_dirtyRowInherited`;
+                let _dirtyRowStyle = `_${dialogId}_${LIST_NAME}_dirtyRowStyle`;
+                let _hasUnsyncedMediaFilesClassName = `_${dialogId}_${LIST_NAME}_hasUnsyncedMediaFiles`;
+                let _errorRowClassName = `_${dialogId}_${LIST_NAME}_hasError`;
+                let _errorRowClassNameInherited = `_${dialogId}_${LIST_NAME}_hasErrorInherited _${dialogId}_${LIST_NAME}_dirtyRowInherited`;
+                let _errorRowClassNameInherited_1 = `_${dialogId}_${LIST_NAME}_hasErrorInherited`;
+                let _errorRowClassNameInherited_2 = `_${dialogId}_${LIST_NAME}_dirtyRowInherited`;
+                let _errorRowStyle = `_${dialogId}_${LIST_NAME}_hasErrorStyle`;
+                let _newRowClassName = `_${dialogId}_${LIST_NAME}_newRow`;
+                let _newRowStyle = `_${dialogId}_${LIST_NAME}_newRowStyle`;
+                let _deletedRowClassName = `_${dialogId}_${LIST_NAME}_deletedRow`;
+                let _deletedRowStyle = `_${dialogId}_${LIST_NAME}_deletedRowStyle`;
+                let _deletedRowClassNameInherited = `_${dialogId}_${LIST_NAME}_deletedRowInherited`;
                 let __d = this._rData[index];
                 $rcn(ele, _dirtyRowClassName);
                 $rcn(ele, _dirtyRowClassNameInherited);
@@ -8449,35 +8450,35 @@ class DynamicList {
                         this.listBox.resize(); //needed if the list has a fixed size and the style is gr*
                     }
                 }
-                ele = this.obj._buttons['BUTTON_LISTNAV_NEXT.LIST1'];
+                ele = this.obj._buttons[`BUTTON_LISTNAV_NEXT.${LIST_NAME}`];
                 if (ele) {
                     if (this.listBox._state.page == this.listBox._state.pageCount || this.listBox._state.pageCount == 0)
                         ele.setDisabled(true);
                     else
                         ele.setDisabled(false);
                 }
-                ele = this.obj._buttons['BUTTON_LISTNAV_LAST.LIST1'];
+                ele = this.obj._buttons[`BUTTON_LISTNAV_LAST.${LIST_NAME}`];
                 if (ele) {
                     if (this.listBox._state.page == this.listBox._state.pageCount || this.listBox._state.pageCount == 0)
                         ele.setDisabled(true);
                     else
                         ele.setDisabled(false);
                 }
-                ele = this.obj._buttons['BUTTON_LISTNAV_FIRST.LIST1'];
+                ele = this.obj._buttons[`BUTTON_LISTNAV_FIRST.${LIST_NAME}`];
                 if (ele) {
                     if (this.listBox._state.page == 1 || this.listBox._state.pageCount == 0)
                         ele.setDisabled(true);
                     else
                         ele.setDisabled(false);
                 }
-                ele = this.obj._buttons['BUTTON_LISTNAV_PREV.LIST1'];
+                ele = this.obj._buttons[`BUTTON_LISTNAV_PREV.${LIST_NAME}`];
                 if (ele) {
                     if (this.listBox._state.page == 1 || this.listBox._state.pageCount == 0)
                         ele.setDisabled(true);
                     else
                         ele.setDisabled(false);
                 }
-                ele = $(`${this.obj.dialogId}.V.R1.A5SYSTEM_LIST_PAGESELECTOR_LIST1`);
+                ele = $(`${this.obj.dialogId}.V.R1.A5SYSTEM_LIST_PAGESELECTOR_${LIST_NAME}`);
                 if (ele) {
                     let data = this.listBox._recordNavigatorLinks;
                     if (data) {
@@ -9251,7 +9252,7 @@ class DynamicList {
         return defn;
     }
     buildDetailViewForm(rowNum) {
-        var _a, _b;
+        var _a, _b, _c;
         let _d = {};
         if (rowNum != undefined) {
             _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
@@ -9338,6 +9339,7 @@ class DynamicList {
                     options: {
                         type: 'string',
                         label: '',
+                        readonly: (_b = mapping.readOnly) !== null && _b !== void 0 ? _b : false,
                     }
                 };
                 switch (mapping.editType) {
@@ -9381,7 +9383,7 @@ class DynamicList {
                     default:
                         break;
                 }
-                value.options.label = (_b = mapping.displayName) !== null && _b !== void 0 ? _b : mapping.columnName;
+                value.options.label = (_c = mapping.displayName) !== null && _c !== void 0 ? _c : mapping.columnName;
                 inputs.requiredKeys[mapping.columnName] = value;
             }
         }
@@ -9695,6 +9697,7 @@ class DynamicList {
         this.listBox._hostComponentId = this.obj.dialogId;
         this.listBox._listSystemOnClickPopulateJSONForm = (rowNum) => this.buildDetailViewForm(rowNum);
         this.window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
+        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
         setFormDetailView(this.obj, this.listBox);
     }
     buildSchemaFromRawData() {
@@ -11624,7 +11627,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                 type: 'boolean',
                                 label: 'Display In List'
                             }
-                        }
+                        },
+                        inline: true,
                     },
                     inDetailView: {
                         defaultValue: true,
@@ -11634,7 +11638,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                 type: 'boolean',
                                 label: 'Display In Detail View'
                             }
-                        }
+                        },
+                        inline: true,
                     },
                     editType: {
                         defaultValue: 'text',
@@ -11775,7 +11780,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                 type: 'boolean',
                 label: 'Read-Only'
             }
-        }
+        },
+        inline: true
     };
     let filters = {
         label: 'List Filters',
@@ -12149,8 +12155,9 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                 options: {
                                     label: 'Do Advanced Search?',
                                     type: 'boolean'
-                                }
-                            }
+                                },
+                            },
+                            inline: true,
                         },
                         serverSearch: {
                             defaultValue: false,
@@ -12160,7 +12167,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                     label: "Do Server-side Search?",
                                     type: 'boolean'
                                 }
-                            }
+                            },
+                            inline: true,
                         },
                         onlyInclude: {
                             defaultValue: [],
@@ -12209,7 +12217,8 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                         label: "Allow Multiple Column Selection",
                         type: 'boolean'
                     }
-                }
+                },
+                inline: true,
             },
             onInitialize: {
                 defaultValue: () => { },

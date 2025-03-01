@@ -122,9 +122,9 @@ iframe {-webkit-user-select: text;}
   width: auto; }
 .iconDisabled {
   opacity: .75; }
-._DLG1_LIST1_dirtyRow {
+._DLG1_DYNAMIC_LIST_dirtyRow {
   position: relative; }
-._DLG1_LIST1_dirtyRow:before {
+._DLG1_DYNAMIC_LIST_dirtyRow:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -134,9 +134,9 @@ iframe {-webkit-user-select: text;}
   border-top-width: 0px;
   border-left-width: 0px;
   border-bottom-color: transparent; }
-._DLG1_LIST1_newRow {
+._DLG1_DYNAMIC_LIST_newRow {
   position: relative; }
-._DLG1_LIST1_newRow:before {
+._DLG1_DYNAMIC_LIST_newRow:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -146,9 +146,9 @@ iframe {-webkit-user-select: text;}
   border-top-width: 0px;
   border-left-width: 0px;
   border-bottom-color: transparent; }
-._DLG1_LIST1_hasError {
+._DLG1_DYNAMIC_LIST_hasError {
   position: relative; }
-._DLG1_LIST1_hasError:after {
+._DLG1_DYNAMIC_LIST_hasError:after {
   content: "";
   position: absolute;
   bottom: 0px;
@@ -158,9 +158,9 @@ iframe {-webkit-user-select: text;}
   border-bottom-width: 0px;
   border-left-width: 0px;
   border-top-color: transparent; }
-._DLG1_LIST1_deletedRow {
+._DLG1_DYNAMIC_LIST_deletedRow {
   position: relative; }
-._DLG1_LIST1_deletedRow:before {
+._DLG1_DYNAMIC_LIST_deletedRow:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -170,9 +170,9 @@ iframe {-webkit-user-select: text;}
   border-top-width: 0px;
   border-left-width: 0px;
   border-bottom-color: transparent; }
-._DLG1_LIST1_dirtyRowInherited {
+._DLG1_DYNAMIC_LIST_dirtyRowInherited {
   position: relative; }
-._DLG1_LIST1_dirtyRowInherited:before {
+._DLG1_DYNAMIC_LIST_dirtyRowInherited:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -182,9 +182,9 @@ iframe {-webkit-user-select: text;}
   border-left-width: 0px;
   border-bottom-color: transparent;
   opacity: .3; }
-._DLG1_LIST1_deletedRowInherited {
+._DLG1_DYNAMIC_LIST_deletedRowInherited {
   position: relative; }
-._DLG1_LIST1_deletedRowInherited:before {
+._DLG1_DYNAMIC_LIST_deletedRowInherited:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -194,9 +194,9 @@ iframe {-webkit-user-select: text;}
   border-left-width: 0px;
   border-bottom-color: transparent;
   opacity: .3; }
-._DLG1_LIST1_newRowInherited {
+._DLG1_DYNAMIC_LIST_newRowInherited {
   position: relative; }
-._DLG1_LIST1_newRowInherited:before {
+._DLG1_DYNAMIC_LIST_newRowInherited:before {
   content: "";
   position: absolute;
   top: 0px;
@@ -206,9 +206,9 @@ iframe {-webkit-user-select: text;}
   border-left-width: 0px;
   border-bottom-color: transparent;
   opacity: .3; }
-._DLG1_LIST1_hasErrorInherited {
+._DLG1_DYNAMIC_LIST_hasErrorInherited {
   position: relative; }
-._DLG1_LIST1_hasErrorInherited:after {
+._DLG1_DYNAMIC_LIST_hasErrorInherited:after {
   content: "";
   position: absolute;
   bottom: 0px;
@@ -258,7 +258,7 @@ if(!ele2) {
 <body class="page  pulse">
 <iframe style="display:none;" id="DLG1.__IFRAME1"></iframe>
 <input type="hidden" value="" id="DLG1.PARAMETERBUCKET"/>
-<input type="file" style="position:absolute; top:-1000px;visibility:hidden;" capture accept="image/*" id="DLG1._GETPHOTO"/><input type="file" style="position:absolute; top:-1000px;visibility:hidden;" name="files[]" multiple = "" id="DLG1._GETFILEMULTI"/><input type="file" style="position:absolute; top:-1000px;visibility:hidden;" name="files[]" id="DLG1._GETFILE"/><input type="hidden" id="DLG1.V.R1.LIST1" name="V.R1.LIST1" />
+<input type="file" style="position:absolute; top:-1000px;visibility:hidden;" capture accept="image/*" id="DLG1._GETPHOTO"/><input type="file" style="position:absolute; top:-1000px;visibility:hidden;" name="files[]" multiple = "" id="DLG1._GETFILEMULTI"/><input type="file" style="position:absolute; top:-1000px;visibility:hidden;" name="files[]" id="DLG1._GETFILE"/><input type="hidden" id="DLG1.V.R1.DYNAMIC_LIST" name="V.R1.DYNAMIC_LIST" />
 
 <script type="text/javascript" language="javascript">
 A5.themes.add('Alpha',{
@@ -2333,7 +2333,7 @@ if(typeof DLG1_DlgObj == 'object') {
 	body: {
 		content: {
 			type: 'html',
-			src: '<div \tid="DLG1.V.R1.CONTAINER_2"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="display: flex; width: 100%; height: panel.height - 50; flex-direction: column; "  >\r\n<div \tid="DLG1.V.R1.FLEXLAYOUT_1"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="display: flex; flex-direction: row; align-items: center; "  >\r\n<div class="A5CWLayout" style="width: " >\r\n\t<button type="button" id="DLG1.V.R1.BUTTON_DVSYNCHRONIZE_LIST1"    ></button>\r\n</div>\r\n<div class="A5CWLayout" style="width: " >\r\n\t<div id="DLG1.V.R1.STATICTEXT_1" title=""  class="" style="box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;"   ><p id="DLG1_RECORD_COUNT">Records: 0</p></div>\r\n</div><br  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.FLEXLAYOUT_1.BREAK"  style="clear:both; " />\r\n<div \tid="DLG1.V.R1.LIST_CONTAINER"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="width: 100%; height: 300px; flex: 1; "  >\r\n<div class="A5CWLayout" style="width: 100%" >\r\n\t\r\n<div   style="padding:0px; "  >\r\n\t<div id="DLG1.V.R1.LIST1.CONTROL"  class="DLG1_LIST1" style="overflow: auto; width: 100%; "></div>\r\n</div>\r\n\r\n</div><br  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.LIST_CONTAINER.BREAK"  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.CONTAINER_2.BREAK"  style="clear:both; " />\r\n<div class="A5floatClear"></div>'
+			src: '<div \tid="DLG1.V.R1.CONTAINER_2"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="display: flex; width: 100%; height: panel.height - 50; flex-direction: column; "  >\r\n<div \tid="DLG1.V.R1.FLEXLAYOUT_1"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="display: flex; flex-direction: row; align-items: center; "  >\r\n<div class="A5CWLayout" style="width: " >\r\n\t<button type="button" id="DLG1.V.R1.BUTTON_DVSYNCHRONIZE_LIST1"    ></button>\r\n</div>\r\n<div class="A5CWLayout" style="width: " >\r\n\t<div id="DLG1.V.R1.STATICTEXT_1" title=""  class="" style="box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;"   ><p id="DLG1_RECORD_COUNT">Records: 0</p></div>\r\n</div><br  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.FLEXLAYOUT_1.BREAK"  style="clear:both; " />\r\n<div \tid="DLG1.V.R1.LIST_CONTAINER"   \r\n\t\t\tA5-containerType="none"\r\n\t\t\tclass="A5CWLayout "  style="width: 100%; height: 300px; flex: 1; "  >\r\n<div class="A5CWLayout" style="width: 100%" >\r\n\t\r\n<div   style="padding:0px; "  >\r\n\t<div id="DLG1.V.R1.DYNAMIC_LIST.CONTROL"  class="DLG1_DYNAMIC_LIST" style="overflow: auto; width: 100%; "></div>\r\n</div>\r\n\r\n</div><br  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.LIST_CONTAINER.BREAK"  style="clear:both; " />\r\n<div style="display:none;font: 0pt arial;clear:both;"></div>\r\n\t</div>\r\n<br  id="DLG1.V.R1.CONTAINER_2.BREAK"  style="clear:both; " />\r\n<div class="A5floatClear"></div>'
 		},
 		scroll: {
 			axis: 'both',
@@ -2371,7 +2371,7 @@ if(typeof DLG1_DlgObj == 'object') {
 	},
 	onSize: function() {
 ;
-if(typeof DLG1_DlgObj != 'undefined' && DLG1_DlgObj ) {var mObj = DLG1_DlgObj.getControl('LIST1'); if(mObj) {
+if(typeof DLG1_DlgObj != 'undefined' && DLG1_DlgObj ) {var mObj = DLG1_DlgObj.getControl('DYNAMIC_LIST'); if(mObj) {
 			if(mObj.resize) {
 				mObj.resize();
 			} else { 
@@ -2539,13 +2539,13 @@ var DLG1_DlgObj = new A5.DialogComponentHelper('DLG1',{
 	_embeddedMode: true,
 	_livePreviewInBuilder: false,
 	componentGUID: '05f864ff-bdc6-4b04-98b3-3dcdbf371552',
-	columnInfo: {'LIST1': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: true, dataType: 'C'  },'DETAIL_VIEW': {info: {controlType: 'formbox'}, hiddenVal: false, type: 'input,label', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }},
+	columnInfo: {'DYNAMIC_LIST': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: true, dataType: 'C'  },'DETAIL_VIEW': {info: {controlType: 'formbox'}, hiddenVal: false, type: 'input,label', isCalc: false, hlp: '', isArray: false, dataType: 'C'  }},
 	originalValues: [{
-	"LIST1": "",
+	"DYNAMIC_LIST": "",
 	"DETAIL_VIEW": ""
 }],
 	defaultValues: {
-	"LIST1": "",
+	"DYNAMIC_LIST": "",
 	"DETAIL_VIEW": ""
 },
 	datePickerMonthNames: ['January','February','March','April','May','June','July','August','September','October','November','December'],
@@ -2616,7 +2616,7 @@ DLG1_DlgObj._findActiveLayoutRule();
 A5.__componentObj = DLG1_DlgObj;
 A5.map._fn='https://maps.googleapis.com/maps/api/js?key=&libraries=geometry,places&callback=A5.map.init';
 DLG1_DlgObj._tabObjects = [];
-A5.loadJavascript('\n\n\n;\nfunction onChange_list1_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl(\'LIST1\');};\n\nfunction onChange_DETAIL_VIEW_79c95fbd4dbc47d498037b7c792d4251(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl(\'DETAIL_VIEW\');};\n\n\n;\n');
+A5.loadJavascript('\n\n\n;\nfunction onChange_DYNAMIC_LIST_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl(\'DYNAMIC_LIST\');};\n\nfunction onChange_DETAIL_VIEW_79c95fbd4dbc47d498037b7c792d4251(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl(\'DETAIL_VIEW\');};\n\n\n;\n');
 DLG1_DlgObj.lookups = {
 };
 DLG1_DlgObj.dialogWatches['ENABLE_BUTTON_DVSYNCHRONIZE_LIST1'] = {
@@ -2630,15 +2630,16 @@ DLG1_DlgObj.dialogWatches['ENABLE_BUTTON_DVSYNCHRONIZE_LIST1'] = {
 	var eles = $cetp($n('V.R' + data.rowNumber + '.BUTTON_DVSYNCHRONIZE_LIST1'),$('DLG1.R'+data.rowNumber));
 	if(typeof eles.length == 'undefined' || eles.length == 0) eles = [$('DLG1.'+'V.R' + data.rowNumber + '.BUTTON_DVSYNCHRONIZE_LIST1')];
 	var pObj = DLG1_DlgObj.getControl('BUTTON_DVSYNCHRONIZE_LIST1'); if(pObj) { if(typeof pObj.setDisabled != 'undefined') {  pObj.setDisabled(!enable,eles); return true;  } }
+	var obj = DLG1_DlgObj.getControl('BUTTON_DVSYNCHRONIZE_LIST1'); if(obj && typeof readOnly != 'undefined') {obj.readOnly = readOnly}
 	if(typeof DLG1_DlgObj._buttons['BUTTON_DVSYNCHRONIZE_LIST1'] != 'undefined') {
-	DLG1_DlgObj._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].setDisabled(!enable,eles)
+		DLG1_DlgObj._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].setDisabled(!enable,eles);
 	} else {
-	for(var i=0; i<eles.length;i++) eles[i].disabled = !enable;
+		for(var i=0; i<eles.length;i++) eles[i].disabled = !enable;
 	}
 	;;
 	DLG1_DlgObj._executeEvent('onWatchEvent',{type: 'enable', control: 'BUTTON_DVSYNCHRONIZE_LIST1', flag: enable});}
 }
-DLG1_DlgObj.dialogWatches['SHOWHIDE_LIST1'] = {
+DLG1_DlgObj.dialogWatches['SHOWHIDE_DYNAMIC_LIST'] = {
 		watch: [],
 		variables: [],
 		onChange: function(data) {
@@ -2649,12 +2650,12 @@ DLG1_DlgObj.dialogWatches['SHOWHIDE_LIST1'] = {
 	if( (false == true) == true ) showHide = '';
 	else showHide = 'none';	
 	if(showHide == 'none') {	
-		DLG1_DlgObj.setControlDisplay(''+'LIST1'+'',false,'display');
+		DLG1_DlgObj.setControlDisplay(''+'DYNAMIC_LIST'+'',false,'display');
 	} else {
-		DLG1_DlgObj.setControlDisplay(''+'LIST1'+'',true,'display');
+		DLG1_DlgObj.setControlDisplay(''+'DYNAMIC_LIST'+'',true,'display');
 	}
 	;
-	DLG1_DlgObj._executeEvent('onWatchEvent',{type: 'show/hide', control: 'list1', flag: $if(showHide == '',true,false)});}
+	DLG1_DlgObj._executeEvent('onWatchEvent',{type: 'show/hide', control: 'DYNAMIC_LIST', flag: $if(showHide == '',true,false)});}
 }
 DLG1_DlgObj.setStateInfo({
 	"__dialogGuid": "05f864ff-bdc6-4b04-98b3-3dcdbf371552",
@@ -2670,11 +2671,11 @@ A5.msgBox.buttonWidth = '1in';
 DLG1_DlgObj._defaultWindowTitleDirection = 'ltr';
 DLG1_DlgObj._controlContainers = {}
 DLG1_DlgObj._panelCardControls = {
-LIST1:'LIST_PANEL',
+DYNAMIC_LIST:'LIST_PANEL',
 DETAIL_VIEW:'EDITOR_PANEL'
 }
 DLG1_DlgObj._controlsOnPanel = {
-	'LIST_PANEL' : {controls: ['LIST1']},
+	'LIST_PANEL' : {controls: ['DYNAMIC_LIST']},
 	'EDITOR_PANEL' : {controls: ['DETAIL_VIEW']}
 }
 DLG1_DlgObj._buttons = {};
@@ -2703,7 +2704,7 @@ DLG1_DlgObj._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].bind('DLG1.V.R1.BUTTON_DVSYNC
 DLG1_DlgObj._buttons['BUTTON_2'].bind('DLG1.V.R1.BUTTON_2');
 DLG1_DlgObj._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].bind('DLG1.V.R1.BUTTON_DVSYNCHRONIZE_LIST1');
 DLG1_DlgObj._buttons['BUTTON_2'].bind('DLG1.V.R1.BUTTON_2');
-DLG1_DlgObj._listViewSettings['LIST1'] = {
+DLG1_DlgObj._listViewSettings['DYNAMIC_LIST'] = {
 	__pkisguid: false,
 	_switchInfo: {
 },
@@ -2846,7 +2847,7 @@ DLG1_DlgObj._listViewSettings['LIST1'] = {
 	_dataSourceType: 'Static',
 	_menuSettings: {
 	'MENU' : {type: 'Image',imageClosed: 'svgIcon=#alpha-icon-bars:icon,24',image_rotate: true,image_rotate_duration: 300,imageOpen: 'svgIcon=#alpha-icon-xLarge:icon,24',menuType: 'Cascading',menuSettings: {
-		"listName": "list1",
+		"listName": "DYNAMIC_LIST",
 		"theme": "Alpha",
 		"style": "background-color: ;",
 		"iconColumn": {
@@ -2862,7 +2863,7 @@ DLG1_DlgObj._listViewSettings['LIST1'] = {
 			}
 		},
 		"onHide": function() { 	
-			var lObj = DLG1_DlgObj.getControl('list1');
+			var lObj = DLG1_DlgObj.getControl('DYNAMIC_LIST');
 			if(lObj._menuName != '') {
 				if(lObj.onMenuClose) lObj.onMenuClose(lObj._menuName,rowNumber,lObj);
 				var obj = lObj._menuSettings[lObj._menuName];
@@ -3185,8 +3186,8 @@ for(var i = 0; i < r.length; i++) {
 	layout: 'Default',
 	calculateValue: '',
 	dirtyControlClassName: '',
-	listVariableName: 'LIST1',
-	listVariableNameTrueCase: 'list1',
+	listVariableName: 'DYNAMIC_LIST',
+	listVariableNameTrueCase: 'DYNAMIC_LIST',
 	_hostComponentId: 'DLG1',
 	_includeCRC: true,
 	parentList: '',
@@ -3320,20 +3321,20 @@ if(this.layouts[l].type == 'column') {
 		}
 	},
 	onItemDraw: function(ele,data,index) {
- var _dirtyRowClassName = '_DLG1_LIST1_dirtyRow';
- var _dirtyRowClassNameInherited = '_DLG1_LIST1_dirtyRowInherited';
- var _dirtyRowStyle = '_DLG1_LIST1_dirtyRowStyle';
- var _hasUnsyncedMediaFilesClassName = '_DLG1_LIST1_hasUnsyncedMediaFiles';
- var _errorRowClassName = '_DLG1_LIST1_hasError';
- var _errorRowClassNameInherited = '_DLG1_LIST1_hasErrorInherited _DLG1_LIST1_dirtyRowInherited';
- var _errorRowClassNameInherited_1 = '_DLG1_LIST1_hasErrorInherited';
- var _errorRowClassNameInherited_2 = '_DLG1_LIST1_dirtyRowInherited';
- var _errorRowStyle = '_DLG1_LIST1_hasErrorStyle';
- var _newRowClassName = '_DLG1_LIST1_newRow';
- var _newRowStyle = '_DLG1_LIST1_newRowStyle';
- var _deletedRowClassName = '_DLG1_LIST1_deletedRow';
- var _deletedRowStyle = '_DLG1_LIST1_deletedRowStyle';
- var _deletedRowClassNameInherited = '_DLG1_LIST1_deletedRowInherited';
+ var _dirtyRowClassName = '_DLG1_DYNAMIC_LIST_dirtyRow';
+ var _dirtyRowClassNameInherited = '_DLG1_DYNAMIC_LIST_dirtyRowInherited';
+ var _dirtyRowStyle = '_DLG1_DYNAMIC_LIST_dirtyRowStyle';
+ var _hasUnsyncedMediaFilesClassName = '_DLG1_DYNAMIC_LIST_hasUnsyncedMediaFiles';
+ var _errorRowClassName = '_DLG1_DYNAMIC_LIST_hasError';
+ var _errorRowClassNameInherited = '_DLG1_DYNAMIC_LIST_hasErrorInherited _DLG1_DYNAMIC_LIST_dirtyRowInherited';
+ var _errorRowClassNameInherited_1 = '_DLG1_DYNAMIC_LIST_hasErrorInherited';
+ var _errorRowClassNameInherited_2 = '_DLG1_DYNAMIC_LIST_dirtyRowInherited';
+ var _errorRowStyle = '_DLG1_DYNAMIC_LIST_hasErrorStyle';
+ var _newRowClassName = '_DLG1_DYNAMIC_LIST_newRow';
+ var _newRowStyle = '_DLG1_DYNAMIC_LIST_newRowStyle';
+ var _deletedRowClassName = '_DLG1_DYNAMIC_LIST_deletedRow';
+ var _deletedRowStyle = '_DLG1_DYNAMIC_LIST_deletedRowStyle';
+ var _deletedRowClassNameInherited = '_DLG1_DYNAMIC_LIST_deletedRowInherited';
  var __d = this._rData[index];
  $rcn(ele,_dirtyRowClassName);
  $rcn(ele,_dirtyRowClassNameInherited);
@@ -3397,15 +3398,15 @@ if(this.layouts[l].type == 'column') {
   $acn(ele,_hasUnsyncedMediaFilesClassName);
  }},
 	childLists: [],
-	childListEndpoints: ['LIST1'],
+	childListEndpoints: ['DYNAMIC_LIST'],
 	_populateAllChildLists: function() { },
 	onSelect: function() { this.populateUXControls();
 this._selectedRow = this.selection[0];
-DLG1_DlgObj._listRowSelect('list1',this);
+DLG1_DlgObj._listRowSelect('DYNAMIC_LIST',this);
  this._selectedRow = this.selection[0];if(typeof this._selectedRow != 'undefined') { var that = this; setTimeout(function() { if(typeof DLG1_DlgObj.__listsWithChildLWL != 'undefined') { 
-	if(typeof DLG1_DlgObj.__listsWithChildLWL['LIST1'] != 'undefined') {
-		var obj = DLG1_DlgObj.__listsWithChildLWL['LIST1'];
-		var lObj = DLG1_DlgObj.getControl('LIST1');
+	if(typeof DLG1_DlgObj.__listsWithChildLWL['DYNAMIC_LIST'] != 'undefined') {
+		var obj = DLG1_DlgObj.__listsWithChildLWL['DYNAMIC_LIST'];
+		var lObj = DLG1_DlgObj.getControl('DYNAMIC_LIST');
 		var r = lObj.selection[0];
 		var _d = lObj._data[r];
 		var linkValue = _d[obj.listPrimaryKey];
@@ -3441,7 +3442,7 @@ DLG1_DlgObj._listRowSelect('list1',this);
  }},
 	onClick: function() {
 DLG1_DlgObj.runAction('Navigate Detail View');
-DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
+DLG1_DlgObj._listSystemOnClick('DYNAMIC_LIST',this.selection[0]);
 },
 	onFirestoreAuthStatechanged: function(e) {if(e.isLoggedIn) { 
 	var lObj = this.dialogObject.getControl(this.listName)
@@ -3474,7 +3475,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 			columns: [
 			{
 				header: {
-					html: '<span id="DLG1.LIST1.CHECKBOXALL" a5-item="__toggleAll"></span>'
+					html: '<span id="DLG1.DYNAMIC_LIST.CHECKBOXALL" a5-item="__toggleAll"></span>'
 				},
 				separator: {
 					location: 'right',
@@ -3486,7 +3487,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '<div style="display:inline-block;" id="DLG1.LIST1.CHECKBOX{*key}" a5-item="__toggleCheck">{*if <defined<__selected>>}{*if __selected}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-checkCircle"  pointer-events="none" /></svg>{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}</div>',
+					template: '<div style="display:inline-block;" id="DLG1.DYNAMIC_LIST.CHECKBOX{*key}" a5-item="__toggleCheck">{*if <defined<__selected>>}{*if __selected}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-checkCircle"  pointer-events="none" /></svg>{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}{*else}<svg     width="24" height="24" class="icon"><use x="0" y="0" width="100%" height="100%" xlink:href="#alpha-icon-circle"  pointer-events="none" /></svg>{*endif}</div>',
 					style: 'text-align: left; text-overflow:clip !important;'
 				},
 				order: false,
@@ -3506,7 +3507,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '<span id="DLG1.LIST1.BUTTON.I.{*dataRow}"><button  a5-item="_systemButtononClick_BUTTON"  id="DLG1.LIST1.BUTTON.BTN.{*dataRow}"  class="button" style="cursor:pointer;" title="">Press Me&nbsp;{@A5.u.icon.html(<escape<\'svgIcon=#alpha-icon-edit:icon,24\'>>)}</button></span>&nbsp;'
+					template: '<span id="DLG1.DYNAMIC_LIST.BUTTON.I.{*dataRow}"><button  a5-item="_systemButtononClick_BUTTON"  id="DLG1.DYNAMIC_LIST.BUTTON.BTN.{*dataRow}"  class="button" style="cursor:pointer;" title="">Press Me&nbsp;{@A5.u.icon.html(<escape<\'svgIcon=#alpha-icon-edit:icon,24\'>>)}</button></span>&nbsp;'
 				},
 				order: false,
 				width: 'flex(1)'
@@ -3525,7 +3526,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '<span id="DLG1.LIST1.FIRSTNAME.I.{*dataRow}">{Firstname}</span>'
+					template: '<span id="DLG1.DYNAMIC_LIST.FIRSTNAME.I.{*dataRow}">{Firstname}</span>'
 				},
 				order: 'Firstname',
 				width: 'flex(1)'
@@ -3544,7 +3545,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '<span id="DLG1.LIST1.LASTNAME.I.{*dataRow}">{Lastname}</span>'
+					template: '<span id="DLG1.DYNAMIC_LIST.LASTNAME.I.{*dataRow}">{Lastname}</span>'
 				},
 				order: 'Lastname',
 				width: 'flex(1)'
@@ -3558,7 +3559,7 @@ DLG1_DlgObj._listSystemOnClick('LIST1',this.selection[0]);
 				resize: false,
 				rcw: 0,
 				data: {
-					template: '<div style="display:inline-block" id="DLG1.LIST1.MENU.MENU.{*dataRow}" title="" a5-item="_MENU_onClick_MENU">{@A5.u.icon.html(<escape<\'svgIcon=#alpha-icon-bars:icon,24\'>>)}</div>&nbsp;'
+					template: '<div style="display:inline-block" id="DLG1.DYNAMIC_LIST.MENU.MENU.{*dataRow}" title="" a5-item="_MENU_onClick_MENU">{@A5.u.icon.html(<escape<\'svgIcon=#alpha-icon-bars:icon,24\'>>)}</div>&nbsp;'
 				},
 				order: false,
 				width: 'flex(1)'
@@ -3701,7 +3702,7 @@ if (typeof window['cordova'] == 'undefined') {
 }
 		},
 		_afterRenderComplete: function(e) {
-$e.add('DLG1.V.R1.LIST1.CONTROL.CONTENTWRAPPER','scroll',function(evnt,lObj) {
+$e.add('DLG1.V.R1.DYNAMIC_LIST.CONTROL.CONTENTWRAPPER','scroll',function(evnt,lObj) {
 		if(lObj.__list_menu_hide) lObj.__list_menu_hide(); 
 		},this
 	);},
@@ -3715,7 +3716,7 @@ $e.add('DLG1.V.R1.LIST1.CONTROL.CONTENTWRAPPER','scroll',function(evnt,lObj) {
 	_clientsideSummary: [],
 	computeClientSideSummaryValues: function(e) {},
 	_executeEvent: function(event,obj) { 
-	return DLG1_DlgObj._list_executeEvent('LIST1',event,obj);
+	return DLG1_DlgObj._list_executeEvent('DYNAMIC_LIST',event,obj);
 }
 ,
 	_selectAll: function() {
@@ -4137,7 +4138,7 @@ if(!this._searchPartHas) return true;
 	allowNullDeselection: false,
 	loopNavigate: false,
 	loopNavigateNullSelection: false,
-	refreshChildLists: function() {DLG1_DlgObj._listRefreshCascadingLists('LIST1'); },
+	refreshChildLists: function() {DLG1_DlgObj._listRefreshCascadingLists('DYNAMIC_LIST'); },
 	rowExpander: function(rowNumber) { 
 	var mode = typeof arguments[2] != 'undefined' ? arguments[2] : 'toggle';
 	if(typeof rowNumber === 'undefined' || rowNumber === '' ) {
@@ -4189,7 +4190,7 @@ obj.column = column;
 obj.layoutName = this.layout;
 obj.listState = this._state;
 obj.initialDirection = initialDirection;
-var data = '_listId=LIST1&' + A5.ajax.buildURLParam('_cmdObj',$u.o.toJSON(obj));
+var data = '_listId=DYNAMIC_LIST&' + A5.ajax.buildURLParam('_cmdObj',$u.o.toJSON(obj));
 DLG1_DlgObj.ajaxCallback('','','system:listServerSideSort','',data);
 },
 	filterListClientSide: function(searchFor) {
@@ -4205,7 +4206,7 @@ var rowCount = this._values.length;
 //var e = {};
 //e.rowCount = rowCount;
 //this.systemEvents.afterClientSideFilter(e);
-var ele = $('DLG1.list1.RECORDCOUNT');
+var ele = $('DLG1.DYNAMIC_LIST.RECORDCOUNT');
 if(ele) ele.innerHTML = rowCount;
 if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 }
@@ -4247,13 +4248,13 @@ if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 	_refreshStateMessages: function() {
 	if(DLG1_DlgObj._listStateChange) DLG1_DlgObj._listStateChange(this.listVariableName);
 	var ele = '';
-	ele = $('DLG1.LIST1.PAGENUMBER');
+	ele = $('DLG1.DYNAMIC_LIST.PAGENUMBER');
 	if(ele) ele.innerHTML = this._state.page;
-	ele = $('DLG1.LIST1.PAGECOUNT');
+	ele = $('DLG1.DYNAMIC_LIST.PAGECOUNT');
 	if(ele) ele.innerHTML = this._state.pageCount;
-	ele = $('DLG1.LIST1.PAGECOUNT.PAGESELECTOR');
+	ele = $('DLG1.DYNAMIC_LIST.PAGECOUNT.PAGESELECTOR');
 	if(ele) ele.innerHTML = this._state.pageCount;
-	ele = $('DLG1.LIST1.LISTSTATE');
+	ele = $('DLG1.DYNAMIC_LIST.LISTSTATE');
 	if(ele) {
 		var listState = $u.o.toJSON(this._state);
 		ele.innerHTML = listState;
@@ -4276,27 +4277,27 @@ if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 		}
 	}
 	//navigation buttons
-	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_NEXT.LIST1'];
+	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_NEXT.DYNAMIC_LIST'];
 	if(ele) {
 		if(this._state.page == this._state.pageCount || this._state.pageCount == 0) ele.setDisabled(true);
 		else ele.setDisabled(false);
 	}
-	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_LAST.LIST1'];
+	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_LAST.DYNAMIC_LIST'];
 	if(ele) {
 		if(this._state.page == this._state.pageCount || this._state.pageCount == 0) ele.setDisabled(true);
 		else ele.setDisabled(false);
 	}
-	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_FIRST.LIST1'];
+	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_FIRST.DYNAMIC_LIST'];
 	if(ele) {
 		if(this._state.page == 1 || this._state.pageCount == 0) ele.setDisabled(true);
 		else ele.setDisabled(false);
 	}
-	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_PREV.LIST1'];
+	ele = DLG1_DlgObj._buttons['BUTTON_LISTNAV_PREV.DYNAMIC_LIST'];
 	if(ele) {
 		if(this._state.page == 1 || this._state.pageCount == 0 ) ele.setDisabled(true);
 		else ele.setDisabled(false);
 	}
-	ele = $('DLG1.V.R1.A5SYSTEM_LIST_PAGESELECTOR_LIST1');
+	ele = $('DLG1.V.R1.A5SYSTEM_LIST_PAGESELECTOR_DYNAMIC_LIST');
 	if(ele) {
 		var data = this._recordNavigatorLinks;
 		if(data) {
@@ -4305,7 +4306,7 @@ if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 			//ele.value = this._state.page;
 		}
 	}
-	var id = 'DLG1.LIST1'  + '.QBERECORDCOUNT';
+	var id = 'DLG1.DYNAMIC_LIST'  + '.QBERECORDCOUNT';
 	var idAll = id + 'ALL';
 	var ele = $(id);
 	if(ele) { 
@@ -4324,7 +4325,7 @@ if(this._showHideFetchMoreSpinner) this._showHideFetchMoreSpinner();
 		}
 		*/
 	}
-	var id = 'DLG1.LIST1'  + '.QBEDEBUGINFO';
+	var id = 'DLG1.DYNAMIC_LIST'  + '.QBEDEBUGINFO';
 	var ele = $(id);
 	if(ele) { 
 		var html = '';
@@ -4500,7 +4501,7 @@ if(this.multiple ) return;
 data.__selected = !data.__selected;
 var src = lObj.__checkedImage;
 if(!data.__selected) src = lObj.__uncheckedImage;
-var ele = $('DLG1.LIST1.CHECKBOX'+data['*key']);
+var ele = $('DLG1.DYNAMIC_LIST.CHECKBOX'+data['*key']);
 A5.u.icon.update(ele.children[0],src);
 lObj._size();
 if(lObj.onCheckRow) {
@@ -4554,10 +4555,10 @@ if(lObj.onCheckRow) {
 	"synchronize":"svgIcon=#alpha-icon-save:icon iconButton"
 }
 };
-DLG1_DlgObj._listViewData['LIST1'] = A5DataArrayToObject(['Firstname','Lastname'],[['Luke','LaBonte']]);
+DLG1_DlgObj._listViewData['DYNAMIC_LIST'] = A5DataArrayToObject(['Firstname','Lastname'],[['Luke','LaBonte']]);
 ;
 DLG1_DlgObj.setStateInfo({ 	"__dialogGuid": "", 	"argumentsBoundToCotrols": "", 	"__sgr": "", 	"__dtfmt": "", 	"__tfmt": "" });;DLG1_DlgObj.setStateInfo({ 	"__dialogGuid": "05f864ff-bdc6-4b04-98b3-3dcdbf371552", 	"argumentsBoundToCotrols": "", 	"__sgr": "", 	"__dtfmt": "MM/dd/yyyy", 	"__tfmt": "0h:0m AM" });//ssi13;
-DLG1_DlgObj._controls['LIST1'] =  { type: 'list',  data: DLG1_DlgObj._listViewData['LIST1'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};
+DLG1_DlgObj._controls['DYNAMIC_LIST'] =  { type: 'list',  data: DLG1_DlgObj._listViewData['DYNAMIC_LIST'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};
 		var pe = $(this.contId).parentElement;
 		if(typeof this.listVariableName != 'undefined') { 
 			var _cn = 'DLG1_' + this.listVariableName.toUpperCase() + '_2';
@@ -4590,7 +4591,7 @@ if(typeof this.__flagHasFixedColumnFooters != 'undefined') {
 		this.refresh();
 	}
 }
-; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: DLG1_DlgObj._listViewSettings['LIST1'] }
+; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: DLG1_DlgObj._listViewSettings['DYNAMIC_LIST'] }
 DLG1_DlgObj.setVariables({});
 DLG1_DlgObj._dataBoundControls = [];
 DLG1_DlgObj._primaryTableAlias = '';
@@ -15285,9 +15286,9 @@ DLG1_DlgObj._responsiveRulesMode = 'firsttrue';
 DLG1_DlgObj.__controlNesting = {
 CONTAINER_2: ['container:FLEXLAYOUT_1','container:LIST_CONTAINER'],
 FLEXLAYOUT_1: [],
-LIST_CONTAINER: ['list1']
+LIST_CONTAINER: ['DYNAMIC_LIST']
 }
-DLG1_DlgObj._listsDV = ['LIST1'];
+DLG1_DlgObj._listsDV = ['DYNAMIC_LIST'];
 //Add methods to the List prototype for Lists with Detail Views
 $u.o.assign(A5.ListBox.prototype,
 {
@@ -20303,7 +20304,7 @@ var _dlgObj = window[options.componentAlias + '_DlgObj'];
 }
 )
 //End section - Add methods to List prototype
-DLG1_DlgObj._listControls = ['list1']
+DLG1_DlgObj._listControls = ['DYNAMIC_LIST']
 DLG1_DlgObj._formBoxControls = ['DETAIL_VIEW']
 DLG1_DlgObj._localStorageSettings = {namespace: 'ALPHA_05f864ffbdc64b0498b33dcdbf371552',friendlyName: '',description: '',persistVariableValues: false,__version: 1,persistComponentState: false,workingPreviewTestingFolder: '',restore: {variables: false,data: false,state: false},compressData: false,minify: false,variablesToNotPersist: '',workingPreviewTestingMode: 'Browser',compressListData: false}
 ;
@@ -20332,7 +20333,7 @@ DLG1_DlgObj.__flagIsStaticHTML = true; DLG1_DlgObj._staticHTMLMode = true;  DLG1
 DLG1_DlgObj._listInsideCards = {
 }
 DLG1_DlgObj._formBoxItems = {
-"DETAIL_VIEW" : {"DEFAULT" : [{"type": "group","id": "FAKEGROUP","container": {"style": "display:flex; flex-direction:row;;display:flex; flex-direction:row; flex-flow:wrap; "},"layout": "","items": [{"sectionLayout": {},"type": "edit","id": "TEXTBOX_1","show": "","description": {"text": "","style": ";","className": ""},"data": {"from": "a","defaultValue": "","ensure": true,"format": function(v,dObj) {if(v){var fmtIn = '<UXDefaultDateFormat> hh:mm:ss'; var fmtOut = ' hh:mm:ss'; var d = new Date(); d.fromFormat(v,fmtIn);  return d.toFormat(fmtOut);}},"validate": function(path,value) { ; }},"label": {"text": "","icon": "","style": ";","className": ""},"layout": "label-before","control": {"width": "100%","style": ""},"container": {"style": ";flex:1 1;","className": ""}},{"type": "html","container": {"style": "height: 0px; flex-basis: 100%; overflow:hidden;","className": " "}}]}]}
+"DETAIL_VIEW" : {"DEFAULT" : [{"type": "group","id": "FAKEGROUP","container": {"style": "display:flex; flex-direction:row;;display:flex; flex-direction:row; flex-flow:wrap; "},"layout": "","items": [{"sectionLayout": {},"type": "edit","id": "TEXTBOX_1","show": "","description": {"text": "","style": ";","className": ""},"data": {"from": "a","defaultValue": "","ensure": true,"validate": function(path,value) { ; }},"label": {"text": "","icon": "","style": ";","className": ""},"layout": "label-before","control": {"width": "100%","style": ""},"container": {"style": ";flex:1 1;","className": ""}},{"type": "html","container": {"style": "height: 0px; flex-basis: 100%; overflow:hidden;","className": " "}}]}]}
 };
 DLG1_DlgObj._formBoxSettings = {
 "DETAIL_VIEW":{
@@ -20388,7 +20389,7 @@ DLG1_DlgObj.setDirty(flagDB);
 	return true;
 }
 ,
-	"_listDetailView": function(mode) { 	var listName = 'list1';
+	"_listDetailView": function(mode) { 	var listName = 'DYNAMIC_LIST';
 	var lObj = DLG1_DlgObj.getControl(listName);
 	if(mode=='getListName') { 
 		return listName;
@@ -20508,9 +20509,9 @@ DLG1_DlgObj.__info = {
 	"createdBy": "lukes",
 	"lastUpdatedBy": "",
 	"dateCreated": "2024-4-17",
-	"dateLastEdited": "2025-2-12",
+	"dateLastEdited": "2025-2-28",
 	"comments": "",
-	"revisionnumber": 577
+	"revisionnumber": 581
 }
 A5.__csdfmt = (obj) =>{ if(obj) return obj.stateInfo.__dtfmt};DLG1_DlgObj._workingPreview = false;
 $u.decimal = '.';
@@ -20573,13 +20574,13 @@ setTimeout(function() {
 
 
 
-var listObj = DLG1_DlgObj.getControl('LIST1');
+var listObj = DLG1_DlgObj.getControl('DYNAMIC_LIST');
 if(listObj) listObj._state.recordCount = 1;
 if(listObj) listObj._state.recordCountFormatted = '1';
 if(listObj) listObj._state.lastBreakValue = '<None>';
 if(listObj) listObj._state.pageCount = 0;
 if(listObj) listObj._state.pageSize = 20;
-if(listObj) {var ele = $('DLG1.list1.RECORDCOUNT'); if(ele) ele.innerHTML = listObj._state.recordCountFormatted;};
+if(listObj) {var ele = $('DLG1.DYNAMIC_LIST.RECORDCOUNT'); if(ele) ele.innerHTML = listObj._state.recordCountFormatted;};
 if(listObj) listObj._state.paginated = true;
 
 if(listObj) listObj._state.highlight = {  };
@@ -20597,7 +20598,7 @@ listObj._state.order = '';
 		
 		
 ;
-DLG1_DlgObj._list_executeEvent('LIST1','afterRenderComplete',{});
+DLG1_DlgObj._list_executeEvent('DYNAMIC_LIST','afterRenderComplete',{});
 
 if(listObj._refreshStateMessages) listObj._refreshStateMessages();
 
@@ -20610,7 +20611,7 @@ if(listObj._refreshStateMessages) listObj._refreshStateMessages();
 
 
 ;
-var lObj = DLG1_DlgObj.getControl('LIST1');
+var lObj = DLG1_DlgObj.getControl('DYNAMIC_LIST');
 var __obj = {
 };
 if(lObj) $u.o.assign(lObj,__obj);;
@@ -20779,7 +20780,7 @@ setTimeout(function() {$e.execute('device.screen','a5resize')},1);
 if(DLG1_DlgObj.restoreListLayouts) DLG1_DlgObj.restoreListLayouts();
 
 },0);;
-var lObj = DLG1_DlgObj.getControl('list1');
+var lObj = DLG1_DlgObj.getControl('DYNAMIC_LIST');
 if(lObj) lObj._menuSettings['MENU'].menuData = [
 	{
 		html: 'a',
@@ -20816,7 +20817,7 @@ DLG1_DlgObj._activeLanguage = '';
 </script>
 <script>
 
-</script><script>A5.__dtfmt = 'MM/dd/yyyy';A5.__tfmt = '0h:0m AM';A5.d.date.format = 'MM/dd/yyyy&&0h:0m AM';DLG1_DlgObj.setStateInfo({"ActivateComponentSecurity": true,"AllowRememberMe": false,"AlwaysRememberMe": false,"AuthenticationMethods": "Alpha","CacheLifetime": 300,"Emailfrom": "","Emailfrom_alias": "","EmailmandrillKey": "","EmailSparkPostKey": "","EmailProfile": "","EmailsendMethod": "Internal by profile","Emailsmtp_password": "","Emailsmtp_port": "","Emailsmtp_server": "","Emailsmtp_SSLOption": "","Emailsmtp_username": "","EmailuseDotNetLibrary": false,"EnforceAtComponentLevel": true,"IntegratedSecurityMode": 1,"LinkFieldDescription": "External User ID Value","LockoutAction": "Wait for period of time","LockoutActionMsg": "Try Again Later","LockoutActionPeriod": "0:0:0:0:30:0","LockoutAttempts": 0,"LockoutRedirectPage": "","LoginActivityLog": false,"LoginActivityLogFolder": "Data Folder","LoginActivityLogFolderAlias": "[PathAlias.ADB_Path]","LoginFailedLog": false,"LoginLogoutLog": false,"LoginActivityLogPasswordChange": false,"LoginLogUserFunction": "","LoginExpirationPolicy": "Expires when current session expires","LoginExpireDuration": "0:0:1:0:0:0","LoginIgnoreRedirect": true,"LoginLostAltErrorMessage": "","LoginLostAltSendMethod": "Show on screen","LoginLostRecoverySendTogether": false,"LoginLostRequestEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendMethod": "Show on Screen","LoginLostSendPasswordEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendUserEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginRedirectAction": "Same page for all logins","LoginRedirectPage": "main_page.a5w","LoginRequiredRedirectPage": "login.a5w","LoginRestrictedRedirectPage": "insufficientPermission.a5w","NoCacheLoginReqRequest": false,"oAuthNewUserComponent": "","Password": {"fieldtype": "password","HasValidationRules": true,"validationRules": "<fieldtype=\"password\">\r\n<text_format<lLetters=.T.>\r\n<lDigits=.T.>\r\n<lWhitespace=.F.>\r\n<lOther=.F.>\r\n<lCase=.T.>\r\n<lSpecial=.T.>\r\n<Special=\"~@#$%^&:*\">\r\n<regex=\"\">\r\n<use_simple_mask=.F.>\r\n<simple_mask=\"\">\r\n<place_holder=\"_\">\r\n<error_msg=\"\">\r\n>\r\n<general<EnableRules=.T.>\r\n<require_value=.T.>\r\n<error_msg=\"\">\r\n>\r\n<data_length<lRequired=.T.>\r\n<min_length=6>\r\n<max_length=20>\r\n<error_msg=\"\">\r\n>\r\n<data_value<expression_type=\"None\">\r\n<expression=\"\">\r\n<error_msg=\"\">\r\n>\r\n<data_type=\"character\">\r\n"},"PasswordChangeAllow": true,"PasswordConfirmNoMatch": "Confirm Password","PasswordEncrypt": false,"PasswordEncryptionKey": "d38380dd8bf344c7ae27aed150a889a6","PasswordEncryptLegacy": false,"PasswordExpireDuration": "1:0:0:0:0:0","PasswordExpires": false,"PasswordExpiresChange": false,"PasswordRecoveryAllow": false,"passwordRecoveryData": "","PasswordRecoveryOption": "Not Allowed","PasswordRequired": true,"PasswordResetAllow": false,"PasswordReuseRestrictMessage": "Invalid Password","PasswordReuseRestrictNumber": 0,"RecoveryEmailInvalid": "Not a valid E-mail address","SecurityActive": true,"ShowLinkField": false,"Ulinkvarname": "","UserFile": {"DataMissing": "Required Data Missing"},"Userid": {"fieldtype": "userid","HasValidationRules": false,"validationRules": "<fieldtype=\"userid\">\r\n<text_format<lLetters=.T.>\r\n<lDigits=.T.>\r\n<lWhitespace=.F.>\r\n<lOther=.F.>\r\n<lCase=.F.>\r\n<lSpecial=.F.>\r\n<regex=\"\">\r\n<use_simple_mask=.F.>\r\n<simple_mask=\"\">\r\n<place_holder=\"_\">\r\n<error_msg=\"\">\r\n>\r\n<general<EnableRules=.T.>\r\n<require_value=.T.>\r\n<error_msg=\"\">\r\n>\r\n<data_length<lRequired=.T.>\r\n<min_length=6>\r\n<max_length=0>\r\n<error_msg=\"\">\r\n>\r\n<data_value<expression_type=\"None\">\r\n<expression=\"\">\r\n<error_msg=\"\">\r\n>\r\n<data_type=\"character\">\r\n"},"UserIdDataType": "Email Address","UserIdErrorMsg": "Not a valid E-mail address","UserIdNotUniqueMsg": "User ID must be unique","UserRecoveryAllow": false,"UserRecoveryData": "","UserRecoveryDataReq": "On Line","DataType": "DBF File","UseDataLink": true,"useSecurityFromAnotherProject": false,"useSecurityFromProjectName": "","UseActiveDirectory": false,"adEnabled": false,"adName": "","adConnectionString": "","adUserid": "","adPassword": "","oAuthAddnewUser": false,"UseoAuth": false,"oAuthLinkToUser": false,"oAuthAfterLoginEvent": "","DefaultSecurityGroups": "","EnableFederatedAuth": false,"FederatedLoginPage": "","FederatedAuthErrorPage": "","FederatedAuthXhrTimeoutPage": "","FederatedAuthXhrReauthPage": "","FederatedAuthXhrReauthCompletePage": "","FederatedAuthLogoutPage": "","UserFileDataMissing": "Required Data Missing","UserIdentFieldMissing": "User Identifier field missing","SQLSelectProject": false,"fixupGroups": false,"flagSetTemporaryPageName": true,"dlg_more": "{lf};\r\n{hyperlink=Set all undefined redirect pages to 'TemporaryRedirectPage'!settemppage};\r\n\\(You can change the temporary pages to real pages later, once you have created the pages.);\t\r\n\t\r\n\r\n","dlg_event2": "if a_dlg_button = \"settemppage\" then \r\n\ta_dlg_button = \"\"\r\n\tif settings.LockoutRedirectPage = \"\" then \r\n\t\tsettings.LockoutRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRedirectPage = \"\" then \r\n\t\tsettings.LoginRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRequiredRedirectPage = \"\" then \r\n\t\tsettings.LoginRequiredRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRestrictedRedirectPage = \"\" then \r\n\t\tsettings.LoginRestrictedRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\r\n\r\n\t\r\nend if \r\n","A_DLG_BUTTON": "","__originalDataType": "DBF File","__edition": "community","usdDataLink": false,"__dtfmt": "MM/dd/yyyy","__tfmt2": "0h:0m AM"});
+</script><script>A5.__dtfmt = 'MM/dd/yyyy';A5.__tfmt = '0h:0m AM';A5.d.date.format = 'MM/dd/yyyy&&0h:0m AM';DLG1_DlgObj.setStateInfo({"ActivateComponentSecurity": true,"AllowRememberMe": false,"AlwaysRememberMe": false,"AuthenticationMethods": "Alpha","CacheLifetime": 300,"Emailfrom": "","Emailfrom_alias": "","EmailmandrillKey": "","EmailSparkPostKey": "","EmailProfile": "","EmailsendMethod": "Internal by profile","Emailsmtp_password": "","Emailsmtp_port": "","Emailsmtp_server": "","Emailsmtp_SSLOption": "","Emailsmtp_username": "","EmailuseDotNetLibrary": false,"EnforceAtComponentLevel": true,"IntegratedSecurityMode": 1,"LinkFieldDescription": "External User ID Value","LockoutAction": "Wait for period of time","LockoutActionMsg": "Try Again Later","LockoutActionPeriod": "0:0:0:0:30:0","LockoutAttempts": 0,"LockoutRedirectPage": "","LoginActivityLog": false,"LoginActivityLogFolder": "Data Folder","LoginActivityLogFolderAlias": "[PathAlias.ADB_Path]","LoginFailedLog": false,"LoginLogoutLog": false,"LoginActivityLogPasswordChange": false,"LoginLogUserFunction": "","LoginExpirationPolicy": "Expires when current session expires","LoginExpireDuration": "0:0:1:0:0:0","LoginIgnoreRedirect": true,"LoginLostAltErrorMessage": "","LoginLostAltSendMethod": "Show on screen","LoginLostRecoverySendTogether": false,"LoginLostRequestEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendMethod": "Show on Screen","LoginLostSendPasswordEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginLostSendUserEmail": {"body": "","complete": false,"sendto": "","subject": ""},"LoginRedirectAction": "Same page for all logins","LoginRedirectPage": "main_page.a5w","LoginRequiredRedirectPage": "login.a5w","LoginRestrictedRedirectPage": "insufficientPermission.a5w","NoCacheLoginReqRequest": false,"oAuthNewUserComponent": "","Password": {"fieldtype": "password","HasValidationRules": true,"validationRules": "<fieldtype=\"password\">\r\n<text_format<lLetters=.T.>\r\n<lDigits=.T.>\r\n<lWhitespace=.F.>\r\n<lOther=.F.>\r\n<lCase=.T.>\r\n<lSpecial=.T.>\r\n<Special=\"~@#$%^&:*\">\r\n<regex=\"\">\r\n<use_simple_mask=.F.>\r\n<simple_mask=\"\">\r\n<place_holder=\"_\">\r\n<error_msg=\"\">\r\n>\r\n<general<EnableRules=.T.>\r\n<require_value=.T.>\r\n<error_msg=\"\">\r\n>\r\n<data_length<lRequired=.T.>\r\n<min_length=6>\r\n<max_length=20>\r\n<error_msg=\"\">\r\n>\r\n<data_value<expression_type=\"None\">\r\n<expression=\"\">\r\n<error_msg=\"\">\r\n>\r\n<data_type=\"character\">\r\n"},"PasswordChangeAllow": true,"PasswordConfirmNoMatch": "Confirm Password","PasswordEncrypt": false,"PasswordEncryptionKey": "d38380dd8bf344c7ae27aed150a889a6","PasswordEncryptLegacy": false,"PasswordExpireDuration": "1:0:0:0:0:0","PasswordExpires": false,"PasswordExpiresChange": false,"PasswordRecoveryAllow": false,"passwordRecoveryData": "","PasswordRecoveryOption": "Not Allowed","PasswordRequired": true,"PasswordResetAllow": false,"PasswordReuseRestrictMessage": "Invalid Password","PasswordReuseRestrictNumber": 0,"RecoveryEmailInvalid": "Not a valid E-mail address","SecurityActive": true,"ShowLinkField": false,"Ulinkvarname": "","UserFile": {"DataMissing": "Required Data Missing"},"Userid": {"fieldtype": "userid","HasValidationRules": false,"validationRules": "<fieldtype=\"userid\">\r\n<text_format<lLetters=.T.>\r\n<lDigits=.T.>\r\n<lWhitespace=.F.>\r\n<lOther=.F.>\r\n<lCase=.F.>\r\n<lSpecial=.F.>\r\n<regex=\"\">\r\n<use_simple_mask=.F.>\r\n<simple_mask=\"\">\r\n<place_holder=\"_\">\r\n<error_msg=\"\">\r\n>\r\n<general<EnableRules=.T.>\r\n<require_value=.T.>\r\n<error_msg=\"\">\r\n>\r\n<data_length<lRequired=.T.>\r\n<min_length=6>\r\n<max_length=0>\r\n<error_msg=\"\">\r\n>\r\n<data_value<expression_type=\"None\">\r\n<expression=\"\">\r\n<error_msg=\"\">\r\n>\r\n<data_type=\"character\">\r\n"},"UserIdDataType": "Email Address","UserIdErrorMsg": "Not a valid E-mail address","UserIdNotUniqueMsg": "User ID must be unique","UserRecoveryAllow": false,"UserRecoveryData": "","UserRecoveryDataReq": "On Line","DataType": "DBF File","UseDataLink": true,"useSecurityFromAnotherProject": false,"useSecurityFromProjectName": "","UseActiveDirectory": false,"adEnabled": false,"adName": "","adConnectionString": "","adUserid": "","adPassword": "","oAuthAddnewUser": false,"UseoAuth": false,"oAuthLinkToUser": false,"oAuthAfterLoginEvent": "","DefaultSecurityGroups": "","EnableFederatedAuth": false,"FederatedLoginPage": "","FederatedAuthErrorPage": "","FederatedAuthXhrTimeoutPage": "","FederatedAuthXhrReauthPage": "","FederatedAuthXhrReauthCompletePage": "","FederatedAuthLogoutPage": "","FederatedLoginCompletePage": "","UserFileDataMissing": "Required Data Missing","UserIdentFieldMissing": "User Identifier field missing","SQLSelectProject": false,"fixupGroups": false,"flagSetTemporaryPageName": true,"dlg_more": "{lf};\r\n{hyperlink=Set all undefined redirect pages to 'TemporaryRedirectPage'!settemppage};\r\n\\(You can change the temporary pages to real pages later, once you have created the pages.);\t\r\n\t\r\n\r\n","dlg_event2": "if a_dlg_button = \"settemppage\" then \r\n\ta_dlg_button = \"\"\r\n\tif settings.LockoutRedirectPage = \"\" then \r\n\t\tsettings.LockoutRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRedirectPage = \"\" then \r\n\t\tsettings.LoginRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRequiredRedirectPage = \"\" then \r\n\t\tsettings.LoginRequiredRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\t\r\n\tif settings.LoginRestrictedRedirectPage = \"\" then \r\n\t\tsettings.LoginRestrictedRedirectPage = \"TemporaryRedirectPage\"\r\n\tend if \r\n\r\n\r\n\t\r\nend if \r\n","A_DLG_BUTTON": "","__originalDataType": "DBF File","__edition": "community","usdDataLink": false,"__dtfmt": "MM/dd/yyyy","__tfmt2": "0h:0m AM"});
 A5.__flagWorkingPreview = false;
 A5.__flagIIS = false;
 A5.__flagSimulateIIS = true;
