@@ -7065,6 +7065,7 @@ class ObjectForm extends Form {
         return this.findParentTab(parent.parent);
     }
     initializeWithData(data) {
+        var _a;
         if (typeof data != 'object' || data instanceof Array)
             throw new PopulateError("Cannot populate object with non-object data.");
         if (this.options.onPopulate) {
@@ -7088,7 +7089,7 @@ class ObjectForm extends Form {
             this.entries[key] = newEntry;
             Object.assign(populateData, newEntry.initializeWithData(d));
             // The key wasn't supplied, so set the initial optional state to no
-            if (!(key in data)) {
+            if (!(key in data) && ((_a = this.options.optionalKeys[key].inline) !== null && _a !== void 0 ? _a : false) === false) {
                 ENABLED_MAP[this.getOptionalCheckId(key)] = false;
             }
         }
@@ -11132,6 +11133,7 @@ function manageConfigForm(ops) {
                     Object.assign(ops.search, newSearch);
                     ops.embeddedList.initialize(ops.list);
                     show(dataOverride);
+                    newList.reRender(false);
                 }).catch((e) => displayErrorMessage(e.toString()));
             };
         }
