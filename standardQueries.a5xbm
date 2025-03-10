@@ -449,9 +449,11 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 			' As with the above, we may need read only fields to be specified, but we must set them to _oldData
 			dim mappingInfo as Result
 			mappingInfo = getMappingFromMappings(mappings, column.value.name)
-			if mappingInfo.isSuccessful() .and. mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
-				args.set(column.value.name, convert_type(item.value._oldData.data(column.value.name), column.value.alphaType))
-				continue
+			if mappingInfo.isSuccessful() then 
+				if mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
+					args.set(column.value.name, convert_type(item.value._oldData.data(column.value.name), column.value.alphaType))
+					continue
+				end if
 			end if
 		end if 
 		
