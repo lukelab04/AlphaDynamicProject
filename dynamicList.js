@@ -6463,9 +6463,6 @@ function Errors(...args) {
 ;// ./src/jsonForms.ts
 
 
-// My comment is changing
-var SHOW_HIDE_MAP = {};
-var ENABLED_MAP = {};
 class SerializeError extends Error {
     constructor(message) {
         super(message);
@@ -6484,316 +6481,58 @@ class PopulateError extends Error {
         this.message = message;
     }
 }
-function lookupShow(id) {
-    return SHOW_HIDE_MAP[id] === undefined ? true : SHOW_HIDE_MAP[id];
-}
-class Form {
-    static create(obj, options, formName, otherItems = []) {
-        let form = Form.makeFormFromOption(obj, options, undefined, formName);
-        form.obj = obj;
-        form.otherItems = otherItems;
-        form.formName = formName;
-        return form;
-    }
-    constructor(obj, formName) {
-        this.id = formBuilder_uuidv4();
-        this.formName = '';
-        this.otherItems = [];
-        this.obj = obj;
-        this.id = formBuilder_uuidv4();
-        this.formName = formName;
-    }
-    getId() {
-        return this.id;
-    }
-    static render(form) {
-        form.obj.setJSONFormItems(form.formName, [form.buildJsonForm(), ...form.otherItems]);
-        form.obj.getControl(form.formName)._formBoxSize = "";
-        form.obj.resizeFormBoxes();
-    }
-    refresh() {
-        this.obj.getControl(this.formName).refresh();
-    }
-    reRender() {
-        let oldData = this.obj.getValue(this.formName);
-        let root = this.getRoot(this);
-        this.obj.setJSONFormItems(this.formName, [root.buildJsonForm(), ...root.otherItems]);
-        this.obj.setValue(this.formName, oldData);
-        this.obj.getControl(this.formName)._formBoxSize = "";
-        this.obj.resizeFormBoxes();
-    }
-    getRoot(f) {
-        if (f.parent)
-            return this.getRoot(f.parent);
-        return f;
-    }
-    setParent(parent) {
-        this.parent = parent;
-    }
-    static makeFormFromOption(obj, option, parent, formName) {
-        let optCopy = jQuery.extend(true, {}, option);
-        let form;
-        switch (optCopy.type) {
-            case "object":
-                form = new ObjectForm(obj, optCopy.options, formName);
-                break;
-            case "simple":
-                form = new SimpleForm(obj, optCopy.options, formName);
-                break;
-            case "array":
-                form = new ArrayForm(obj, optCopy.options, formName);
-                break;
-            case "recursive":
-                form = new RecursiveForm(obj, optCopy.options, formName);
-                break;
-            case "dropdown":
-                form = new DropdownForm(obj, optCopy.options, formName);
-                break;
-            case "multi":
-                form = new MultiForm(obj, optCopy.options, formName);
-                break;
-            case 'const':
-                form = new ConstForm(obj, optCopy.options, formName);
-                break;
-            case 'tab':
-                form = new TabForm(obj, optCopy.options, formName);
-                break;
-            case 'button':
-                form = new ButtonForm(obj, optCopy.options, formName);
-                break;
-        }
-        form.setParent(parent);
-        return form;
-    }
-    makeInput(options) {
-        var _a;
-        let bar = (_a = options.beforeBarItems) !== null && _a !== void 0 ? _a : [];
-        let id = options.idPrefix + '_' + this.id;
-        let className = id + '_HEADER_AND_ELEM_';
-        let childContainerId = id + '_CHILDREN';
-        if (options.onCollapse)
-            bar.push(this.makeCollapseButton(options.onCollapse, childContainerId, id));
-        if (options.onDelete)
-            bar.push(this.makeDeleteButton(options.onDelete, className, id));
-        if (options.onMove)
-            bar.push(...this.makeMoveButtons(options.onMove, id));
-        if (options.labelText)
-            bar.push(this.makeLabel(options.labelText));
-        if (options.afterBarItems)
-            bar.push(...options.afterBarItems);
-        if (options.comments)
-            bar.push(this.makeComments(options.comments));
-        if (options.inline) {
-            return {
-                type: 'group',
-                id: id + '_LABEL_AND_ELEM',
-                container: {
-                    style: "width: 100%;display: flex; flex-direction: column; box-sizing: border-box; margin: 0px; padding: 0px; margin-bottom: 0.5rem; margin-top: 0.5rem",
-                    className: className
-                },
-                show: () => lookupShow(id + '_LABEL_AND_ELEM'),
-                items: options.children
-            };
-        }
-        if (options.labelOnly && options.labelText) {
-            return {
-                type: 'group',
-                id: id + '_LABEL_AND_ELEM',
-                container: {
-                    style: "width: 100%;display: flex; flex-direction: column; box-sizing: border-box; margin: 0px; padding: 0px; margin-bottom: 0.5rem; margin-top: 0.5rem",
-                    className: className
-                },
-                show: () => lookupShow(id + '_LABEL_AND_ELEM'),
-                items: [
-                    {
-                        type: 'html',
-                        control: {
-                            html: options.labelText,
-                        },
-                        container: {
-                            className: '',
-                            style: 'margin-top: 1rem; margin-bottom: 0.2rem; font-weight: bold;',
-                        },
-                        layout: '{content}',
-                    },
-                    ...options.children
-                ]
-            };
-        }
-        return {
-            type: "group",
-            id: id + '_HEADER_AND_ELEM',
-            show: () => lookupShow(id + '_HEADER_AND_ELEM'),
-            container: {
-                style: "width: 100%;display: flex; flex-direction: column; align-items: center; box-sizing: border-box; margin: 0px; padding: 0px; margin-bottom: 0.5rem; margin-top: 0.5rem",
-                className: className
-            },
-            items: [
-                {
-                    type: 'group',
-                    id: id + "_HEADER",
-                    container: {
-                        style: `; 
-							width: 100%; 
-							display: flex;
-							flex-direction: row; 
-							box-sizing: border-box;
-							background-color: #eaeaea;
-							align-items: center;
-							border: 1px solid black;
-							flex-wrap: wrap;
-                            padding: .3rem;
-						`
-                    },
-                    items: bar,
-                },
-                {
-                    type: 'group',
-                    id: id + "_CHILDREN",
-                    show: () => lookupShow(id + '_CHILDREN'),
-                    container: {
-                        style: `;
-							width: 100%;
-							border: 1px solid black;
-							border-top: none;
-							box-sizing: border-box;
-                            padding: 1rem;
-						`,
-                        className: id + '_CHILDREN'
-                    },
-                    items: options.children,
-                }
-            ]
-        };
-    }
-    makeComments(comments) {
-        return {
-            type: 'html',
-            control: {
-                html: comments,
-            },
-            container: {
-                className: '',
-                style: 'width: 100%; background-color: #f5f5f5; margin: 1rem; padding: 1rem; font-style: italic;',
-            },
-            layout: '{content}',
-        };
-    }
-    makeMoveButtons(onMove, id) {
-        let moveBtnTemplate = (dir) => {
-            let icon = dir == 'up' ? 'chevronUp' : 'chevronDown';
-            return {
-                type: 'button',
-                id: id + "_MOVE_" + dir + '_BTN',
-                control: {
-                    layout: 'icon',
-                    icon: 'svgIcon=#alpha-icon-' + icon + ':icon,24',
-                    onClick: () => {
-                        onMove(dir);
-                    }
-                },
-                container: {
-                    style: "background: transparent;",
-                    className: `CONTEXT_BUTTONS_${id}`
-                },
-                layout: "{content}"
-            };
-        };
-        return [moveBtnTemplate('up'), moveBtnTemplate('down')];
-    }
-    makeLabel(text) {
-        return {
-            type: 'html',
-            control: {
-                html: text,
-            },
-            container: {
-                className: '',
-                style: ';background-color: #eaeaea;',
-            },
-            layout: '{content}',
-        };
-    }
-    setCollapsed(collapsed, childContainerId, id) {
-        // Set container to display or hide
-        SHOW_HIDE_MAP[childContainerId] = !collapsed;
-        let rotation = collapsed ? '-90deg' : '0deg';
-        document.documentElement.style.setProperty(`--${id}-rotation`, rotation);
-    }
-    makeCollapseButton(onClick, childContainerId, id) {
-        let collapse = {
-            type: "button",
-            id: id + "_COLLAPSE_BTN",
-            control: {
-                layout: "icon",
-                html: `<span class="" style="" id="${id + '_COLLAPSE_ICON'}"></span>`,
-                icon: "svgIcon=#alpha-icon-chevronDown:icon,24",
-                onClick: () => {
-                    var _a;
-                    let oldShow = (_a = SHOW_HIDE_MAP[childContainerId]) !== null && _a !== void 0 ? _a : true;
-                    SHOW_HIDE_MAP[childContainerId] = !oldShow;
-                    onClick();
-                    this.setCollapsed(oldShow, childContainerId, id);
-                    this.refresh();
-                },
-            },
-            container: {
-                style: `background-color: #eaeaea; transform: rotate(var(--${id}-rotation));`,
-                className: id + '_COLLAPSE_ICON ' + `CONTEXT_BUTTONS_${id}`
-            },
-            layout: "{content}"
-        };
-        if (SHOW_HIDE_MAP[childContainerId] === undefined) {
-            this.setCollapsed(true, childContainerId, id);
-        }
-        return collapse;
-    }
-    makeDeleteButton(onDelete, elementId, id) {
-        let deleteBtn = {
-            type: 'button',
-            id: id + "_DELETE_BTN",
-            control: {
-                layout: 'icon',
-                icon: 'svgIcon=#alpha-icon-trash:icon,24',
-                onClick: () => {
-                    // Just hide, don't actually delete the DOM element
-                    document.getElementsByClassName(elementId)[0].style.display = 'none';
-                    onDelete();
-                },
-            },
-            container: {
-                style: "background-color: #eaeaea;",
-                className: `CONTEXT_BUTTONS_${id}`
-            },
-            layout: "{content}"
-        };
-        return deleteBtn;
+function constructForm(options, parent, dynForm) {
+    switch (options.type) {
+        case "object": return new ObjectForm(options.options, dynForm, parent);
+        case "simple": return new SimpleForm(options.options, dynForm, parent);
+        case "array": return new ArrayForm(options.options, dynForm, parent);
+        case "recursive": return new RecursiveForm(options.options, dynForm, parent);
+        case "dropdown": return new DropdownForm(options.options, parent);
+        case "multi": return new MultiForm(options.options, dynForm, parent);
+        case "const": return new ConstForm(options.options, parent);
+        case "button": return new ButtonForm(options.options, parent);
     }
 }
-class SimpleForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class SimpleForm {
+    constructor(options, dynForm, parent) {
         this.options = options;
+        this.dynForm = dynForm;
+        this.changed = false;
+        this.id = formBuilder_uuidv4();
+        this.parent = parent;
     }
     getOptions() {
         return { type: 'simple', options: this.options };
     }
-    serialize() {
-        let form = this.obj.getControl(this.formName);
-        let val = form.data[this.id];
+    getParent() {
+        return this.parent;
+    }
+    serialize(jsonFormData) {
+        let val = jsonFormData[this.id];
+        let jsonVal;
         if (val === undefined && this.options.default === undefined) {
             throw new SerializeError("No value was supplied and field does not have a default value.");
         }
         else if (val === undefined) {
-            return this.options.default;
+            jsonVal = this.options.default;
         }
         switch (this.options.type) {
             case "function":
             case "datetime":
-            case "string": return val;
-            case "number": return parseFloat(val);
-            case "boolean": return Boolean(val);
+            case "string":
+                jsonVal = val;
+                break;
+            case "number":
+                jsonVal = parseFloat(val);
+                break;
+            case "boolean":
+                jsonVal = Boolean(val);
+                break;
         }
+        return {
+            changed: this.changed,
+            raw: jsonVal
+        };
     }
     buildJsonForm() {
         var _a;
@@ -6813,12 +6552,9 @@ class SimpleForm extends Form {
         }
         let control = {
             onChange: () => {
-                let formObj = this.obj.getControl(this.formName);
-                if (formObj.state === undefined) {
-                    formObj.state = {};
-                }
-                formObj.isDirtyImmediate = true;
-                formObj.refresh();
+                this.changed = true;
+                this.dynForm.setDirty(true);
+                this.dynForm.refresh();
             }
         };
         if (editType == 'picker') {
@@ -6846,15 +6582,11 @@ class SimpleForm extends Form {
             },
             readonly: () => { var _a; return (_a = this.options.readonly) !== null && _a !== void 0 ? _a : false; },
         };
-        return this.makeInput({
-            children: [input],
-            labelText: this.options.label,
-            labelOnly: true,
-            idPrefix: ""
-        });
+        return input;
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
         var _a;
+        this.changed = false;
         if (data === undefined && this.options.default === undefined) {
             throw new PopulateError("Data is empty and no default value is specified for this field.");
         }
@@ -6882,243 +6614,283 @@ class SimpleForm extends Form {
         return d;
     }
 }
-class ObjectForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class ObjectForm {
+    constructor(options, dynForm, parent) {
+        this.data = {};
+        this.dynForm = dynForm;
         this.options = options;
         this.entries = {};
+        this.changed = false;
+        this.parent = parent;
+        this.id = formBuilder_uuidv4();
     }
     getOptions() {
         return { type: 'object', options: this.options };
     }
-    serialize() {
+    serialize(jsonFormData) {
         let result = {};
         for (const key in this.entries) {
-            let checkId = this.getOptionalCheckId(key);
-            if (ENABLED_MAP[checkId] === false)
+            let entry = this.entries[key];
+            let serialized = entry.form.serialize(jsonFormData);
+            if (!entry.enabled)
                 continue;
-            result[key] = this.entries[key].serialize();
+            result[key] = serialized;
         }
         if (this.options.mapSerialized) {
             result = this.options.mapSerialized(result);
         }
-        return result;
+        let keyChanged = Object.values(result).reduce((a, b) => a || b.changed, false);
+        return {
+            changed: keyChanged || this.changed,
+            keys: result
+        };
     }
     buildJsonForm() {
-        var _a, _b, _c;
-        let allChildren = [];
-        let parentTab = this.findParentTab(this.parent);
+        var _a;
+        let children = [];
+        let i = 0;
         for (const key in this.entries) {
-            let childType = this.entries[key].getOptions().type;
-            let label = this.entries[key].getOptions().options.label;
-            let form;
-            // We want to open nested items in a new tab (if we are in a tab container, anyway)
-            if ((childType == 'array' || childType == 'object') && parentTab !== null) {
-                form = {
-                    type: 'button',
-                    id: 'OPEN_IN_TAB_' + this.id + "_" + key,
-                    control: {
-                        layout: "text",
-                        html: "<span class=\"\" style=\"\">" + 'Edit ' + label + "</span>",
-                        icon: "svgIcon=#alpha-icon-addCircleBorder:icon,24",
-                        onClick: () => parentTab.addTab(this.entries[key].getOptions().options.label, this.entries[key]),
-                    },
-                    container: {
-                        style: 'width: 100%',
-                        className: ''
-                    },
-                    layout: "{content}"
-                };
+            i += 1;
+            let entry = this.entries[key];
+            let formOps = entry.form.getOptions();
+            let label;
+            if (typeof formOps.options.label == 'function') {
+                label = formOps.options.label(entry.form, this.data[key], key);
             }
             else {
-                form = this.entries[key].buildJsonForm();
+                label = formOps.options.label;
             }
-            let onDelete = undefined;
-            let itemIsStatic = key in this.options.requiredKeys || key in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
-            if (!itemIsStatic) {
-                onDelete = () => {
-                    delete this.entries[key];
-                    this.reRender();
-                };
-                label = key;
-            }
-            let input = this.makeInput({
-                children: [form],
-                onCollapse: () => { },
-                onDelete: onDelete,
-                labelText: label,
-                inline: this.options.inlineKeys === true,
-                idPrefix: key
-            });
-            let optional = ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {})[key];
-            if (optional && ((_c = optional.inline) !== null && _c !== void 0 ? _c : false) == false) {
-                input = this.wrapInOptional(input, key);
-            }
-            if (!(this.entries[key] instanceof ConstForm)) {
-                allChildren.push(input);
+            switch (formOps.type) {
+                case "simple":
+                case "dropdown":
+                case "multi":
+                case "button":
+                case "recursive": {
+                    let enableFnId = this.id + '_enable_' + i;
+                    let labelItem = {
+                        type: 'html',
+                        control: {
+                            html: `<p class="dynamic-form-simple-label">
+                                ${label}
+                            </p>`
+                        },
+                        container: {
+                            className: '',
+                            style: `;
+                                font-variant: all-petite-caps;
+                                font-weight: bold;
+                                color: #434343;
+                            `
+                        },
+                        layout: '{content}',
+                    };
+                    this.dynForm.obj._functions.dynamicForm[enableFnId] = () => {
+                        entry.enabled = false;
+                    };
+                    let isBoolForm = formOps.type == 'simple' && formOps.options.type == 'boolean';
+                    let isOptional = key in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
+                    let isDynamic = !isOptional && !(key in this.options.requiredKeys);
+                    // Key is optional, need to display checkbox
+                    if (isOptional && !isBoolForm) {
+                        let labelOnly = labelItem;
+                        let check = {
+                            type: 'group',
+                            items: [
+                                {
+                                    type: 'checkbox',
+                                    data: {
+                                        from: formBuilder_uuidv4(),
+                                        blank: entry.enabled
+                                    },
+                                    control: {
+                                        onChange: (e) => {
+                                            entry.enabled = !entry.enabled;
+                                            this.dynForm.refresh();
+                                        }
+                                    },
+                                    container: {
+                                        style: "",
+                                        className: ""
+                                    }
+                                }
+                            ],
+                            container: {
+                                style: 'display: flex; align-items: center;'
+                            }
+                        };
+                        labelItem = {
+                            type: 'group',
+                            items: [check, labelOnly],
+                            container: {
+                                style: `;
+                                    display: flex;
+                                    justify-items: center;
+                                    gap: 0.5rem;
+                                `
+                            }
+                        };
+                    }
+                    // Key is dynamic, need to allow for deletion
+                    else if (isDynamic) {
+                        let delIcon = {
+                            type: 'button',
+                            control: {
+                                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                                onClick: () => {
+                                    delete this.entries[key];
+                                    delete this.data[key];
+                                    this.dynForm.refresh();
+                                }
+                            }
+                        };
+                        labelItem = {
+                            type: 'group',
+                            items: [labelItem, delIcon],
+                            container: {
+                                style: `;
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    gap: 1rem;
+                                `
+                            }
+                        };
+                    }
+                    let group = {
+                        type: 'group',
+                        items: [labelItem],
+                        container: {
+                            style: 'display: flex; flex-direction: column;'
+                        }
+                    };
+                    if (entry.enabled) {
+                        group.items.push(entry.form.buildJsonForm());
+                    }
+                    children.push(group);
+                    break;
+                }
+                case "object":
+                case "array": {
+                    let fnId = this.id + '_' + i.toString();
+                    this.dynForm.obj._functions.dynamicForm[fnId] = () => {
+                        this.dynForm.launchNewTab(label, entry.form);
+                    };
+                    let btn = {
+                        type: 'html',
+                        control: {
+                            html: `
+                                <div class="dynamic-form-open-nested" style = "
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    gap: 0.5rem;
+                                    cursor: pointer;
+                                " onclick="${this.dynForm.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">
+                                    <p style = "font-variant: all-petite-caps; font-weight: bold;"> Edit ${label} </p>
+                                    ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')} 
+                                </div>
+                            `,
+                        }
+                    };
+                    children.push(btn);
+                    break;
+                }
+                case "const":
+                // Nothing
             }
         }
-        if (this.options.newKeyTemplate !== undefined) {
-            allChildren.push(...[
-                {
-                    type: "button",
-                    id: this.id + "_ADD_KEY_BTN",
-                    control: {
-                        layout: "text",
-                        html: "<span class=\"\" style=\"\">Add Key</span>",
-                        icon: "",
-                        onClick: () => {
-                            let form = this.obj.getControl(this.formName);
-                            let keyName = form.data[this.id + '_ADD_KEY_INPUT'];
-                            form.data[this.id + '_ADD_KEY_INPUT'] = '';
-                            if (keyName == "" || !keyName)
-                                return;
-                            if (this.options.newKeyTemplate) {
-                                this.options.newKeyTemplate.definition.options.label = keyName;
-                                this.entries[keyName] = Form.makeFormFromOption(this.obj, this.options.newKeyTemplate.definition, this, this.formName);
-                                this.entries[keyName].initializeWithData(this.options.newKeyTemplate.defaultValue);
-                                this.reRender();
-                            }
-                        },
-                    },
-                    container: {
-                        style: ";",
-                        className: ""
-                    },
-                    layout: "{content}"
-                },
-                {
-                    type: "edit",
-                    id: this.id + "_ADD_KEY_INPUT",
-                    data: {
-                        from: this.id + "_ADD_KEY_INPUT",
-                        ensure: true,
-                    },
-                    label: {
-                        text: "New key name",
-                    },
-                    layout: 'label-above',
-                    control: {
-                        placeholder: "",
-                        width: "100%",
-                    },
-                    container: {
-                        style: ";width: 30%;",
-                        className: ""
+        let newKey = this.options.newKeyTemplate;
+        if (newKey) {
+            let newKeyNameId = this.id + '_newKeyEntry';
+            let addNewBtn = {
+                type: 'button',
+                control: {
+                    html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                    onClick: () => {
+                        let name = this.dynForm.formBox.data[newKeyNameId];
+                        if (name && name != '') {
+                            let newForm = constructForm(newKey.definition, this, this.dynForm);
+                            Object.assign(this.dynForm.formBox.data, newForm.getPopulateData(newKey.defaultValue));
+                            this.data[name] = newKey.defaultValue;
+                            this.entries[name] = {
+                                enabled: true,
+                                form: newForm
+                            };
+                            this.dynForm.formBox.data[newKeyNameId] = '';
+                            this.dynForm.refresh();
+                        }
                     }
                 }
-            ]);
+            };
+            let rowGroup = {
+                type: 'group',
+                container: {
+                    className: 'dynamic-form-add-new-key',
+                    style: `;
+                        display: flex;
+                        flex-direction: row;
+                        gap: 1rem;
+                        padding: 0.5rem;
+                    `
+                },
+                items: [
+                    addNewBtn,
+                    {
+                        type: 'edit',
+                        id: newKeyNameId,
+                        data: {
+                            from: newKeyNameId,
+                            ensure: true
+                        },
+                    },
+                ]
+            };
+            children.push(rowGroup);
         }
         return {
-            type: "group",
-            id: this.id,
-            show: lookupShow(this.id),
-            container: {
-                style: "; width: 100%;display: flex; flex-direction: row; flex-flow: wrap; box-sizing: border-box;"
-            },
-            items: allChildren,
-        };
-    }
-    getOptionalCheckId(key) {
-        return this.id + '_' + key + '_ENABLED';
-    }
-    wrapInOptional(item, key) {
-        let id = this.getOptionalCheckId(key);
-        let check = {
-            type: 'checkbox',
-            id: id,
-            data: {
-                from: id,
-                ensure: true,
-                blank: ENABLED_MAP[id] !== false
-            },
-            control: {
-                onChange: (e) => {
-                    let checked = e.item.data;
-                    ENABLED_MAP[id] = checked;
-                    SHOW_HIDE_MAP[id + '_WRAPPER'] = checked;
-                    this.refresh();
-                },
-            },
-            container: {
-                style: "background: transparent;"
-            }
-        };
-        let group1 = {
             type: 'group',
             container: {
-                style: '; width: 100%; display: flex; flex-direction: row; box-sizing: border-box;'
+                className: 'dynamic-form-object-group',
+                style: `; 
+                    display: flex; 
+                    flex-direction: column;
+                    gap: 1rem;
+                    padding: 0.5rem;
+                    border: 1px solid gray;
+                    padding-left: 1rem;
+                `
             },
-            items: [
-                {
-                    type: 'html',
-                    control: {
-                        html: `Field ${key} is optional. Enable?`,
-                    },
-                    container: {
-                        className: '',
-                        style: ';background-color: transparent;',
-                    },
-                    layout: '{content}',
-                },
-                check
-            ]
-        };
-        let group2 = {
-            type: 'group',
-            id: id + '_WRAPPER',
-            show: () => lookupShow(id + '_WRAPPER'),
-            items: [item],
-            container: {
-                className: id + '_WRAPPEr'
-            },
-        };
-        SHOW_HIDE_MAP[id + '_WRAPPER'] = ENABLED_MAP[this.getOptionalCheckId(key)];
-        return {
-            type: 'group',
-            container: {
-                style: '; width: 100%; '
-            },
-            items: [
-                group1, group2
-            ]
+            items: children,
         };
     }
-    findParentTab(parent) {
-        if (parent === undefined)
-            return null;
-        if (parent instanceof TabForm)
-            return parent;
-        return this.findParentTab(parent.parent);
-    }
-    initializeWithData(data) {
-        var _a;
+    getPopulateData(data) {
+        this.data = data;
+        this.changed = false;
         if (typeof data != 'object' || data instanceof Array)
             throw new PopulateError("Cannot populate object with non-object data.");
-        if (this.options.onPopulate) {
-            this.options.onPopulate(data, this);
-        }
         this.entries = {};
         let populateData = {};
         let viewedKeys = new Set();
         for (const key in this.options.requiredKeys) {
             viewedKeys.add(key);
-            let newEntry = Form.makeFormFromOption(this.obj, this.options.requiredKeys[key], this, this.formName);
-            this.entries[key] = newEntry;
-            Object.assign(populateData, newEntry.initializeWithData(data[key]));
+            let newEntry = constructForm(this.options.requiredKeys[key], this, this.dynForm);
+            this.entries[key] = {
+                enabled: true,
+                form: newEntry
+            };
+            Object.assign(populateData, newEntry.getPopulateData(data[key]));
         }
         for (const key in this.options.optionalKeys) {
             viewedKeys.add(key);
             let opt = this.options.optionalKeys[key];
             opt.definition.options.label = key;
             let d = (key in data) ? data[key] : opt.defaultValue;
-            let newEntry = Form.makeFormFromOption(this.obj, opt.definition, this, this.formName);
-            this.entries[key] = newEntry;
-            Object.assign(populateData, newEntry.initializeWithData(d));
-            // The key wasn't supplied, so set the initial optional state to no
-            if (!(key in data) && ((_a = this.options.optionalKeys[key].inline) !== null && _a !== void 0 ? _a : false) === false) {
-                ENABLED_MAP[this.getOptionalCheckId(key)] = false;
-            }
+            let newEntry = constructForm(this.options.optionalKeys[key].definition, this, this.dynForm);
+            this.entries[key] = {
+                enabled: key in data,
+                form: newEntry
+            };
+            Object.assign(populateData, newEntry.getPopulateData(d));
         }
         for (const key in data) {
             if (viewedKeys.has(key))
@@ -7128,24 +6900,28 @@ class ObjectForm extends Form {
                     continue;
                 throw new PopulateError("New key template is undefined.");
             }
-            let newEntry = Form.makeFormFromOption(this.obj, this.options.newKeyTemplate.definition, this, this.formName);
-            this.entries[key] = newEntry;
-            Object.assign(populateData, newEntry.initializeWithData(data[key]));
+            let newEntry = constructForm(this.options.newKeyTemplate.definition, this, this.dynForm);
+            this.entries[key] = {
+                enabled: true,
+                form: newEntry
+            };
+            Object.assign(populateData, newEntry.getPopulateData(data[key]));
         }
         return populateData;
     }
 }
-class RecursiveForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class RecursiveForm {
+    constructor(options, dynForm, parent) {
         this.options = options;
+        this.dynForm = dynForm;
+        this.parent = parent;
     }
     getOptions() {
         return { type: 'recursive', options: this.options };
     }
-    serialize() {
+    serialize(formData) {
         if (this.recursiveElement) {
-            return this.recursiveElement.serialize();
+            return this.recursiveElement.serialize(formData);
         }
         else {
             throw new Error("Tried to serialize a recursive element that hasn't been initialized.");
@@ -7156,131 +6932,238 @@ class RecursiveForm extends Form {
             throw new JsonBuildError("Cannot build JSON form from uninitialized Recursive form.");
         return this.recursiveElement.buildJsonForm();
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
         let recElemOps = this.searchForRecOptions(this.parent);
         if (recElemOps) {
-            this.recursiveElement = Form.makeFormFromOption(this.obj, recElemOps, this, this.formName);
-            return this.recursiveElement.initializeWithData(data);
+            this.recursiveElement = constructForm(recElemOps, this, this.dynForm);
+            return this.recursiveElement.getPopulateData(data);
         }
         throw new PopulateError("Unable to find named item " + this.options.recurseOn);
     }
     searchForRecOptions(f) {
-        if (f === undefined)
+        if (f === null)
             return null;
         if (f.getOptions().options.name === this.options.recurseOn)
             return f.getOptions();
         return this.searchForRecOptions(f.parent);
     }
 }
-class ArrayForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class ArrayForm {
+    constructor(options, dynForm, parent) {
+        this.data = [];
         this.options = options;
         this.entries = [];
+        this.dynForm = dynForm;
+        this.parent = parent;
+        this.changed = false;
     }
     getOptions() {
         return { type: 'array', options: this.options };
     }
-    serialize() {
+    serialize(formData) {
         let results = [];
-        this.entries.forEach(f => results.push(f.serialize()));
+        this.entries.forEach(f => results.push(f.form.serialize(formData)));
         if (results.length == 0 && this.options.allowEmpty === false) {
             throw new SerializeError("Array is not allowed to be empty.");
         }
-        return results;
+        let childChanged = results.reduce((a, b) => a || b.changed, false);
+        return {
+            changed: childChanged || this.changed,
+            elements: results
+        };
     }
     buildJsonForm() {
-        let arrayEntries = [];
-        this.entries.forEach((form, index) => {
-            arrayEntries.push(this.makeInput({
-                children: [form.buildJsonForm()],
-                labelText: form.getOptions().options.label,
-                idPrefix: 'ARRAY_ELEM_' + index,
-                onCollapse: () => { },
-                onDelete: () => {
-                    this.entries.splice(index, 1);
-                    this.reRender();
+        let arrayEntries = this.entries.map((f, i) => {
+            let collapseIcon = f.collapsed ? 'chevronRight' : 'chevronDown';
+            let label = f.form.getOptions().options.label;
+            let labelStr;
+            if (typeof label == 'function') {
+                labelStr = label(f.form, this.data[i], i.toString());
+            }
+            else {
+                labelStr = label;
+            }
+            let header = {
+                type: 'group',
+                container: {
+                    style: `;
+                        padding: 0.5rem;
+                        display: flex;
+                        flex-direction: row;
+                        gap: 0.5rem;
+                        border: 1px solid black;
+                        background-color: lightgray;
+                        align-items: center;
+                    `,
                 },
-                onMove: (dir) => {
-                    if (dir == 'up') {
-                        if (index == 0)
-                            return;
-                        let tmp = this.entries[index - 1];
-                        this.entries[index - 1] = this.entries[index];
-                        this.entries[index] = tmp;
-                        this.reRender();
-                    }
-                    else {
-                        if (index == this.entries.length - 1)
-                            return;
-                        let tmp = this.entries[index + 1];
-                        this.entries[index + 1] = this.entries[index];
-                        this.entries[index] = tmp;
-                        this.reRender();
-                    }
-                }
-            }));
-        });
-        return this.makeInput({
-            children: [
-                // allArrayElems are Input instances, so we need to map those to JSON forms
-                ...arrayEntries,
-                {
-                    type: "button",
-                    id: this.id + "_ADD_BTN",
-                    control: {
-                        layout: "icon",
-                        html: "<span class=\"\" style=\"\"></span>",
-                        icon: "svgIcon=#alpha-icon-addCircleBorder:icon,24",
-                        onClick: () => {
-                            let newItem = Form.makeFormFromOption(this.obj, this.options.itemTemplate, this, this.formName);
-                            newItem.initializeWithData(this.options.defaultValue);
-                            this.entries.push(newItem);
-                            this.reRender();
+                items: [
+                    {
+                        type: 'button',
+                        control: {
+                            html: A5.u.icon.html(`svgIcon=#alpha-icon-${collapseIcon}:icon,24`),
+                            onClick: () => {
+                                f.collapsed = !f.collapsed;
+                                this.dynForm.refresh();
+                            },
                         },
                     },
-                    container: {
-                        style: ";",
-                        className: ""
+                    {
+                        type: 'html',
+                        control: {
+                            html: `
+                                <p 
+                                    class="dynamic-form-array-item-label"
+                                    style="margin: 0px;"
+                                >
+                                    ${labelStr}
+                                </p>
+                            `
+                        },
+                        container: {
+                            style: '; height: fit-content;'
+                        }
                     },
-                    layout: "{content}"
+                    {
+                        type: 'button',
+                        control: {
+                            html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                            onClick: () => {
+                                this.entries = [...this.entries.slice(0, i), ...this.entries.slice(i + 1, this.entries.length)];
+                                this.data = [...this.data.slice(0, i), ...this.data.slice(i + 1, this.data.length)];
+                                this.dynForm.refresh();
+                            },
+                        },
+                    },
+                    {
+                        type: 'button',
+                        control: {
+                            html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
+                            onClick: () => {
+                                if (i > 0 && this.entries.length > 1) {
+                                    let tmp = this.entries[i - 1];
+                                    this.entries[i - 1] = this.entries[i];
+                                    this.entries[i] = tmp;
+                                    tmp = this.data[i - 1];
+                                    this.data[i - 1] = this.data[i];
+                                    this.data[i] = tmp;
+                                    this.dynForm.refresh();
+                                }
+                            },
+                        },
+                    },
+                    {
+                        type: 'button',
+                        control: {
+                            html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
+                            onClick: () => {
+                                if (i < this.entries.length - 1 && this.entries.length > 1) {
+                                    let tmp = this.entries[i + 1];
+                                    this.entries[i + 1] = this.entries[i];
+                                    this.entries[i] = tmp;
+                                    tmp = this.data[i + 1];
+                                    this.data[i + 1] = this.data[i];
+                                    this.data[i] = tmp;
+                                    this.dynForm.refresh();
+                                }
+                            },
+                        },
+                    }
+                ]
+            };
+            let group = {
+                type: 'group',
+                items: [header],
+                container: {
+                    className: 'dynamic-form-array-item-group'
                 }
-            ],
-            labelText: this.options.label,
-            idPrefix: ''
+            };
+            if (!f.collapsed) {
+                group.items.push({
+                    type: 'group',
+                    items: [f.form.buildJsonForm()],
+                    container: {
+                        style: `;
+                            border: 1px solid black;
+                            padding: 0.5rem; 
+                        `
+                    }
+                });
+            }
+            return group;
         });
+        let addNewItem = {
+            type: 'group',
+            items: [{
+                    type: 'button',
+                    control: {
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                        onClick: () => {
+                            let newForm = constructForm(this.options.itemTemplate, this, this.dynForm);
+                            Object.assign(this.dynForm.formBox.data, newForm.getPopulateData(this.options.defaultValue));
+                            this.entries.push({ collapsed: false, form: newForm });
+                            this.data.push(this.options.defaultValue);
+                            this.dynForm.refresh();
+                        }
+                    }
+                }],
+            container: {
+                className: 'dynamic-form-array-add-item-group'
+            }
+        };
+        arrayEntries.push(addNewItem);
+        return {
+            type: 'group',
+            container: {
+                style: `
+                    display: flex; 
+                    flex-direction: column;
+                    padding: 0.5rem;
+                    gap: 0.5rem;
+                `
+            },
+            items: arrayEntries
+        };
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
+        this.data = data;
+        this.changed = false;
         if (!(data instanceof Array))
             throw new PopulateError("Data is not an array.");
         this.entries = [];
         let d = {};
         for (const elem of data) {
-            let newForm = Form.makeFormFromOption(this.obj, this.options.itemTemplate, this, this.formName);
-            this.entries.push(newForm);
-            Object.assign(d, newForm.initializeWithData(elem));
+            let newForm = constructForm(this.options.itemTemplate, this, this.dynForm);
+            this.entries.push({ form: newForm, collapsed: true });
+            Object.assign(d, newForm.getPopulateData(elem));
         }
         return d;
     }
 }
-class DropdownForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class DropdownForm {
+    constructor(options, parent) {
         this.options = options;
+        this.id = formBuilder_uuidv4();
+        this.changed = false;
+        this.parent = parent;
     }
     getOptions() {
         return { type: 'dropdown', options: this.options };
     }
-    serialize() {
-        let form = this.obj.getControl(this.formName);
-        let val = form.data[this.id];
+    serialize(formData) {
+        let val = formData[this.id];
         if (val === undefined && this.options.default !== undefined) {
-            return this.options.default;
+            return {
+                changed: this.changed,
+                raw: this.options.default
+            };
         }
         else if (val === undefined) {
             throw new SerializeError("No value was supplied and field does not specify a default value.");
         }
-        return val;
+        return {
+            changed: this.changed,
+            raw: val
+        };
     }
     buildJsonForm() {
         let dropdown = {
@@ -7305,13 +7188,10 @@ class DropdownForm extends Form {
                 style: "; flex: 1 1;",
             }
         };
-        return this.makeInput({
-            children: [dropdown],
-            labelText: this.options.label,
-            idPrefix: ''
-        });
+        return dropdown;
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
+        this.changed = false;
         if (data === undefined && this.options.default === undefined)
             throw new PopulateError("Data is not defined and no default is specified.");
         if (typeof data != 'string')
@@ -7321,83 +7201,113 @@ class DropdownForm extends Form {
         return d;
     }
 }
-class MultiForm extends Form {
-    constructor(obj, options, formName) {
+class MultiForm {
+    constructor(options, dynForm, parent) {
         let keys = Object.keys(options.definitions);
         if (keys.length == 0)
             throw new Error("MultiForm must have at least one option.");
-        super(obj, formName);
-        this.dropdownId = formBuilder_uuidv4();
         this.options = options;
         this.elements = {};
         this.currDropdownItem = '';
+        this.dynForm = dynForm;
+        this.parent = parent;
+        this.changed = false;
+        this.id = formBuilder_uuidv4();
+        let dropdownItems = Object.keys(this.options.definitions).map(k => {
+            return {
+                value: k,
+                text: k
+            };
+        });
+        this.dropDown = new DropdownForm({
+            dropdownItems: dropdownItems,
+            default: dropdownItems[0].value,
+            onSelect: (newVal, _) => {
+                console.log('todo');
+            },
+            label: '',
+        }, this);
     }
     getOptions() {
         return { type: 'multi', options: this.options };
     }
-    serialize() {
+    serialize(formData) {
         let e = this.elements[this.currDropdownItem];
-        if (e !== undefined)
-            return e.serialize();
-        return {};
+        let d;
+        if (e !== undefined) {
+            d = e.serialize(formData);
+        }
+        else {
+            d = this.elements[Object.keys(this.elements)[0]].serialize(formData);
+        }
+        if (this.changed)
+            d.changed = true;
+        return d;
     }
     buildJsonForm() {
+        if (this.elements[this.currDropdownItem] == undefined) {
+            let f = constructForm(this.options.definitions[this.currDropdownItem].definition, this, this.dynForm);
+            let newData = f.getPopulateData(this.options.definitions[this.currDropdownItem].defaultValue);
+            Object.assign(this.dynForm.formBox.data, newData);
+            this.elements[this.currDropdownItem] = f;
+        }
+        this.dynForm.formBox.data[this.id] = this.currDropdownItem;
         let element = this.elements[this.currDropdownItem];
-        if (element === undefined)
-            return {};
-        let textToVal = Object.keys(this.options.definitions).map(k => { return { text: k, value: k }; });
-        let init = textToVal[0].value;
         let dropdown = {
-            type: "picker",
-            id: this.dropdownId,
+            type: 'picker',
+            id: this.id,
             data: {
-                from: this.dropdownId,
-                ensure: true,
-                blank: init,
+                from: this.id,
+                ensure: true
             },
-            label: {
-                text: "Editor Types",
-            },
-            layout: "label-above",
             control: {
                 placeholder: "",
-                width: "fit-content;",
                 data: {
-                    src: textToVal,
-                    map: ["value", "text"],
+                    src: Object.keys(this.options.definitions).map(x => {
+                        return {
+                            value: x,
+                            text: x
+                        };
+                    }),
+                    map: ['value', 'text'],
                 },
-                onChange: (e) => {
-                    let newKey = e.item.data;
-                    if (newKey && newKey in this.options.definitions) {
-                        this.currDropdownItem = newKey;
-                        // We need to instantiate the item
-                        if (!(newKey in this.elements)) {
-                            let newElem = Form.makeFormFromOption(this.obj, this.options.definitions[newKey].definition, this, this.formName);
-                            newElem.initializeWithData(this.options.definitions[newKey].defaultValue);
-                            this.elements[newKey] = newElem;
-                        }
-                        this.reRender();
-                    }
-                },
-            },
-            container: {
-                style: "min-width: 100px; background-color: #eaeaea; margin-left: auto;",
+                onChange: (change) => {
+                    this.currDropdownItem = change.item.data;
+                    this.dynForm.refresh();
+                }
             }
         };
-        return this.makeInput({
-            children: [element.buildJsonForm()],
-            afterBarItems: [dropdown],
-            idPrefix: ''
-        });
+        let header = {
+            type: 'group',
+            items: [dropdown],
+            container: {
+                style: 'background-color: lightgray; padding: 0.5rem; border: 1px solid black;'
+            }
+        };
+        let body = {
+            type: 'group',
+            items: [element.buildJsonForm()],
+            container: {
+                style: '; padding: .5rem; border: 1px solid black; '
+            }
+        };
+        return {
+            type: 'group',
+            items: [header, body],
+            container: {
+                className: 'dynamic-form-multiform-group'
+            }
+        };
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
+        this.changed = false;
         let errs = {};
         let correctKey = undefined;
         this.elements = {};
         for (const key in this.options.definitions) {
-            let elem = Form.makeFormFromOption(this.obj, this.options.definitions[key].definition, this, this.formName);
+            let elem = constructForm(this.options.definitions[key].definition, this, this.dynForm);
             try {
-                elem.initializeWithData(data);
+                elem.getPopulateData(data);
                 correctKey = key;
                 break;
             }
@@ -7412,133 +7322,42 @@ class MultiForm extends Form {
         }
         if (correctKey) {
             this.currDropdownItem = correctKey;
-            let newElem = Form.makeFormFromOption(this.obj, this.options.definitions[correctKey].definition, this, this.formName);
-            this.elements[correctKey] = newElem;
+            let elem = constructForm(this.options.definitions[correctKey].definition, this, this.dynForm);
+            this.elements[correctKey] = elem;
             let d = {};
-            d[this.dropdownId] = correctKey;
-            Object.assign(d, newElem.initializeWithData(data));
+            d[this.dropDown.id] = correctKey;
+            Object.assign(d, elem.getPopulateData(data));
             return d;
         }
         throw new PopulateError(errs);
     }
 }
-class ConstForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
+class ConstForm {
+    constructor(options, parent) {
         this.options = options;
+        this.parent = parent;
     }
-    serialize() {
-        return this.options.value;
+    serialize(formData) {
+        return { changed: false, raw: this.options.value };
     }
     buildJsonForm() {
         return {};
     }
-    initializeWithData(data) {
+    getPopulateData(data) {
         return {};
     }
     getOptions() {
         return { type: 'const', options: this.options };
     }
 }
-class TabForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
-        this.currTabIndex = 0;
+class ButtonForm {
+    constructor(options, parent) {
         this.options = options;
-        this.tabStack = [];
-    }
-    addTab(title, content) {
-        let index = this.tabStack[this.tabStack.length - 1].index + 1;
-        this.currTabIndex = index;
-        this.tabStack.push({ title: title, tab: content, index: index });
-        this.reRender();
-    }
-    serialize() {
-        return this.tabStack[0].tab.serialize();
-    }
-    buildJsonForm() {
-        if (this.obj.stateInfo.callbacks === undefined) {
-            this.obj.stateInfo.callbacks = {};
-        }
-        this.obj.stateInfo.callbacks.onClick = (id) => {
-            for (const elem of this.tabStack) {
-                if ('TAB_PANE_' + elem.tab.getId() == id) {
-                    // Drop up to (but not including) the specified index
-                    while (true) {
-                        let last = this.tabStack.pop();
-                        if (last === undefined)
-                            return;
-                        // We should drop
-                        if (last.index > elem.index)
-                            continue;
-                        // We shouldn't drop; put it back and break the loop 
-                        this.tabStack.push(last);
-                        break;
-                    }
-                    this.currTabIndex = elem.index;
-                    this.reRender();
-                    return;
-                }
-            }
-        };
-        let children = [];
-        this.tabStack.forEach(item => {
-            let id = 'TAB_PANE_' + item.tab.getId();
-            children.push({
-                type: 'pane',
-                id: id,
-                data: { from: '' },
-                container: {
-                    // No onclick handler for tabs, so we need to embed one 
-                    // in the HTML
-                    title: `
-                        <div onclick="${this.obj.dialogId + '_DlgObj'}.stateInfo.callbacks.onClick('${id}')">
-                            <p>${item.title}</p>
-                        </div>
-                    `,
-                    style: "display: flex; flex-direction: row; justify-content: center; align-items: center;",
-                },
-                items: [item.tab.buildJsonForm()]
-            });
-        });
-        return {
-            type: 'tab',
-            id: 'TAB_' + this.id,
-            container: {
-                theme: this.obj.styleName,
-                tabband: {
-                    tab: {
-                        initial: 'TAB_PANE_' + this.tabStack[this.currTabIndex].tab.getId()
-                    }
-                }
-            },
-            items: children
-        };
-    }
-    initializeWithData(data) {
-        this.tabStack = [{
-                title: this.options.defaultTab,
-                tab: Form.makeFormFromOption(this.obj, this.options.defaultContent, this, this.formName),
-                index: 0
-            }];
-        return this.tabStack[0].tab.initializeWithData(data);
-    }
-    getOptions() {
-        return { type: 'tab', options: this.options };
-    }
-}
-class ButtonForm extends Form {
-    constructor(obj, options, formName) {
-        super(obj, formName);
-        this.options = options;
-    }
-    serialize() {
-        return this.options.onSerialize();
+        this.parent = parent;
     }
     buildJsonForm() {
         return {
             type: 'button',
-            id: this.id,
             control: {
                 html: `<span class="" style="">${this.options.text}</span>`,
                 onClick: this.options.action,
@@ -7550,7 +7369,10 @@ class ButtonForm extends Form {
             layout: "{content}"
         };
     }
-    initializeWithData(data) {
+    serialize(jsonFormData) {
+        return { changed: false, raw: this.options.onSerialize() };
+    }
+    getPopulateData(data) {
         return {};
     }
     getOptions() {
@@ -7558,6 +7380,188 @@ class ButtonForm extends Form {
             type: 'button',
             options: this.options
         };
+    }
+}
+// How is state handled?
+// Form element can change its own state, then request a redraw
+// How is data harvesting handled?
+// Components gather their own data, and indicate changes
+class DynamicForm {
+    constructor(obj, containerId, formDefn, other) {
+        this.firstTabLabel = '';
+        this.guides = {
+            "layouts": {
+                "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
+                "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
+                        return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
+                    else
+                        return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                            e = e[0].children[0].children[0];
+                            if (e && e.getAttribute('float-state') == '1') {
+                                var l = dObj.item.def.sys.item.layout.settings;
+                                e.setAttribute('float-state', '2');
+                                if (dObj.item.isNull) {
+                                    if (l.style != '')
+                                        A5.u.element.style(e, '+=' + l.style);
+                                    A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
+                                }
+                            }
+                        } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                            e = e[0].children[0].children[0];
+                            if (e && e.getAttribute('float-state') == '2') {
+                                var l = dObj.item.def.sys.item.layout.settings;
+                                e.setAttribute('float-state', '1');
+                                if (dObj.item.isNull) {
+                                    if (l.style != '')
+                                        A5.u.element.style(e, '-=' + l.style);
+                                    A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
+                                }
+                            }
+                        } } } },
+            }
+        };
+        this.otherItems = other;
+        this.obj = obj;
+        this.containerId = containerId;
+        this.form = constructForm(formDefn, null, this);
+        this.formBox = new A5.FormBox(containerId, [], null, {
+            theme: 'Alpha',
+            item: {
+                label: {
+                    style: ''
+                },
+                description: {
+                    style: ''
+                },
+            },
+            onChange: () => { }
+        });
+        this.obj._functions = {
+            dynamicForm: {},
+        };
+        if (typeof formDefn.options.label == 'string') {
+            this.firstTabLabel = formDefn.options.label;
+        }
+        this.tabs = [{
+                title: this.firstTabLabel,
+                form: this.form
+            }];
+        let boxHtmlElem = $(containerId);
+        boxHtmlElem.childNodes.forEach(n => n.style.width = '100%');
+    }
+    launchNewTab(name, form) {
+        this.tabs.push({
+            title: name,
+            form: form
+        });
+        this.refresh();
+        return this.tabs.length - 1;
+    }
+    setActiveTab(tab) {
+        if (tab <= 0)
+            tab = 0;
+        while (tab < this.tabs.length - 1) {
+            this.tabs.pop();
+        }
+        this.refresh();
+    }
+    populate(d) {
+        let labelF = this.form.getOptions().options.label;
+        if (typeof labelF == 'function') {
+            this.firstTabLabel = labelF(this.form, d, '');
+        }
+        this.formBox.data = this.form.getPopulateData(d);
+        this.refresh();
+    }
+    makeTabs() {
+        let allTabs = [];
+        for (let i = 0; i < this.tabs.length; i++) {
+            let activeTab = i == this.tabs.length - 1;
+            let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
+            if (activeTab) {
+                style += 'color: black; text-decoration: underline;';
+            }
+            else {
+                style += 'color: #4d4d4d;';
+            }
+            let fnId = 'Tab' + i + "Click";
+            this.obj._functions.dynamicForm[fnId] = () => {
+                this.setActiveTab(i);
+            };
+            let tab = {
+                type: 'html',
+                control: {
+                    html: `
+                        <div class="dynamic-form-top-tab" style="display: flex; gap: 0.5rem; align-items: center;">
+                            <p style="${style}" onclick="${this.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">${this.tabs[i].title}</p>
+                    `
+                }
+            };
+            if (i < this.tabs.length - 1) {
+                tab.control.html += A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24');
+            }
+            tab.control.html += "</div>";
+            allTabs.push(tab);
+        }
+        let containerStyle = `;
+                display: flex;
+                gap: 0.5rem;
+                flex-direction: row;
+                justify-content: center;
+                background-color: lightgray;
+                padding: .3rem;
+            `;
+        return {
+            type: 'group',
+            items: allTabs,
+            container: {
+                style: containerStyle
+            }
+        };
+    }
+    setDirty(dirty) {
+        this.formBox.isDirtyImmediate = true;
+    }
+    refresh() {
+        var _a;
+        // Only want to display the last (active) tab
+        let defn = this.tabs[this.tabs.length - 1].form.buildJsonForm();
+        let tabGroup = {
+            type: 'group',
+            items: [
+                this.makeTabs(),
+                defn
+            ],
+            container: {
+                style: `;
+                    display: flex;
+                    flex-direction: column;
+                    outline: 1px solid black;
+                `
+            }
+        };
+        this.formBox.load({ form: { items: [tabGroup, ...((_a = this.otherItems) !== null && _a !== void 0 ? _a : [])] }, guides: this.guides }, this.formBox.data);
+    }
+    serializeWithChanges() {
+        return this.form.serialize(this.formBox.data);
+    }
+    serialize() {
+        let withChanges = this.form.serialize(this.formBox.data);
+        let getRaw = (c) => {
+            if ('raw' in c)
+                return c.raw;
+            else if ('keys' in c) {
+                let out = {};
+                for (const key in c.keys) {
+                    out[key] = getRaw(c.keys[key]);
+                }
+                return out;
+            }
+            else {
+                return c.elements.map(x => getRaw(x));
+            }
+        };
+        return getRaw(withChanges);
     }
 }
 
@@ -7618,6 +7622,7 @@ const DEFAULT_DATE_FMT = 'MM/dd/yyyy';
 const DEFAULT_DATETIME_FMT = "MM/dd/yyyy hh:mm:ss";
 const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
+const DETAIL_FORM_CONTAINER = 'EDITOR_CONTAINER';
 class ValidationError extends Error {
     constructor(message, errors) {
         let finalMsg = `<h4>${message}</h4>`;
@@ -8853,167 +8858,38 @@ class DynamicList {
                 if (this.listBox._updatingListFromUXControls)
                     return false;
                 this.listBox._updatingListFromUXControls = true;
-                let d = (_b = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.serialize()) !== null && _b !== void 0 ? _b : {};
+                let changes = (_b = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.serializeWithChanges()) !== null && _b !== void 0 ? _b : { changed: false, raw: null };
+                let d = {};
+                if ('keys' in changes) {
+                    for (const key in changes.keys) {
+                        let item = changes.keys[key];
+                        if ('raw' in item && item.changed) {
+                            d[key] = item.raw;
+                        }
+                        else if ('keys' in item && item.changed) {
+                            d[key] = item.keys;
+                        }
+                        else if ('elements' in item && item.changed) {
+                            d[key] = item.elements;
+                        }
+                    }
+                }
                 let d2 = {};
                 for (let n in d) {
                     if (n.indexOf("*") != 0) {
                         d2[n] = d[n];
                     }
                 }
-                let r = this.listBox.selection[0];
-                if (typeof r != 'undefined') {
-                    this.listBox.updateTableRow(r, d2);
+                let selected = this.listBox.selection;
+                selected.push(...this.listBox._data.filter(x => x.__selected).map(x => x['*key']));
+                if (selected.length > 0) {
+                    selected.forEach(s => this.listBox.updateTableRow(s, d2));
                 }
                 else {
                     this.listBox.addTableRow(d2, {
                         setFocusToTargetRow: true
                     });
                 }
-                var arrState = this.listBox.__captureDetailViewControlsDirtyState();
-                var dirtyControls = [];
-                for (var i = 0; i < arrState.length; i++) {
-                    if (arrState[i].isDirty)
-                        dirtyControls.push(arrState[i].field);
-                }
-                var _dlgObj = this.obj;
-                var arr = this.listBox._getControlsInDv();
-                for (var i = 0; i < arr.length; i++) {
-                    _dlgObj.clientSideValidateField(arr[i], 1, null);
-                }
-                var flagCSE = this.listBox._hasClientSideError();
-                if (flagCSE) {
-                    _dlgObj._list_executeEvent(this.listBox.listVariableName, 'detailView.hasClientSideValidationErrors', {});
-                    var msg = this.listBox.customization.dv.clientSideErrorWarning;
-                    if (typeof msg != 'undefined' && msg != '')
-                        this.listBox._showGlobalError(msg);
-                    this.listBox._updatingListFromUXControls = false;
-                    return false;
-                }
-                else {
-                    this.listBox._clearGlobalError();
-                }
-                var _route = this.listBox._getRoute();
-                var _dlgObj = this.obj;
-                var flagGetLocationData = this.listBox._submitLocationInfo;
-                if (_dlgObj._embeddedMode || _dlgObj._livePreviewInBuilder)
-                    flagGetLocationData = false;
-                var that = this.listBox;
-                if (flagGetLocationData) {
-                    var _locationHighAccuracy = _dlgObj.locationHighAccuracy;
-                    var _locationTimeout = _dlgObj.locationTimeout;
-                    var _locationMaximumAge = _dlgObj.locationMaximumAge;
-                    var classInst = this.listBox;
-                    navigator.geolocation.getCurrentPosition(function (pos) {
-                        if (typeof _dlgObj._location == 'undefined')
-                            _dlgObj._location = {};
-                        _dlgObj._location.lat = pos.coords.latitude;
-                        _dlgObj._location.lng = pos.coords.longitude;
-                        classInst._updateListFromUXControlsLow();
-                        classInst.__modifyOldData(arrState);
-                        if (that.synchronizeImmediately) {
-                            var flagOnLine = _dlgObj._getOnlineStatus();
-                            if (flagOnLine) {
-                                _dlgObj.saveListEdits(that.listVariableName);
-                            }
-                            else { }
-                        }
-                        var dirtyClass = '';
-                        if (typeof that.dirtyControlClassName != 'undefined')
-                            dirtyClass = that.dirtyControlClassName;
-                        if (dirtyClass != '')
-                            that.populateUXControls();
-                        that._setRoute(_route);
-                        if (!that._restoringList)
-                            _dlgObj.persistVariablesToLocalStorage();
-                        _dlgObj.refreshClientSideComputations();
-                        return true;
-                    }, function (error) {
-                        delete _dlgObj._location;
-                        classInst._updateListFromUXControlsLow();
-                        classInst.__modifyOldData(arrState);
-                        if (that.synchronizeImmediately) {
-                            var flagOnLine = _dlgObj._getOnlineStatus();
-                            if (flagOnLine) {
-                                _dlgObj.saveListEdits(that.listVariableName);
-                            }
-                            else { }
-                        }
-                        var dirtyClass = '';
-                        if (typeof that.dirtyControlClassName != 'undefined')
-                            dirtyClass = that.dirtyControlClassName;
-                        if (dirtyClass != '')
-                            that.populateUXControls();
-                        that._setRoute(_route);
-                        if (!that._restoringList)
-                            _dlgObj.persistVariablesToLocalStorage();
-                        _dlgObj.refreshClientSideComputations();
-                        return true;
-                    }, {
-                        enableHighAccuracy: _locationHighAccuracy,
-                        timeout: _locationTimeout,
-                        maximumAge: _locationMaximumAge
-                    });
-                    this.listBox._updatingListFromUXControls = false;
-                    return true;
-                }
-                else {
-                    this.listBox.__modifyOldData(arrState);
-                    if (!(this.listBox._JSONForm || this.listBox._propertyGrid)) {
-                        this.listBox._updateListFromUXControlsLow();
-                        this.listBox.__setJSONFormsInFieldMapClean();
-                    }
-                }
-                this.listBox._saveTFEdits();
-                this.listBox._setRoute(_route);
-                if (!this.listBox._restoringList)
-                    _dlgObj.persistVariablesToLocalStorage();
-                _dlgObj.refreshClientSideComputations();
-                if (this.listBox.synchronizeImmediately) {
-                    var flagOnLine = _dlgObj._getOnlineStatus();
-                    if (flagOnLine) {
-                        this.listBox.__modifyOldData(arrState);
-                        _dlgObj.saveListEdits(this.listBox.listVariableName);
-                    }
-                    else {
-                        this.listBox.__modifyOldData(arrState);
-                    }
-                }
-                var dirtyClass = '';
-                if (typeof this.listBox.dirtyControlClassName != 'undefined')
-                    dirtyClass = this.listBox.dirtyControlClassName;
-                if (dirtyClass != '')
-                    this.listBox.populateUXControls();
-                if (this.listBox.showHideDetailView)
-                    this.listBox.__toggleDetailView('hide');
-                this.listBox.__modifyOldData(arrState);
-                if (this.listBox.__pkisguid && this.listBox.__assignPKGuidClientSide) {
-                    let r = this.listBox.selection[0];
-                    if (typeof r != 'undefined') {
-                        if (typeof this.listBox._data[r][this.listBox.__pkfieldname] != 'undefined' && this.listBox._data[r][this.listBox.__pkfieldname] == '') {
-                            var flagNewRow = this.listBox._data[r]._isNewRow;
-                            if (flagNewRow) {
-                                var obj2 = {};
-                                obj2[this.listBox.__pkfieldname] = A5.UUID();
-                                if (!this.listBox.__stripcurlyfromguid) {
-                                    obj2[this.listBox.__pkfieldname] = '{' + obj2[this.listBox.__pkfieldname] + '}';
-                                }
-                                this.listBox.updateTableRow(r, obj2);
-                            }
-                        }
-                    }
-                }
-                if (this.listBox._detailView.method == 'JSONForm') {
-                    var _name = this.listBox._JSONFormName;
-                    var jObj = _dlgObj.getControl(_name);
-                    if (jObj) {
-                        jObj.state.isDirtyImmediate = false;
-                        jObj.refresh();
-                    }
-                }
-                _dlgObj._list_executeEvent(this.listBox.listVariableName, 'detailView.afterDetailViewSave', {
-                    dirtyFields: dirtyControls.toString()
-                });
-                this.listBox.__indexDBAfterDetailViewSaveImages(dirtyControls.toString());
                 this.listBox._updatingListFromUXControls = false;
             }
         };
@@ -9223,85 +9099,41 @@ class DynamicList {
             onDetailViewPopulate: '',
             onListUpdate: '',
         };
-        let onDvPopTemplate = (format) => {
-            return `
-				if(this._value == '') return '';
-				if(this._value == null) return '';
-				
-				let formatIn = ${mapping.serverDateFormat};
-				let formatOut = format;
-				let _d = A5.stringToDate(this._value,formatIn);
-				let _ds = _d.toFormat(formatOut);
-				
-				return _ds;
-				
-			`;
-        };
-        let onListUpdateTemplate = (format) => {
-            return `
-				if(this._value == '') 
-					return '';
-					
-				if(this._value == null) 
-					return '';
-					
-				let formatIn = ${mapping.serverDateFormat};
-				let formatOut = format;
-				let _d = A5.stringToDate(this._value,formatIn);
-				let _ds = _d.toFormat(formatOut);
-				
-				return _ds;
-			`;
-        };
-        // if (mapping.editType === 'time') {
-        //     defn.onDetailViewPopulate = onDvPopTemplate(mapping.serverDateFormat ?? DEFAULT_DATETIME_FMT);
-        //     defn.onListUpdate = onListUpdateTemplate(mapping.serverDateFormat ?? DEFAULT_DATETIME_FMT);
-        // } else if (mapping.editType === 'datetime') {
-        //     defn.onDetailViewPopulate = onDvPopTemplate(mapping.serverDateFormat ?? DEFAULT_DATETIME_FMT);
-        //     defn.onListUpdate = onListUpdateTemplate(mapping.serverDateFormat ?? DEFAULT_DATETIME_FMT);
-        // }
         return defn;
     }
     buildDetailViewForm(rowNum) {
         var _a, _b, _c, _e;
         let _d = {};
-        if (rowNum != undefined) {
+        let allSelected = this.listBox._data.filter(d => d.__selected);
+        if (allSelected.length > 1) {
+            // For each mapping, check that every entry in selected is the same
+            // If it is, leave it alone
+            // Otherwise, replace with empty string
+            this.config.mappings.forEach(mapping => {
+                if (!mapping.inDetailView)
+                    return;
+                let allSame = true;
+                for (let i = 1; i < allSelected.length; i++) {
+                    if (allSelected[i][mapping.columnName] !== allSelected[i - 1][mapping.columnName]) {
+                        allSame = false;
+                        break;
+                    }
+                }
+                if (allSame) {
+                    _d[mapping.columnName] = allSelected[0][mapping.columnName];
+                }
+                else {
+                    _d[mapping.columnName] = this.makeObviousDefault(mapping);
+                }
+            });
+        }
+        else if (rowNum != undefined) {
             _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
         }
         else {
             this.config.mappings.forEach(mapping => {
-                var _a, _b;
                 if (mapping.inDetailView) {
-                    let defaultVal;
-                    switch ((_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text') {
-                        case "number":
-                            defaultVal = 0;
-                            break;
-                        case "bool":
-                            defaultVal = false;
-                            break;
-                        case "json":
-                            if (mapping.subMappings) {
-                                if ('arrayItem' in mapping.subMappings) {
-                                    defaultVal = '[]';
-                                }
-                                else {
-                                    defaultVal = JSON.stringify(this.makeObviousDefault(mapping.subMappings));
-                                }
-                            }
-                            else {
-                                defaultVal = '';
-                            }
-                            break;
-                        case "time":
-                        case "datetime":
-                            defaultVal = new Date().toFormat((_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : DEFAULT_DATETIME_FMT);
-                            break;
-                        case "text":
-                        case "dropdown":
-                            defaultVal = '';
-                    }
-                    _d[mapping.columnName] = defaultVal;
+                    _d[mapping.columnName] = this.makeObviousDefault(mapping);
                 }
             });
         }
@@ -9402,17 +9234,81 @@ class DynamicList {
         inputs.mapSerialized = (d) => {
             for (const mapping of this.config.mappings) {
                 if (mapping.editType == 'json') {
-                    d[mapping.columnName] = JSON.stringify(d[mapping.columnName]);
+                    let item = d[mapping.columnName];
+                    if ('raw' in item) {
+                        item.raw = JSON.stringify(item.raw);
+                    }
                 }
             }
             return d;
         };
-        let bottomButtons = makeDetailButtons(this).getJSON();
-        let configForm = Form.create(this.obj, { type: 'object', options: inputs }, DETAIL_FORM_NAME, [bottomButtons]);
-        this.detailView = configForm;
-        let populateData = configForm.initializeWithData(d);
-        Form.render(configForm);
-        this.obj.setValue(DETAIL_FORM_NAME, JSON.stringify(populateData));
+        let bottomButtons = this.makeDetailContextButtons();
+        let detailViewForm = new DynamicForm(this.obj, this.obj.getPointer(DETAIL_FORM_CONTAINER).id, { type: 'object', options: inputs }, [bottomButtons]);
+        this.setFormDetailView(detailViewForm);
+        this.detailView = detailViewForm;
+        detailViewForm.populate(d);
+    }
+    makeDetailContextButtons() {
+        let divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
+        return {
+            type: 'group',
+            items: [
+                {
+                    disabled: () => { var _a, _b; return !((_b = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) !== null && _b !== void 0 ? _b : false); },
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
+                            <p>Save</p>
+                        </div>
+                        `,
+                        onClick: () => {
+                            var _a, _b;
+                            if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
+                                (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.formBox._listDetailView('save');
+                            }
+                            if (this.detailView) {
+                                this.detailView.formBox.isDirtyImmediate = false;
+                            }
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
+                            <p>Delete</p>
+                        </div>
+                        `,
+                        onClick: () => {
+                            var _a;
+                            (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox._listDetailView('deleterecord');
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
+                            <p>New Record</p>
+                        </div>
+                        `,
+                        onClick: () => {
+                            var _a;
+                            (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox._listDetailView('newrecord');
+                        }
+                    }
+                },
+            ],
+            container: {
+                style: '; display: flex; flex-direction: row; gap: 1rem;'
+            }
+        };
     }
     buildSubDetailView(scheme, label, fullPath, data, onSave) {
         var _a;
@@ -9505,23 +9401,50 @@ class DynamicList {
         };
         this.openSublistFromNested(name, label, populateWith, onSave);
     }
-    makeObviousDefault(scheme) {
-        if ('editType' in scheme) {
-            switch (scheme.editType) {
-                case "string": return '';
-                case "number": return 0;
-                case "boolean": return false;
+    makeObviousDefault(mapping) {
+        var _a, _b;
+        let makeDefaultForSubfield = (scheme) => {
+            if ('editType' in scheme) {
+                switch (scheme.editType) {
+                    case "string": return '';
+                    case "number": return 0;
+                    case "boolean": return false;
+                }
             }
-        }
-        else if ('keys' in scheme) {
-            let defaults = {};
-            for (const key in scheme.keys) {
-                defaults[key] = this.makeObviousDefault(scheme.keys[key]);
+            else if ('keys' in scheme) {
+                let defaults = {};
+                for (const key in scheme.keys) {
+                    defaults[key] = makeDefaultForSubfield(scheme.keys[key]);
+                }
+                return defaults;
             }
-            return defaults;
-        }
-        else {
-            return this.makeObviousDefault(scheme.arrayItem);
+            else {
+                return makeDefaultForSubfield(scheme.arrayItem);
+            }
+        };
+        switch ((_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text') {
+            case "number":
+                return 0;
+            case "bool":
+                return false;
+            case "json":
+                if (mapping.subMappings) {
+                    if ('arrayItem' in mapping.subMappings) {
+                        return '[]';
+                    }
+                    else {
+                        return JSON.stringify(makeDefaultForSubfield(mapping.subMappings));
+                    }
+                }
+                else {
+                    return '';
+                }
+            case "time":
+            case "datetime":
+                return new Date().toFormat((_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : DEFAULT_DATETIME_FMT);
+            case "text":
+            case "dropdown":
+                return '';
         }
     }
     launchNewPanel(configName, titleName, filters = []) {
@@ -9733,7 +9656,33 @@ class DynamicList {
         this.listBox._listSystemOnClickPopulateJSONForm = (rowNum) => this.buildDetailViewForm(rowNum);
         this.window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
-        setFormDetailView(this.obj, this.listBox);
+    }
+    setFormDetailView(form) {
+        this.detailView = form;
+        this.detailView.formBox._listDetailView = (mode) => {
+            if (mode == 'getListName') {
+                return LIST_NAME;
+            }
+            else if (mode == 'save') {
+                this.listBox.updateListFromUXControls();
+            }
+            else if (mode == 'reset') {
+                this.openDetailView();
+            }
+            else if (mode == 'deleterecord') {
+                this.listBox.deleteRow();
+                let formObj = this.obj.getControl(DETAIL_FORM_NAME);
+                formObj.isDirtyImmediate = true;
+                formObj.refresh();
+                this.obj.refreshClientSideComputations(true);
+            }
+            else if (mode == 'newrecord') {
+                this.listBox.newDetailViewRecord();
+            }
+            else if (mode == 'synchronize') {
+                this.saveDynamicListEdits();
+            }
+        };
     }
     buildSchemaFromRawData() {
         let deepAssign = (a, b) => {
@@ -10063,79 +10012,6 @@ class DataScopeManager {
     quantifiable(colName) {
         return false;
     }
-}
-function setFormDetailView(obj, listBox) {
-    obj.getControl(DETAIL_FORM_NAME)._listDetailView = (mode) => {
-        let listName = LIST_NAME;
-        let lObj = obj.getControl(listName);
-        if (mode == 'getListName') {
-            return listName;
-        }
-        else if (mode == 'save') {
-            if (lObj.selection[0] != 'undefined') {
-                lObj._selectedRow = lObj.selection[0];
-            }
-            lObj.updateListFromUXControls();
-        }
-        else if (mode == 'reset') {
-            if (lObj.selection[0] != 'undefined') {
-                let _d = lObj.selectionData[0];
-                let d = JSON.parse(JSON.stringify(_d));
-                delete d['*key'];
-                delete d['*renderIndex'];
-                delete d['*value'];
-                let json = JSON.stringify(d);
-                obj.setValue(DETAIL_FORM_NAME, json);
-            }
-        }
-        else if (mode == 'deleterecord') {
-            lObj.deleteRow();
-            let formObj = obj.getControl(DETAIL_FORM_NAME);
-            formObj.isDirtyImmediate = true;
-            formObj.refresh();
-            obj.refreshClientSideComputations(true);
-        }
-        else if (mode == 'newrecord') {
-            lObj.newDetailViewRecord();
-        }
-        else if (mode == 'synchronize') {
-            listBox.saveDynamicListEdits();
-        }
-    };
-}
-function makeDetailButtons(list) {
-    let btnTemplate = (new FormButton())
-        .withLayout('icon text')
-        .withBtnStyle('white-space:nowrap;');
-    btnTemplate._listName = LIST_NAME;
-    let copyTemplate = () => {
-        let y = new FormButton();
-        Object.assign(y, btnTemplate);
-        return y;
-    };
-    return (new FormGroup())
-        .withChildren([
-        copyTemplate()
-            .withHtml('Save')
-            .withIcon('svgIcon=#alpha-icon-save:icon iconButton')
-            .withCheckDisabled(function () { return this._saveButtonIsDisabled(); })
-            .withClickHandler(function () { this._listDetailView("save"); }),
-        copyTemplate()
-            .withHtml('New Record')
-            .withIcon('svgIcon=#alpha-icon-docAdd:icon iconButton')
-            .withCheckDisabled(function () { return this._newRecordButtonIsDisabled(); })
-            .withClickHandler(function () { list.newDetailViewRecord(); }),
-        copyTemplate()
-            .withHtml('Delete Record')
-            .withIcon('svgIcon=#alpha-icon-removeCircle:icon iconButton')
-            .withCheckDisabled(function () { return this._deleteRecordButtonIsDisabled(); })
-            .withClickHandler(function () { this._listDetailView('deleterecord'); }),
-        copyTemplate()
-            .withHtml('Reset')
-            .withIcon('svgIcon=#alpha-icon-undo:icon iconButton')
-            .withCheckDisabled(function () { return this._resetRecordButtonIsDisabled(); })
-            .withClickHandler(function () { this._listDetailView('reset'); }),
-    ]);
 }
 class DynamicListSearch {
     constructor(dynamicList, obj, window) {
@@ -10890,6 +10766,7 @@ class FormButton {
 
 
 
+const CONFIG_CONTAINER_NAME = 'CONFIG_CONTAINER';
 function batchFetch(obj, configName, filters) {
     configName = encodeURIComponent(configName);
     let filterStr = encodeURIComponent(JSON.stringify(filters));
@@ -11133,10 +11010,8 @@ function manageConfigForm(ops) {
         try {
             let others = makeSQLSaveButtons(ops.obj, saveUser, saveGlobal);
             let populateWith = ops.preFetch.isAdmin ? ops.preFetch.config : ops.preFetch.config.mappings;
-            let d = configForm.initializeWithData(dataOverride !== undefined ? dataOverride : populateWith);
-            Form.render(configForm);
+            configForm.populate(dataOverride !== undefined ? dataOverride : populateWith);
             let obj = ops.obj;
-            obj.setValue('BUILDER', JSON.stringify(d));
             obj.saveConfigGlobally = saveGlobal;
             obj.saveConfigUser = saveUser;
             obj.applyConfigChanges = () => {
@@ -11177,16 +11052,6 @@ function manageConfigForm(ops) {
     show();
 }
 function buildConfigForm(obj, adminConfig, allColumns) {
-    let makeTab = (form) => {
-        return {
-            type: 'tab',
-            options: {
-                label: 'List Options',
-                defaultTab: 'List Configuration',
-                defaultContent: form
-            }
-        };
-    };
     let buttons = {
         label: 'List Buttons',
         itemTemplate: {
@@ -11460,7 +11325,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                         definition: {
                                             type: 'recursive',
                                             options: {
-                                                label: 'Keys',
+                                                label: (_1, _2, k) => k,
                                                 recurseOn: 'subMapping'
                                             }
                                         }
@@ -11593,7 +11458,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                         definition: {
                                             type: 'recursive',
                                             options: {
-                                                label: 'Keys',
+                                                label: (_1, _2, k) => k,
                                                 recurseOn: 'subMapping'
                                             }
                                         }
@@ -11627,12 +11492,9 @@ function buildConfigForm(obj, adminConfig, allColumns) {
             type: 'object',
             options: {
                 skipUnknownKeys: true,
-                onPopulate(data, form) {
-                    let d = data;
-                    let name = d.displayName ? d.displayName : d.columnName;
-                    form.getOptions().options.label = name;
+                label: (_, data) => {
+                    return data.displayName ? data.displayName : data.columnName;
                 },
-                label: 'Column Settings',
                 requiredKeys: {
                     columnName: {
                         type: 'dropdown',
@@ -11803,7 +11665,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
         }
     };
     if (!adminConfig)
-        return Form.create(obj, makeTab({ type: 'array', options: mappings }), 'BUILDER');
+        return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'array', options: mappings });
     // Read-only option is available to admins only
     let mappingOps = mappings.itemTemplate.options;
     mappingOps.optionalKeys['readOnly'] = {
@@ -12266,342 +12128,7 @@ function buildConfigForm(obj, adminConfig, allColumns) {
             }
         }
     };
-    return Form.create(obj, makeTab({ type: 'object', options: form }), 'BUILDER');
-}
-function buildConfigForm2(adminConfig, allColumns) {
-    // let singleInput = Input.singleInput;
-    // let singleValue = Input.singleValue;
-    // let btns = singleInput('array', 'List Buttons', {
-    //     type: "array",
-    //     default: [],
-    //     arrayInput: singleInput('object', 'List Button', {
-    //         type: "object",
-    //         staticKeys: {
-    //             columnTitle: singleInput('string', 'Column Title'),
-    //             onClick: new Input({
-    //                 values: [
-    //                     {
-    //                         value: new Value("object", {
-    //                             type: "object",
-    //                             staticKeys: {
-    //                                 function: singleInput("string", "Javascript Code")
-    //                             }
-    //                         }),
-    //                         dropdownLabel: "Custom Javascript Function"
-    //                     },
-    //                     {
-    //                         value: new Value("object", {
-    //                             type: "object",
-    //                             staticKeys: {
-    //                                 action: singleInput("string", "Action Name")
-    //                             }
-    //                         }),
-    //                         dropdownLabel: "Javascript Action"
-    //                     }
-    //                 ],
-    //                 label: "Click Action",
-    //                 comments: '',
-    //                 validate: () => true,
-    //             }),
-    //             title: singleInput('string', 'Button Text (Optional)', { type: "string", default: undefined }),
-    //             icon: singleInput('string', 'Button Icon (Optional)', { type: "string", default: undefined }),
-    //         }
-    //     })
-    // });
-    // let endpoint = singleInput('object', 'API Endpoint', {
-    //     type: "object",
-    //     staticKeys: {
-    //         method: singleInput('string', 'HTTP Method (GET, POST, etc)'),
-    //         endpoint: singleInput('string', 'Endpoint', {
-    //             type: 'string',
-    //         }, {
-    //             comments: "XBasic Expression to evaluate"
-    //         }),
-    //         body: singleInput('object', 'Body (Optional)', {
-    //             type: "object",
-    //             staticKeys: {},
-    //             dynamicKeys: singleInput('string', 'Value'),
-    //         }),
-    //         headers: singleInput('object', 'Headers (Optional)', {
-    //             type: "object",
-    //             staticKeys: {},
-    //             dynamicKeys: singleInput('string', 'Value'),
-    //         }),
-    //         callback: singleInput('function', 'On Complete Callback (Optional)', { type: "function", default: undefined }),
-    //     },
-    // });
-    // let editTypeDropdown = singleInput('dropdown', 'Data Type (Optional)', {
-    //     default: 'text',
-    //     type: 'dropdown',
-    //     dropdownItems: [
-    //         { text: 'Text', value: 'text' },
-    //         { text: 'Dropdown', value: 'dropdown' },
-    //         { text: 'Time', value: 'time' },
-    //         { text: 'Date & Time', value: 'datetime' },
-    //         { text: 'True/False', value: 'bool' },
-    //         { text: 'Number', value: 'number' },
-    //         { text: 'JSON String', value: 'json' }
-    //     ]
-    // });
-    // let subMappings = new Input({
-    //     name: 'subMapping',
-    //     values: [
-    //         {
-    //             dropdownLabel: 'JSON Value',
-    //             value: new Value('object', {
-    //                 type: 'object',
-    //                 staticKeys: {
-    //                     displayName: singleInput('string', 'Display Name (optional)'),
-    //                     defaultValue: singleInput('string', 'Default Value (optional)', undefined, {
-    //                         comments: "Specify a Javascript expression for the default value"
-    //                     }),
-    //                 }
-    //             })
-    //         },
-    //         {
-    //             dropdownLabel: 'JSON Object',
-    //             value: new Value('object', {
-    //                 type: 'object',
-    //                 staticKeys: {
-    //                     displayName: singleInput('string', 'Display Name (optional)'),
-    //                     defaultValue: singleInput('string', 'Default Value (optional)', undefined, {
-    //                         comments: "Specify a Javascript expression for the default value"
-    //                     }),
-    //                 },
-    //                 dynamicKeys: singleInput('recursive', 'Keys', {
-    //                     type: 'recursive',
-    //                     recurseOn: 'subMapping'
-    //                 })
-    //             }),
-    //         },
-    //         {
-    //             dropdownLabel: 'JSON Array',
-    //             value: new Value('object', {
-    //                 type: 'object',
-    //                 staticKeys: {
-    //                     displayName: singleInput('string', 'Display Name (optional)'),
-    //                     defaultValue: singleInput('string', 'Default Value (optional)', undefined, {
-    //                         comments: "Specify a Javascript expression for the default value"
-    //                     }),
-    //                     arrayItem: singleInput('recursive', 'Array Item', {
-    //                         type: 'recursive',
-    //                         recurseOn: 'subMapping'
-    //                     })
-    //                 }
-    //             }),
-    //         }
-    //     ],
-    //     label: 'Sub-Mappings',
-    //     comments: "Specify mappings for nested JSON data (JSON type only)",
-    //     validate: () => true
-    // })
-    // let mappings = new Input({
-    //     values: singleValue(new Value('array', {
-    //         type: 'array',
-    //         default: [],
-    //         arrayInput: singleInput('object', 'Column Settings', {
-    //             type: "object",
-    //             staticKeys: {
-    //                 columnName: singleInput('dropdown', 'Column Name', {
-    //                     type: "dropdown",
-    //                     dropdownItems: allColumns,
-    //                     onChange: (x, dropdown) => {
-    //                         let selected = x.item.data;
-    //                         for (const colInfo of allColumns) {
-    //                             if (colInfo.value == selected && colInfo.onSelect) {
-    //                                 colInfo.onSelect(dropdown);
-    //                                 return;
-    //                             }
-    //                         }
-    //                     },
-    //                 }),
-    //                 displayName: singleInput('string', 'Column Name to Display (Optional)', { type: "string", default: undefined }),
-    //                 inList: singleInput('boolean', 'Show in List? (Optional)', { type: "boolean", default: true }),
-    //                 inDetailView: singleInput('boolean', 'Show in Detail View? (Optional)', { type: "boolean", default: true }),
-    //                 editType: editTypeDropdown,
-    //                 subMappings: subMappings,
-    //                 serverDateFormat: singleInput('string', 'Server Date Format', {
-    //                     type: 'string',
-    //                     default: undefined,
-    //                 }, {
-    //                     show: (i) => {
-    //                         let p = i.parent;
-    //                         if (p == null) return true;
-    //                         let editType = p.selected().key("editType")?.serialize();
-    //                         return typeof editType == 'string' && editType == 'datetime';
-    //                     }
-    //                 }),
-    //                 width: singleInput('string', 'Column Width (Optional)', { type: "string", default: undefined }),
-    //                 template: singleInput('string', 'Column Template (Optional)', { type: "string", default: undefined }),
-    //                 dropdownConfig: singleInput('object', 'Dropdown Config (Optional)', {
-    //                     type: "object",
-    //                     default: undefined,
-    //                     staticKeys: {
-    //                         choices: new Input({
-    //                             values: singleValue(new Value('array', {
-    //                                 type: "array",
-    //                                 arrayInput: singleInput('string', 'Dropdown Item'),
-    //                                 default: [],
-    //                             })),
-    //                             label: 'Dropdown Choices',
-    //                             comments: '',
-    //                             validate: () => true,
-    //                         }),
-    //                         fromColumn: singleInput('string', 'Derive From Column', { type: "string", default: undefined }),
-    //                     },
-    //                 })
-    //             },
-    //         }, {
-    //             onPopulate: (input, d) => {
-    //                 let name = d.displayName ? d.displayName : d.columnName;
-    //                 input.label = name + " options";
-    //             },
-    //             name: "mapping",
-    //         }),
-    //     })),
-    //     label: "List Mappings",
-    //     comments: "Add or remove columns for the list",
-    //     validate: () => true,
-    // });
-    // let filters = singleInput('array', "Filters", {
-    //     default: [],
-    //     type: "array",
-    //     arrayInput: singleInput('object', "Filter", {
-    //         type: "object",
-    //         staticKeys: {
-    //             columnName: singleInput("string", "Column Name"),
-    //             op: singleInput("dropdown", "Operator", {
-    //                 default: "=",
-    //                 type: "dropdown",
-    //                 dropdownItems: [
-    //                     { text: "Equals", value: "=" },
-    //                     { text: "Not Equals", value: "<>" },
-    //                     { text: "Less Than", value: "<" },
-    //                     { text: "Less Than or Equal To", value: "<=" },
-    //                     { text: "Greater Than", value: ">" },
-    //                     { text: "Greater Than or Equal To", value: ">=" },
-    //                     { text: "Pattern", value: "LIKE" },
-    //                 ],
-    //             }),
-    //             columnVal: singleInput("object", "Column Value", {
-    //                 type: "object",
-    //                 staticKeys: {
-    //                     tag: singleInput("dropdown", "Value Type", {
-    //                         type: "dropdown",
-    //                         dropdownItems: [
-    //                             { text: "Argument", value: "arg" },
-    //                             { text: "Static Value", value: "value" }
-    //                         ],
-    //                     }),
-    //                     value: singleInput("string", "Value")
-    //                 }
-    //             }),
-    //             connector: singleInput("dropdown", "Logical Connector", {
-    //                 type: "dropdown",
-    //                 default: "AND",
-    //                 dropdownItems: [
-    //                     { text: "And", value: "AND" },
-    //                     { text: "Or", value: "OR" }
-    //                 ],
-    //             })
-    //         }
-    //     })
-    // });
-    // if (!adminConfig) return mappings;
-    // return singleInput('object', 'List Configuration', {
-    //     type: "object",
-    //     staticKeys: {
-    //         name: singleInput('string', 'List Name'),
-    //         onInitialize: singleInput('function', 'On Initialize Callback (Optional)', { type: "function", default: undefined }),
-    //         dataSource: new Input({
-    //             values: [
-    //                 {
-    //                     value: new Value('object', {
-    //                         type: "object",
-    //                         staticKeys: {
-    //                             type: singleInput('dropdown', 'Input Type', {
-    //                                 type: 'dropdown',
-    //                                 dropdownItems: [{ value: 'json', text: 'json' }],
-    //                             }),
-    //                             endpoints: singleInput('object', 'Endpoints', { type: 'object', dynamicKeys: endpoint, staticKeys: {}, default: {} }, {
-    //                                 comments: 'Key can be fetch, search, add, update, or delete'
-    //                             }),
-    //                             preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
-    //                         }
-    //                     }),
-    //                     dropdownLabel: 'Fetch from API',
-    //                 },
-    //                 {
-    //                     value: new Value('object', {
-    //                         type: "object",
-    //                         staticKeys: {
-    //                             type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'sql', text: 'sql' }] }),
-    //                             table: singleInput('string', 'Table Name'),
-    //                             filters: filters,
-    //                             preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
-    //                         }
-    //                     }),
-    //                     dropdownLabel: 'Fetch from SQL',
-    //                 },
-    //                 {
-    //                     value: new Value('object', {
-    //                         type: "object",
-    //                         staticKeys: {
-    //                             type: singleInput("dropdown", 'Input Type', { type: "dropdown", dropdownItems: [{ value: "sql", text: "sql" }] }),
-    //                             sql: singleInput('string', 'SQL Query', undefined, {
-    //                                 comments: "Supply only the SELECT and FROM parts of the query. Specify filters in the `filters` section."
-    //                             }),
-    //                             filters: filters,
-    //                             preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
-    //                         }
-    //                     }),
-    //                     dropdownLabel: 'Supply custom SQL'
-    //                 },
-    //                 {
-    //                     value: new Value('object', {
-    //                         type: "object",
-    //                         staticKeys: {
-    //                             type: singleInput('dropdown', 'Input Type', { type: "dropdown", dropdownItems: [{ value: 'json', text: 'json' }] }),
-    //                             preprocess: singleInput('function', 'Preprocess Function (Optional)', { type: "function", default: undefined }),
-    //                             static: singleInput('array', 'Static Items', {
-    //                                 type: "array",
-    //                                 arrayInput: singleInput("string", "Data Point")
-    //                             }),
-    //                         },
-    //                     }),
-    //                     dropdownLabel: "Static JSON"
-    //                 }
-    //             ],
-    //             label: "Data Source",
-    //             comments: "",
-    //             validate: () => true
-    //         }),
-    //         mappings: mappings,
-    //         searchOptions: singleInput('object', 'Search Options', {
-    //             type: "object",
-    //             staticKeys: {
-    //                 paginate: singleInput('object', 'Pagination', {
-    //                     type: "object",
-    //                     default: undefined,
-    //                     staticKeys: { pageSize: singleInput('number', 'Page Size') }
-    //                 }),
-    //                 advancedSearch: singleInput('boolean', 'Do Advanced Search?', { type: "boolean", default: false }),
-    //                 serverSearch: singleInput('boolean', 'Do Server-Side Search?', { type: "boolean", default: false }),
-    //                 onlyInclude: singleInput('array', 'Only include these search columns:', {
-    //                     type: "array",
-    //                     arrayInput: singleInput('string', 'Column Name'),
-    //                     default: undefined
-    //                 }),
-    //                 onlyExclude: singleInput('array', 'Only exclude these search columns:', {
-    //                     type: "array",
-    //                     arrayInput: singleInput('string', 'Column Name'),
-    //                     default: undefined
-    //                 }),
-    //             }
-    //         }),
-    //         buttons: btns,
-    //     }
-    // });
+    return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'object', options: form });
 }
 // Helper function to make a button to serialize the form data
 function makeSQLSaveButtons(obj, saveUser, saveGlobal) {

@@ -335,7 +335,7 @@ DIM application.library as C
 DIM publish as P
 DIM publish.onPublish as C
 DIM publish.library as C
-DIM __token as C = "be578213a1ef4a61a34fbe6d789e127a"
+DIM __token as C = "04a4978870ea4825a87aa181915abc93"
 %txt%
 
 dim gv as p 
@@ -346,10 +346,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 2025454521174533258
+gv.__A5PublishTimestamp = 2025343412163444232
 gv.__buildNumberExe__ = 9529
 gv.__buildNumberAddins__ = 5718
-gv.__guid = "db1647e5-b2d7-4631-adf9-5ac9da8c99ea"
+gv.__guid = "a32159c8-1695-4be6-8ffd-ee514178ddc8"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%
