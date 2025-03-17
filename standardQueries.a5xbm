@@ -340,6 +340,8 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
 	
+	debug(1)
+	
 	if .not. config.isSuccessful() then 
 		resultsOut[] = config 
 		end
@@ -467,7 +469,7 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	end if
 	
 	' User forgot to put primary ID in their mappings
-	if typeof(args.find(schema.primaryKey)) == "V" then 
+	if schema.primaryKey <> "" .and. typeof(args.find(schema.primaryKey)) == "V" then 
 		runUpdateQuery = Result.fail("Primary key must be specified in the mappings.")
 		end
 	end if

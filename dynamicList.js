@@ -6552,9 +6552,11 @@ class SimpleForm {
         }
         let control = {
             onChange: () => {
-                this.changed = true;
-                this.dynForm.setDirty(true);
                 this.dynForm.refresh();
+            },
+            onKeyDown: () => {
+                this.dynForm.setDirty(true);
+                this.changed = true;
             }
         };
         if (editType == 'picker') {
@@ -6663,7 +6665,6 @@ class ObjectForm {
             switch (formOps.type) {
                 case "simple":
                 case "dropdown":
-                case "multi":
                 case "button":
                 case "recursive": {
                     let enableFnId = this.id + '_enable_' + i;
@@ -6763,13 +6764,14 @@ class ObjectForm {
                             style: 'display: flex; flex-direction: column;'
                         }
                     };
-                    if (entry.enabled) {
+                    if (entry.enabled || isBoolForm) {
                         group.items.push(entry.form.buildJsonForm());
                     }
                     children.push(group);
                     break;
                 }
                 case "object":
+                case "multi":
                 case "array": {
                     let fnId = this.id + '_' + i.toString();
                     this.dynForm.obj._functions.dynamicForm[fnId] = () => {
@@ -7197,7 +7199,16 @@ class DropdownForm {
         if (typeof data != 'string')
             throw new PopulateError("Cannot populate dropdown with non-string.");
         let d = {};
-        d[this.id] = data !== null && data !== void 0 ? data : this.options.default;
+        let opt = this.options.dropdownItems.find(x => x.value == data);
+        if (opt) {
+            d[this.id] = data;
+        }
+        else if (this.options.default) {
+            d[this.id] = this.options.default;
+        }
+        else {
+            d[this.id] = this.options.dropdownItems[0].value;
+        }
         return d;
     }
 }
@@ -7521,6 +7532,8 @@ class DynamicForm {
     }
     setDirty(dirty) {
         this.formBox.isDirtyImmediate = true;
+        this.obj.refreshClientSideComputations(true);
+        this.formBox.refresh();
     }
     refresh() {
         var _a;
@@ -9299,8 +9312,10 @@ class DynamicList {
                         </div>
                         `,
                         onClick: () => {
-                            var _a;
-                            (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox._listDetailView('newrecord');
+                            // TODO 
+                            // Make this so the button fires *only once*
+                            // Potentially clear the selected items so that a new DV is populated
+                            this.newDetailViewRecord();
                         }
                     }
                 },
@@ -11040,7 +11055,7 @@ function manageConfigForm(ops) {
                     newSearch = new DynamicListSearch(newList, ops.embeddedSearch, ops.searchWindow);
                     dynamicItems.list = newList;
                     dynamicItems.search = newSearch;
-                    dynamicItems.list.reRender(false);
+                    dynamicItems.list.reRender(true);
                 }).catch((e) => displayErrorMessage(e.toString()));
             };
         }
