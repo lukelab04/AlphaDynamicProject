@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListBtnTypeSchema, NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, NestedSubfieldTypeSchema, FlattenedSubfieldTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -51,6 +51,24 @@ const ListFilterTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     quantifier: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('ALL'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('SOME')]))
 });
+const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openDetailView'),
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openLinkedList'),
+        configurationName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        tabName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        linkedColumns: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        makeFilter: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openJSONSublist'),
+        configurationName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        tabName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    })
+]);
 const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     columnTitle: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     title: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
@@ -58,6 +76,7 @@ const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Re
     onClick: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ function: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ action: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ listAction: ListActionTypeSchema })
     ]),
     children: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(Self)),
 }));
@@ -109,7 +128,7 @@ const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Ob
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dropdownConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ choices: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()) }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() })
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
     ]))
 });
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -6501,6 +6520,12 @@ class SimpleForm {
         this.id = formBuilder_uuidv4();
         this.parent = parent;
     }
+    setValue(v) {
+        this.dynForm.formBox.data[this.id] = v;
+    }
+    getValue() {
+        return this.dynForm.formBox.data[this.id];
+    }
     getOptions() {
         return { type: 'simple', options: this.options };
     }
@@ -6552,6 +6577,8 @@ class SimpleForm {
         }
         let control = {
             onChange: () => {
+                this.dynForm.setDirty(true);
+                this.changed = true;
                 this.dynForm.refresh();
             },
             onKeyDown: () => {
@@ -6579,8 +6606,8 @@ class SimpleForm {
             },
             control: control,
             container: {
-                style: "; flex: 1 1;",
-                className: ""
+                style: "",
+                className: "dynamic-form-simple-item"
             },
             readonly: () => { var _a; return (_a = this.options.readonly) !== null && _a !== void 0 ? _a : false; },
         };
@@ -6602,14 +6629,14 @@ class SimpleForm {
             return d;
         }
         if (this.options.type == 'datetime' && data instanceof Date) {
-            d[this.id] = data.toFormat((_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : DEFAULT_DATETIME_FMT);
+            d[this.id] = data.toFormat((_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : listBuilder_DEFAULT_DATETIME_FMT);
             return d;
         }
         if (this.options.type == 'datetime' && typeof data == 'string') {
             d[this.id] = data;
             return d;
         }
-        if (typeof data != this.options.type) {
+        if (typeof data != this.options.type && this.options.default == undefined) {
             throw new PopulateError("Data type does not match declared type.");
         }
         d[this.id] = data;
@@ -6634,7 +6661,9 @@ class ObjectForm {
         for (const key in this.entries) {
             let entry = this.entries[key];
             let serialized = entry.form.serialize(jsonFormData);
-            if (!entry.enabled)
+            let formOps = entry.form.getOptions();
+            let boolForm = formOps.type == 'simple' && formOps.options.type == 'boolean';
+            if (!entry.enabled && !boolForm)
                 continue;
             result[key] = serialized;
         }
@@ -6647,14 +6676,55 @@ class ObjectForm {
             keys: result
         };
     }
+    wrapInOptional(entry, item, onChange) {
+        let check = {
+            type: 'group',
+            items: [
+                {
+                    type: 'checkbox',
+                    data: {
+                        from: formBuilder_uuidv4(),
+                        blank: entry.enabled
+                    },
+                    control: {
+                        onChange: onChange !== null && onChange !== void 0 ? onChange : ((e) => {
+                            entry.enabled = !entry.enabled;
+                            this.dynForm.refresh();
+                        })
+                    },
+                    container: {
+                        style: "",
+                        className: ""
+                    }
+                }
+            ],
+            container: {
+                style: 'display: flex; align-items: center;'
+            }
+        };
+        let labelItem = {
+            type: 'group',
+            items: [check, item],
+            container: {
+                style: `;
+                    display: flex;
+                    justify-items: center;
+                    gap: 0.5rem;
+                `
+            }
+        };
+        return labelItem;
+    }
     buildJsonForm() {
-        var _a;
+        var _a, _b, _c;
         let children = [];
         let i = 0;
         for (const key in this.entries) {
             i += 1;
             let entry = this.entries[key];
             let formOps = entry.form.getOptions();
+            if (formOps.type == 'const')
+                continue;
             let label;
             if (typeof formOps.options.label == 'function') {
                 label = formOps.options.label(entry.form, this.data[key], key);
@@ -6662,143 +6732,137 @@ class ObjectForm {
             else {
                 label = formOps.options.label;
             }
+            let displayInline;
             switch (formOps.type) {
-                case "simple":
-                case "dropdown":
-                case "button":
-                case "recursive": {
-                    let enableFnId = this.id + '_enable_' + i;
-                    let labelItem = {
-                        type: 'html',
-                        control: {
-                            html: `<p class="dynamic-form-simple-label">
-                                ${label}
-                            </p>`
-                        },
-                        container: {
-                            className: '',
-                            style: `;
-                                font-variant: all-petite-caps;
-                                font-weight: bold;
-                                color: #434343;
-                            `
-                        },
-                        layout: '{content}',
-                    };
-                    this.dynForm.obj._functions.dynamicForm[enableFnId] = () => {
-                        entry.enabled = false;
-                    };
-                    let isBoolForm = formOps.type == 'simple' && formOps.options.type == 'boolean';
-                    let isOptional = key in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
-                    let isDynamic = !isOptional && !(key in this.options.requiredKeys);
-                    // Key is optional, need to display checkbox
-                    if (isOptional && !isBoolForm) {
-                        let labelOnly = labelItem;
-                        let check = {
-                            type: 'group',
-                            items: [
-                                {
-                                    type: 'checkbox',
-                                    data: {
-                                        from: formBuilder_uuidv4(),
-                                        blank: entry.enabled
-                                    },
-                                    control: {
-                                        onChange: (e) => {
-                                            entry.enabled = !entry.enabled;
-                                            this.dynForm.refresh();
-                                        }
-                                    },
-                                    container: {
-                                        style: "",
-                                        className: ""
-                                    }
-                                }
-                            ],
-                            container: {
-                                style: 'display: flex; align-items: center;'
-                            }
-                        };
-                        labelItem = {
-                            type: 'group',
-                            items: [check, labelOnly],
-                            container: {
-                                style: `;
-                                    display: flex;
-                                    justify-items: center;
-                                    gap: 0.5rem;
-                                `
-                            }
-                        };
-                    }
-                    // Key is dynamic, need to allow for deletion
-                    else if (isDynamic) {
-                        let delIcon = {
-                            type: 'button',
-                            control: {
-                                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
-                                onClick: () => {
-                                    delete this.entries[key];
-                                    delete this.data[key];
-                                    this.dynForm.refresh();
-                                }
-                            }
-                        };
-                        labelItem = {
-                            type: 'group',
-                            items: [labelItem, delIcon],
-                            container: {
-                                style: `;
-                                    display: flex;
-                                    flex-direction: row;
-                                    align-items: center;
-                                    gap: 1rem;
-                                `
-                            }
-                        };
-                    }
-                    let group = {
+                case 'simple':
+                case 'dropdown':
+                case 'recursive':
+                case 'button':
+                    displayInline = true;
+                    break;
+                case 'object':
+                case 'array':
+                    displayInline = false;
+                    break;
+                case 'multi':
+                    displayInline = (_a = formOps.options.displayInline) !== null && _a !== void 0 ? _a : false;
+            }
+            if (displayInline) {
+                let enableFnId = this.id + '_enable_' + i;
+                let labelItem = {
+                    type: 'html',
+                    control: {
+                        html: `<p class="dynamic-form-simple-label">
+                            ${label}
+                        </p>`
+                    },
+                    container: {
+                        style: `;
+                            font-variant: all-petite-caps;
+                            font-weight: bold;
+                            color: #434343;
+                        `
+                    },
+                    layout: '{content}',
+                };
+                this.dynForm.obj._functions.dynamicForm[enableFnId] = () => {
+                    entry.enabled = false;
+                };
+                // We treat boolean forms specially in that they do *not* have an "is enabled" check. 
+                // However, the requirement is that the boolean input is in the same place visually 
+                // as the "is enabled" check. That is why this is the way that it is.
+                let isBoolForm = formOps.type == 'simple' && formOps.options.type == 'boolean';
+                let isOptional = key in ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {});
+                let isDynamic = !isOptional && !(key in this.options.requiredKeys);
+                // Key is optional, need to display checkbox
+                if (isOptional && !isBoolForm) {
+                    labelItem = this.wrapInOptional(entry, labelItem);
+                }
+                // Need to display the boolean as if it were an optional check mark
+                else if (isBoolForm) {
+                    let innerForm = entry.form.buildJsonForm();
+                    labelItem = {
                         type: 'group',
-                        items: [labelItem],
+                        items: [
+                            innerForm,
+                            labelItem
+                        ],
                         container: {
-                            style: 'display: flex; flex-direction: column;'
+                            style: `
+                                display: flex;
+                                flex-direction: row;
+                                gap: 0.5rem;
+                                align-items: center;
+                            `
                         }
                     };
-                    if (entry.enabled || isBoolForm) {
-                        group.items.push(entry.form.buildJsonForm());
-                    }
-                    children.push(group);
-                    break;
                 }
-                case "object":
-                case "multi":
-                case "array": {
-                    let fnId = this.id + '_' + i.toString();
-                    this.dynForm.obj._functions.dynamicForm[fnId] = () => {
-                        this.dynForm.launchNewTab(label, entry.form);
-                    };
-                    let btn = {
-                        type: 'html',
+                // Key is dynamic, need to allow for deletion
+                else if (isDynamic) {
+                    let delIcon = {
+                        type: 'button',
                         control: {
-                            html: `
-                                <div class="dynamic-form-open-nested" style = "
-                                    display: flex;
-                                    flex-direction: row;
-                                    align-items: center;
-                                    gap: 0.5rem;
-                                    cursor: pointer;
-                                " onclick="${this.dynForm.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">
-                                    <p style = "font-variant: all-petite-caps; font-weight: bold;"> Edit ${label} </p>
-                                    ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')} 
-                                </div>
-                            `,
+                            html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                            onClick: () => {
+                                delete this.entries[key];
+                                delete this.data[key];
+                                this.dynForm.refresh();
+                            }
                         }
                     };
-                    children.push(btn);
-                    break;
+                    labelItem = {
+                        type: 'group',
+                        items: [labelItem, delIcon],
+                        container: {
+                            style: `;
+                                display: flex;
+                                flex-direction: row;
+                                align-items: center;
+                                gap: 1rem;
+                            `
+                        }
+                    };
                 }
-                case "const":
-                // Nothing
+                let group = {
+                    type: 'group',
+                    items: [labelItem],
+                    container: {
+                        style: 'display: flex; flex-direction: column;',
+                        className: 'dynamic-form-simple-item-label-group',
+                    }
+                };
+                if (entry.enabled && !isBoolForm) {
+                    group.items.push(entry.form.buildJsonForm());
+                }
+                children.push(group);
+            }
+            else {
+                let fnId = this.id + '_' + i.toString();
+                this.dynForm.obj._functions.dynamicForm[fnId] = () => {
+                    this.dynForm.launchNewTab(label, entry.form);
+                };
+                let btn = {
+                    type: 'html',
+                    control: {
+                        html: `
+                            <div class="dynamic-form-open-nested" style = "
+                                display: flex;
+                                flex-direction: row;
+                                align-items: center;
+                                gap: 0.5rem;
+                                cursor: pointer;
+                            " onclick="${this.dynForm.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">
+                                <p style = "font-variant: all-petite-caps; font-weight: bold;"> Edit ${label} </p>
+                                ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')} 
+                            </div>
+                        `,
+                    }
+                };
+                let isOptional = key in ((_c = this.options.optionalKeys) !== null && _c !== void 0 ? _c : {});
+                if (isOptional) {
+                    btn = this.wrapInOptional(entry, btn);
+                }
+                children.push(btn);
             }
         }
         let newKey = this.options.newKeyTemplate;
@@ -7447,9 +7511,10 @@ class DynamicForm {
             },
             onChange: () => { }
         });
-        this.obj._functions = {
-            dynamicForm: {},
-        };
+        if (!this.obj._functions) {
+            this.obj._functions = {};
+        }
+        this.obj._functions.dynamicForm = {};
         if (typeof formDefn.options.label == 'string') {
             this.firstTabLabel = formDefn.options.label;
         }
@@ -7616,6 +7681,150 @@ function displayErrorMessage(msg) {
     errContainer.style.fontSize = "1.3rem";
 }
 
+;// ./src/listAction.ts
+function executeListAction(list, action) {
+    if (action.actionName == 'openDetailView') {
+        list.newDetailViewRecord();
+    }
+    else if (action.actionName == 'openLinkedList') {
+        list.linkNewPanel(action.configurationName, action.tabName, action.linkedColumns, action.makeFilter);
+    }
+    else if (action.actionName == 'openJSONSublist') {
+        let selected = list.data[list.getSelectedRows()[0]];
+        list.linkSublistToField(action.configurationName, action.tabName, action.fromColumn, JSON.parse(selected[action.fromColumn]), list.getSelectedRows()[0], selected);
+    }
+}
+function listActionEditor() {
+    let f = {
+        type: 'multi',
+        options: {
+            displayInline: true,
+            label: 'List Action Editor',
+            definitions: {
+                'Open Detail View': {
+                    defaultValue: {
+                        actionName: 'openDetailView'
+                    },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Arguments for Open Detail View',
+                            requiredKeys: {
+                                actionName: {
+                                    type: 'const',
+                                    options: { label: '', value: 'openDetailView' }
+                                }
+                            }
+                        }
+                    }
+                },
+                'Launch New List with Linked Field(s)': {
+                    defaultValue: {
+                        actionName: 'openLinkedList',
+                        configurationName: '',
+                        tabName: 'New List',
+                        linkedColumns: [],
+                        makeFilter: true
+                    },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Arguments for Linked List',
+                            requiredKeys: {
+                                actionName: {
+                                    type: 'const',
+                                    options: { label: '', value: 'openLinkedList' }
+                                },
+                                configurationName: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'Linked Configuration',
+                                        type: 'string'
+                                    }
+                                },
+                                tabName: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'New Tab Title',
+                                        type: 'string'
+                                    }
+                                },
+                                linkedColumns: {
+                                    type: 'array',
+                                    options: {
+                                        label: 'Columns to Link',
+                                        defaultValue: '',
+                                        itemTemplate: {
+                                            type: 'simple',
+                                            options: {
+                                                type: 'string',
+                                                label: 'Column Name'
+                                            },
+                                        },
+                                        allowEmpty: false
+                                    }
+                                },
+                                makeFilter: {
+                                    type: 'simple',
+                                    options: {
+                                        type: 'boolean',
+                                        label: 'Filter Linked List to Current Selection'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'Launch New List from Nested JSON Field': {
+                    defaultValue: {
+                        actionName: 'openJSONSublist',
+                        configurationName: "",
+                        tabName: "",
+                        fromColumn: ""
+                    },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Arguments for Nested JSON List',
+                            requiredKeys: {
+                                actionName: {
+                                    type: 'const',
+                                    options: {
+                                        label: '',
+                                        value: 'openJSONSublist'
+                                    }
+                                },
+                                configurationName: {
+                                    type: 'simple',
+                                    options: {
+                                        type: 'string',
+                                        label: 'Configuration Name'
+                                    }
+                                },
+                                tabName: {
+                                    type: 'simple',
+                                    options: {
+                                        type: 'string',
+                                        label: 'Tab Name'
+                                    }
+                                },
+                                fromColumn: {
+                                    type: 'simple',
+                                    options: {
+                                        type: 'string',
+                                        label: 'Column with JSON Data'
+                                    }
+                                },
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+    return f;
+}
+
 ;// ./src/listBuilder.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -7632,9 +7841,9 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 const DEFAULT_DATE_FMT = 'MM/dd/yyyy';
-const DEFAULT_DATETIME_FMT = "MM/dd/yyyy hh:mm:ss";
-const LIST_NAME = 'DYNAMIC_LIST';
+const listBuilder_DEFAULT_DATETIME_FMT = "MM/dd/yyyy hh:mm:ss";
 const DETAIL_FORM_NAME = "DETAIL_VIEW";
+const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_CONTAINER = 'EDITOR_CONTAINER';
 class ValidationError extends Error {
     constructor(message, errors) {
@@ -7726,6 +7935,7 @@ function fetch(obj, configName, endpoint) {
 class DynamicList {
     constructor() {
         this.nestedPath = [];
+        this.selectedRows = new Set();
         this.dataScopeManager = new DataScopeManager({});
         this.foreignKeys = [];
         // Used in _match
@@ -7740,7 +7950,7 @@ class DynamicList {
         this.data = [];
         this.rawData = [];
         this.schema = undefined;
-        this.window = window;
+        this.containerId = '';
     }
     destructor() {
         if (this.listBox.destroy)
@@ -7753,14 +7963,13 @@ class DynamicList {
             list.permanentFilters = (_a = ops.filters) !== null && _a !== void 0 ? _a : [];
             list.searchFilters = [];
             list.buttonFns = {};
-            list.window = window;
             list.onRender = [];
             list.obj = ops.obj;
-            list.listBox = null;
             list.config = jQuery.extend({}, ops.prefetch.config);
             list.data = [];
             list.rawData = [];
             list.schema = {};
+            list.containerId = ops.obj.getPointer(ops.containerId).id;
             if (ops.otherProperties) {
                 list.onSaveOverride = ops.otherProperties.onSaveOverride;
                 list.staticDataOverride = ops.otherProperties.dataOverride;
@@ -7770,11 +7979,11 @@ class DynamicList {
             if (list.config.onInitialize) {
                 (0,types.stringReprToFn)(list.config.onInitialize)(list, (_c = ops.args) !== null && _c !== void 0 ? _c : []);
             }
-            ops.obj.getControl(LIST_NAME)._size = () => { };
-            ops.obj.getControl(LIST_NAME)._resize = () => { };
             ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
             list.settings = list.buildSettings();
             list.buildList();
+            list.listBox._size = () => { };
+            list.listBox._resize = () => { };
             resolve(list);
         })
             .then((list) => {
@@ -7793,6 +8002,7 @@ class DynamicList {
             return list.reRender(false);
         }).then((list) => {
             validateSchema(list.schema);
+            list.refreshMultiSelectButton();
             return list;
         });
     }
@@ -7822,8 +8032,15 @@ class DynamicList {
     openDetailView() {
         this.obj.runAction('Navigate Detail View');
     }
-    newDetailViewRecord() {
-        let makeForm = () => this.buildDetailViewForm();
+    newDetailViewRecord(allowMultipleEdit = false) {
+        let rowNum;
+        if (this.listBox.selection.length > 0) {
+            rowNum = this.listBox.selection[0];
+        }
+        else {
+            rowNum = null;
+        }
+        let makeForm = () => this.buildDetailViewForm(rowNum, allowMultipleEdit);
         let openForm = () => this.obj.runAction('Navigate Detail View');
         let makeNew = () => this.listBox.newDetailViewRecord();
         A5.executeThisThenThat(makeForm, openForm, makeNew);
@@ -7923,14 +8140,29 @@ class DynamicList {
             onComplete();
         }
     }
+    refreshMultiSelectButton() {
+        let b = this.obj.getControl('MULTI_EDIT_BTN');
+        if (b) {
+            let selectedCount = this.getSelectedRows().length;
+            if (selectedCount > 1) {
+                b.setDisabled(false);
+            }
+            else {
+                b.setDisabled(true);
+            }
+            b.onClick = () => {
+                this.newDetailViewRecord();
+            };
+        }
+    }
     buildSettings() {
-        let columns = this.window.Array();
-        let listFields = this.window.Array();
-        let menuSettings = this.window.Object();
-        let items = this.window.Object();
+        let columns = [];
+        let listFields = [];
+        let menuSettings = {};
+        let items = {};
         let listObj = this;
         if (!this.config.buttons)
-            this.config.buttons = (this.window.Array());
+            this.config.buttons = [];
         if (this.config.multiSelect === true) {
             columns.push(this.buildCheckboxColumn());
         }
@@ -7975,43 +8207,33 @@ class DynamicList {
             "selectable": false,
             "onClick": (index, v, args) => {
                 var data = this.listBox._data[this.listBox._dataMap[index]];
-                data.__selected = !data.__selected;
+                let selected = !this.isRowSelected(data['*key']);
+                this.setRowSelected(data['*key'], selected);
                 var src = this.listBox.__checkedImage;
-                if (!data.__selected)
+                if (!selected)
                     src = this.listBox.__uncheckedImage;
                 let id = this.obj.dialogId + '.' + LIST_NAME;
                 var ele = $(`${id}.CHECKBOX` + data['*key']);
                 A5.u.icon.update(ele.children[0], src);
                 this.listBox._size();
                 if (this.listBox.onCheckRow) {
-                    var e = { data: data, renderIndex: data['*renderIndex'], rowNumber: data['*key'], value: data['*value'], checked: data.__selected };
+                    var e = { data: data, renderIndex: data['*renderIndex'], rowNumber: data['*key'], value: data['*value'], checked: selected };
                     this.listBox.onCheckRow(e);
                 }
+                this.refreshMultiSelectButton();
             }
         };
         items['__toggleAll'] = {
             "selectable": false,
             "onClick": (index, v, args) => {
-                var data = this.listBox._data[this.listBox._dataMap[index]];
-                var allrowschecked = true;
-                let lObj = this.listBox;
-                for (var i = 0; i < lObj._rData.length; i++) {
-                    if (typeof lObj._rData[i]['__selected'] == 'undefined' || lObj._rData[i]['__selected'] == false) {
-                        allrowschecked = false;
-                    }
-                }
-                if (!allrowschecked) {
-                    lObj.checkAllRows();
-                    lObj._allrowschecked = true;
+                if (this.selectedRows.size == this.data.length) {
+                    this.setAllRowsSelected(false);
                 }
                 else {
-                    lObj.unCheckAllRows();
-                    lObj._allrowschecked = false;
+                    this.setAllRowsSelected(true);
                 }
-                var e2 = { data: lObj._data };
-                if (lObj && lObj.onCheckRow)
-                    lObj.onCheckRow(e2);
                 this.listBox.refresh();
+                this.refreshMultiSelectButton();
             }
         };
         return {
@@ -8128,26 +8350,16 @@ class DynamicList {
                 }
             },
             getCheckedRows: () => {
-                let r = [];
-                let _d = this.listBox._data;
-                for (let i = 0; i < _d.length; i++) {
-                    if (_d[i].__selected)
-                        r.push(i);
-                }
-                return r;
+                return this.getSelectedRows();
             },
             unCheckAllRows: () => {
-                let _d = this.listBox._rData;
-                for (let i = 0; i < _d.length; i++) {
-                    _d[i]['__selected'] = false;
-                }
+                this.setAllRowsSelected(false);
+                this.refreshMultiSelectButton();
                 this.listBox.refresh();
             },
             checkAllRows: () => {
-                let _d = this.listBox._rData;
-                for (let i = 0; i < _d.length; i++) {
-                    _d[i]['__selected'] = true;
-                }
+                this.setAllRowsSelected(true);
+                this.refreshMultiSelectButton();
                 this.listBox.refresh();
             },
             _onSelect: (index) => this.listBox.onSelect(index),
@@ -8422,7 +8634,7 @@ class DynamicList {
                     $acn(ele, _hasUnsyncedMediaFilesClassName);
                 }
                 if (index == this._rData.length - 1) {
-                    let btns = listObj.window.document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
+                    let btns = document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
                     for (let i = 0; i < btns.length; i++) {
                         btns[i].parentElement.style.whiteSpace = 'normal';
                     }
@@ -8600,10 +8812,10 @@ class DynamicList {
                         _d = $u.s.toBool(_d);
                     }
                     else if (obj.type == 'd' || obj.type == 't') {
-                        o.v1 = A5.stringToDate(o.v1, (_b = (_a = this.getMapping(field)) === null || _a === void 0 ? void 0 : _a.serverDateFormat) !== null && _b !== void 0 ? _b : DEFAULT_DATETIME_FMT);
-                        o.v2 = A5.stringToDate(o.v2, (_e = (_c = this.getMapping(field)) === null || _c === void 0 ? void 0 : _c.serverDateFormat) !== null && _e !== void 0 ? _e : DEFAULT_DATETIME_FMT);
+                        o.v1 = A5.stringToDate(o.v1, (_b = (_a = this.getMapping(field)) === null || _a === void 0 ? void 0 : _a.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT);
+                        o.v2 = A5.stringToDate(o.v2, (_e = (_c = this.getMapping(field)) === null || _c === void 0 ? void 0 : _c.serverDateFormat) !== null && _e !== void 0 ? _e : listBuilder_DEFAULT_DATETIME_FMT);
                         if (typeof _d == 'string')
-                            _d = A5.stringToDate(_d, (_g = (_f = this.getMapping(field)) === null || _f === void 0 ? void 0 : _f.serverDateFormat) !== null && _g !== void 0 ? _g : DEFAULT_DATETIME_FMT);
+                            _d = A5.stringToDate(_d, (_g = (_f = this.getMapping(field)) === null || _f === void 0 ? void 0 : _f.serverDateFormat) !== null && _g !== void 0 ? _g : listBuilder_DEFAULT_DATETIME_FMT);
                         if (o.v1 != '' && o.v1 != null)
                             o.v1 = o.v1.getTime();
                         if (o.v2 != '' && o.v2 != null)
@@ -8837,19 +9049,9 @@ class DynamicList {
                     });
                 }
                 if (listObj.config.multiSelect === true) {
-                    this._hasrun = true;
-                    this._allrowschecked = true;
-                    let d = this._rData;
-                    for (let i = 0; i < d.length; i++) {
-                        if (!d[i].__selected) {
-                            this._allrowschecked = false;
-                            break;
-                        }
-                    }
-                    if (d.length == 0)
-                        this._allrowschecked = false;
+                    let allChecked = listObj.selectedRows.size == listObj.data.length;
                     let h;
-                    if (this._allrowschecked) {
+                    if (allChecked) {
                         h = A5.u.icon.html(this.__checkedImage);
                     }
                     else {
@@ -8861,7 +9063,7 @@ class DynamicList {
                 }
             },
             onChange: () => {
-                let btns = listObj.window.document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
+                let btns = document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
                 for (let i = 0; i < btns.length; i++) {
                     btns[i].parentElement.style.whiteSpace = 'normal';
                 }
@@ -8893,8 +9095,7 @@ class DynamicList {
                         d2[n] = d[n];
                     }
                 }
-                let selected = this.listBox.selection;
-                selected.push(...this.listBox._data.filter(x => x.__selected).map(x => x['*key']));
+                let selected = this.getSelectedRows();
                 if (selected.length > 0) {
                     selected.forEach(s => this.listBox.updateTableRow(s, d2));
                 }
@@ -8996,8 +9197,11 @@ class DynamicList {
                         (0,types.stringReprToFn)(button.onClick.function)(tmpThis, rowNumber, data);
                     }(idx, v, args, data, this.listBox, this.listBox));
                 }
-                else {
+                else if ('action' in button.onClick) {
                     this.obj.runAction(button.onClick.action);
+                }
+                else {
+                    executeListAction(this, button.onClick.listAction);
                 }
             }
         };
@@ -9040,8 +9244,11 @@ class DynamicList {
                     if ('function' in button.onClick) {
                         (0,types.stringReprToFn)(button.onClick.function)(this);
                     }
-                    else {
+                    else if ('action' in button.onClick) {
                         this.obj.runAction(button.onClick.action);
+                    }
+                    else {
+                        executeListAction(this, button.onClick.listAction);
                     }
                 },
             };
@@ -9114,11 +9321,14 @@ class DynamicList {
         };
         return defn;
     }
-    buildDetailViewForm(rowNum) {
+    buildDetailViewForm(rowNum = null, allowMultiSelect = false) {
         var _a, _b, _c, _e;
+        if (rowNum !== null) {
+            this.setRowSelected(rowNum, true);
+        }
         let _d = {};
-        let allSelected = this.listBox._data.filter(d => d.__selected);
-        if (allSelected.length > 1) {
+        let allSelected = this.getSelectedRows();
+        if (allSelected.length > 1 && allowMultiSelect) {
             // For each mapping, check that every entry in selected is the same
             // If it is, leave it alone
             // Otherwise, replace with empty string
@@ -9155,9 +9365,13 @@ class DynamicList {
         delete d['*renderIndex'];
         delete d['*value'];
         // Expand any fields that are marked as nested json
+        // Convert numbers if necessary
         for (const mapping of this.config.mappings) {
             if (mapping.editType == 'json' && mapping.inDetailView) {
                 d[mapping.columnName] = JSON.parse(d[mapping.columnName]);
+            }
+            else if (mapping.editType == 'number' && mapping.inDetailView && typeof d[mapping.columnName] != 'number') {
+                d[mapping.columnName] = Number(d[mapping.columnName]);
             }
         }
         let inputs = {
@@ -9226,7 +9440,7 @@ class DynamicList {
                     case 'time':
                     case 'datetime':
                         value.options.type = 'datetime';
-                        value.options.dateFmt = (_c = mapping.serverDateFormat) !== null && _c !== void 0 ? _c : DEFAULT_DATETIME_FMT;
+                        value.options.dateFmt = (_c = mapping.serverDateFormat) !== null && _c !== void 0 ? _c : listBuilder_DEFAULT_DATETIME_FMT;
                         break;
                     case 'text':
                     case 'json':
@@ -9255,13 +9469,13 @@ class DynamicList {
             }
             return d;
         };
-        let bottomButtons = this.makeDetailContextButtons();
+        let bottomButtons = this.makeDetailContextButtons(allSelected);
         let detailViewForm = new DynamicForm(this.obj, this.obj.getPointer(DETAIL_FORM_CONTAINER).id, { type: 'object', options: inputs }, [bottomButtons]);
         this.setFormDetailView(detailViewForm);
         this.detailView = detailViewForm;
         detailViewForm.populate(d);
     }
-    makeDetailContextButtons() {
+    makeDetailContextButtons(selectedRows) {
         let divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
         return {
             type: 'group',
@@ -9277,9 +9491,9 @@ class DynamicList {
                         </div>
                         `,
                         onClick: () => {
-                            var _a, _b;
+                            var _a;
                             if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
-                                (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.formBox._listDetailView('save');
+                                this.listBox.updateListFromUXControls();
                             }
                             if (this.detailView) {
                                 this.detailView.formBox.isDirtyImmediate = false;
@@ -9297,8 +9511,15 @@ class DynamicList {
                         </div>
                         `,
                         onClick: () => {
-                            var _a;
-                            (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox._listDetailView('deleterecord');
+                            selectedRows.forEach(r => {
+                                this.listBox.selection = [r];
+                                this.listBox.deleteRow();
+                            });
+                            if (this.detailView) {
+                                this.detailView.formBox.isDirtyImmediate = true;
+                                this.detailView.formBox.refresh();
+                            }
+                            this.obj.refreshClientSideComputations(true);
                         }
                     }
                 },
@@ -9312,10 +9533,13 @@ class DynamicList {
                         </div>
                         `,
                         onClick: () => {
-                            // TODO 
-                            // Make this so the button fires *only once*
-                            // Potentially clear the selected items so that a new DV is populated
-                            this.newDetailViewRecord();
+                            if (!this.listBox.openingDetailView) {
+                                this.listBox.openingDetailView = true;
+                                this.setAllRowsSelected(false);
+                                this.refreshMultiSelectButton();
+                                this.newDetailViewRecord();
+                                this.listBox.openingDetailView = false;
+                            }
                         }
                     }
                 },
@@ -9389,6 +9613,8 @@ class DynamicList {
             buttons: [],
         };
         let ops = {
+            listContainerId: "LIST_CONTAINER",
+            searchContainerId: "SEARCH_CONTAINER",
             configName: name,
             titleName: label,
             fallbackConfig: newSchema,
@@ -9409,6 +9635,7 @@ class DynamicList {
         }
     }
     // Open a new list with data that persists to a field on the current list
+    // Data should come statically from the currently selected list row
     linkSublistToField(name, label, columnName, populateWith, currRow, currData) {
         let onSave = (newData) => {
             currData[columnName] = JSON.stringify(newData);
@@ -9456,7 +9683,7 @@ class DynamicList {
                 }
             case "time":
             case "datetime":
-                return new Date().toFormat((_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : DEFAULT_DATETIME_FMT);
+                return new Date().toFormat((_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT);
             case "text":
             case "dropdown":
                 return '';
@@ -9467,18 +9694,20 @@ class DynamicList {
             configName: configName,
             titleName: titleName,
             filters: filters,
+            listContainerId: 'LIST_CONTAINER',
+            searchContainerId: 'SEARCH_CONTAINER',
         });
     }
     linkNewPanel(configName, titleName, columns, makeFilter = true) {
         let cols = typeof columns == 'string' ? [columns] : columns;
         let allFilters = [];
-        if (makeFilter) {
-            cols.forEach(c => allFilters.push(...this.makeFilterFromSelected(c, c)));
-        }
+        cols.forEach(c => allFilters.push(...this.makeFilterFromSelected(c, c)));
         openNewPanel({
             configName: configName,
+            listContainerId: 'LIST_CONTAINER',
+            searchContainerId: 'SEARCH_CONTAINER',
             titleName: titleName,
-            filters: allFilters,
+            filters: makeFilter ? allFilters : [],
             otherProps: {
                 foreignKeys: allFilters.map(x => {
                     if (x.columnVal.tag == 'arg') {
@@ -9541,6 +9770,7 @@ class DynamicList {
         if (this.listBox._state.recordCount === undefined) {
             this.listBox._state.recordCount = this.data.length;
         }
+        this.refreshMultiSelectButton();
     }
     fetchData() {
         // There is a bug where the parent somehow doesn't point to the most recent list object
@@ -9637,6 +9867,30 @@ class DynamicList {
             throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
         }
     }
+    setRowSelected(rowNum, selected) {
+        if (selected) {
+            this.selectedRows.add(rowNum);
+        }
+        else {
+            this.selectedRows.delete(rowNum);
+        }
+        this.listBox.selection = this.getSelectedRows();
+    }
+    setAllRowsSelected(selected) {
+        if (selected) {
+            this.selectedRows = new Set(this.data.map((_, i) => i));
+        }
+        else {
+            this.selectedRows.clear();
+        }
+        this.listBox.selection = this.getSelectedRows();
+    }
+    getSelectedRows() {
+        return Array.from(this.selectedRows);
+    }
+    isRowSelected(rowNum) {
+        return this.selectedRows.has(rowNum);
+    }
     filtersAsSimpleObj() {
         let data = {};
         for (const item of [...this.permanentFilters, ...this.searchFilters]) {
@@ -9650,7 +9904,7 @@ class DynamicList {
         this.onRender.push(f);
     }
     updateRecordCount() {
-        let count = this.window.document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
+        let count = document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
         if (count) {
             count.innerHTML = "Records: " + this.listBox._state.recordCount;
         }
@@ -9666,37 +9920,16 @@ class DynamicList {
         this.updateRecordCount();
     }
     buildList() {
-        this.listBox = new (this.window.A5).ListBox(this.obj.getPointer('LIST_CONTAINER').id, [], this.settings);
+        this.listBox = new A5.ListBox(this.containerId, [], this.settings);
         this.listBox._hostComponentId = this.obj.dialogId;
-        this.listBox._listSystemOnClickPopulateJSONForm = (rowNum) => this.buildDetailViewForm(rowNum);
-        this.window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
+        //this.listBox._listSystemOnClickPopulateJSONForm = (rowNum: number) => this.buildDetailViewForm(rowNum);
+        this.listBox._listSystemOnClickPopulateJSONForm = (rowNum) => { };
+        window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
     }
     setFormDetailView(form) {
         this.detailView = form;
         this.detailView.formBox._listDetailView = (mode) => {
-            if (mode == 'getListName') {
-                return LIST_NAME;
-            }
-            else if (mode == 'save') {
-                this.listBox.updateListFromUXControls();
-            }
-            else if (mode == 'reset') {
-                this.openDetailView();
-            }
-            else if (mode == 'deleterecord') {
-                this.listBox.deleteRow();
-                let formObj = this.obj.getControl(DETAIL_FORM_NAME);
-                formObj.isDirtyImmediate = true;
-                formObj.refresh();
-                this.obj.refreshClientSideComputations(true);
-            }
-            else if (mode == 'newrecord') {
-                this.listBox.newDetailViewRecord();
-            }
-            else if (mode == 'synchronize') {
-                this.saveDynamicListEdits();
-            }
         };
     }
     buildSchemaFromRawData() {
@@ -9949,7 +10182,7 @@ class DataScopeManager {
                     displayName: (_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.columnName,
                     columnName: mapping.columnName,
                     quantifiable: false,
-                    alphaType: (_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text'
+                    editType: (_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text'
                 });
             }
         }
@@ -9983,7 +10216,7 @@ class DataScopeManager {
                 displayName: (_a = sub.displayName) !== null && _a !== void 0 ? _a : sub.flattenedColumnName,
                 columnName: sub.flattenedColumnName,
                 quantifiable: true,
-                alphaType: e
+                editType: e
             });
         }
         return result;
@@ -10029,16 +10262,44 @@ class DataScopeManager {
     }
 }
 class DynamicListSearch {
-    constructor(dynamicList, obj, window) {
+    constructor(dynamicList, obj, contId) {
+        this.guides = {
+            "layouts": {
+                "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
+                "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
+                        return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
+                    else
+                        return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                            e = e[0].children[0].children[0];
+                            if (e && e.getAttribute('float-state') == '1') {
+                                var l = dObj.item.def.sys.item.layout.settings;
+                                e.setAttribute('float-state', '2');
+                                if (dObj.item.isNull) {
+                                    if (l.style != '')
+                                        A5.u.element.style(e, '+=' + l.style);
+                                    A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
+                                }
+                            }
+                        } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                            e = e[0].children[0].children[0];
+                            if (e && e.getAttribute('float-state') == '2') {
+                                var l = dObj.item.def.sys.item.layout.settings;
+                                e.setAttribute('float-state', '1');
+                                if (dObj.item.isNull) {
+                                    if (l.style != '')
+                                        A5.u.element.style(e, '-=' + l.style);
+                                    A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
+                                }
+                            }
+                        } } } },
+            }
+        };
         this.list = dynamicList;
         this.obj = obj;
-        this.form = new FormBuilder(this.obj, "SearchForm");
-        this.advForm = obj.getControl('AdvancedSearch');
         this.dynamicDropdowns = [];
-        this.window = window;
-        this.advForm.data.fields = {};
-        this.buildForms();
-        this.form.render();
+        this.formContainerId = obj.getPointer(contId).id;
+        this.form = new DynamicForm(this.obj, this.formContainerId, this.buildForm(), [this.makeButtons()]);
+        this.form.populate(this.list.config.searchOptions.advancedSearch ? [] : {});
     }
     findInSchema(path, schema) {
         let result = schema;
@@ -10055,273 +10316,304 @@ class DynamicListSearch {
         }
         return result;
     }
-    buildForms() {
+    buildForm() {
+        this.setListSearchFns();
         if (this.list.config.searchOptions.advancedSearch) {
-            this.obj.setControlDisplay('SEARCHFORM' + '', false, 'display');
-            this.obj.setControlDisplay('ADVANCEDSEARCH' + '', true, 'display');
+            return this.buildAdvancedSearch();
         }
         else {
-            this.obj.setControlDisplay('SEARCHFORM' + '', true, 'display');
-            this.obj.setControlDisplay('ADVANCEDSEARCH' + '', false, 'display');
+            return this.buildSimpleSearch();
         }
-        this.window.document.getElementById(this.obj.dialogId + ".V.R1.IMAGE_1").style.display = "none";
-        let allSearchCols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
-        for (const colInfo of allSearchCols) {
-            let include = this.list.config.searchOptions.onlyInclude;
-            let exclude = this.list.config.searchOptions.onlyExclude;
-            let shouldInclude = true;
-            if (include)
-                shouldInclude = include.includes(colInfo.columnName);
-            else if (exclude)
-                shouldInclude = !exclude.includes(colInfo.columnName);
-            if (shouldInclude) {
-                let element = (new FormInput())
-                    .withLabel(colInfo.displayName)
-                    .withVariable(colInfo.columnName)
-                    .withStyle('width: 100%');
-                let advancedControl = {
-                    type: 'default',
-                    format: '',
-                    data: [],
-                    quantifier: colInfo.quantifiable
-                };
-                switch (colInfo.editType) {
-                    case 'text':
-                    case 'number': break;
-                    case 'time':
-                        element = element.asTime(DEFAULT_DATETIME_FMT);
-                        advancedControl.type = 'datepicker';
-                        advancedControl.format = DEFAULT_DATETIME_FMT;
-                        break;
-                    case 'datetime':
-                        element = element.asDateTime(DEFAULT_DATETIME_FMT);
-                        advancedControl.type = 'datepicker';
-                        advancedControl.format = DEFAULT_DATETIME_FMT;
-                        break;
-                    case 'bool':
-                        element = element.asBool();
-                        advancedControl.type = 'switch';
-                        advancedControl.data = ['true', 'false'];
-                        break;
-                    case 'dropdown':
-                        let dropdownConfig;
-                        for (const mapping of this.list.config.mappings) {
-                            if (mapping.columnName == colInfo.columnName) {
-                                dropdownConfig = mapping.dropdownConfig;
-                                break;
-                            }
-                        }
-                        let choices = [];
-                        if (dropdownConfig && 'choices' in dropdownConfig) {
-                            choices = dropdownConfig.choices;
-                        }
-                        if (dropdownConfig && 'fromColumn' in dropdownConfig) {
-                            this.dynamicDropdowns.push({ isAdvanced: false, elem: element, col: dropdownConfig.fromColumn });
-                            this.dynamicDropdowns.push({ isAdvanced: true, elem: advancedControl, col: dropdownConfig.fromColumn });
-                            choices = ['...'];
-                        }
-                        element = element.asDropdown(choices);
-                        advancedControl.data = choices.map(x => { return { html: x, value: x }; });
-                        advancedControl.type = 'combolist';
-                }
-                this.form.withElement(element);
-                this.advForm.data.fields[colInfo.columnName] = {
-                    control: advancedControl,
-                    default: {
-                        op: '='
-                    },
-                    label: colInfo.displayName
-                };
-            }
-        }
-        this.modifyAdvFormTemplate();
-        this.advForm.onBeforePopulate(this.advForm.data);
-        this.advForm.refresh(false);
-        this.advForm.items.clearSearch.onClick = () => {
-            this.list.listBox.clearSearchList();
-            let len = this.advForm.data._parsed.length;
-            for (let i = 0; i < len; i++) {
-                this.advForm.items.remove.onClick.bind(this.advForm)(i.toString());
-            }
-        };
-        this.advForm.items.filter.onClick = (v, ia, i, ele, event) => {
-            if (this.advForm._picker) {
-                var _filterMenu = [{
-                        html: 'Equals',
-                        value: '='
-                    }, {
-                        html: 'Does Not Equal',
-                        value: '<>'
-                    }, {
-                        html: 'Less Than',
-                        value: '<'
-                    }, {
-                        html: 'Less Than or Equal',
-                        value: '<='
-                    }, {
-                        html: 'Greater Than',
-                        value: '>'
-                    }, {
-                        html: 'Greater Than or Equal',
-                        value: '>='
-                    }];
-                var f = this.advForm.data._parsed[v].field;
-                var type = this.advForm.data.fields[f].control.type;
-                var exclude = ['datepicker', 'datepickerrange', 'step'];
-                if (exclude.indexOf(type) == -1) {
-                    _filterMenu = _filterMenu.concat([{
-                            html: 'Contains',
-                            value: '..x..'
-                        }, {
-                            html: 'Starts with',
-                            value: 'x..'
-                        }, {
-                            html: 'Ends with',
-                            value: '..x'
-                        }]);
-                }
-                this.advForm._picker.layout = 'list';
-                this.advForm._picker.populate(_filterMenu);
-                this.advForm._picker.setValue(this.advForm.data._parsed[v].op || '');
-                this.advForm.showPicker(ele, 'filter', v);
-            }
-        };
-        this.advForm.items.runQuery.onClick = () => {
-            let query = this.advForm.value;
-            let obj = {
-                advancedSearchControl: '',
-                queryData: [],
-            };
-            obj.advancedSearchControl = 'AdvancedSearch';
-            obj.queryData = JSON.parse(query[0]);
-            let getEditType = (col) => {
-                let type = 'text';
-                for (const column of allSearchCols) {
-                    if (column.columnName == col)
-                        return column.editType;
-                }
-                return type;
-            };
-            obj.queryData.forEach((e) => {
-                var _a;
-                let editType = (_a = getEditType(e.field)) !== null && _a !== void 0 ? _a : '';
-                let d = new Date();
-                if (['datetime', 'time'].includes(editType)) {
-                    if (e.value == 'Today')
-                        d.adjust('day', 0);
-                    else if (e.value == 'Yesterday')
-                        d.adjust('day', -1);
-                    else if (e.value == 'Tomorrow')
-                        d.adjust('day', 1);
-                    else {
-                        let fmt;
-                        if (editType == 'datetime')
-                            fmt = DEFAULT_DATETIME_FMT;
-                        if (editType == 'time')
-                            fmt = DEFAULT_DATETIME_FMT;
-                        d.fromFormat(e.value, fmt);
-                    }
-                    e.value = d;
-                }
-                let alphaType = editTypeToAlphaType(editType);
-                e.connector = e.andor == '.and.' ? 'AND' : 'OR';
-                e.quantifier = e.quantifier == '.some.' ? 'SOME' : 'ALL';
-                delete e.andor;
-                e.columnName = e.field;
-                delete e.field;
-                e.op = e.op == '' ? '=' : e.op;
-                e.columnVal = e.value;
-                e.type = alphaType;
-                delete e.value;
-            });
-            this.list.listBox.searchList(obj);
-        };
-        this.form.withElement((new FormButton())
-            .withHtml("Search")
-            .withClickHandler((x) => {
-            this.list.listBox.searchList({ searchMode: 'auto' });
-        }));
-        this.form.withElement((new FormButton())
-            .withHtml("Clear")
-            .withClickHandler(() => {
-            this.list.listBox.clearSearchList({ searchMode: 'auto' });
-        }));
-        this.list.addOnRenderCallback(() => {
-            this.setListSearchFns();
-            this.dynamicDropdowns.forEach(element => {
-                let set = new Set();
-                this.list.listBox._data.forEach((d) => {
-                    set.add(d[element.col].toString());
-                });
-                if (element.isAdvanced)
-                    element.elem.data = (Array.from(set)).map(x => { return { html: x, value: x }; });
-                else
-                    element.elem = element.elem.asDropdown(Array.from(set));
-                this.advForm.onBeforePopulate(this.advForm.data);
-                this.advForm.refresh();
-            });
-        });
     }
-    modifyAdvFormTemplate() {
-        let template = this.advForm.layouts.Default.template;
-        let onBtnClick = function (v, ia) {
-            this.data._parsed[ia.toString()].quantifier = v;
-            this.setValue(JSON.stringify(this.data._parsed));
-            this.refresh();
+    makeSearchFilters() {
+        if (this.list.config.searchOptions.advancedSearch) {
+            let d = this.form.serialize();
+            return d.map(x => {
+                x.columnVal = {
+                    tag: 'value',
+                    value: x.columnVal
+                };
+                return x;
+            });
+        }
+        let d = this.form.serialize();
+        let filters = [];
+        Object.entries(d).forEach(([colName, v]) => {
+            if (v && v != "") {
+                let f = {
+                    columnVal: {
+                        tag: 'value',
+                        value: v
+                    },
+                    columnName: colName,
+                    connector: "OR",
+                    op: '=',
+                };
+                filters.push(f);
+            }
+        });
+        return filters;
+    }
+    lookupMapping(col) {
+        for (const m of this.list.config.mappings) {
+            if (m.columnName == col)
+                return m;
+        }
+        throw new Error("No mapping " + col);
+    }
+    buildSimpleSearch() {
+        let cols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
+        let form = {
+            type: 'object',
+            options: {
+                label: 'Search List',
+                requiredKeys: {}
+            },
         };
-        this.advForm.items['quantifier'] = {
-            onClick: onBtnClick,
-            disabledClassName: "",
-            drag: { allow: false, on: "down" },
-            onBeforeSelect: false,
-            onDblClick: false,
-            onDown: false,
-            onDownHold: false,
-            onDragHold: false,
-            onDragEnd: false,
-            onDragMove: false,
-            onDragStart: false,
-            onRightClick: false,
-            onSelect: false,
-            onSwipe: false,
-            onUp: false,
-            selectable: false,
-            selectedClassName: ""
+        for (const col of cols) {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (!this.list.config.searchOptions.onlyInclude.includes(col.columnName))
+                    continue;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.includes(col.columnName))
+                    continue;
+            }
+            form.options.requiredKeys[col.displayName] = this.makeInput(col);
+        }
+        return form;
+    }
+    buildAdvancedSearch() {
+        let cols = this.list.dataScopeManager.getSearchableColumns(this.list.config).filter(x => {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (!this.list.config.searchOptions.onlyInclude.includes(x.columnName))
+                    return false;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.includes(x.columnName))
+                    return false;
+            }
+            return true;
+        });
+        let definitions = {};
+        let defaults = [];
+        for (const col of cols) {
+            let defaultVal = '';
+            switch (col.editType) {
+                case 'json':
+                case 'text':
+                case 'time':
+                case 'datetime':
+                case 'dropdown':
+                    defaultVal = '';
+                    break;
+                case 'number':
+                    defaultVal = 0;
+                    break;
+                case 'bool':
+                    defaultVal = false;
+                    break;
+            }
+            let def = {
+                type: 'object',
+                options: {
+                    label: col.displayName,
+                    requiredKeys: {
+                        columnName: {
+                            type: 'const',
+                            options: {
+                                label: '',
+                                value: col.columnName
+                            }
+                        },
+                        connector: {
+                            type: 'dropdown',
+                            options: {
+                                label: 'Connector',
+                                dropdownItems: [
+                                    { text: 'And', value: 'AND' },
+                                    { text: 'Or', value: 'OR' }
+                                ]
+                            }
+                        },
+                        op: {
+                            type: 'dropdown',
+                            options: {
+                                dropdownItems: [
+                                    {
+                                        text: 'Equal To',
+                                        value: '='
+                                    },
+                                    {
+                                        text: 'Not Equal To',
+                                        value: '<>'
+                                    },
+                                    {
+                                        text: 'Less Than',
+                                        value: '<'
+                                    },
+                                    {
+                                        text: 'Greater Than',
+                                        value: '>'
+                                    },
+                                    {
+                                        text: 'Less Than or Equal To',
+                                        value: '<='
+                                    },
+                                    {
+                                        text: 'Greater Than or Equal To',
+                                        value: '>='
+                                    },
+                                ],
+                                label: 'Operator'
+                            }
+                        },
+                        columnVal: this.makeInput(col, 'Search Value')
+                    }
+                }
+            };
+            if (col.quantifiable) {
+                def.options.requiredKeys['quantifier'] = {
+                    type: 'dropdown',
+                    options: {
+                        label: 'Nested Datagroup Satisfies',
+                        dropdownItems: [
+                            { text: 'All', value: 'ALL' },
+                            { text: 'Some', value: 'SOME' }
+                        ]
+                    }
+                };
+            }
+            let defaultObj = {
+                columnVal: defaultVal,
+                connector: 'AND',
+                op: '=',
+            };
+            if (col.quantifiable) {
+                defaultObj['quantifier'] = 'SOME';
+            }
+            defaults.push(defaultObj);
+            definitions[col.columnName] = {
+                defaultValue: defaultObj,
+                definition: def
+            };
+        }
+        let form = {
+            type: 'array',
+            options: {
+                label: 'Advanced List Search',
+                defaultValue: defaults[0],
+                itemTemplate: {
+                    type: 'multi',
+                    options: {
+                        label: 'Search Parameter',
+                        definitions: definitions
+                    }
+                }
+            }
         };
-        if (template.indexOf("QUANTIFIER") >= 0)
-            return;
-        let newTemplate = `
-            <div style="white-space: nowrap;">
-                {*if [root].fields[field].control.quantifier} 
-                    {A5.buttonLists.html(
-                        '${this.obj.dialogId}.AdvancedSearch.QUANTIFIER' + [count],
-                        <escape<
-                            {
-                                theme: "${this.advForm.theme}",
-                                button: {style: 'width: 60px;' }
-                            },
-                            [
-                                {
-                                    html: 'ALL<div class="icon" style="width: 0px; display: inline-block;">&nbsp;</div>',
-                                    value: '.all.'
-                                },
-                                {
-                                    html: 'SOME<div class="icon" style="width: 0px; display: inline-block;">&nbsp;</div>',
-                                    value: '.some.'
-                                },
-                            ],
-                            (() => { try {return quantifier;} catch(_) {return '.all.'}})(),
-                            'a5-item="quantifier:' + [count] + '" a5-value="{value}" id="${this.obj.dialogId}.AdvancedSearch.QUANTIFIER' + [count] + '.{index}"'
-                        >>
-                    )}
-                {*endif}
-            </div>
-        `;
-        newTemplate = newTemplate.replace(/(\r\n|\n|\r)/gm, '');
-        let templateSplitPoint = template.indexOf("</div>	{/_parsed}");
-        template = template.slice(0, templateSplitPoint) + newTemplate + template.slice(templateSplitPoint);
-        this.advForm.layouts.Default.template = template;
-        this.advForm.layouts.Default._t = undefined;
+        return form;
+    }
+    makeInput(col, label) {
+        let getDropdownOps = (mapping) => {
+            var _a;
+            let ops = (_a = mapping.dropdownConfig) !== null && _a !== void 0 ? _a : { choices: [] };
+            let options;
+            if ('fromColumn' in ops) {
+                // Just using as hash set
+                let s = [];
+                this.list.data.forEach(d => s[d[mapping.columnName]] = 0);
+                options = Object.keys(s);
+            }
+            else {
+                options = ops.choices;
+            }
+            return options.map(x => { return { value: x, text: x }; });
+        };
+        switch (col.editType) {
+            case 'json':
+            case 'text':
+                return {
+                    type: 'simple',
+                    options: {
+                        type: 'string',
+                        label: col.displayName,
+                        default: ''
+                    }
+                };
+            case 'number':
+                return {
+                    type: 'simple',
+                    options: {
+                        type: 'number',
+                        label: col.displayName,
+                        default: 0
+                    }
+                };
+            case 'time':
+            case 'datetime':
+                return {
+                    type: 'simple',
+                    options: {
+                        type: 'datetime',
+                        label: col.displayName,
+                        default: ''
+                    }
+                };
+            case 'bool':
+                return {
+                    type: 'simple',
+                    options: {
+                        type: 'boolean',
+                        label: col.displayName,
+                        default: false
+                    }
+                };
+            case 'dropdown': {
+                return {
+                    type: 'dropdown',
+                    options: {
+                        label: label !== null && label !== void 0 ? label : col.displayName,
+                        dropdownItems: getDropdownOps(this.lookupMapping(col.columnName))
+                    }
+                };
+            }
+        }
+    }
+    makeButtons() {
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-search-btn">Search</span>`,
+                        onClick: () => {
+                            this.list.listBox.searchList({ searchMode: 'auto', queryData: this.makeSearchFilters() });
+                            this.obj._functions.search.onSearch();
+                        },
+                    }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-clear-btn">Clear</span>`,
+                        onClick: () => {
+                            this.list.listBox.clearSearchList({ searchMode: 'auto' });
+                            this.obj._functions.search.onClear();
+                        }
+                    }
+                },
+            ],
+            container: {
+                className: 'dynamic-search-buttons',
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 0.5rem;
+                `,
+            }
+        };
     }
     serverOrClientSearch(o) {
         let obj = typeof o != 'undefined' ? o : {};
@@ -10388,7 +10680,7 @@ class DynamicListSearch {
                 let v = values[i];
                 let val;
                 if (v.item.columnVal)
-                    val = v.item.columnVal;
+                    val = v.item.columnVal.value;
                 else
                     val = v.item;
                 obj_i = this.list.listBox._searchFieldOptions[v.name];
@@ -10397,7 +10689,7 @@ class DynamicListSearch {
                 if (typeof val === 'string')
                     strVal = this.list.listBox._str(val);
                 if (val instanceof Date)
-                    strVal = this.list.listBox._str(val.toFormat(DEFAULT_DATETIME_FMT));
+                    strVal = this.list.listBox._str(val.toFormat(listBuilder_DEFAULT_DATETIME_FMT));
                 if (v.item.op)
                     obj['op'] = v.item.op;
                 if (v.item.quantifier)
@@ -10469,7 +10761,7 @@ class DynamicListSearch {
                     e.columnVal = { tag: 'value', value: '%' + e.columnVal + '%' };
                 }
                 if (e.columnVal instanceof Date) {
-                    e.columnVal = e.columnVal.toFormat(DEFAULT_DATETIME_FMT);
+                    e.columnVal = e.columnVal.toFormat(listBuilder_DEFAULT_DATETIME_FMT);
                 }
             });
             this.list.setFilterAndFetch(filters);
@@ -10520,14 +10812,14 @@ class DynamicListSearch {
             this.list.listBox._searchPart.fieldMap.push({
                 control: 'SearchForm::' + col.columnName,
                 field: col.columnName,
-                dateFormat: DEFAULT_DATETIME_FMT
+                dateFormat: listBuilder_DEFAULT_DATETIME_FMT
             });
             this.list.listBox._searchFieldOptions[col.columnName] = {
                 option: 2,
                 qbs: true,
                 searchField: col.columnName,
                 type: col.editType,
-                dateFormat: DEFAULT_DATETIME_FMT
+                dateFormat: listBuilder_DEFAULT_DATETIME_FMT
             };
         }
     }
@@ -10781,6 +11073,7 @@ class FormButton {
 
 
 
+
 const CONFIG_CONTAINER_NAME = 'CONFIG_CONTAINER';
 function batchFetch(obj, configName, filters) {
     configName = encodeURIComponent(configName);
@@ -10832,6 +11125,20 @@ function tryRecoverConfig(obj, admin, configName) {
 }
 function initialize(ops) {
     var _a;
+    if (ops.embeddedList === undefined) {
+        ops.embeddedList = ops.obj;
+    }
+    if (ops.embeddedSearch === undefined) {
+        ops.embeddedSearch = ops.obj;
+    }
+    ops.embeddedSearch._functions.search = {
+        onSearch: () => {
+            ops.obj.runAction('hide docks');
+        },
+        onClear: () => {
+            ops.obj.runAction('hide docks');
+        }
+    };
     let isAdmin = false;
     return batchFetch(ops.embeddedList, ops.configName, (_a = ops.filters) !== null && _a !== void 0 ? _a : []).then(() => {
         var _a;
@@ -10871,18 +11178,25 @@ function initialize(ops) {
             ops.prefetch = ops.embeddedList.stateInfo.apiResponse.ok;
             return initList(ops);
         }
+    }).then(() => {
+        ops.obj.applyConfigChanges = () => {
+            DYNAMIC_LIST_LOOKUP[ops.configName].config.applyChanges();
+        };
+        ops.obj.getDynamicList = () => DYNAMIC_LIST_LOOKUP[ops.configName].list;
+        ops.obj.saveConfigGlobally = () => DYNAMIC_LIST_LOOKUP[ops.configName].config.saveConfigGlobally();
+        ops.obj.saveConfigUser = () => DYNAMIC_LIST_LOOKUP[ops.configName].config.saveConfigUser();
     });
 }
 function initList(ops) {
     DynamicList.makeDynamicList({
         obj: ops.embeddedList,
-        window: ops.listWindow,
         prefetch: ops.prefetch,
+        containerId: ops.listContainerId,
         filters: ops.filters,
         args: ops.args,
         otherProperties: ops.otherProps,
     }).then((list) => {
-        let search = new DynamicListSearch(list, ops.embeddedSearch, ops.searchWindow);
+        let search = new DynamicListSearch(list, ops.embeddedSearch, ops.embeddedSearch.getPointer('SEARCH_CONTAINER').id);
         DYNAMIC_LIST_LOOKUP[ops.prefetch.config.name] = {
             list: list,
             search: search,
@@ -10890,16 +11204,14 @@ function initList(ops) {
         };
         manageConfigForm({
             obj: ops.obj,
-            listWindow: ops.listWindow,
-            searchWindow: ops.searchWindow,
             preFetch: ops.prefetch,
             filters: ops.filters,
             args: ops.args,
             embeddedList: ops.embeddedList,
+            listContainerId: ops.listContainerId,
             embeddedSearch: ops.embeddedSearch,
             otherProps: ops.otherProps
         });
-        ops.embeddedList.initialize(list);
     }).catch((err) => {
         if (err instanceof ValidationError) {
             displayErrorMessage(err.toString());
@@ -10920,12 +11232,11 @@ function initList(ops) {
         };
         manageConfigForm({
             obj: ops.obj,
-            listWindow: ops.listWindow,
-            searchWindow: ops.searchWindow,
             preFetch: ops.prefetch,
             filters: ops.filters,
             args: ops.args,
             embeddedList: ops.embeddedList,
+            listContainerId: ops.listContainerId,
             embeddedSearch: ops.embeddedSearch,
             otherProps: ops.otherProps
         });
@@ -11046,13 +11357,13 @@ function manageConfigForm(ops) {
                 let prefetchCopy = jQuery.extend(true, {}, ops.preFetch);
                 DynamicList.makeDynamicList({
                     obj: ops.embeddedList,
-                    window: ops.listWindow,
                     prefetch: prefetchCopy,
+                    containerId: ops.listContainerId,
                     filters: ops.filters,
                     args: ops.args,
                     otherProperties: ops.otherProps
                 }).then((newList) => {
-                    newSearch = new DynamicListSearch(newList, ops.embeddedSearch, ops.searchWindow);
+                    newSearch = new DynamicListSearch(newList, ops.embeddedSearch, ops.embeddedSearch.getPointer('SEARCH_CONTAINER').id);
                     dynamicItems.list = newList;
                     dynamicItems.search = newSearch;
                     dynamicItems.list.reRender(true);
@@ -11122,6 +11433,21 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                         }
                                     }
                                 },
+                                'List Action Builder': {
+                                    defaultValue: {
+                                        listAction: {
+                                            actionName: 'openDetailView'
+                                        }
+                                    },
+                                    definition: {
+                                        type: 'object', options: {
+                                            label: 'List Action',
+                                            requiredKeys: {
+                                                listAction: listActionEditor()
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

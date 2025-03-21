@@ -340,8 +340,6 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
 	
-	debug(1)
-	
 	if .not. config.isSuccessful() then 
 		resultsOut[] = config 
 		end

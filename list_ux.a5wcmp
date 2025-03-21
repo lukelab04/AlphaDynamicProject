@@ -181,8 +181,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2025-3-14",
-            "revisionnumber": 591
+            "dateLastEdited": "2025-3-21",
+            "revisionnumber": 597
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -245,7 +245,7 @@
                 "controlType": "layout_directive_PanelNavigatorBegin",
                 "display": "{C=#51+111+61,White}{B=White,#51+111+61n}{F=+B}{Data=f6eec087-879e-4260-9516-ad1d365a3ff9}{I:'$$web.panel.navigator'} [Panel Navigator: PANELNAVIGATOR_1]  Programmatic (LTR)",
                 "idInternal": "f6eec087-879e-4260-9516-ad1d365a3ff9",
-                "lastIndex": 18,
+                "lastIndex": 19,
                 "crc": "4294967230",
                 "v": {
                     "container": {
@@ -322,13 +322,14 @@
                     "ControlHTML": "'xbasic\nv._dirty = .f.\n",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0
+                "containerStartIndex": 0,
+                "iscollapsed": false
             },
             {
                 "controlType": "layout_directive_PanelCardBegin",
                 "display": "{C=#104+150+112,White}{B=White,#104+150+112}{F=+B}{I:'vertline'}{Data=ef1248ab-632e-4417-a170-bd5b2ed9dac1}{I:'$$web.panel.card'} [Panel Card: LIST_PANEL]",
                 "idInternal": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
-                "lastIndex": 12,
+                "lastIndex": 13,
                 "parentContainer": 1,
                 "crc": "4294916664",
                 "v": {
@@ -432,7 +433,7 @@
                 "controlType": "layout_directive_ContainerBegin",
                 "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=f026a826-a531-4478-9cb3-c4d359960959}{I:'$$format.border.style.dash'} [Container: CONTAINER_2]",
                 "idInternal": "f026a826-a531-4478-9cb3-c4d359960959",
-                "lastIndex": 11,
+                "lastIndex": 12,
                 "parentContainer": 2,
                 "crc": "4294961169",
                 "v": {
@@ -531,13 +532,14 @@
                     "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.CONTAINER_2\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; width: 100%; height: panel.height - 50; flex-direction: column; \"  ><!--DIV for Container control-->",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0
+                "containerStartIndex": 0,
+                "iscollapsed": false
             },
             {
                 "controlType": "layout_directive_ContainerBegin",
                 "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=bba7d142-7081-457c-b7bd-bb4b9231ae80}{I:'$$format.border.style.dash'} [Container: FLEXLAYOUT_1]",
                 "idInternal": "bba7d142-7081-457c-b7bd-bb4b9231ae80",
-                "lastIndex": 7,
+                "lastIndex": 8,
                 "parentContainer": 3,
                 "crc": "4294941703",
                 "v": {
@@ -749,6 +751,104 @@
                 }
             },
             {
+                "controltype": "layout_directive_button",
+                "idInternal": "d71e1919-91ab-48e8-8e61-db40b81eee15",
+                "parentContainer": 4,
+                "containerStartIndex": 0,
+                "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=d71e1919-91ab-48e8-8e61-db40b81eee15}{I:'$$control.button'} [Button: Edit Selected Records]<<break>>",
+                "precalc": {
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.MULTI_EDIT_BTN\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
+                    "DesignViewHTML": ""
+                },
+                "crc": "4294918308",
+                "v": {
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "buttonText": "Edit Selected Records",
+                    "Class": "<Default>",
+                    "cssGridItemPropertiesJSON": "",
+                    "BreakType": "After",
+                    "breakHeight": ".1in",
+                    "breakHorizontalSpace": ".1in",
+                    "id": "MULTI_EDIT_BTN",
+                    "advancedButtonStyling": true,
+                    "labelClass": "<Default>",
+                    "labelPosition": "None",
+                    "labelWidth": "{Global.LabelWidth}",
+                    "labelAlignment": "Left",
+                    "advancedButton": {
+                        "subTheme": "base",
+                        "buttonClass": "",
+                        "buttonClassDisabled": "",
+                        "buttonClassHover": "",
+                        "buttonClassPressed": "",
+                        "buttonInlineStyle": "",
+                        "buttonstyle": "Text only",
+                        "disabledImageName": "",
+                        "hoverImageName": "",
+                        "displayDropdownIconOnButton": false,
+                        "displayAsSplitButton": false,
+                        "showBadge": false,
+                        "badgeSettingsJSON": "",
+                        "hyperlinkClass": "[class.gridHyperlinkButton]",
+                        "hyperlinkImagePosition": "None",
+                        "hyperlinkInlineStyle": "",
+                        "imageClass": "",
+                        "imageInlineStyle": "",
+                        "imageName": "",
+                        "pressedImageName": "",
+                        "textClass": "",
+                        "textInlineStyle": "",
+                        "type": "Button"
+                    },
+                    "securityGroups": "",
+                    "showHideExpn": "",
+                    "clientSideconditionalStyle": "",
+                    "CalcExpression": "",
+                    "EnableExpression": "",
+                    "ShowExpression": "",
+                    "precalc": {
+                        "javascriptClientSideWatches": "",
+                        "javascriptAbstractSetupCode": "",
+                        "javascriptAdvancedButton": "",
+                        "javascriptAdvancedButton_control": "{dialog.object}._buttons['MULTI_EDIT_BTN'] = new A5.Button({\n\tlayout: 'text',\n\tstyle: 'box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;',\n\thtml: 'Edit Selected Records',\n\tonClick: function() { \n\n},\n\ttheme: '{grid.style}:base'\n});",
+                        "javascriptAdvancedButton_bind": "{dialog.object}._buttons['MULTI_EDIT_BTN'].bind('{DIALOG.COMPONENTNAME}.V.R{DIALOG.ROWNUMBER}.MULTI_EDIT_BTN');"
+                    },
+                    "info": {
+                        "level": 4,
+                        "isContainerStart": false,
+                        "isTabControlStart": false,
+                        "isContainerEnd": false,
+                        "isTabControlEnd": false,
+                        "isTabPaneEnd": false,
+                        "lastItemInTabPane": false,
+                        "inContainer": true,
+                        "inCSSGridContainer": false,
+                        "inRepeatingSection": false,
+                        "inTabPane": false,
+                        "parentContainerID": "bba7d142-7081-457c-b7bd-bb4b9231ae80",
+                        "repeatingSectionParentId": "",
+                        "parentTabID": "",
+                        "parentTabPaneID": "",
+                        "index": 6,
+                        "color": "",
+                        "icon": "$$control.button",
+                        "displayText": "[Button: Edit Selected Records]",
+                        "parentPanelCardId": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
+                        "break": true,
+                        "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=d71e1919-91ab-48e8-8e61-db40b81eee15}{I:'$$control.button'} [Button: Edit Selected Records]<<break>>"
+                    },
+                    "javascript": {
+                        "onclick": ""
+                    },
+                    "controlContainerStyle": "",
+                    "listView": {
+                        "__listprops": false
+                    }
+                },
+                "iscollapsed": false
+            },
+            {
                 "controlType": "layout_directive_statictext",
                 "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=f5da1d92-e09e-43d5-916c-87e9d716bb7c}{I:'$$format.text'} [Static Text:<p id=\"{dialog.componentname}_RECORD_COU...]<<break>>",
                 "idInternal": "f5da1d92-e09e-43d5-916c-87e9d716bb7c",
@@ -787,7 +887,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 6,
+                        "index": 7,
                         "color": "",
                         "icon": "$$format.text",
                         "displayText": "[Static Text:<p id=\"{dialog.componentname}_RECORD_COU...]",
@@ -835,7 +935,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 7,
+                        "index": 8,
                         "containerStartID": "bba7d142-7081-457c-b7bd-bb4b9231ae80",
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "vertLineCap",
@@ -850,13 +950,14 @@
                     "DesignViewHTML": ""
                 },
                 "containerStartIndex": 4,
-                "__flagwrapcontentsindiv": false
+                "__flagwrapcontentsindiv": false,
+                "iscollapsed": false
             },
             {
                 "controlType": "layout_directive_ContainerBegin",
                 "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=098af8a0-40f4-4bb1-8877-288ee1a23a79}{I:'$$format.border.style.dash'} [Container: LIST_CONTAINER]",
                 "idInternal": "098af8a0-40f4-4bb1-8877-288ee1a23a79",
-                "lastIndex": 10,
+                "lastIndex": 11,
                 "parentContainer": 3,
                 "crc": "4294903013",
                 "v": {
@@ -942,7 +1043,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 8,
+                        "index": 9,
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "$$format.border.style.dash",
                         "displayText": "[Container: LIST_CONTAINER]",
@@ -966,7 +1067,7 @@
                 "controlType": "dialog_formcontrol",
                 "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [DYNAMIC_LIST]<<break>>",
                 "idInternal": "a99c667b-1092-4d68-810e-88264b95c03e",
-                "parentContainer": 8,
+                "parentContainer": 9,
                 "displayODtree": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [DYNAMIC_LIST]<<break>>",
                 "crc": "4294917398",
                 "v": {
@@ -3025,7 +3126,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 9,
+                        "index": 10,
                         "color": "",
                         "icon": "$$control.browse",
                         "displayText": "[DYNAMIC_LIST]",
@@ -3077,7 +3178,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 10,
+                        "index": 11,
                         "containerStartID": "098af8a0-40f4-4bb1-8877-288ee1a23a79",
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "vertLineCap",
@@ -3093,7 +3194,7 @@
                 },
                 "isCollapsed": false,
                 "parentIsCollapsed": false,
-                "containerStartIndex": 8,
+                "containerStartIndex": 9,
                 "__flagwrapcontentsindiv": false
             },
             {
@@ -3124,7 +3225,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 11,
+                        "index": 12,
                         "containerStartID": "f026a826-a531-4478-9cb3-c4d359960959",
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "vertLineCap",
@@ -3139,7 +3240,8 @@
                     "DesignViewHTML": ""
                 },
                 "containerStartIndex": 3,
-                "__flagwrapcontentsindiv": false
+                "__flagwrapcontentsindiv": false,
+                "iscollapsed": false
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -3164,7 +3266,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 12,
+                        "index": 13,
                         "containerStartID": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
                         "color": "{C=#104+150+1120,White}{B=White,#104+150+112}{F=+B}",
                         "icon": "vertLineCap",
@@ -3184,7 +3286,7 @@
                 "controlType": "layout_directive_PanelCardBegin",
                 "display": "{C=#104+150+112,White}{B=White,#104+150+112}{F=+B}{I:'vertline'}{Data=d585c78a-36d0-4965-8fbd-37ab290ed0f2}{I:'$$web.panel.card'} [Panel Card: EDITOR_PANEL]",
                 "idInternal": "d585c78a-36d0-4965-8fbd-37ab290ed0f2",
-                "lastIndex": 17,
+                "lastIndex": 18,
                 "parentContainer": 1,
                 "crc": "4294960416",
                 "precalc": {
@@ -3253,7 +3355,8 @@
                         "_panelCardDirty": true,
                         "_orphanControlHTML": "",
                         "pinchToZoom": false,
-                        "centerContents": false
+                        "centerContents": false,
+                        "_precalcJS": ""
                     },
                     "info": {
                         "level": 1,
@@ -3271,7 +3374,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 13,
+                        "index": 14,
                         "color": "{C=#104+150+112,White}{B=White,#104+150+112}{F=+B}",
                         "icon": "$$web.panel.card",
                         "displayText": "[Panel Card: EDITOR_PANEL]",
@@ -3286,7 +3389,7 @@
                 "controlType": "layout_directive_button",
                 "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{Data=f8d98b17-7ba4-4954-a69d-76cea91949e9}{I:'$$control.button'} [Button: Back]<<break>>",
                 "idInternal": "f8d98b17-7ba4-4954-a69d-76cea91949e9",
-                "parentContainer": 13,
+                "parentContainer": 14,
                 "crc": "4294955236",
                 "v": {
                     "buttonText": "Back",
@@ -3364,7 +3467,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 14,
+                        "index": 15,
                         "color": "",
                         "icon": "$$control.button",
                         "displayText": "[Button: Back]",
@@ -3387,8 +3490,8 @@
             {
                 "controltype": "layout_directive_ContainerBegin",
                 "idInternal": "f6b527c5-aa32-46d3-ae62-0079f5f1d228",
-                "lastIndex": 16,
-                "parentContainer": 13,
+                "lastIndex": 17,
+                "parentContainer": 14,
                 "containerStartIndex": 0,
                 "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=f6b527c5-aa32-46d3-ae62-0079f5f1d228}{I:'$$format.border.style.dash'} [Container: EDITOR_CONTAINER]",
                 "precalc": {
@@ -3477,7 +3580,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 15,
+                        "index": 16,
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "$$format.border.style.dash",
                         "displayText": "[Container: EDITOR_CONTAINER]",
@@ -3495,8 +3598,8 @@
             {
                 "controltype": "layout_directive_ContainerEnd",
                 "idInternal": "6fb3b949-3ee5-4fae-9afd-066b2e8054df",
-                "parentContainer": 13,
-                "containerStartIndex": 15,
+                "parentContainer": 14,
+                "containerStartIndex": 16,
                 "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=6fb3b949-3ee5-4fae-9afd-066b2e8054df}{I:'vertLineCap'} [Container End: EDITOR_CONTAINER]<<break>>",
                 "__flagwrapcontentsindiv": false,
                 "precalc": {
@@ -3525,7 +3628,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 16,
+                        "index": 17,
                         "containerStartID": "f6b527c5-aa32-46d3-ae62-0079f5f1d228",
                         "color": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}",
                         "icon": "vertLineCap",
@@ -3535,7 +3638,8 @@
                         "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=6fb3b949-3ee5-4fae-9afd-066b2e8054df}{I:'vertLineCap'} [Container End: EDITOR_CONTAINER]<<break>>"
                     }
                 },
-                "crc": "4294946219"
+                "crc": "4294946219",
+                "iscollapsed": false
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -3560,7 +3664,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 17,
+                        "index": 18,
                         "containerStartID": "d585c78a-36d0-4965-8fbd-37ab290ed0f2",
                         "color": "{C=#104+150+1120,White}{B=White,#104+150+112}{F=+B}",
                         "icon": "vertLineCap",
@@ -3574,13 +3678,19 @@
                     "DesignViewHTML": ""
                 },
                 "isCollapsed": false,
-                "containerStartIndex": 13
+                "containerStartIndex": 14
             },
             {
                 "controlType": "layout_directive_PanelNavigatorEnd",
                 "display": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}{Data=d6a52b0e-06f0-4cd2-adb8-307559b4bcf9}{I:'vertLineCap'} [Panel Navigator End: PANELNAVIGATOR_1]",
                 "idInternal": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9",
-                "crc": "4294950641",
+                "crc": "4294931574",
+                "precalc": {
+                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
+                    "DesignViewHTML": ""
+                },
+                "containerStartIndex": 1,
+                "iscollapsed": false,
                 "v": {
                     "info": {
                         "level": 0,
@@ -3598,7 +3708,7 @@
                         "repeatingSectionParentId": "",
                         "parentTabID": "",
                         "parentTabPaneID": "",
-                        "index": 18,
+                        "index": 19,
                         "containerStartID": "f6eec087-879e-4260-9516-ad1d365a3ff9",
                         "color": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}",
                         "icon": "vertLineCap",
@@ -3606,12 +3716,7 @@
                         "parentPanelCardId": "",
                         "display": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}{Data=d6a52b0e-06f0-4cd2-adb8-307559b4bcf9}{I:'vertLineCap'} [Panel Navigator End: PANELNAVIGATOR_1]"
                     }
-                },
-                "precalc": {
-                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
-                    "DesignViewHTML": ""
-                },
-                "containerStartIndex": 1
+                }
             }
         ],
         "builderType": "Dialog2",
@@ -3648,13 +3753,13 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": false,
-        "selected": "6fb3b949-3ee5-4fae-9afd-066b2e8054df\n",
+        "selected": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9\n",
         "designPaneIndex": 1,
         "masterPaneC": "controls",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 13,
         "clientSideEventIndexC": "13",
-        "lastControlSelected": "insert_dialog_formbox",
+        "lastControlSelected": "insert_layout_directive_button",
         "__WPhostName": "Chrome",
         "embeddedMode": false,
         "_style_hassubthemeTweaks": false,
@@ -3666,7 +3771,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "590",
+        "_buildCount": "596",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3701,7 +3806,7 @@
             },
             "fileUpload_controlInfo": "",
             "javascript_cascadingDropdowns": "{dialog.object}._cascadingControls = [];\n{dialog.object}._cascadingControlsChildren = [];",
-            "template_html": "<!--div GLOBALERRORS-->\n<div class=\"errorTip\" style=\"margin-bottom: 2px; display: none; width: 8in; \" id=\"{dialog.componentname}.GLOBALERRORS\"></div>\n<!--End div GLOBALERRORS-->\n\n<div id=\"{dialog.componentname}.R1\">\n'xbasic\nv._dirty = .f.\n\n'xbasic\n\nv._dirty = .f.\n\n\n\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.CONTAINER_2\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; width: 100%; height: panel.height - 50; flex-direction: column; \"  ><!--DIV for Container control-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.FLEXLAYOUT_1\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; flex-direction: row; align-items: center; \"  ><!--DIV for Container control-->\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<div id=\"{dialog.componentName}.V.R{dialog.rownumber}.STATICTEXT_1\" title=\"\"  class=\"\" style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;\"   ><p id=\"{dialog.componentname}_RECORD_COUNT\">Records: 0</p></div>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.FLEXLAYOUT_1.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.LIST_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; height: 300px; flex: 1; \"  ><!--DIV for Container control-->\n<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST\" name=\"V.R{grid.rownumber}.DYNAMIC_LIST\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST.CONTROL\"  class=\"{grid.componentName}_DYNAMIC_LIST\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.LIST_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.CONTAINER_2.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n'xbasic\nv._dirty = .f.\n\n'xbasic\n\nv._dirty = .f.\n\n\n\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_2\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.EDITOR_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; \"  ><!--DIV for Container control-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t\t</div>\n\t<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.EDITOR_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n'xbasic\nv._dirty = .f.\n\n'xbasic\nv._dirty = .f.\n\n\n\n</div>\n<!--div DEBUGUPDATECOMMANDS-->\n<div class=\"\" style=\"display: none; \" id=\"{dialog.componentname}.DEBUGUPDATECOMMANDS\"></div>\n<!--End div DEBUGUPDATECOMMANDS-->\n",
+            "template_html": "<!--div GLOBALERRORS-->\n<div class=\"errorTip\" style=\"margin-bottom: 2px; display: none; width: 8in; \" id=\"{dialog.componentname}.GLOBALERRORS\"></div>\n<!--End div GLOBALERRORS-->\n\n<div id=\"{dialog.componentname}.R1\">\n'xbasic\nv._dirty = .f.\n\n'xbasic\n\nv._dirty = .f.\n\n\n\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.CONTAINER_2\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; width: 100%; height: panel.height - 50; flex-direction: column; \"  ><!--DIV for Container control-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.FLEXLAYOUT_1\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; flex-direction: row; align-items: center; \"  ><!--DIV for Container control-->\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.MULTI_EDIT_BTN\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<div id=\"{dialog.componentName}.V.R{dialog.rownumber}.STATICTEXT_1\" title=\"\"  class=\"\" style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;\"   ><p id=\"{dialog.componentname}_RECORD_COUNT\">Records: 0</p></div>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.FLEXLAYOUT_1.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.LIST_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; height: 300px; flex: 1; \"  ><!--DIV for Container control-->\n<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST\" name=\"V.R{grid.rownumber}.DYNAMIC_LIST\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST.CONTROL\"  class=\"{grid.componentName}_DYNAMIC_LIST\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.LIST_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.CONTAINER_2.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n'xbasic\nv._dirty = .f.\n\n'xbasic\n\nv._dirty = .f.\n\n\n\n<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_2\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->\n<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.EDITOR_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; \"  ><!--DIV for Container control-->\n<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t\t</div>\n\t<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.EDITOR_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->\n'xbasic\nv._dirty = .f.\n\n'xbasic\nv._dirty = .f.\n\n\n\n</div>\n<!--div DEBUGUPDATECOMMANDS-->\n<div class=\"\" style=\"display: none; \" id=\"{dialog.componentname}.DEBUGUPDATECOMMANDS\"></div>\n<!--End div DEBUGUPDATECOMMANDS-->\n",
             "panelDisplayNames": "LIST_PANEL : 'LIST_PANEL',EDITOR_PANEL : 'EDITOR_PANEL',PANELNAVIGATOR_1 : 'PANELNAVIGATOR_1'",
             "controlJavascript": "",
             "controlJavascriptRepeatingSections": "",
@@ -3834,7 +3939,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20250314154157965",
+        "A5SaveTimeStamp": "20250321162758937",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7   ",
@@ -3901,7 +4006,7 @@
         "htmlencodejavascript": true,
         "__LPhostName": "Chrome",
         "_style_isInherited": false,
-        "_analyzecontainersjs": false,
+        "_analyzecontainersjs": true,
         "_repeatingSectionPendingRecalc": "\n",
         "cachecomponent": false,
         "_crcXbEvents": 4294903431,
@@ -4036,9 +4141,7 @@
                 "VariableName": "",
                 "DefaultValue": "eed9a06d3e3148569a450361d91c3232_RDACFIDFIEI",
                 "Value": "",
-                "ArgumentDescription": "",
-                "runtimeValue": "eed9a06d3e3148569a450361d91c3232_RDACFIDFIEI",
-                "sr": "{API_KEY}=\"eed9a06d3e3148569a450361d91c3232_RDACFIDFIEI\""
+                "ArgumentDescription": ""
             },
             {
                 "Name": "NAME_FILTER",
@@ -4048,9 +4151,7 @@
                 "VariableName": "",
                 "DefaultValue": "LaBonte",
                 "Value": "",
-                "ArgumentDescription": "",
-                "runtimeValue": "LaBonte",
-                "sr": "{NAME_FILTER}=\"LaBonte\""
+                "ArgumentDescription": ""
             }
         ],
         "_flagForceRecalcChildren": true,
