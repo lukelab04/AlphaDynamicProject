@@ -10547,22 +10547,6 @@ class DynamicListSearch {
                                         text: 'Not Equal To',
                                         value: '<>'
                                     },
-                                    {
-                                        text: 'Less Than',
-                                        value: '<'
-                                    },
-                                    {
-                                        text: 'Greater Than',
-                                        value: '>'
-                                    },
-                                    {
-                                        text: 'Less Than or Equal To',
-                                        value: '<='
-                                    },
-                                    {
-                                        text: 'Greater Than or Equal To',
-                                        value: '>='
-                                    },
                                 ],
                                 label: 'Operator'
                             }
@@ -10571,6 +10555,33 @@ class DynamicListSearch {
                     }
                 }
             };
+            if (col.editType == 'text') {
+                def.options.requiredKeys.op.options.dropdownItems.push({
+                    text: 'Starts With',
+                    value: "x.."
+                }, {
+                    text: 'Ends With',
+                    value: "..x"
+                }, {
+                    text: 'Includes',
+                    value: '..x..'
+                });
+            }
+            else {
+                def.options.requiredKeys.op.options.dropdownItems.push({
+                    text: 'Less Than',
+                    value: '<'
+                }, {
+                    text: 'Greater Than',
+                    value: '>'
+                }, {
+                    text: 'Less Than or Equal To',
+                    value: '<='
+                }, {
+                    text: 'Greater Than or Equal To',
+                    value: '>='
+                });
+            }
             if (col.quantifiable) {
                 def.options.requiredKeys['quantifier'] = {
                     type: 'dropdown',

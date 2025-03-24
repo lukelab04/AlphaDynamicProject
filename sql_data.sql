@@ -21,15 +21,15 @@ USE `alphasports`;
 
 -- Dumping structure for table alphasports.alpha_anywhere_dynamic_list_settings
 CREATE TABLE IF NOT EXISTS `alpha_anywhere_dynamic_list_settings` (
-  `ID` int(11) NOT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
   `USER_NAME` varchar(50) DEFAULT '',
   `GLOBAL` tinyint(4) NOT NULL DEFAULT 0,
   `CONFIG` mediumtext NOT NULL,
   `CONFIG_NAME` text NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- Dumping data for table alphasports.alpha_anywhere_dynamic_list_settings: ~11 rows (approximately)
+-- Dumping data for table alphasports.alpha_anywhere_dynamic_list_settings: ~12 rows (approximately)
 DELETE FROM `alpha_anywhere_dynamic_list_settings`;
 INSERT INTO `alpha_anywhere_dynamic_list_settings` (`ID`, `USER_NAME`, `GLOBAL`, `CONFIG`, `CONFIG_NAME`) VALUES
 	(30, '', 1, '{"name":"API Json","dataSource":{"type":"json","endpoints":{"fetch":{"method":"GET","endpoint":"\\"https://dummyjson.com/products\\"","body":{},"headers":{}}},"preprocess":"result => result.products"},"mappings":[],"searchOptions":{"advancedSearch":false,"serverSearch":false},"buttons":[]}', 'API Data'),
@@ -42,7 +42,8 @@ INSERT INTO `alpha_anywhere_dynamic_list_settings` (`ID`, `USER_NAME`, `GLOBAL`,
 	(43, '', 1, '{"name":"JSON Field","dataSource":{"type":"sql","table":"Friends","filters":[]},"mappings":[{"columnName":"FirstName","inList":true,"inDetailView":true,"editType":"text","dropdownConfig":{"choices":[]},"readOnly":false},{"columnName":"Friends","inList":false,"inDetailView":true,"editType":"json","subMappings":{"arrayItem":{"keys":{"name":{"editType":"string"}}}},"dropdownConfig":{"choices":[]},"readOnly":false},{"columnName":"ID","inList":false,"inDetailView":false,"readOnly":false}],"buttons":[{"columnTitle":"Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"},{"columnTitle":"Friends SubArray","onClick":{"function":"(list, rowNum, data) => {             list.linkSublistToField(\\"JSON Field.Friends\\", \\"Friends\\", \\"Friends\\", JSON.parse(data[\'Friends\']), rowNum, data);         }"},"title":"Open Friends List"}],"searchOptions":{"advancedSearch":false,"serverSearch":false},"multiSelect":false}', 'JSON Field'),
 	(45, '', 1, '{"name":"JSON Field.Friends","dataSource":{"type":"json","jsonData":"[{\\"name\\":\\"Emma\\"},{\\"name\\":\\"Joe\\"}]"},"mappings":[{"columnName":"name","inList":true,"inDetailView":true,"readOnly":false}],"buttons":[{"columnTitle":"Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"}],"searchOptions":{"advancedSearch":false,"serverSearch":false},"multiSelect":false}', 'JSON Field.Friends'),
 	(47, '', 1, '{"name":"INVOICE_HEADERS","dataSource":{"type":"sql","table":"INVOICE_HEADER","filters":[]},"mappings":[{"columnName":"INVOICE_NUMBER","inList":true,"inDetailView":false,"readOnly":false},{"columnName":"INV_DATE","inList":true,"inDetailView":true,"editType":"datetime","serverDateFormat":"MM/dd/yyyy 0h:0m:0s am","readOnly":false}],"buttons":[{"columnTitle":"Open Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"}],"searchOptions":{"advancedSearch":false,"serverSearch":false},"multiSelect":false}', 'INVOICE_HEADERS'),
-	(48, 'user2@alpha.com', 0, '[{"columnName":"CUSTOMER_ID","displayName":"Customer Name","inList":false,"inDetailView":false,"editType":"text","dropdownConfig":{"choices":[]}},{"columnName":"FIRSTNAME","inList":true,"inDetailView":true,"editType":"text","dropdownConfig":{"choices":[]}},{"columnName":"LASTNAME","inList":true,"inDetailView":true,"editType":"text","dropdownConfig":{"choices":[]}}]', 'Customers');
+	(48, 'user2@alpha.com', 0, '[{"columnName":"CUSTOMER_ID","displayName":"Customer Name","inList":false,"inDetailView":false,"editType":"text","dropdownConfig":{"choices":[]}},{"columnName":"FIRSTNAME","inList":true,"inDetailView":true,"editType":"text","dropdownConfig":{"choices":[]}},{"columnName":"LASTNAME","inList":true,"inDetailView":true,"editType":"text","dropdownConfig":{"choices":[]}}]', 'Customers'),
+	(49, NULL, 1, '{"name":"Invoice Items","dataSource":{"type":"sql","table":"INVOICE_ITEMS"},"mappings":[{"columnName":"INVOICE_NUMBER","inList":true,"inDetailView":false,"readOnly":false},{"columnName":"PRODUCT_ID","inList":true,"inDetailView":false,"readOnly":false}],"buttons":[],"searchOptions":{"advancedSearch":false,"serverSearch":false},"multiSelect":false}', 'Invoice Items');
 
 -- Dumping structure for table alphasports.customer
 CREATE TABLE IF NOT EXISTS `customer` (
