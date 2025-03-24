@@ -187,7 +187,6 @@ end function
 ' 	If global is true, then this is the entire configuration 
 ' 	If global is false, then this is just the mapping portion of the config
 function saveConfig as Result (e as p) 
-	debug(1)
 	if e.data("global") == "" then 
 		saveConfig = Result.fail("Field 'global' is required")
 		end 
@@ -284,7 +283,7 @@ function saveConfig as Result (e as p)
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		saveConfig = Result.fail(cn.callresult.text).toJson().getJson()
+		saveConfig = Result.fail(cn.callresult.text)
 		cn.close()
 		end
 	end if

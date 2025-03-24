@@ -6704,7 +6704,7 @@ class ObjectForm {
         };
         let labelItem = {
             type: 'group',
-            items: [check, item],
+            items: [check],
             container: {
                 style: `;
                     display: flex;
@@ -6713,6 +6713,12 @@ class ObjectForm {
                 `
             }
         };
+        if (item instanceof Array) {
+            labelItem.items.push(...item);
+        }
+        else {
+            labelItem.items.push(item);
+        }
         return labelItem;
     }
     buildJsonForm() {
@@ -6732,22 +6738,23 @@ class ObjectForm {
             else {
                 label = formOps.options.label;
             }
-            let displayInline;
+            let displayMode;
             switch (formOps.type) {
                 case 'simple':
                 case 'dropdown':
                 case 'recursive':
                 case 'button':
-                    displayInline = true;
+                    displayMode = 'inline';
                     break;
                 case 'object':
-                case 'array':
-                    displayInline = false;
-                    break;
                 case 'multi':
-                    displayInline = (_a = formOps.options.displayInline) !== null && _a !== void 0 ? _a : false;
+                    displayMode = 'collapse';
+                    break;
+                case 'array':
+                    displayMode = 'button';
+                    break;
             }
-            if (displayInline) {
+            if (displayMode == 'inline') {
                 let enableFnId = this.id + '_enable_' + i;
                 let labelItem = {
                     type: 'html',
@@ -6772,7 +6779,7 @@ class ObjectForm {
                 // However, the requirement is that the boolean input is in the same place visually 
                 // as the "is enabled" check. That is why this is the way that it is.
                 let isBoolForm = formOps.type == 'simple' && formOps.options.type == 'boolean';
-                let isOptional = key in ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {});
+                let isOptional = key in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
                 let isDynamic = !isOptional && !(key in this.options.requiredKeys);
                 // Key is optional, need to display checkbox
                 if (isOptional && !isBoolForm) {
@@ -6836,7 +6843,7 @@ class ObjectForm {
                 }
                 children.push(group);
             }
-            else {
+            else if (displayMode == 'button') {
                 let fnId = this.id + '_' + i.toString();
                 this.dynForm.obj._functions.dynamicForm[fnId] = () => {
                     this.dynForm.launchNewTab(label, entry.form);
@@ -6858,11 +6865,87 @@ class ObjectForm {
                         `,
                     }
                 };
-                let isOptional = key in ((_c = this.options.optionalKeys) !== null && _c !== void 0 ? _c : {});
+                let isOptional = key in ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {});
                 if (isOptional) {
                     btn = this.wrapInOptional(entry, btn);
                 }
                 children.push(btn);
+            }
+            else if (displayMode == 'collapse') {
+                let icon = entry.collapsed ? 'chevronRight' : 'chevronDown';
+                let header = {
+                    type: 'group',
+                    items: [{
+                            type: 'group',
+                            items: [
+                                {
+                                    type: 'button',
+                                    control: {
+                                        html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
+                                        onClick: () => {
+                                            entry.collapsed = !entry.collapsed;
+                                            this.dynForm.refresh();
+                                        },
+                                    },
+                                    disabled: () => !entry.enabled,
+                                },
+                                {
+                                    type: 'html',
+                                    control: {
+                                        html: `<p class="dynamic-form-simple-label">${label}</p>`
+                                    },
+                                }
+                            ],
+                            container: {
+                                style: `
+                                display: flex;
+                                flex-direction: row;
+                                gap: 0.5rem;
+                                align-items: center;
+                            `
+                            }
+                        }
+                    ],
+                    container: {
+                        style: `;
+                            display: flex;
+                            flex-direction: row;
+                            gap: 0.5rem;
+                            background-color: lightgray;
+                            font-variant: all-petite-caps;
+                            font-weight: bold;
+                            align-items: center;
+                            border: 1px solid black;
+                            padding-left: .5rem;
+                        `
+                    }
+                };
+                let isOptional = key in ((_c = this.options.optionalKeys) !== null && _c !== void 0 ? _c : {});
+                if (isOptional) {
+                    header.items = [this.wrapInOptional(entry, header.items)];
+                }
+                let hideBody = entry.collapsed || (isOptional && !entry.enabled);
+                let body = hideBody ? {} : {
+                    type: 'group',
+                    items: [entry.form.buildJsonForm()],
+                    container: {
+                        style: `
+                            padding: 1rem;
+                            border: 1px solid black;
+                        `
+                    }
+                };
+                let group = {
+                    type: 'group',
+                    items: [header, body],
+                    container: {
+                        style: `;
+                            display: flex;
+                            flex-direction: column;
+                        `
+                    }
+                };
+                children.push(group);
             }
         }
         let newKey = this.options.newKeyTemplate;
@@ -6880,7 +6963,8 @@ class ObjectForm {
                             this.data[name] = newKey.defaultValue;
                             this.entries[name] = {
                                 enabled: true,
-                                form: newForm
+                                form: newForm,
+                                collapsed: false
                             };
                             this.dynForm.formBox.data[newKeyNameId] = '';
                             this.dynForm.refresh();
@@ -6942,7 +7026,8 @@ class ObjectForm {
             let newEntry = constructForm(this.options.requiredKeys[key], this, this.dynForm);
             this.entries[key] = {
                 enabled: true,
-                form: newEntry
+                form: newEntry,
+                collapsed: true
             };
             Object.assign(populateData, newEntry.getPopulateData(data[key]));
         }
@@ -6954,7 +7039,8 @@ class ObjectForm {
             let newEntry = constructForm(this.options.optionalKeys[key].definition, this, this.dynForm);
             this.entries[key] = {
                 enabled: key in data,
-                form: newEntry
+                form: newEntry,
+                collapsed: true
             };
             Object.assign(populateData, newEntry.getPopulateData(d));
         }
@@ -6969,7 +7055,8 @@ class ObjectForm {
             let newEntry = constructForm(this.options.newKeyTemplate.definition, this, this.dynForm);
             this.entries[key] = {
                 enabled: true,
-                form: newEntry
+                form: newEntry,
+                collapsed: true
             };
             Object.assign(populateData, newEntry.getPopulateData(data[key]));
         }
@@ -7514,7 +7601,9 @@ class DynamicForm {
         if (!this.obj._functions) {
             this.obj._functions = {};
         }
-        this.obj._functions.dynamicForm = {};
+        if (!this.obj._functions.dynamicForm) {
+            this.obj._functions.dynamicForm = {};
+        }
         if (typeof formDefn.options.label == 'string') {
             this.firstTabLabel = formDefn.options.label;
         }
@@ -7560,7 +7649,7 @@ class DynamicForm {
             else {
                 style += 'color: #4d4d4d;';
             }
-            let fnId = 'Tab' + i + "Click";
+            let fnId = this.containerId + '_Tab' + i + "Click";
             this.obj._functions.dynamicForm[fnId] = () => {
                 this.setActiveTab(i);
             };
@@ -8151,7 +8240,7 @@ class DynamicList {
                 b.setDisabled(true);
             }
             b.onClick = () => {
-                this.newDetailViewRecord();
+                this.newDetailViewRecord(true);
             };
         }
     }
@@ -9327,7 +9416,7 @@ class DynamicList {
             this.setRowSelected(rowNum, true);
         }
         let _d = {};
-        let allSelected = this.getSelectedRows();
+        let allSelected = this.getSelectedRows().map(i => this.data[i]);
         if (allSelected.length > 1 && allowMultiSelect) {
             // For each mapping, check that every entry in selected is the same
             // If it is, leave it alone
@@ -9351,6 +9440,8 @@ class DynamicList {
             });
         }
         else if (rowNum != undefined) {
+            this.setAllRowsSelected(false);
+            this.setRowSelected(rowNum, true);
             _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
         }
         else {
@@ -9867,6 +9958,12 @@ class DynamicList {
             throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
         }
     }
+    refreshSelectionChecks() {
+        this.data.forEach(d => {
+            d['__selected'] = this.selectedRows.has(d['*key']);
+        });
+        this.listBox.refresh();
+    }
     setRowSelected(rowNum, selected) {
         if (selected) {
             this.selectedRows.add(rowNum);
@@ -9875,6 +9972,7 @@ class DynamicList {
             this.selectedRows.delete(rowNum);
         }
         this.listBox.selection = this.getSelectedRows();
+        this.refreshSelectionChecks();
     }
     setAllRowsSelected(selected) {
         if (selected) {
@@ -9884,6 +9982,7 @@ class DynamicList {
             this.selectedRows.clear();
         }
         this.listBox.selection = this.getSelectedRows();
+        this.refreshSelectionChecks();
     }
     getSelectedRows() {
         return Array.from(this.selectedRows);
@@ -9980,7 +10079,7 @@ class DynamicList {
         this.schema = {};
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
             return getSchema(this.obj, this.config.dataSource.table, (_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn').then(() => {
-                let response = this.obj.stateInfo.apiResult;
+                let response = JSON.parse(this.obj.stateInfo.apiResult);
                 if ('err' in response) {
                     throw new Error(response.err);
                 }
