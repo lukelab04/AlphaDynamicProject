@@ -7434,8 +7434,14 @@ class MultiForm {
                     map: ['value', 'text'],
                 },
                 onChange: (change) => {
-                    this.currDropdownItem = change.item.data;
-                    this.dynForm.refresh();
+                    if (change.item.data !== null && change.item.data !== undefined) {
+                        this.currDropdownItem = change.item.data;
+                        this.dynForm.refresh();
+                    }
+                    else {
+                        this.dynForm.formBox.data[this.id] = this.currDropdownItem;
+                        this.dynForm.formBox.refresh();
+                    }
                 }
             }
         };
