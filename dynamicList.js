@@ -59,7 +59,10 @@ const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openLinkedList'),
         configurationName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
         tabName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-        linkedColumns: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        linkedColumns: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            foreignName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        })),
         makeFilter: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -127,8 +130,8 @@ const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Ob
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dropdownConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ choices: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()) }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ choices: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
     ]))
 });
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -6506,7 +6509,7 @@ function constructForm(options, parent, dynForm) {
         case "simple": return new SimpleForm(options.options, dynForm, parent);
         case "array": return new ArrayForm(options.options, dynForm, parent);
         case "recursive": return new RecursiveForm(options.options, dynForm, parent);
-        case "dropdown": return new DropdownForm(options.options, parent);
+        case "dropdown": return new DropdownForm(options.options, parent, dynForm);
         case "multi": return new MultiForm(options.options, dynForm, parent);
         case "const": return new ConstForm(options.options, parent);
         case "button": return new ButtonForm(options.options, parent);
@@ -6519,6 +6522,9 @@ class SimpleForm {
         this.changed = false;
         this.id = formBuilder_uuidv4();
         this.parent = parent;
+    }
+    getId() {
+        return this.id;
     }
     setValue(v) {
         this.dynForm.formBox.data[this.id] = v;
@@ -6561,6 +6567,9 @@ class SimpleForm {
     }
     buildJsonForm() {
         var _a;
+        if (this.options.display && !this.options.display(this)) {
+            return {};
+        }
         let editType;
         switch (this.options.type) {
             case "function":
@@ -6577,13 +6586,17 @@ class SimpleForm {
         }
         let control = {
             onChange: () => {
-                this.dynForm.setDirty(true);
-                this.changed = true;
-                this.dynForm.refresh();
+                if (!this.dynForm.formBox.isDirtyImmediate) {
+                    this.dynForm.setDirty(true);
+                    this.changed = true;
+                    this.dynForm.refresh();
+                }
             },
             onKeyDown: () => {
-                this.dynForm.setDirty(true);
-                this.changed = true;
+                if (!this.dynForm.formBox.isDirtyImmediate) {
+                    this.dynForm.setDirty(true);
+                    this.changed = true;
+                }
             }
         };
         if (editType == 'picker') {
@@ -6640,6 +6653,9 @@ class SimpleForm {
             throw new PopulateError("Data type does not match declared type.");
         }
         d[this.id] = data;
+        if (this.options.onPopulate) {
+            this.options.onPopulate(this, d[this.id]);
+        }
         return d;
     }
 }
@@ -6652,6 +6668,15 @@ class ObjectForm {
         this.changed = false;
         this.parent = parent;
         this.id = formBuilder_uuidv4();
+    }
+    getId() {
+        return this.id;
+    }
+    getChild(name) {
+        return this.entries[name].form;
+    }
+    numChildren() {
+        return Object.keys(this.entries).length;
     }
     getOptions() {
         return { type: 'object', options: this.options };
@@ -6723,6 +6748,8 @@ class ObjectForm {
     }
     buildJsonForm() {
         var _a, _b, _c;
+        if (this.options.display && !this.options.display(this))
+            return {};
         let children = [];
         let i = 0;
         for (const key in this.entries) {
@@ -6730,6 +6757,8 @@ class ObjectForm {
             let entry = this.entries[key];
             let formOps = entry.form.getOptions();
             if (formOps.type == 'const')
+                continue;
+            if (formOps.options.display && !formOps.options.display(entry.form))
                 continue;
             let label;
             if (typeof formOps.options.label == 'function') {
@@ -7034,7 +7063,6 @@ class ObjectForm {
         for (const key in this.options.optionalKeys) {
             viewedKeys.add(key);
             let opt = this.options.optionalKeys[key];
-            opt.definition.options.label = key;
             let d = (key in data) ? data[key] : opt.defaultValue;
             let newEntry = constructForm(this.options.optionalKeys[key].definition, this, this.dynForm);
             this.entries[key] = {
@@ -7060,6 +7088,9 @@ class ObjectForm {
             };
             Object.assign(populateData, newEntry.getPopulateData(data[key]));
         }
+        if (this.options.onPopulate) {
+            this.options.onPopulate(this, this.data);
+        }
         return populateData;
     }
 }
@@ -7068,6 +7099,10 @@ class RecursiveForm {
         this.options = options;
         this.dynForm = dynForm;
         this.parent = parent;
+        this.id = formBuilder_uuidv4();
+    }
+    getId() {
+        return this.id;
     }
     getOptions() {
         return { type: 'recursive', options: this.options };
@@ -7089,6 +7124,9 @@ class RecursiveForm {
         let recElemOps = this.searchForRecOptions(this.parent);
         if (recElemOps) {
             this.recursiveElement = constructForm(recElemOps, this, this.dynForm);
+            if (this.options.onPopulate) {
+                this.options.onPopulate(this, data);
+            }
             return this.recursiveElement.getPopulateData(data);
         }
         throw new PopulateError("Unable to find named item " + this.options.recurseOn);
@@ -7109,9 +7147,16 @@ class ArrayForm {
         this.dynForm = dynForm;
         this.parent = parent;
         this.changed = false;
+        this.id = formBuilder_uuidv4();
     }
     getOptions() {
         return { type: 'array', options: this.options };
+    }
+    getId() {
+        return this.id;
+    }
+    numChildren() {
+        return this.entries.length;
     }
     serialize(formData) {
         let results = [];
@@ -7126,7 +7171,13 @@ class ArrayForm {
         };
     }
     buildJsonForm() {
+        if (this.options.display && !this.options.display(this))
+            return {};
         let arrayEntries = this.entries.map((f, i) => {
+            let ops = f.form.getOptions();
+            if (ops.options.display && !ops.options.display(f.form)) {
+                return {};
+            }
             let collapseIcon = f.collapsed ? 'chevronRight' : 'chevronDown';
             let label = f.form.getOptions().options.label;
             let labelStr;
@@ -7186,6 +7237,9 @@ class ArrayForm {
                                 this.dynForm.refresh();
                             },
                         },
+                        container: {
+                            className: 'dynamic-form-array-delete'
+                        }
                     },
                     {
                         type: 'button',
@@ -7289,15 +7343,23 @@ class ArrayForm {
             this.entries.push({ form: newForm, collapsed: true });
             Object.assign(d, newForm.getPopulateData(elem));
         }
+        if (this.options.onPopulate) {
+            this.options.onPopulate(this, data);
+        }
         return d;
     }
 }
 class DropdownForm {
-    constructor(options, parent) {
+    constructor(options, parent, dynForm) {
         this.options = options;
+        this.selected = '';
         this.id = formBuilder_uuidv4();
         this.changed = false;
         this.parent = parent;
+        this.dynForm = dynForm;
+    }
+    getId() {
+        return this.id;
     }
     getOptions() {
         return { type: 'dropdown', options: this.options };
@@ -7319,8 +7381,11 @@ class DropdownForm {
         };
     }
     buildJsonForm() {
+        var _a;
+        if (this.options.display && !this.options.display(this))
+            return {};
         let dropdown = {
-            type: "picker",
+            type: this.options.allowCustomValue ? "edit-picker" : 'picker',
             id: this.id,
             data: {
                 from: this.id,
@@ -7332,9 +7397,26 @@ class DropdownForm {
                     src: this.options.dropdownItems,
                     map: ["value", "text"],
                 },
+                picker: {
+                    data: {
+                        empty: {
+                            message: (_a = this.options.emptyMsg) !== null && _a !== void 0 ? _a : ""
+                        }
+                    }
+                },
                 onChange: (change) => {
-                    if (this.options.onSelect)
-                        this.options.onSelect(change, this);
+                    if (this.options.onSelect && change.item.data != undefined) {
+                        this.options.onSelect(change.item.data, this);
+                    }
+                    if (change.item.data == undefined) {
+                        this.dynForm.formBox.data[this.id] = this.selected;
+                        this.dynForm.formBox.refresh();
+                    }
+                    else {
+                        this.dynForm.setDirty(true);
+                        this.changed = true;
+                        this.dynForm.refresh();
+                    }
                 }
             },
             container: {
@@ -7357,8 +7439,18 @@ class DropdownForm {
         else if (this.options.default) {
             d[this.id] = this.options.default;
         }
-        else {
+        else if (this.options.dropdownItems.length > 0) {
             d[this.id] = this.options.dropdownItems[0].value;
+        }
+        else if (this.options.allowCustomValue) {
+            d[this.id] = data;
+        }
+        else {
+            throw new PopulateError("No dropdown items exist and no default was supplied.");
+        }
+        this.selected = d[this.id];
+        if (this.options.onPopulate) {
+            this.options.onPopulate(this, d[this.id]);
         }
         return d;
     }
@@ -7381,14 +7473,9 @@ class MultiForm {
                 text: k
             };
         });
-        this.dropDown = new DropdownForm({
-            dropdownItems: dropdownItems,
-            default: dropdownItems[0].value,
-            onSelect: (newVal, _) => {
-                console.log('todo');
-            },
-            label: '',
-        }, this);
+    }
+    getId() {
+        return this.id;
     }
     getOptions() {
         return { type: 'multi', options: this.options };
@@ -7407,6 +7494,8 @@ class MultiForm {
         return d;
     }
     buildJsonForm() {
+        if (this.options.display && !this.options.display(this))
+            return {};
         if (this.elements[this.currDropdownItem] == undefined) {
             let f = constructForm(this.options.definitions[this.currDropdownItem].definition, this, this.dynForm);
             let newData = f.getPopulateData(this.options.definitions[this.currDropdownItem].defaultValue);
@@ -7493,9 +7582,11 @@ class MultiForm {
             let elem = constructForm(this.options.definitions[correctKey].definition, this, this.dynForm);
             this.elements[correctKey] = elem;
             let d = {};
-            d[this.dropDown.id] = correctKey;
             Object.assign(d, elem.getPopulateData(data));
             return d;
+        }
+        if (this.options.onPopulate) {
+            this.options.onPopulate(this, data);
         }
         throw new PopulateError(errs);
     }
@@ -7504,6 +7595,10 @@ class ConstForm {
     constructor(options, parent) {
         this.options = options;
         this.parent = parent;
+        this.id = formBuilder_uuidv4();
+    }
+    getId() {
+        return this.id;
     }
     serialize(formData) {
         return { changed: false, raw: this.options.value };
@@ -7522,8 +7617,14 @@ class ButtonForm {
     constructor(options, parent) {
         this.options = options;
         this.parent = parent;
+        this.id = formBuilder_uuidv4();
+    }
+    getId() {
+        return this.id;
     }
     buildJsonForm() {
+        if (this.options.display && !this.options.display(this))
+            return {};
         return {
             type: 'button',
             control: {
@@ -7550,10 +7651,6 @@ class ButtonForm {
         };
     }
 }
-// How is state handled?
-// Form element can change its own state, then request a redraw
-// How is data harvesting handled?
-// Components gather their own data, and indicate changes
 class DynamicForm {
     constructor(obj, containerId, formDefn, other) {
         this.firstTabLabel = '';
@@ -7777,6 +7874,31 @@ function displayErrorMessage(msg) {
 }
 
 ;// ./src/listAction.ts
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+function fetchConfigNames(obj) {
+    return new Promise((resolve, reject) => {
+        obj.ajaxCallback("", "", "fetch_config_names", "", "", {
+            onComplete: () => {
+                let result = obj.stateInfo.apiResult;
+                if (result.ok) {
+                    resolve(result.ok.map(x => x.config_name));
+                }
+                else {
+                    reject(result.err);
+                }
+            }
+        });
+    });
+}
 function executeListAction(list, action) {
     if (action.actionName == 'openDetailView') {
         list.newDetailViewRecord();
@@ -7789,139 +7911,179 @@ function executeListAction(list, action) {
         list.linkSublistToField(action.configurationName, action.tabName, action.fromColumn, JSON.parse(selected[action.fromColumn]), list.getSelectedRows()[0], selected);
     }
 }
-function listActionEditor() {
-    let f = {
-        type: 'multi',
-        options: {
-            displayInline: true,
-            label: 'List Action Editor',
-            definitions: {
-                'Open Detail View': {
-                    defaultValue: {
-                        actionName: 'openDetailView'
-                    },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: 'Arguments for Open Detail View',
-                            requiredKeys: {
-                                actionName: {
-                                    type: 'const',
-                                    options: { label: '', value: 'openDetailView' }
+function listActionEditor(obj, config) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let availableNames = (yield fetchConfigNames(obj)).map(x => { return { text: x, value: x }; });
+        let colNames = config.mappings.map(x => x.columnName);
+        let foreignColNames = [];
+        // So that we can pass in a reference to the form defn and alter it later
+        let defaultColNames = { columnName: colNames[0], foreignName: foreignColNames.length > 0 ? foreignColNames[0].value : '' };
+        let configSelectorDropdown = (configName, form, doRefresh) => requestListConfig(obj, configName).then(() => {
+            let response = obj.stateInfo.apiResult;
+            if ('err' in response)
+                return;
+            let config = response.ok;
+            foreignColNames.length = 0;
+            Object.assign(foreignColNames, config.mappings.map(x => { return { value: x.columnName, text: x.columnName }; }));
+            defaultColNames.foreignName = foreignColNames.length > 0 ? foreignColNames[0].value : '';
+            if (doRefresh) {
+                form.dynForm.refresh();
+            }
+        });
+        let f = {
+            type: 'multi',
+            options: {
+                displayInline: true,
+                label: 'List Action Editor',
+                definitions: {
+                    'Open Detail View': {
+                        defaultValue: {
+                            actionName: 'openDetailView'
+                        },
+                        definition: {
+                            type: 'object',
+                            options: {
+                                label: 'Arguments for Open Detail View',
+                                requiredKeys: {
+                                    actionName: {
+                                        type: 'const',
+                                        options: { label: '', value: 'openDetailView' }
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                'Launch New List with Linked Field(s)': {
-                    defaultValue: {
-                        actionName: 'openLinkedList',
-                        configurationName: '',
-                        tabName: 'New List',
-                        linkedColumns: [],
-                        makeFilter: true
                     },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: 'Arguments for Linked List',
-                            requiredKeys: {
-                                actionName: {
-                                    type: 'const',
-                                    options: { label: '', value: 'openLinkedList' }
-                                },
-                                configurationName: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Linked Configuration',
-                                        type: 'string'
-                                    }
-                                },
-                                tabName: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'New Tab Title',
-                                        type: 'string'
-                                    }
-                                },
-                                linkedColumns: {
-                                    type: 'array',
-                                    options: {
-                                        label: 'Columns to Link',
-                                        defaultValue: '',
-                                        itemTemplate: {
-                                            type: 'simple',
-                                            options: {
-                                                type: 'string',
-                                                label: 'Column Name'
+                    'Launch New List with Linked Field(s)': {
+                        defaultValue: {
+                            actionName: 'openLinkedList',
+                            configurationName: '',
+                            tabName: 'New List',
+                            linkedColumns: [],
+                            makeFilter: true
+                        },
+                        definition: {
+                            type: 'object',
+                            options: {
+                                label: 'Arguments for Linked List',
+                                requiredKeys: {
+                                    actionName: {
+                                        type: 'const',
+                                        options: { label: '', value: 'openLinkedList' }
+                                    },
+                                    configurationName: {
+                                        type: 'dropdown',
+                                        options: {
+                                            label: 'Linked Configuration',
+                                            dropdownItems: availableNames,
+                                            onSelect: (e, f) => {
+                                                configSelectorDropdown(e, f, true);
                                             },
-                                        },
-                                        allowEmpty: false
-                                    }
-                                },
-                                makeFilter: {
-                                    type: 'simple',
-                                    options: {
-                                        type: 'boolean',
-                                        label: 'Filter Linked List to Current Selection'
+                                            onPopulate: (form, data) => configSelectorDropdown(data, form, false)
+                                        }
+                                    },
+                                    tabName: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'New Tab Title',
+                                            type: 'string'
+                                        }
+                                    },
+                                    linkedColumns: {
+                                        type: 'array',
+                                        options: {
+                                            label: 'Columns to Link',
+                                            defaultValue: defaultColNames,
+                                            itemTemplate: {
+                                                type: 'object',
+                                                options: {
+                                                    label: 'Column Name',
+                                                    requiredKeys: {
+                                                        columnName: {
+                                                            type: 'dropdown',
+                                                            options: {
+                                                                label: 'Column Name',
+                                                                dropdownItems: colNames.map(x => { return { text: x, value: x }; }),
+                                                            }
+                                                        },
+                                                        foreignName: {
+                                                            type: 'dropdown',
+                                                            options: {
+                                                                label: 'Foreign Name',
+                                                                dropdownItems: foreignColNames,
+                                                                default: '',
+                                                                allowCustomValue: true
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                            },
+                                            allowEmpty: false
+                                        }
+                                    },
+                                    makeFilter: {
+                                        type: 'simple',
+                                        options: {
+                                            type: 'boolean',
+                                            label: 'Filter Linked List to Current Selection'
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                },
-                'Launch New List from Nested JSON Field': {
-                    defaultValue: {
-                        actionName: 'openJSONSublist',
-                        configurationName: "",
-                        tabName: "",
-                        fromColumn: ""
                     },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: 'Arguments for Nested JSON List',
-                            requiredKeys: {
-                                actionName: {
-                                    type: 'const',
-                                    options: {
-                                        label: '',
-                                        value: 'openJSONSublist'
-                                    }
-                                },
-                                configurationName: {
-                                    type: 'simple',
-                                    options: {
-                                        type: 'string',
-                                        label: 'Configuration Name'
-                                    }
-                                },
-                                tabName: {
-                                    type: 'simple',
-                                    options: {
-                                        type: 'string',
-                                        label: 'Tab Name'
-                                    }
-                                },
-                                fromColumn: {
-                                    type: 'simple',
-                                    options: {
-                                        type: 'string',
-                                        label: 'Column with JSON Data'
-                                    }
-                                },
+                    'Launch New List from Nested JSON Field': {
+                        defaultValue: {
+                            actionName: 'openJSONSublist',
+                            configurationName: "",
+                            tabName: "",
+                            fromColumn: ""
+                        },
+                        definition: {
+                            type: 'object',
+                            options: {
+                                label: 'Arguments for Nested JSON List',
+                                requiredKeys: {
+                                    actionName: {
+                                        type: 'const',
+                                        options: {
+                                            label: '',
+                                            value: 'openJSONSublist'
+                                        }
+                                    },
+                                    configurationName: {
+                                        type: 'simple',
+                                        options: {
+                                            type: 'string',
+                                            label: 'Configuration Name'
+                                        }
+                                    },
+                                    tabName: {
+                                        type: 'simple',
+                                        options: {
+                                            type: 'string',
+                                            label: 'Tab Name'
+                                        }
+                                    },
+                                    fromColumn: {
+                                        type: 'simple',
+                                        options: {
+                                            type: 'string',
+                                            label: 'Column with JSON Data'
+                                        }
+                                    },
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-    };
-    return f;
+        };
+        return f;
+    });
 }
 
 ;// ./src/listBuilder.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var listBuilder_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -8015,7 +8177,7 @@ function getSchemaCustomSql(obj, sql) {
     });
 }
 function fetch(obj, configName, endpoint) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return listBuilder_awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
                 + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
@@ -8031,6 +8193,7 @@ class DynamicList {
     constructor() {
         this.nestedPath = [];
         this.selectedRows = new Set();
+        this.clickedRow = null;
         this.dataScopeManager = new DataScopeManager({});
         this.foreignKeys = [];
         // Used in _match
@@ -8064,6 +8227,9 @@ class DynamicList {
             list.data = [];
             list.rawData = [];
             list.schema = {};
+            if (ops.prefetch.schema) {
+                list.mapRawSchema(ops.prefetch.schema);
+            }
             list.containerId = ops.obj.getPointer(ops.containerId).id;
             if (ops.otherProperties) {
                 list.onSaveOverride = ops.otherProperties.onSaveOverride;
@@ -8083,10 +8249,13 @@ class DynamicList {
         })
             .then((list) => {
             if (ops.prefetch.data === undefined || ops.prefetch.data.length == 0) {
+                if (Object.keys(list.schema).length > 0) {
+                    return list.fetchData();
+                }
                 return list.fetchSchema(false).then(l => l.fetchData());
             }
             else {
-                list.setData(ops.prefetch.data, true);
+                list.setData(ops.prefetch.data, Object.keys(list.schema).length == 0);
                 return list;
             }
         })
@@ -9164,41 +9333,9 @@ class DynamicList {
                 }
             },
             updateListFromUXControls: () => {
-                var _a, _b;
                 if (this.listBox._updatingListFromUXControls)
                     return false;
                 this.listBox._updatingListFromUXControls = true;
-                let changes = (_b = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.serializeWithChanges()) !== null && _b !== void 0 ? _b : { changed: false, raw: null };
-                let d = {};
-                if ('keys' in changes) {
-                    for (const key in changes.keys) {
-                        let item = changes.keys[key];
-                        if ('raw' in item && item.changed) {
-                            d[key] = item.raw;
-                        }
-                        else if ('keys' in item && item.changed) {
-                            d[key] = item.keys;
-                        }
-                        else if ('elements' in item && item.changed) {
-                            d[key] = item.elements;
-                        }
-                    }
-                }
-                let d2 = {};
-                for (let n in d) {
-                    if (n.indexOf("*") != 0) {
-                        d2[n] = d[n];
-                    }
-                }
-                let selected = this.getSelectedRows();
-                if (selected.length > 0) {
-                    selected.forEach(s => this.listBox.updateTableRow(s, d2));
-                }
-                else {
-                    this.listBox.addTableRow(d2, {
-                        setFocusToTargetRow: true
-                    });
-                }
                 this.listBox._updatingListFromUXControls = false;
             }
         };
@@ -9419,11 +9556,12 @@ class DynamicList {
     buildDetailViewForm(rowNum = null, allowMultiSelect = false) {
         var _a, _b, _c, _e;
         if (rowNum !== null) {
-            this.setRowSelected(rowNum, true);
+            this.clickedRow = rowNum;
         }
         let _d = {};
-        let allSelected = this.getSelectedRows().map(i => this.data[i]);
+        let allSelected = this.getSelectedRows();
         if (allSelected.length > 1 && allowMultiSelect) {
+            let selectedData = allSelected.map(i => this.data[i]);
             // For each mapping, check that every entry in selected is the same
             // If it is, leave it alone
             // Otherwise, replace with empty string
@@ -9431,14 +9569,14 @@ class DynamicList {
                 if (!mapping.inDetailView)
                     return;
                 let allSame = true;
-                for (let i = 1; i < allSelected.length; i++) {
-                    if (allSelected[i][mapping.columnName] !== allSelected[i - 1][mapping.columnName]) {
+                for (let i = 1; i < selectedData.length; i++) {
+                    if (selectedData[i][mapping.columnName] !== selectedData[i - 1][mapping.columnName]) {
                         allSame = false;
                         break;
                     }
                 }
                 if (allSame) {
-                    _d[mapping.columnName] = allSelected[0][mapping.columnName];
+                    _d[mapping.columnName] = selectedData[0][mapping.columnName];
                 }
                 else {
                     _d[mapping.columnName] = this.makeObviousDefault(mapping);
@@ -9446,8 +9584,7 @@ class DynamicList {
             });
         }
         else if (rowNum != undefined) {
-            this.setAllRowsSelected(false);
-            this.setRowSelected(rowNum, true);
+            allSelected = [rowNum];
             _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
         }
         else {
@@ -9528,6 +9665,7 @@ class DynamicList {
                             options: {
                                 label: '',
                                 dropdownItems: choices.map(c => { return { value: c, text: c }; }),
+                                allowCustomValue: mapping.dropdownConfig.allowCustom
                             }
                         };
                         break;
@@ -9572,8 +9710,63 @@ class DynamicList {
         this.detailView = detailViewForm;
         detailViewForm.populate(d);
     }
-    makeDetailContextButtons(selectedRows) {
+    makeDetailContextButtons(rowsToChange) {
         let divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
+        // Alpha overrides all events on all elements with its own handlers. 
+        // Apparently, there is a bug where the old 'onclick' version of a button is kept 
+        // around. (No other properties of the old button are kept). 
+        // I cannot figure out how or why this is happening, and so the workaround 
+        // is to store the function in the dialog object, so that the 
+        // button onclick method doesn't carry any captured variables. 
+        // We can edit the dialog object properties to change the function.
+        let doDelete = () => {
+            rowsToChange.forEach(r => {
+                this.listBox.selection = [r];
+                this.listBox.deleteRow();
+            });
+            if (this.detailView) {
+                this.detailView.formBox.isDirtyImmediate = true;
+                this.detailView.formBox.refresh();
+            }
+            this.obj.refreshClientSideComputations(true);
+        };
+        let doSave = () => {
+            var _a, _b, _c, _e;
+            if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
+                let d = {};
+                if (rowsToChange.length == 1) {
+                    d = (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.serialize();
+                }
+                else {
+                    let changes = (_e = (_c = this.detailView) === null || _c === void 0 ? void 0 : _c.serializeWithChanges()) !== null && _e !== void 0 ? _e : { changed: false, raw: null };
+                    if ('keys' in changes) {
+                        for (const key in changes.keys) {
+                            let item = changes.keys[key];
+                            if ('raw' in item && item.changed) {
+                                d[key] = item.raw;
+                            }
+                            else if ('keys' in item && item.changed) {
+                                d[key] = item.keys;
+                            }
+                            else if ('elements' in item && item.changed) {
+                                d[key] = item.elements;
+                            }
+                        }
+                    }
+                }
+                if (rowsToChange.length == 0) {
+                    this.listBox.addTableRow(d, { setFocusToTargetRow: true });
+                }
+                else {
+                    rowsToChange.forEach(s => this.listBox.updateTableRow(s, d));
+                }
+            }
+            if (this.detailView) {
+                this.detailView.formBox.isDirtyImmediate = false;
+            }
+        };
+        this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doDelete;
+        this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doSave;
         return {
             type: 'group',
             items: [
@@ -9587,15 +9780,7 @@ class DynamicList {
                             <p>Save</p>
                         </div>
                         `,
-                        onClick: () => {
-                            var _a;
-                            if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
-                                this.listBox.updateListFromUXControls();
-                            }
-                            if (this.detailView) {
-                                this.detailView.formBox.isDirtyImmediate = false;
-                            }
-                        }
+                        onClick: () => this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST()
                     }
                 },
                 {
@@ -9607,17 +9792,7 @@ class DynamicList {
                             <p>Delete</p>
                         </div>
                         `,
-                        onClick: () => {
-                            selectedRows.forEach(r => {
-                                this.listBox.selection = [r];
-                                this.listBox.deleteRow();
-                            });
-                            if (this.detailView) {
-                                this.detailView.formBox.isDirtyImmediate = true;
-                                this.detailView.formBox.refresh();
-                            }
-                            this.obj.refreshClientSideComputations(true);
-                        }
+                        onClick: () => this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST()
                     }
                 },
                 {
@@ -9796,9 +9971,8 @@ class DynamicList {
         });
     }
     linkNewPanel(configName, titleName, columns, makeFilter = true) {
-        let cols = typeof columns == 'string' ? [columns] : columns;
         let allFilters = [];
-        cols.forEach(c => allFilters.push(...this.makeFilterFromSelected(c, c)));
+        columns.forEach(c => allFilters.push(...this.makeFilterFromSelected(c.columnName, c.foreignName)));
         openNewPanel({
             configName: configName,
             listContainerId: 'LIST_CONTAINER',
@@ -10538,7 +10712,14 @@ class DynamicListSearch {
                                 dropdownItems: [
                                     { text: 'And', value: 'AND' },
                                     { text: 'Or', value: 'OR' }
-                                ]
+                                ],
+                                display: (form) => {
+                                    var _a;
+                                    let d = form;
+                                    let multi = (_a = d.parent) === null || _a === void 0 ? void 0 : _a.parent;
+                                    let arr = multi.parent;
+                                    return arr.entries[0].form !== multi;
+                                }
                             }
                         },
                         op: {
@@ -10812,8 +10993,9 @@ class DynamicListSearch {
                     obj['quantifier'] = v.item.quantifier;
                 expn_i = 'this._match(data,' + this.list.listBox._str(v.name) + ',' + strVal + ',' + JSON.stringify(obj) + ')';
                 expn.push(expn_i);
-                if (v.item.connector && i < values.length - 1) {
-                    if (v.item.connector == 'AND')
+                if (i < values.length - 1) {
+                    let next = values[i + 1];
+                    if (next.item.connector == 'AND')
                         expn.push('&&');
                     else
                         expn.push('||');
@@ -11185,6 +11367,15 @@ class FormButton {
 }
 
 ;// ./src/listConfiguration.ts
+var listConfiguration_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 
 
 
@@ -11217,7 +11408,7 @@ function checkIfAdmin(obj) {
     });
 }
 function tryRecoverConfig(obj, admin, configName) {
-    let response = obj.stateInfo.apiResponse;
+    let response = obj.stateInfo.apiResult;
     if (response.err && !admin) {
         alert('The configuration does not exist or has an error. Log in as an administrator to fix.');
         throw new Error('The configuration does not exist or has an error. Log in as an administrator to fix.');
@@ -11258,11 +11449,11 @@ function initialize(ops) {
     let isAdmin = false;
     return batchFetch(ops.embeddedList, ops.configName, (_a = ops.filters) !== null && _a !== void 0 ? _a : []).then(() => {
         var _a;
-        if ((_a = ops.embeddedList.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.err) {
+        if ((_a = ops.embeddedList.stateInfo.apiResult) === null || _a === void 0 ? void 0 : _a.err) {
             return checkIfAdmin(ops.obj)
                 .then(() => {
                 var _a;
-                if (((_a = ops.obj.stateInfo.apiResponse) === null || _a === void 0 ? void 0 : _a.ok) == true) {
+                if (((_a = ops.obj.stateInfo.apiResult) === null || _a === void 0 ? void 0 : _a.ok) == true) {
                     isAdmin = true;
                 }
                 else {
@@ -11291,7 +11482,7 @@ function initialize(ops) {
             });
         }
         else {
-            ops.prefetch = ops.embeddedList.stateInfo.apiResponse.ok;
+            ops.prefetch = ops.embeddedList.stateInfo.apiResult.ok;
             return initList(ops);
         }
     }).then(() => {
@@ -11404,7 +11595,7 @@ function manageConfigForm(ops) {
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
             ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${true}`, {
                 onComplete: () => {
-                    let res = ops.obj.stateInfo.apiResponse;
+                    let res = ops.obj.stateInfo.apiResult;
                     if (res && res.err) {
                         displayErrorMessage(res.err);
                         console.error(res.err);
@@ -11429,7 +11620,7 @@ function manageConfigForm(ops) {
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
             ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${false}`, {
                 onComplete: () => {
-                    let res = ops.obj.stateInfo.apiResponse;
+                    let res = ops.obj.stateInfo.apiResult;
                     if (res && res.err) {
                         displayErrorMessage(res.err);
                         console.error(res.err);
@@ -11446,9 +11637,9 @@ function manageConfigForm(ops) {
             console.error(e);
         }
     };
-    show = (dataOverride = undefined) => {
+    show = (...args_1) => listConfiguration_awaiter(this, [...args_1], void 0, function* (dataOverride = undefined) {
         fillColInfo();
-        configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, allDataColumns);
+        configForm = yield buildConfigForm(ops.obj, ops.preFetch.isAdmin, allDataColumns, ops.preFetch.config);
         try {
             let others = makeSQLSaveButtons(ops.obj, saveUser, saveGlobal);
             let populateWith = ops.preFetch.isAdmin ? ops.preFetch.config : ops.preFetch.config.mappings;
@@ -11490,603 +11681,653 @@ function manageConfigForm(ops) {
             console.error(e);
             displayErrorMessage(e.toString());
         }
-    };
+    });
     show();
 }
-function buildConfigForm(obj, adminConfig, allColumns) {
-    let buttons = {
-        label: 'List Buttons',
-        itemTemplate: {
-            type: 'object',
-            options: {
-                label: 'List Button',
-                requiredKeys: {
-                    columnTitle: {
-                        type: 'simple',
-                        options: {
-                            label: 'Column Title',
-                            type: 'string'
-                        }
-                    },
-                    onClick: {
-                        type: 'multi',
-                        options: {
-                            label: 'Click Action',
-                            definitions: {
-                                'Custom Javascript Function': {
-                                    defaultValue: { function: "" },
-                                    definition: {
-                                        type: 'object',
-                                        options: {
-                                            label: 'Custom Javascript Function',
-                                            requiredKeys: {
-                                                function: {
-                                                    type: 'simple',
-                                                    options: {
-                                                        label: 'Javascript Code',
-                                                        type: 'function'
+function buildConfigForm(obj, adminConfig, allColumns, config) {
+    return listConfiguration_awaiter(this, void 0, void 0, function* () {
+        let buttons = {
+            label: 'List Buttons',
+            itemTemplate: {
+                type: 'object',
+                options: {
+                    label: 'List Button',
+                    requiredKeys: {
+                        columnTitle: {
+                            type: 'simple',
+                            options: {
+                                label: 'Column Title',
+                                type: 'string'
+                            }
+                        },
+                        onClick: {
+                            type: 'multi',
+                            options: {
+                                label: 'Click Action',
+                                definitions: {
+                                    'Custom Javascript Function': {
+                                        defaultValue: { function: "" },
+                                        definition: {
+                                            type: 'object',
+                                            options: {
+                                                label: 'Custom Javascript Function',
+                                                requiredKeys: {
+                                                    function: {
+                                                        type: 'simple',
+                                                        options: {
+                                                            label: 'Javascript Code',
+                                                            type: 'function'
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                    }
-                                },
-                                'Javascript Action': {
-                                    defaultValue: { action: '' },
-                                    definition: {
-                                        type: 'object',
-                                        options: {
-                                            label: 'Javascript Action',
-                                            requiredKeys: {
-                                                action: {
-                                                    type: 'simple',
-                                                    options: {
-                                                        label: 'Javascript Action Name',
-                                                        type: 'function'
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                'List Action Builder': {
-                                    defaultValue: {
-                                        listAction: {
-                                            actionName: 'openDetailView'
                                         }
                                     },
-                                    definition: {
-                                        type: 'object', options: {
-                                            label: 'List Action',
-                                            requiredKeys: {
-                                                listAction: listActionEditor()
+                                    'Javascript Action': {
+                                        defaultValue: { action: '' },
+                                        definition: {
+                                            type: 'object',
+                                            options: {
+                                                label: 'Javascript Action',
+                                                requiredKeys: {
+                                                    action: {
+                                                        type: 'simple',
+                                                        options: {
+                                                            label: 'Javascript Action Name',
+                                                            type: 'function'
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    'List Action Builder': {
+                                        defaultValue: {
+                                            listAction: {
+                                                actionName: 'openDetailView'
+                                            }
+                                        },
+                                        definition: {
+                                            type: 'object', options: {
+                                                label: 'List Action',
+                                                requiredKeys: {
+                                                    listAction: yield listActionEditor(obj, config)
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
-                    }
-                },
-                optionalKeys: {
-                    title: {
-                        defaultValue: "",
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                label: 'Button Text',
-                                type: 'string'
                             }
                         }
                     },
-                    icon: {
-                        defaultValue: "",
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                label: 'Button Icon',
-                                type: 'string'
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        defaultValue: {
-            columnTitle: '',
-            onClick: {
-                function: () => { },
-            }
-        }
-    };
-    let endpoint = {
-        label: "Endpoint Options",
-        requiredKeys: {
-            method: {
-                type: 'simple',
-                options: {
-                    label: 'HTTP Method (GET, POST, etc.)',
-                    type: 'string'
-                }
-            },
-            endpoint: {
-                type: 'simple',
-                options: {
-                    label: 'XBasic Expression Endpoint',
-                    type: 'string'
-                }
-            }
-        },
-        optionalKeys: {
-            body: {
-                defaultValue: {},
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'Body',
-                        requiredKeys: {},
-                        newKeyTemplate: {
-                            defaultValue: '',
+                    optionalKeys: {
+                        title: {
+                            defaultValue: "",
                             definition: {
                                 type: 'simple',
                                 options: {
-                                    type: 'string',
-                                    label: 'Value'
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            headers: {
-                defaultValue: {},
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'Headers',
-                        requiredKeys: {},
-                        newKeyTemplate: {
-                            defaultValue: '',
-                            definition: {
-                                type: 'simple',
-                                options: {
-                                    type: 'string',
-                                    label: 'Value'
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            callback: {
-                defaultValue: () => { },
-                definition: {
-                    type: 'simple',
-                    options: {
-                        type: 'function',
-                        label: 'On Complete Callback'
-                    }
-                }
-            }
-        }
-    };
-    let editTypeDropdown = {
-        label: 'Data Type',
-        dropdownItems: [
-            { text: 'Text', value: 'text' },
-            { text: 'Dropdown', value: 'dropdown' },
-            { text: 'Time', value: 'time' },
-            { text: 'Date & Time', value: 'datetime' },
-            { text: 'True/False', value: 'bool' },
-            { text: 'Number', value: 'number' },
-            { text: 'JSON String', value: 'json' }
-        ],
-        default: 'text'
-    };
-    let nestedSubMappings = {
-        label: "Nested Sub-Mappings",
-        name: 'subMapping',
-        definitions: {
-            'JSON Value': {
-                defaultValue: {
-                    editType: 'string',
-                },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Value',
-                        requiredKeys: {
-                            editType: {
-                                type: 'dropdown',
-                                options: {
-                                    label: 'Edit Type',
-                                    dropdownItems: [
-                                        { value: 'string', 'text': 'String' },
-                                        { value: 'number', 'text': 'Number' },
-                                        { value: 'boolean', 'text': 'Boolean' },
-                                    ]
-                                }
-                            }
-                        },
-                        optionalKeys: {
-                            displayName: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Display Name',
-                                        type: 'string'
-                                    }
-                                }
-                            },
-                            defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            'JSON Array': {
-                defaultValue: { arrayItem: { editType: 'string' } },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Array',
-                        requiredKeys: {
-                            arrayItem: {
-                                type: 'recursive',
-                                options: {
-                                    label: 'Array Item',
-                                    recurseOn: 'subMapping'
-                                }
-                            }
-                        },
-                        optionalKeys: {
-                            defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            'JSON Object': {
-                defaultValue: { keys: {} },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Object',
-                        requiredKeys: {
-                            keys: {
-                                type: 'object',
-                                options: {
-                                    label: 'Keys',
-                                    requiredKeys: {},
-                                    newKeyTemplate: {
-                                        defaultValue: {
-                                            editType: 'string'
-                                        },
-                                        definition: {
-                                            type: 'recursive',
-                                            options: {
-                                                label: (_1, _2, k) => k,
-                                                recurseOn: 'subMapping'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        optionalKeys: {
-                            defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        },
-                    }
-                }
-            },
-        }
-    };
-    let flattenedSubMappings = {
-        label: "Flattened Sub-Mappings",
-        name: 'subMapping',
-        definitions: {
-            'JSON Value': {
-                defaultValue: {
-                    editType: 'string',
-                    flattenedColumnName: ''
-                },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Value',
-                        requiredKeys: {
-                            editType: {
-                                type: 'dropdown',
-                                options: {
-                                    label: 'Edit Type',
-                                    dropdownItems: [
-                                        { value: 'string', 'text': 'String' },
-                                        { value: 'number', 'text': 'Number' },
-                                        { value: 'boolean', 'text': 'Boolean' },
-                                    ]
-                                }
-                            },
-                            flattenedColumnName: {
-                                type: 'simple',
-                                options: {
-                                    label: "Flattened Column Name",
+                                    label: 'Button Text',
                                     type: 'string'
                                 }
                             }
                         },
-                        optionalKeys: {
-                            displayName: {
-                                defaultValue: "",
+                        icon: {
+                            defaultValue: "",
+                            definition: {
+                                type: 'simple',
+                                options: {
+                                    label: 'Button Icon',
+                                    type: 'string'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            defaultValue: {
+                columnTitle: '',
+                onClick: {
+                    function: () => { },
+                }
+            }
+        };
+        let endpoint = {
+            label: "Endpoint Options",
+            requiredKeys: {
+                method: {
+                    type: 'simple',
+                    options: {
+                        label: 'HTTP Method (GET, POST, etc.)',
+                        type: 'string'
+                    }
+                },
+                endpoint: {
+                    type: 'simple',
+                    options: {
+                        label: 'XBasic Expression Endpoint',
+                        type: 'string'
+                    }
+                }
+            },
+            optionalKeys: {
+                body: {
+                    defaultValue: {},
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Body',
+                            requiredKeys: {},
+                            newKeyTemplate: {
+                                defaultValue: '',
                                 definition: {
                                     type: 'simple',
                                     options: {
-                                        label: 'Display Name',
+                                        type: 'string',
+                                        label: 'Value'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                headers: {
+                    defaultValue: {},
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Headers',
+                            requiredKeys: {},
+                            newKeyTemplate: {
+                                defaultValue: '',
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        type: 'string',
+                                        label: 'Value'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                callback: {
+                    defaultValue: () => { },
+                    definition: {
+                        type: 'simple',
+                        options: {
+                            type: 'function',
+                            label: 'On Complete Callback'
+                        }
+                    }
+                }
+            }
+        };
+        let editTypeDropdown = {
+            label: 'Data Type',
+            dropdownItems: [
+                { text: 'Text', value: 'text' },
+                { text: 'Dropdown', value: 'dropdown' },
+                { text: 'Time', value: 'time' },
+                { text: 'Date & Time', value: 'datetime' },
+                { text: 'True/False', value: 'bool' },
+                { text: 'Number', value: 'number' },
+                { text: 'JSON String', value: 'json' }
+            ],
+            default: 'text',
+        };
+        let nestedSubMappings = {
+            label: "Nested Sub-Mappings",
+            name: 'subMapping',
+            definitions: {
+                'JSON Value': {
+                    defaultValue: {
+                        editType: 'string',
+                    },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Value',
+                            requiredKeys: {
+                                editType: {
+                                    type: 'dropdown',
+                                    options: {
+                                        label: 'Edit Type',
+                                        dropdownItems: [
+                                            { value: 'string', 'text': 'String' },
+                                            { value: 'number', 'text': 'Number' },
+                                            { value: 'boolean', 'text': 'Boolean' },
+                                        ]
+                                    }
+                                }
+                            },
+                            optionalKeys: {
+                                displayName: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Display Name',
+                                            type: 'string'
+                                        }
+                                    }
+                                },
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'JSON Array': {
+                    defaultValue: { arrayItem: { editType: 'string' } },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Array',
+                            requiredKeys: {
+                                arrayItem: {
+                                    type: 'recursive',
+                                    options: {
+                                        label: 'Array Item',
+                                        recurseOn: 'subMapping'
+                                    }
+                                }
+                            },
+                            optionalKeys: {
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'JSON Object': {
+                    defaultValue: { keys: {} },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Object',
+                            requiredKeys: {
+                                keys: {
+                                    type: 'object',
+                                    options: {
+                                        label: 'Keys',
+                                        requiredKeys: {},
+                                        newKeyTemplate: {
+                                            defaultValue: {
+                                                editType: 'string'
+                                            },
+                                            definition: {
+                                                type: 'recursive',
+                                                options: {
+                                                    label: (_1, _2, k) => k,
+                                                    recurseOn: 'subMapping'
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            optionalKeys: {
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                },
+            }
+        };
+        let flattenedSubMappings = {
+            label: "Flattened Sub-Mappings",
+            name: 'subMapping',
+            definitions: {
+                'JSON Value': {
+                    defaultValue: {
+                        editType: 'string',
+                        flattenedColumnName: ''
+                    },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Value',
+                            requiredKeys: {
+                                editType: {
+                                    type: 'dropdown',
+                                    options: {
+                                        label: 'Edit Type',
+                                        dropdownItems: [
+                                            { value: 'string', 'text': 'String' },
+                                            { value: 'number', 'text': 'Number' },
+                                            { value: 'boolean', 'text': 'Boolean' },
+                                        ]
+                                    }
+                                },
+                                flattenedColumnName: {
+                                    type: 'simple',
+                                    options: {
+                                        label: "Flattened Column Name",
                                         type: 'string'
                                     }
                                 }
                             },
-                            defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
+                            optionalKeys: {
+                                displayName: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Display Name',
+                                            type: 'string'
+                                        }
+                                    }
+                                },
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
+                },
+                'JSON Array': {
+                    defaultValue: { arrayItem: { editType: 'string', flattenedColumnName: '' } },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Array',
+                            requiredKeys: {
+                                arrayItem: {
+                                    type: 'recursive',
+                                    options: {
+                                        label: 'Array Item',
+                                        recurseOn: 'subMapping'
+                                    }
+                                }
+                            },
+                            optionalKeys: {
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'JSON Object': {
+                    defaultValue: { keys: {} },
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'JSON Object',
+                            requiredKeys: {
+                                keys: {
+                                    type: 'object',
+                                    options: {
+                                        label: 'Keys',
+                                        requiredKeys: {},
+                                        newKeyTemplate: {
+                                            defaultValue: {
+                                                editType: 'string',
+                                                flattenedColumnName: '',
+                                            },
+                                            definition: {
+                                                type: 'recursive',
+                                                options: {
+                                                    label: (_1, _2, k) => k,
+                                                    recurseOn: 'subMapping'
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            optionalKeys: {
+                                defaultValue: {
+                                    defaultValue: "",
+                                    definition: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Default Value (JavaScript expression)',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                },
+            }
+        };
+        let mappings = {
+            label: 'List Mappings',
+            defaultValue: {
+                columnName: '',
             },
-            'JSON Array': {
-                defaultValue: { arrayItem: { editType: 'string', flattenedColumnName: '' } },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Array',
-                        requiredKeys: {
-                            arrayItem: {
-                                type: 'recursive',
+            itemTemplate: {
+                type: 'object',
+                options: {
+                    skipUnknownKeys: true,
+                    label: (_, data) => {
+                        return data.displayName ? data.displayName : data.columnName;
+                    },
+                    requiredKeys: {
+                        columnName: {
+                            type: 'dropdown',
+                            options: {
+                                label: 'Column Name',
+                                dropdownItems: allColumns
+                            }
+                        }
+                    },
+                    optionalKeys: {
+                        displayName: {
+                            defaultValue: "",
+                            definition: {
+                                type: 'simple',
                                 options: {
-                                    label: 'Array Item',
-                                    recurseOn: 'subMapping'
+                                    type: 'string',
+                                    label: 'Display Name'
                                 }
                             }
                         },
-                        optionalKeys: {
-                            defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            'JSON Object': {
-                defaultValue: { keys: {} },
-                definition: {
-                    type: 'object',
-                    options: {
-                        label: 'JSON Object',
-                        requiredKeys: {
-                            keys: {
-                                type: 'object',
+                        inList: {
+                            defaultValue: false,
+                            definition: {
+                                type: 'simple',
                                 options: {
-                                    label: 'Keys',
-                                    requiredKeys: {},
-                                    newKeyTemplate: {
-                                        defaultValue: {
-                                            editType: 'string',
-                                            flattenedColumnName: '',
+                                    type: 'boolean',
+                                    label: 'Display In List'
+                                }
+                            },
+                            inline: true,
+                        },
+                        inDetailView: {
+                            defaultValue: false,
+                            definition: {
+                                type: 'simple',
+                                options: {
+                                    type: 'boolean',
+                                    label: 'Display In Detail View'
+                                }
+                            },
+                            inline: true,
+                        },
+                        editType: {
+                            defaultValue: 'text',
+                            definition: {
+                                type: 'dropdown',
+                                options: editTypeDropdown,
+                            },
+                        },
+                        subMappings: {
+                            defaultValue: {
+                                editType: 'string'
+                            },
+                            definition: {
+                                type: 'multi',
+                                options: {
+                                    label: 'Sub-Mapping Type',
+                                    definitions: {
+                                        'Nested Sub-Fields': {
+                                            defaultValue: { editType: 'string' },
+                                            definition: {
+                                                type: 'multi',
+                                                options: nestedSubMappings
+                                            }
                                         },
-                                        definition: {
-                                            type: 'recursive',
-                                            options: {
-                                                label: (_1, _2, k) => k,
-                                                recurseOn: 'subMapping'
+                                        'Flattened Sub-Mappings': {
+                                            defaultValue: {
+                                                editType: 'string',
+                                                flattenedColumnName: ''
+                                            },
+                                            definition: {
+                                                type: 'multi',
+                                                options: flattenedSubMappings
                                             }
                                         }
                                     }
                                 }
                             }
                         },
-                        optionalKeys: {
+                        serverDateFormat: {
+                            defaultValue: '',
+                            definition: {
+                                type: 'simple',
+                                options: {
+                                    type: 'string',
+                                    label: 'Server Date Format'
+                                }
+                            }
+                        },
+                        width: {
+                            defaultValue: '',
+                            definition: {
+                                type: 'simple',
+                                options: {
+                                    type: 'string',
+                                    label: 'Width'
+                                }
+                            }
+                        },
+                        template: {
+                            defaultValue: '',
+                            definition: {
+                                type: 'simple',
+                                options: {
+                                    type: 'string',
+                                    label: 'Template'
+                                }
+                            }
+                        },
+                        dropdownConfig: {
                             defaultValue: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Default Value (JavaScript expression)',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        },
-                    }
-                }
-            },
-        }
-    };
-    let mappings = {
-        label: 'List Mappings',
-        defaultValue: {
-            columnName: '',
-        },
-        itemTemplate: {
-            type: 'object',
-            options: {
-                skipUnknownKeys: true,
-                label: (_, data) => {
-                    return data.displayName ? data.displayName : data.columnName;
-                },
-                requiredKeys: {
-                    columnName: {
-                        type: 'dropdown',
-                        options: {
-                            label: 'Column Name',
-                            dropdownItems: allColumns
-                        }
-                    }
-                },
-                optionalKeys: {
-                    displayName: {
-                        defaultValue: "",
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'string',
-                                label: 'Display Name'
-                            }
-                        }
-                    },
-                    inList: {
-                        defaultValue: false,
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'boolean',
-                                label: 'Display In List'
-                            }
-                        },
-                        inline: true,
-                    },
-                    inDetailView: {
-                        defaultValue: false,
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'boolean',
-                                label: 'Display In Detail View'
-                            }
-                        },
-                        inline: true,
-                    },
-                    editType: {
-                        defaultValue: 'text',
-                        definition: {
-                            type: 'dropdown',
-                            options: editTypeDropdown
-                        },
-                    },
-                    subMappings: {
-                        defaultValue: {
-                            editType: 'string'
-                        },
-                        definition: {
-                            type: 'multi',
-                            options: {
-                                label: 'Sub-Mapping Type',
-                                definitions: {
-                                    'Nested Sub-Fields': {
-                                        defaultValue: { editType: 'string' },
-                                        definition: {
-                                            type: 'multi',
-                                            options: nestedSubMappings
-                                        }
+                                choices: [],
+                            },
+                            definition: {
+                                type: 'multi',
+                                options: {
+                                    display: (f) => {
+                                        let form = f;
+                                        let mappings = form.parent;
+                                        let editId = mappings.getChild('editType').getId();
+                                        return form.dynForm.formBox.data[editId] == 'dropdown';
                                     },
-                                    'Flattened Sub-Mappings': {
-                                        defaultValue: {
-                                            editType: 'string',
-                                            flattenedColumnName: ''
-                                        },
-                                        definition: {
-                                            type: 'multi',
-                                            options: flattenedSubMappings
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    serverDateFormat: {
-                        defaultValue: '',
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'string',
-                                label: 'Server Date Format'
-                            }
-                        }
-                    },
-                    width: {
-                        defaultValue: '',
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'string',
-                                label: 'Width'
-                            }
-                        }
-                    },
-                    template: {
-                        defaultValue: '',
-                        definition: {
-                            type: 'simple',
-                            options: {
-                                type: 'string',
-                                label: 'Template'
-                            }
-                        }
-                    },
-                    dropdownConfig: {
-                        defaultValue: {
-                            choices: [],
-                        },
-                        definition: {
-                            type: 'multi',
-                            options: {
-                                label: 'Dropdown Config',
-                                definitions: {
-                                    'Choices': {
-                                        defaultValue: { choices: [] },
-                                        definition: {
-                                            type: 'object',
-                                            options: {
-                                                label: 'Choices',
-                                                requiredKeys: {
-                                                    choices: {
-                                                        type: 'array',
-                                                        options: {
-                                                            defaultValue: '',
-                                                            label: 'Dropdown Choices',
-                                                            itemTemplate: {
+                                    label: 'Dropdown Config',
+                                    definitions: {
+                                        'Choices': {
+                                            defaultValue: { choices: [], allowCustom: false },
+                                            definition: {
+                                                type: 'object',
+                                                options: {
+                                                    label: 'Choices',
+                                                    requiredKeys: {
+                                                        choices: {
+                                                            type: 'array',
+                                                            options: {
+                                                                defaultValue: '',
+                                                                label: 'Dropdown Choices',
+                                                                itemTemplate: {
+                                                                    type: 'simple',
+                                                                    options: {
+                                                                        label: 'Dropdown Item',
+                                                                        type: 'string'
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    optionalKeys: {
+                                                        allowCustom: {
+                                                            defaultValue: false,
+                                                            definition: {
                                                                 type: 'simple',
                                                                 options: {
-                                                                    label: 'Dropdown Item',
-                                                                    type: 'string'
+                                                                    label: 'Allow Custom Value',
+                                                                    type: 'boolean'
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        'From Column': {
+                                            defaultValue: { fromColumn: '' },
+                                            definition: {
+                                                type: 'object',
+                                                options: {
+                                                    label: 'From Column',
+                                                    requiredKeys: {
+                                                        fromColumn: {
+                                                            type: 'dropdown',
+                                                            options: {
+                                                                label: 'Derive from Column',
+                                                                dropdownItems: allColumns
+                                                            }
+                                                        }
+                                                    },
+                                                    optionalKeys: {
+                                                        allowCustom: {
+                                                            defaultValue: false,
+                                                            definition: {
+                                                                type: 'simple',
+                                                                options: {
+                                                                    label: 'Allow Custom Value',
+                                                                    type: 'boolean'
                                                                 }
                                                             }
                                                         }
@@ -12094,389 +12335,371 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        if (!adminConfig)
+            return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'array', options: mappings });
+        // Read-only option is available to admins only
+        let mappingOps = mappings.itemTemplate.options;
+        mappingOps.optionalKeys['readOnly'] = {
+            defaultValue: false,
+            definition: {
+                type: 'simple',
+                options: {
+                    type: 'boolean',
+                    label: 'Read-Only'
+                }
+            },
+            inline: true
+        };
+        let filters = {
+            label: 'List Filters',
+            defaultValue: {
+                columnName: '',
+                op: '=',
+                columnVal: {
+                    tag: 'value',
+                    val: '',
+                },
+                connector: 'AND',
+            },
+            itemTemplate: {
+                type: 'object',
+                options: {
+                    label: 'Filter',
+                    requiredKeys: {
+                        columnName: {
+                            type: 'simple',
+                            options: {
+                                type: 'string',
+                                label: 'Column Name'
+                            }
+                        },
+                        op: {
+                            type: 'dropdown',
+                            options: {
+                                label: 'Operator',
+                                dropdownItems: [
+                                    { text: "Equals", value: "=" },
+                                    { text: "Not Equals", value: "<>" },
+                                    { text: "Less Than", value: "<" },
+                                    { text: "Less Than or Equal To", value: "<=" },
+                                    { text: "Greater Than", value: ">" },
+                                    { text: "Greater Than or Equal To", value: ">=" },
+                                    { text: "Pattern", value: "LIKE" },
+                                ]
+                            },
+                        },
+                        columnVal: {
+                            type: 'object',
+                            options: {
+                                label: 'Column Value',
+                                requiredKeys: {
+                                    tag: {
+                                        type: 'dropdown',
+                                        options: {
+                                            label: 'Value Type',
+                                            dropdownItems: [
+                                                { text: "Argument", value: "arg" },
+                                                { text: "Static Value", value: "value" }
+                                            ]
+                                        }
                                     },
-                                    'From Column': {
-                                        defaultValue: { fromColumn: '' },
-                                        definition: {
-                                            type: 'object',
-                                            options: {
-                                                label: 'From Column',
-                                                requiredKeys: {
-                                                    fromColumn: {
-                                                        type: 'simple',
-                                                        options: {
-                                                            label: 'Derive from Column',
-                                                            type: 'string'
+                                    value: {
+                                        type: 'simple',
+                                        options: {
+                                            label: 'Value',
+                                            type: 'string'
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        connector: {
+                            type: 'dropdown',
+                            options: {
+                                default: 'AND',
+                                label: 'Logical Connector',
+                                dropdownItems: [
+                                    { text: "And", value: "AND" },
+                                    { text: "Or", value: "OR" }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        let serverSort = {
+            label: "Server-side Sorting",
+            defaultValue: { columnName: '', order: 'asc' },
+            itemTemplate: {
+                type: 'object',
+                options: {
+                    label: "Column Sorting Option",
+                    requiredKeys: {
+                        columnName: {
+                            type: 'dropdown',
+                            options: {
+                                label: 'Column to Sort On',
+                                dropdownItems: allColumns,
+                            }
+                        },
+                        order: {
+                            type: 'dropdown',
+                            options: {
+                                label: 'Order',
+                                dropdownItems: [
+                                    { text: 'Ascending', value: 'asc' },
+                                    { text: 'Descending', value: 'desc' }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        let paginate = {
+            type: 'object',
+            options: {
+                label: 'Pagination Options',
+                requiredKeys: {
+                    pageSize: {
+                        type: 'simple',
+                        options: {
+                            label: 'Page Size',
+                            type: 'number'
+                        }
+                    }
+                }
+            }
+        };
+        let form = {
+            label: 'List Configuration',
+            requiredKeys: {
+                name: {
+                    type: 'simple',
+                    options: {
+                        type: 'string',
+                        label: 'List Name'
+                    }
+                },
+                dataSource: {
+                    type: 'multi',
+                    options: {
+                        label: 'Data Source',
+                        definitions: {
+                            'Fetch From API': {
+                                defaultValue: { type: 'json', endpoints: {} },
+                                definition: {
+                                    type: 'object',
+                                    options: {
+                                        label: "Fetch from API",
+                                        requiredKeys: {
+                                            type: {
+                                                type: 'const',
+                                                options: {
+                                                    label: '',
+                                                    value: 'json'
+                                                }
+                                            },
+                                            endpoints: {
+                                                type: 'object',
+                                                options: {
+                                                    label: 'Endpoints',
+                                                    requiredKeys: {},
+                                                    newKeyTemplate: {
+                                                        defaultValue: {
+                                                            method: 'GET',
+                                                            endpoint: 'my_xbasic_expression'
+                                                        },
+                                                        definition: {
+                                                            type: 'object',
+                                                            options: endpoint
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-    if (!adminConfig)
-        return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'array', options: mappings });
-    // Read-only option is available to admins only
-    let mappingOps = mappings.itemTemplate.options;
-    mappingOps.optionalKeys['readOnly'] = {
-        defaultValue: false,
-        definition: {
-            type: 'simple',
-            options: {
-                type: 'boolean',
-                label: 'Read-Only'
-            }
-        },
-        inline: true
-    };
-    let filters = {
-        label: 'List Filters',
-        defaultValue: {
-            columnName: '',
-            op: '=',
-            columnVal: {
-                tag: 'value',
-                val: '',
-            },
-            connector: 'AND',
-        },
-        itemTemplate: {
-            type: 'object',
-            options: {
-                label: 'Filter',
-                requiredKeys: {
-                    columnName: {
-                        type: 'simple',
-                        options: {
-                            type: 'string',
-                            label: 'Column Name'
-                        }
-                    },
-                    op: {
-                        type: 'dropdown',
-                        options: {
-                            label: 'Operator',
-                            dropdownItems: [
-                                { text: "Equals", value: "=" },
-                                { text: "Not Equals", value: "<>" },
-                                { text: "Less Than", value: "<" },
-                                { text: "Less Than or Equal To", value: "<=" },
-                                { text: "Greater Than", value: ">" },
-                                { text: "Greater Than or Equal To", value: ">=" },
-                                { text: "Pattern", value: "LIKE" },
-                            ]
-                        },
-                    },
-                    columnVal: {
-                        type: 'object',
-                        options: {
-                            label: 'Column Value',
-                            requiredKeys: {
-                                tag: {
-                                    type: 'dropdown',
-                                    options: {
-                                        label: 'Value Type',
-                                        dropdownItems: [
-                                            { text: "Argument", value: "arg" },
-                                            { text: "Static Value", value: "value" }
-                                        ]
-                                    }
-                                },
-                                value: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Value',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    connector: {
-                        type: 'dropdown',
-                        options: {
-                            default: 'AND',
-                            label: 'Logical Connector',
-                            dropdownItems: [
-                                { text: "And", value: "AND" },
-                                { text: "Or", value: "OR" }
-                            ]
-                        }
-                    }
-                }
-            }
-        }
-    };
-    let serverSort = {
-        label: "Server-side Sorting",
-        defaultValue: { columnName: '', order: 'asc' },
-        itemTemplate: {
-            type: 'object',
-            options: {
-                label: "Column Sorting Option",
-                requiredKeys: {
-                    columnName: {
-                        type: 'dropdown',
-                        options: {
-                            label: 'Column to Sort On',
-                            dropdownItems: allColumns,
-                        }
-                    },
-                    order: {
-                        type: 'dropdown',
-                        options: {
-                            label: 'Order',
-                            dropdownItems: [
-                                { text: 'Ascending', value: 'asc' },
-                                { text: 'Descending', value: 'desc' }
-                            ]
-                        }
-                    }
-                }
-            }
-        }
-    };
-    let paginate = {
-        type: 'object',
-        options: {
-            label: 'Pagination Options',
-            requiredKeys: {
-                pageSize: {
-                    type: 'simple',
-                    options: {
-                        label: 'Page Size',
-                        type: 'number'
-                    }
-                }
-            }
-        }
-    };
-    let form = {
-        label: 'List Configuration',
-        requiredKeys: {
-            name: {
-                type: 'simple',
-                options: {
-                    type: 'string',
-                    label: 'List Name'
-                }
-            },
-            dataSource: {
-                type: 'multi',
-                options: {
-                    label: 'Data Source',
-                    definitions: {
-                        'Fetch From API': {
-                            defaultValue: { type: 'json', endpoints: {} },
-                            definition: {
-                                type: 'object',
-                                options: {
-                                    label: "Fetch from API",
-                                    requiredKeys: {
-                                        type: {
-                                            type: 'const',
-                                            options: {
-                                                label: '',
-                                                value: 'json'
-                                            }
                                         },
-                                        endpoints: {
-                                            type: 'object',
-                                            options: {
-                                                label: 'Endpoints',
-                                                requiredKeys: {},
-                                                newKeyTemplate: {
-                                                    defaultValue: {
-                                                        method: 'GET',
-                                                        endpoint: 'my_xbasic_expression'
-                                                    },
-                                                    definition: {
-                                                        type: 'object',
-                                                        options: endpoint
+                                        optionalKeys: {
+                                            preprocess: {
+                                                defaultValue: () => { },
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'function',
+                                                        label: 'Preprocess Function'
                                                     }
                                                 }
                                             }
                                         }
-                                    },
-                                    optionalKeys: {
-                                        preprocess: {
-                                            defaultValue: () => { },
-                                            definition: {
+                                    }
+                                }
+                            },
+                            'Fetch From SQL': {
+                                defaultValue: { type: 'sql', table: '', filters: [] },
+                                definition: {
+                                    type: 'object',
+                                    options: {
+                                        label: "Fetch from API",
+                                        requiredKeys: {
+                                            type: {
+                                                type: 'const',
+                                                options: {
+                                                    label: '',
+                                                    value: 'sql'
+                                                }
+                                            },
+                                            table: {
                                                 type: 'simple',
                                                 options: {
-                                                    type: 'function',
-                                                    label: 'Preprocess Function'
+                                                    label: 'Table Name',
+                                                    type: 'string'
+                                                }
+                                            },
+                                        },
+                                        optionalKeys: {
+                                            filters: {
+                                                defaultValue: [],
+                                                definition: {
+                                                    type: 'array',
+                                                    options: filters
+                                                }
+                                            },
+                                            serverSort: {
+                                                defaultValue: [],
+                                                definition: {
+                                                    type: 'array',
+                                                    options: serverSort
+                                                }
+                                            },
+                                            preprocess: {
+                                                defaultValue: () => { },
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'function',
+                                                        label: 'Preprocess Function'
+                                                    }
+                                                }
+                                            },
+                                            paginate: {
+                                                defaultValue: { pageSize: 10 },
+                                                definition: paginate,
+                                            },
+                                            connectionString: {
+                                                defaultValue: 'conn',
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'string',
+                                                        label: "Connection String"
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        'Fetch From SQL': {
-                            defaultValue: { type: 'sql', table: '', filters: [] },
-                            definition: {
-                                type: 'object',
-                                options: {
-                                    label: "Fetch from API",
-                                    requiredKeys: {
-                                        type: {
-                                            type: 'const',
-                                            options: {
-                                                label: '',
-                                                value: 'sql'
-                                            }
-                                        },
-                                        table: {
-                                            type: 'simple',
-                                            options: {
-                                                label: 'Table Name',
-                                                type: 'string'
-                                            }
-                                        },
-                                    },
-                                    optionalKeys: {
-                                        filters: {
-                                            defaultValue: [],
-                                            definition: {
+                            },
+                            'Supply Custom SQL': {
+                                defaultValue: { type: 'sql', sql: '', filters: [] },
+                                definition: {
+                                    type: 'object',
+                                    options: {
+                                        label: "Fetch from API",
+                                        requiredKeys: {
+                                            type: {
+                                                type: 'const',
+                                                options: {
+                                                    label: '',
+                                                    value: 'sql'
+                                                }
+                                            },
+                                            sql: {
+                                                type: 'simple',
+                                                options: {
+                                                    label: 'SQL Query',
+                                                    type: 'string'
+                                                }
+                                            },
+                                            filters: {
                                                 type: 'array',
                                                 options: filters
                                             }
                                         },
-                                        serverSort: {
-                                            defaultValue: [],
-                                            definition: {
-                                                type: 'array',
-                                                options: serverSort
-                                            }
-                                        },
-                                        preprocess: {
-                                            defaultValue: () => { },
-                                            definition: {
-                                                type: 'simple',
-                                                options: {
-                                                    type: 'function',
-                                                    label: 'Preprocess Function'
+                                        optionalKeys: {
+                                            preprocess: {
+                                                defaultValue: () => { },
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'function',
+                                                        label: 'Preprocess Function'
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        paginate: {
-                                            defaultValue: { pageSize: 10 },
-                                            definition: paginate,
-                                        },
-                                        connectionString: {
-                                            defaultValue: 'conn',
-                                            definition: {
-                                                type: 'simple',
-                                                options: {
-                                                    type: 'string',
-                                                    label: "Connection String"
+                                            },
+                                            serverSort: {
+                                                defaultValue: [],
+                                                definition: {
+                                                    type: 'array',
+                                                    options: serverSort
                                                 }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        'Supply Custom SQL': {
-                            defaultValue: { type: 'sql', sql: '', filters: [] },
-                            definition: {
-                                type: 'object',
-                                options: {
-                                    label: "Fetch from API",
-                                    requiredKeys: {
-                                        type: {
-                                            type: 'const',
-                                            options: {
-                                                label: '',
-                                                value: 'sql'
-                                            }
-                                        },
-                                        sql: {
-                                            type: 'simple',
-                                            options: {
-                                                label: 'SQL Query',
-                                                type: 'string'
-                                            }
-                                        },
-                                        filters: {
-                                            type: 'array',
-                                            options: filters
-                                        }
-                                    },
-                                    optionalKeys: {
-                                        preprocess: {
-                                            defaultValue: () => { },
-                                            definition: {
-                                                type: 'simple',
-                                                options: {
-                                                    type: 'function',
-                                                    label: 'Preprocess Function'
-                                                }
-                                            }
-                                        },
-                                        serverSort: {
-                                            defaultValue: [],
-                                            definition: {
-                                                type: 'array',
-                                                options: serverSort
-                                            }
-                                        },
-                                        paginate: {
-                                            defaultValue: { pageSize: 10 },
-                                            definition: paginate,
-                                        },
-                                        connectionString: {
-                                            defaultValue: 'conn',
-                                            definition: {
-                                                type: 'simple',
-                                                options: {
-                                                    type: 'string',
-                                                    label: "Connection String"
+                                            },
+                                            paginate: {
+                                                defaultValue: { pageSize: 10 },
+                                                definition: paginate,
+                                            },
+                                            connectionString: {
+                                                defaultValue: 'conn',
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'string',
+                                                        label: "Connection String"
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        'Static JSON': {
-                            defaultValue: { type: 'json', static: [] },
-                            definition: {
-                                type: 'object',
-                                options: {
-                                    label: "Fetch from API",
-                                    requiredKeys: {
-                                        type: {
-                                            type: 'const',
-                                            options: {
-                                                label: '',
-                                                value: 'json'
-                                            }
-                                        },
-                                        jsonData: {
-                                            type: 'simple',
-                                            options: {
-                                                label: 'JSON Data',
-                                                type: 'string'
-                                            }
-                                        }
-                                    },
-                                    optionalKeys: {
-                                        preprocess: {
-                                            defaultValue: () => { },
-                                            definition: {
+                            },
+                            'Static JSON': {
+                                defaultValue: { type: 'json', static: [] },
+                                definition: {
+                                    type: 'object',
+                                    options: {
+                                        label: "Fetch from API",
+                                        requiredKeys: {
+                                            type: {
+                                                type: 'const',
+                                                options: {
+                                                    label: '',
+                                                    value: 'json'
+                                                }
+                                            },
+                                            jsonData: {
                                                 type: 'simple',
                                                 options: {
-                                                    type: 'function',
-                                                    label: 'Preprocess Function'
+                                                    label: 'JSON Data',
+                                                    type: 'string'
+                                                }
+                                            }
+                                        },
+                                        optionalKeys: {
+                                            preprocess: {
+                                                defaultValue: () => { },
+                                                definition: {
+                                                    type: 'simple',
+                                                    options: {
+                                                        type: 'function',
+                                                        label: 'Preprocess Function'
+                                                    }
                                                 }
                                             }
                                         }
@@ -12485,107 +12708,107 @@ function buildConfigForm(obj, adminConfig, allColumns) {
                             }
                         }
                     }
-                }
-            },
-            mappings: {
-                type: 'array',
-                options: mappings
-            },
-            buttons: {
-                type: 'array',
-                options: buttons
-            },
-            searchOptions: {
-                type: 'object',
-                options: {
-                    label: 'Search Options',
-                    requiredKeys: {},
-                    optionalKeys: {
-                        advancedSearch: {
-                            defaultValue: false,
-                            definition: {
-                                type: 'simple',
-                                options: {
-                                    label: 'Do Advanced Search?',
-                                    type: 'boolean'
-                                },
-                            },
-                            inline: true,
-                        },
-                        serverSearch: {
-                            defaultValue: false,
-                            definition: {
-                                type: 'simple',
-                                options: {
-                                    label: "Do Server-side Search?",
-                                    type: 'boolean'
-                                }
-                            },
-                            inline: true,
-                        },
-                        onlyInclude: {
-                            defaultValue: [],
-                            definition: {
-                                type: 'array',
-                                options: {
-                                    defaultValue: '',
-                                    label: 'Only include these columns in search',
-                                    itemTemplate: {
-                                        type: 'simple',
-                                        options: {
-                                            label: 'Column Name',
-                                            type: 'string'
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        onlyExclude: {
-                            defaultValue: [],
-                            definition: {
-                                type: 'array',
-                                options: {
-                                    defaultValue: '',
-                                    label: 'Only exclude these columns in search',
-                                    itemTemplate: {
-                                        type: 'simple',
-                                        options: {
-                                            label: 'Column Name',
-                                            type: 'string'
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                    }
-                }
-            }
-        },
-        optionalKeys: {
-            multiSelect: {
-                defaultValue: false,
-                definition: {
-                    type: 'simple',
-                    options: {
-                        label: "Allow Multiple Column Selection",
-                        type: 'boolean'
-                    }
                 },
-                inline: true,
-            },
-            onInitialize: {
-                defaultValue: () => { },
-                definition: {
-                    type: 'simple',
+                mappings: {
+                    type: 'array',
+                    options: mappings
+                },
+                buttons: {
+                    type: 'array',
+                    options: buttons
+                },
+                searchOptions: {
+                    type: 'object',
                     options: {
-                        label: 'On Initialize Callback',
-                        type: 'function'
+                        label: 'Search Options',
+                        requiredKeys: {},
+                        optionalKeys: {
+                            advancedSearch: {
+                                defaultValue: false,
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        label: 'Do Advanced Search?',
+                                        type: 'boolean'
+                                    },
+                                },
+                                inline: true,
+                            },
+                            serverSearch: {
+                                defaultValue: false,
+                                definition: {
+                                    type: 'simple',
+                                    options: {
+                                        label: "Do Server-side Search?",
+                                        type: 'boolean'
+                                    }
+                                },
+                                inline: true,
+                            },
+                            onlyInclude: {
+                                defaultValue: [],
+                                definition: {
+                                    type: 'array',
+                                    options: {
+                                        defaultValue: '',
+                                        label: 'Only include these columns in search',
+                                        itemTemplate: {
+                                            type: 'simple',
+                                            options: {
+                                                label: 'Column Name',
+                                                type: 'string'
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            onlyExclude: {
+                                defaultValue: [],
+                                definition: {
+                                    type: 'array',
+                                    options: {
+                                        defaultValue: '',
+                                        label: 'Only exclude these columns in search',
+                                        itemTemplate: {
+                                            type: 'simple',
+                                            options: {
+                                                label: 'Column Name',
+                                                type: 'string'
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+            optionalKeys: {
+                multiSelect: {
+                    defaultValue: false,
+                    definition: {
+                        type: 'simple',
+                        options: {
+                            label: "Allow Multiple Column Selection",
+                            type: 'boolean'
+                        }
+                    },
+                    inline: true,
+                },
+                onInitialize: {
+                    defaultValue: () => { },
+                    definition: {
+                        type: 'simple',
+                        options: {
+                            label: 'On Initialize Callback',
+                            type: 'function'
+                        }
                     }
                 }
             }
-        }
-    };
-    return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'object', options: form });
+        };
+        return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'object', options: form });
+    });
 }
 // Helper function to make a button to serialize the form data
 function makeSQLSaveButtons(obj, saveUser, saveGlobal) {

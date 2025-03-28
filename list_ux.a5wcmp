@@ -32,7 +32,7 @@
             "canAjaxCallback": "",
             "afterAjaxCallback": ""
         },
-        "XbasicFunctionDeclarations": "loadClass(\"Result\")\n\nfunction batch_fetch as c (e as p)\n\tdim configInterface as p\n\tdim batch as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tbatch = configInterface.batchFetch(e).toJson().getJson()\n\tbatch_fetch = \"{dialog.object}.stateInfo.apiResponse = \" + batch + \";\"\nend function\n\n' Takes e.connectionName and e.tableName\nfunction getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim schemaRes as Result\n\tschemaInfo = require(\"schemaInfo\")\n\tschemaRes = schemaInfo.getConnectionSchemaJSON(e.connectionName, e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.apiResult = \" + schemaRes.toJson().getJson() + \";\"\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim result as Result\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.querySqlWithFilters(e)\n\tgetAllDataForTable = \"{dialog.object}.stateInfo.apiResult = \" + result.toJson().getJson() + \";\"\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim results[0] as p\n\tstdQueries = require(\"standardQueries\")\n\tstdQueries.updateTableData(e, results, e.connectionName)\n\t\n\tdim errorList as extension::json\n\terrorList.setJson(\"[]\")\n\tfor each result in results\n\t\tif .not. result.isSuccessful() then\n\t\t\terrorList.push(result.toJson().getProperty(\"err\"))\n\t\tend if\n\tnext\n\t\n\tdim result as Result\n\tif errorList.getLength() == 0 then \n\t\tresult = Result.success(\"\")\n\telse \n\t\tresult = Result.fail(errorList)\n\tend if\n\t\n\tupdateData = \"{dialog.object}.stateInfo.apiResult = \" + result.toJson().getJson() + \";\"\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as Result\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result.toJson().getJson() + \";\"\n\t\nend function",
+        "XbasicFunctionDeclarations": "loadClass(\"Result\")\n\nfunction batch_fetch as c (e as p)\n\tdim configInterface as p\n\tdim batch as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tbatch = configInterface.batchFetch(e).toJson().getJson()\n\tbatch_fetch = \"{dialog.object}.stateInfo.apiResult = \" + batch + \";\"\nend function\n\nfunction fetch_config_names as c (e as p)\n\tdim configInterface as p\n\tdim names as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tnames = configInterface.getConfigNames().toJson().getJson()\n\tfetch_config_names = \"{dialog.object}.stateInfo.apiResult = \" + names + \";\"\nend function\n\n' Takes e.connectionName and e.tableName\nfunction getSchemaAjaxCallback as c (e as p)\n\tdim schemaInfo as p\n\tdim schemaRes as Result\n\tschemaInfo = require(\"schemaInfo\")\n\tschemaRes = schemaInfo.getConnectionSchemaJSON(e.connectionName, e.tableName)\n\t\n\tgetSchemaAjaxCallback = \"{dialog.object}.stateInfo.apiResult = \" + schemaRes.toJson().getJson() + \";\"\nend function\n\nfunction getAllDataForTable as c (e as p)\n\tdim standardQueries as p\n\tdim result as Result\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.querySqlWithFilters(e)\n\tgetAllDataForTable = \"{dialog.object}.stateInfo.apiResult = \" + result.toJson().getJson() + \";\"\nend function\n\nfunction updateData as c (e as p)\n\tdim standardQueries as p\n\tdim results[0] as p\n\tstdQueries = require(\"standardQueries\")\n\tstdQueries.updateTableData(e, results, e.connectionName)\n\t\n\tdim errorList as extension::json\n\terrorList.setJson(\"[]\")\n\tfor each result in results\n\t\tif .not. result.isSuccessful() then\n\t\t\terrorList.push(result.toJson().getProperty(\"err\"))\n\t\tend if\n\tnext\n\t\n\tdim result as Result\n\tif errorList.getLength() == 0 then \n\t\tresult = Result.success(\"\")\n\telse \n\t\tresult = Result.fail(errorList)\n\tend if\n\t\n\tupdateData = \"{dialog.object}.stateInfo.apiResult = \" + result.toJson().getJson() + \";\"\nend function\n\nfunction fetch as c (e as p)\n\tdim stdQueries as p\n\tdim result as Result\n\tstdQueries = require(\"standardQueries\")\n\tresult = stdQueries.performFetch(e)\n\tfetch = \"{dialog.object}.stateInfo.fetchResult = \" + result.toJson().getJson() + \";\"\n\t\nend function\n\n' e.configName (string)\nfunction request_list_config as c (e as p)\n\tdim configInterface as p\n\tdim config as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tconfig = configInterface.requestConfig(e).toJson().getJson()\n\trequest_list_config = \"{dialog.object}.stateInfo.apiResult = \" + config + \";\"\nend function\n\n' Input: e.global -- Flag to save as global (will fail, depending on user)\n' Input: e.configName -- Name to save the config under\n' Input: e.payload\n' \tIf global is true, then this is the entire configuration \n' \tIf global is false, then this is just the mapping portion of the config\nfunction save_config as c (e as p)\n\tdim configInterface as p\n\tdim result as c\n\tconfigInterface = require(\"listConfigInterface\")\n\tresult = configInterface.saveConfig(e).toJson().getJson()\n\tsave_config = \"{dialog.object}.stateInfo.apiResult = \" + result + \";\"\nend function\n\nfunction is_admin as c (e as p) \n\tdim username as c = context.security.currentuser\n\tif .not. context.security.callresult.success then \n\t\tusername = \"\"\n\tend if\n\t\n\tdim has_permissions as L = context.security.isUserInRole(username, \"ADMINISTRATOR\")\n\tif ((.not. context.security.callresult.success) .or. (.not. has_permissions)) then \n\t\tis_admin = \"{dialog.object}.stateInfo.apiResult = { \\\"ok\\\": false };\"\n\t\tend \n\tend if\n\t\n\tis_admin = \"{dialog.object}.stateInfo.apiResult = { \\\"ok\\\": true };\"\nend function",
         "onTimerEventInterval": 60,
         "securityDeniedAction": "Redirect to login page",
         "clientSideEvents": {
@@ -181,8 +181,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2025-3-21",
-            "revisionnumber": 597
+            "dateLastEdited": "2025-3-27",
+            "revisionnumber": 598
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -322,8 +322,8 @@
                     "ControlHTML": "'xbasic\nv._dirty = .f.\n",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0,
-                "iscollapsed": false
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_PanelCardBegin",
@@ -388,10 +388,10 @@
                         },
                         "type": "Default",
                         "_panelCardDirty": true,
-                        "_precalcJS": "",
                         "_orphanControlHTML": "",
                         "pinchToZoom": false,
-                        "centerContents": false
+                        "centerContents": false,
+                        "_precalcJS": ""
                     },
                     "localxbasic": "",
                     "localjavascript": "",
@@ -532,8 +532,8 @@
                     "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.CONTAINER_2\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"display: flex; width: 100%; height: panel.height - 50; flex-direction: column; \"  ><!--DIV for Container control-->",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0,
-                "iscollapsed": false
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_ContainerBegin",
@@ -649,23 +649,10 @@
                 "displayOD": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button]",
                 "displayODtree": "{B=White,Light Blue}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button:Synchronize]",
                 "crc": "4294948577",
-                "indentTree": 0,
-                "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
-                    "DesignViewHTML": ""
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "inPanelCard": false,
-                "inTreeControl": false,
-                "containerStartIndex": 0,
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "buttonText": "Synchronize",
                     "Class": "<Default>",
                     "Style": "width: .75in;",
-                    "cssGridItemPropertiesJSON": "",
                     "BreakType": "None",
                     "breakHeight": ".1in",
                     "breakHorizontalSpace": ".1in",
@@ -688,8 +675,6 @@
                         "hoverImageName": "",
                         "displayDropdownIconOnButton": false,
                         "displayAsSplitButton": false,
-                        "showBadge": false,
-                        "badgeSettingsJSON": "",
                         "hyperlinkClass": "[class.gridHyperlinkButton]",
                         "hyperlinkImagePosition": "None",
                         "hyperlinkInlineStyle": "",
@@ -699,7 +684,9 @@
                         "pressedImageName": "",
                         "textClass": "",
                         "textInlineStyle": "",
-                        "type": "Button"
+                        "type": "Button",
+                        "showBadge": false,
+                        "badgeSettingsJSON": ""
                     },
                     "securityGroups": "",
                     "showHideExpn": "",
@@ -717,6 +704,12 @@
                         "javascriptAdvancedButton_control": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'] = new A5.Button({\n\tlayout: 'icon text',\n\tstyle: 'box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;',\n\ttip: 'Synchronize data - push local edits back to the server',\n\thtml: 'Synchronize',\n\ticon: '{images.GridRow.SaveRecord}',\n\tdisabledIcon: '{images.GridRow.SaveRecord.disabled}',\n\tonClick: function() { \n\n},\n\ttheme: '{grid.style}'\n});",
                         "javascriptAdvancedButton_bind": "{dialog.object}._buttons['BUTTON_DVSYNCHRONIZE_LIST1'].bind('{DIALOG.COMPONENTNAME}.V.R{DIALOG.ROWNUMBER}.BUTTON_DVSYNCHRONIZE_LIST1');"
                     },
+                    "javascript": {
+                        "onclick": ""
+                    },
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -741,32 +734,31 @@
                         "break": false,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=e9483699_6277_4af5_8130_ab36809f6c7d}{I:'$$control.button'} [Button: Synchronize]"
                     },
-                    "javascript": {
-                        "onclick": ""
-                    },
                     "controlContainerStyle": "",
                     "listView": {
                         "__listprops": false
                     }
-                }
-            },
-            {
-                "controltype": "layout_directive_button",
-                "idInternal": "d71e1919-91ab-48e8-8e61-db40b81eee15",
-                "parentContainer": 4,
-                "containerStartIndex": 0,
-                "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=d71e1919-91ab-48e8-8e61-db40b81eee15}{I:'$$control.button'} [Button: Edit Selected Records]<<break>>",
+                },
+                "indentTree": 0,
                 "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.MULTI_EDIT_BTN\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_DVSYNCHRONIZE_LIST1\"    ></button>\n</div>",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "inPanelCard": false,
+                "inTreeControl": false,
+                "containerStartIndex": 0
+            },
+            {
+                "controlType": "layout_directive_button",
+                "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=d71e1919-91ab-48e8-8e61-db40b81eee15}{I:'$$control.button'} [Button: Edit Selected Records]<<break>>",
+                "idInternal": "d71e1919-91ab-48e8-8e61-db40b81eee15",
+                "parentContainer": 4,
                 "crc": "4294918308",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "buttonText": "Edit Selected Records",
                     "Class": "<Default>",
-                    "cssGridItemPropertiesJSON": "",
                     "BreakType": "After",
                     "breakHeight": ".1in",
                     "breakHorizontalSpace": ".1in",
@@ -788,8 +780,6 @@
                         "hoverImageName": "",
                         "displayDropdownIconOnButton": false,
                         "displayAsSplitButton": false,
-                        "showBadge": false,
-                        "badgeSettingsJSON": "",
                         "hyperlinkClass": "[class.gridHyperlinkButton]",
                         "hyperlinkImagePosition": "None",
                         "hyperlinkInlineStyle": "",
@@ -799,7 +789,9 @@
                         "pressedImageName": "",
                         "textClass": "",
                         "textInlineStyle": "",
-                        "type": "Button"
+                        "type": "Button",
+                        "showBadge": false,
+                        "badgeSettingsJSON": ""
                     },
                     "securityGroups": "",
                     "showHideExpn": "",
@@ -814,6 +806,12 @@
                         "javascriptAdvancedButton_control": "{dialog.object}._buttons['MULTI_EDIT_BTN'] = new A5.Button({\n\tlayout: 'text',\n\tstyle: 'box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -webkit-box-sizing: border-box;',\n\thtml: 'Edit Selected Records',\n\tonClick: function() { \n\n},\n\ttheme: '{grid.style}:base'\n});",
                         "javascriptAdvancedButton_bind": "{dialog.object}._buttons['MULTI_EDIT_BTN'].bind('{DIALOG.COMPONENTNAME}.V.R{DIALOG.ROWNUMBER}.MULTI_EDIT_BTN');"
                     },
+                    "javascript": {
+                        "onclick": ""
+                    },
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 4,
                         "isContainerStart": false,
@@ -838,15 +836,17 @@
                         "break": true,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=d71e1919-91ab-48e8-8e61-db40b81eee15}{I:'$$control.button'} [Button: Edit Selected Records]<<break>>"
                     },
-                    "javascript": {
-                        "onclick": ""
-                    },
                     "controlContainerStyle": "",
                     "listView": {
                         "__listprops": false
                     }
                 },
-                "iscollapsed": false
+                "precalc": {
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.MULTI_EDIT_BTN\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_statictext",
@@ -949,9 +949,9 @@
                     "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.FLEXLAYOUT_1.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
                 "containerStartIndex": 4,
-                "__flagwrapcontentsindiv": false,
-                "iscollapsed": false
+                "__flagwrapcontentsindiv": false
             },
             {
                 "controlType": "layout_directive_ContainerBegin",
@@ -3102,13 +3102,13 @@
                             "javascriptOnOrientationChange": "",
                             "settingsJSON": ""
                         },
+                        "optimizeJSONSize": true,
                         "__listprops": false,
                         "previewMode": false,
                         "__useDefaultActionBar": false,
                         "__xbjs": "ps.__checkedImage = \"svgIcon=#alpha-icon-checkCircle:icon,24\"\nps.__uncheckedImage = \"svgIcon=#alpha-icon-circle:icon,24\"",
                         "_templateCSS": "\n",
-                        "allchildren": "",
-                        "optimizeJSONSize": true
+                        "allchildren": ""
                     },
                     "info": {
                         "level": 4,
@@ -3239,9 +3239,9 @@
                     "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t</div>\n<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.CONTAINER_2.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
                 "containerStartIndex": 3,
-                "__flagwrapcontentsindiv": false,
-                "iscollapsed": false
+                "__flagwrapcontentsindiv": false
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -3289,20 +3289,16 @@
                 "lastIndex": 18,
                 "parentContainer": 1,
                 "crc": "4294960416",
-                "precalc": {
-                    "ControlHTML": "'xbasic\n\nv._dirty = .f.\n\n\n",
-                    "DesignViewHTML": ""
-                },
-                "isCollapsed": false,
-                "containerStartIndex": 0,
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "container": {
                         "id": "EDITOR_PANEL",
                         "_isdirty": true
                     },
                     "panelInstance": {
+                        "sections": {
+                            "name": "<UsePanelId>",
+                            "renderMethod": "Auto-Create-Destroy"
+                        },
                         "resize": {
                             "allow": false,
                             "min": "",
@@ -3311,10 +3307,6 @@
                         "grip": {
                             "show": true,
                             "location": "50%"
-                        },
-                        "sections": {
-                            "name": "<UsePanelId>",
-                            "renderMethod": "Auto-Create-Destroy"
                         }
                     },
                     "panelCard": {
@@ -3358,6 +3350,8 @@
                         "centerContents": false,
                         "_precalcJS": ""
                     },
+                    "localxbasic": "",
+                    "localjavascript": "",
                     "info": {
                         "level": 1,
                         "isContainerStart": true,
@@ -3383,7 +3377,13 @@
                         "break": false,
                         "display": "{C=#104+150+112,White}{B=White,#104+150+112}{F=+B}{I:'vertline'}{Data=d585c78a-36d0-4965-8fbd-37ab290ed0f2}{I:'$$web.panel.card'} [Panel Card: EDITOR_PANEL]"
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "'xbasic\n\nv._dirty = .f.\n\n\n",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
                 "controlType": "layout_directive_button",
@@ -3484,39 +3484,32 @@
                     "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: \" >\n\t<button type=\"button\" id=\"{dialog.componentName}.V.R{dialog.rownumber}.BUTTON_2\"    ></button>\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
                     "DesignViewHTML": ""
                 },
-                "containerStartIndex": 0,
-                "iscollapsed": false
+                "isCollapsed": false,
+                "containerStartIndex": 0
             },
             {
-                "controltype": "layout_directive_ContainerBegin",
+                "controlType": "layout_directive_ContainerBegin",
+                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=f6b527c5-aa32-46d3-ae62-0079f5f1d228}{I:'$$format.border.style.dash'} [Container: EDITOR_CONTAINER]",
                 "idInternal": "f6b527c5-aa32-46d3-ae62-0079f5f1d228",
                 "lastIndex": 17,
                 "parentContainer": 14,
-                "containerStartIndex": 0,
-                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=f6b527c5-aa32-46d3-ae62-0079f5f1d228}{I:'$$format.border.style.dash'} [Container: EDITOR_CONTAINER]",
-                "precalc": {
-                    "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.EDITOR_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; \"  ><!--DIV for Container control-->",
-                    "DesignViewHTML": ""
-                },
                 "crc": "4294916852",
                 "v": {
-                    "localxbasic": "",
-                    "localjavascript": "",
                     "container": {
                         "ID": "EDITOR_CONTAINER",
                         "contentAlignment": "Left",
+                        "width": "100%",
+                        "buttonGroup": {
+                            "orientation": "Horizontal"
+                        },
+                        "subType": "None",
                         "contentVerticalAlign": "Top",
                         "CSSGridJSON": "",
                         "useFlex": true,
                         "useFlexLeft": false,
                         "alignItems": "",
                         "containersettype": "",
-                        "width": "100%",
                         "edgeOffset": "",
-                        "buttonGroup": {
-                            "orientation": "Horizontal"
-                        },
-                        "subType": "None",
                         "allowScrolling": false,
                         "scrolling": {
                             "axis": "Both",
@@ -3556,14 +3549,16 @@
                                 "duration": 1000
                             }
                         },
+                        "_isdirty": true,
                         "constrainTabKey": "No",
-                        "constrainJavascriptFunction": "",
-                        "_isdirty": true
+                        "constrainJavascriptFunction": ""
                     },
-                    "cssGridItemPropertiesJSON": "",
                     "precalc": {
                         "javascriptAbstractSetupCode": ""
                     },
+                    "localxbasic": "",
+                    "localjavascript": "",
+                    "cssGridItemPropertiesJSON": "",
                     "info": {
                         "level": 2,
                         "isContainerStart": true,
@@ -3593,19 +3588,19 @@
                         "__listprops": false
                     }
                 },
-                "iscollapsed": false
-            },
-            {
-                "controltype": "layout_directive_ContainerEnd",
-                "idInternal": "6fb3b949-3ee5-4fae-9afd-066b2e8054df",
-                "parentContainer": 14,
-                "containerStartIndex": 16,
-                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=6fb3b949-3ee5-4fae-9afd-066b2e8054df}{I:'vertLineCap'} [Container End: EDITOR_CONTAINER]<<break>>",
-                "__flagwrapcontentsindiv": false,
                 "precalc": {
-                    "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t\t</div>\n\t<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.EDITOR_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
+                    "ControlHTML": "<div \tid=\"{dialog.componentName}.V.R{dialog.rownumber}.EDITOR_CONTAINER\"   \n\t\t\tA5-containerType=\"none\"\n\t\t\tclass=\"A5CWLayout \"  style=\"width: 100%; \"  ><!--DIV for Container control-->",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
+                "containerStartIndex": 0
+            },
+            {
+                "controlType": "layout_directive_ContainerEnd",
+                "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=6fb3b949-3ee5-4fae-9afd-066b2e8054df}{I:'vertLineCap'} [Container End: EDITOR_CONTAINER]<<break>>",
+                "idInternal": "6fb3b949-3ee5-4fae-9afd-066b2e8054df",
+                "parentContainer": 14,
+                "crc": "4294946219",
                 "v": {
                     "container": {
                         "BreakType": "After",
@@ -3638,8 +3633,13 @@
                         "display": "{C=#0+0+127,White}{B=White,Light Blue}{F=+B}{I:'vertline'}{I:'vertline'}{Data=6fb3b949-3ee5-4fae-9afd-066b2e8054df}{I:'vertLineCap'} [Container End: EDITOR_CONTAINER]<<break>>"
                     }
                 },
-                "crc": "4294946219",
-                "iscollapsed": false
+                "precalc": {
+                    "ControlHTML": "<div style=\"display:none;font: 0pt arial;clear:both;\"></div>\n\t\t</div>\n\t<!--breakbegin--><br  id=\"{dialog.componentname}.V.R1.EDITOR_CONTAINER.BREAK\"  style=\"clear:both; \" /><!--breakend-->",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "containerStartIndex": 16,
+                "__flagwrapcontentsindiv": false
             },
             {
                 "controlType": "layout_directive_PanelCardEnd",
@@ -3684,13 +3684,13 @@
                 "controlType": "layout_directive_PanelNavigatorEnd",
                 "display": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}{Data=d6a52b0e-06f0-4cd2-adb8-307559b4bcf9}{I:'vertLineCap'} [Panel Navigator End: PANELNAVIGATOR_1]",
                 "idInternal": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9",
-                "crc": "4294931574",
+                "crc": "4294907970",
                 "precalc": {
                     "ControlHTML": "'xbasic\nv._dirty = .f.\n",
                     "DesignViewHTML": ""
                 },
+                "isCollapsed": false,
                 "containerStartIndex": 1,
-                "iscollapsed": false,
                 "v": {
                     "info": {
                         "level": 0,
@@ -3721,7 +3721,7 @@
         ],
         "builderType": "Dialog2",
         "guid": "05f864ff-bdc6-4b04-98b3-3dcdbf371552",
-        "componentName": "LIST_UX",
+        "componentName": "list_ux",
         "componentFilename": "C:\\Users\\lukes\\Documents\\AlphaAnywhere\\Phase 1 Project\\Phase 1 Project.WebProjects\\Default.WebProject\\list_ux.a5wcmp",
         "_style_versionNumber": 4,
         "_style_hasSassOverrides": false,
@@ -3755,7 +3755,7 @@
         "autoSetPreRenderOnForAllUX": false,
         "selected": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9\n",
         "designPaneIndex": 1,
-        "masterPaneC": "controls",
+        "masterPaneC": "XbasicFunctions",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 13,
         "clientSideEventIndexC": "13",
@@ -3764,6 +3764,8 @@
         "embeddedMode": false,
         "_style_hassubthemeTweaks": false,
         "repeatingSectionsAreDirty": true,
+        "containerSubTypeNew": "",
+        "containerSubTypeOld": "",
         "flagDropdownCascadingChanged": false,
         "toolBox_value": "",
         "addinBuildNumber": "5718",
@@ -3771,7 +3773,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "596",
+        "_buildCount": "597",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3939,7 +3941,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20250321162758937",
+        "A5SaveTimeStamp": "20250327152749124",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7   ",
@@ -3954,7 +3956,7 @@
                 "scriptMetaData": "<a_ajs<[1]<display=\"{I:'$$code.action.run'}{F=Tahoma,10}{C=Dark Blue,White}{B=Blue White,Dark Blue}Run Action{T=4}{I:'a5_vertical_line'}\">\n<action=\"Run Action\">\n<icon=\"$$code.action.run\">\n<isCommentedOut=.F.>\n<comment=\"\">\n<builder=\"a5ajs_runAction(wf,v,dlg_mode)\">\n<metaData=<<%str%\n<actionName=\"Navigate List View\">\n<passInThis=.F.>\n%str%>\n<javascriptAttribute=\"{dialog.object}.runAction('Navigate List View');\">\n<Javascriptdeclarations_row=\"\">\n<Javascriptdeclarations_global=\"\">\n<xbasicFunctions=\"\">\n>\n>\n<flagRunSynchronously=.F.>\n<flagWrapInTryCatch=.F.>\n<tryCatchJavascript=\"\">\n"
             },
             {
-                "actionGuid": "8d25b35f-9a3d-4494-b301-ff4d3c547cef   ",
+                "actionGuid": "8d25b35f-9a3d-4494-b301-ff4d3c547cef    ",
                 "scriptMetaData": "<a_ajs<[1]<display=\"{I:'$$web.component.dialog'}{F=Tahoma,10}{C=Dark Blue,White}{B=Blue White,Dark Blue}Message box   {T=4}{I:'a5_vertical_line'}\">\n<action=\"Message box   \">\n<icon=\"$$web.component.dialog\">\n<isCommentedOut=.F.>\n<comment=\"\">\n<builder=\"a5ajs_messageBox(v,wf,pv,dlg_mode)\">\n<metaData=<<%str%\n<buttons=\"OK\">\n<message=\"'Hello from ' + {dialog.object}.getDynamicList().config.name\">\n<returnVarName=\"msgResult\">\n<advancedMsgBox=.F.>\n<advancedMessageStyle=\"Window\">\n<dropdown<type=\"Message\">\n<title=\"Message Title\">\n<messageBody=\"Message body text\">\n<OKButton=\"OK\">\n<CancelButton=\"Cancel\">\n<ButtonSpacerHTML=\"&nbsp;\">\n<javascript<onOK=\"\">\n<onCancel=\"\">\n>\n<animationStyle=1>\n<width=\"400px\">\n<location=\"top\">\n>\n<title=\"MyTitle\">\n<messageHTML=\"<div style=\\\"height: 1in; padding: 15pt;\\\">My custom message</div>\">\n<type=\"o\">\n<defaultbutton=\"\">\n<javascript<ok=\"\">\n<cancel=\"\">\n<yes=\"\">\n<no=\"\">\n>\n<buttonLabel<ok=\"OK\">\n<cancel=\"Cancel\">\n<yes=\"Yes\">\n<no=\"No\">\n>\n<buttonAppearance<ok=\"\">\n<cancel=\"\">\n<yes=\"\">\n<no=\"\">\n>\n<buttonLabelJustification=\"Default\">\n<customButtons=\"\">\n%str%>\n<javascriptAttribute=\"alert('Hello from ' + {dialog.object}.getDynamicList().config.name);\">\n<Javascriptdeclarations_row=\"\">\n<Javascriptdeclarations_global=\"\">\n<xbasicFunctions=\"\">\n>\n>\n<flagRunSynchronously=.F.>\n<flagWrapInTryCatch=.F.>\n<tryCatchJavascript=\"\">\n"
             }
         ],
@@ -4094,7 +4096,7 @@
                 "name": "Test Action",
                 "comment": "Test action to scroll the list down",
                 "javascript": {
-                    "unbound": "/* actionJavascript:8d25b35f-9a3d-4494-b301-ff4d3c547cef    */\nalert('Hello from ' + {dialog.object}.getDynamicList().config.name);"
+                    "unbound": "/* actionJavascript:8d25b35f-9a3d-4494-b301-ff4d3c547cef     */\nalert('Hello from ' + {dialog.object}.getDynamicList().config.name);"
                 },
                 "javascriptDeclarationsRow": {
                     "unbound": ""
@@ -4126,12 +4128,7 @@
         "__timeToMakeRequest": 0,
         "loadFirestoreClient": false,
         "unboundActionShowOnNewActionMessage": true,
-        "actionJavascriptUnboundLastEdited": "f4e89063-e8d5-4585-ad72-01d4b925820f",
-        "__idinternalCurrentControl": "eb4bb028-5371-4fe3-998f-1e3ea6f5943a",
-        "__nameCurrentControl": "JForm1",
-        "_containerstorecalc": "",
-        "informixFix": false,
-        "__suppressContainerWarnings": "",
+        "actionJavascriptUnboundLastEdited": "21dbf0a0-e9db-4747-99cb-8459f0cff60d",
         "arguments": [
             {
                 "Name": "API_KEY",
@@ -4154,8 +4151,11 @@
                 "ArgumentDescription": ""
             }
         ],
+        "_containerstorecalc": "",
+        "__idinternalCurrentControl": "eb4bb028-5371-4fe3-998f-1e3ea6f5943a",
+        "__nameCurrentControl": "JForm1",
         "_flagForceRecalcChildren": true,
-        "containerSubTypeNew": "",
-        "containerSubTypeOld": ""
+        "informixFix": false,
+        "__suppressContainerWarnings": ""
     }
 }

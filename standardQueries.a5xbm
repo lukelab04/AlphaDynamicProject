@@ -277,15 +277,25 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 				filter.setProperty("op", "=")
 			end if 
 			
-			if .not. (filter.hasProperty("connector")) .or. (.not. isSafeConnector(filter.getProperty("connector"))) then 
-				filter.setProperty("connector", "AND")
+			dim connector as c
+			connector = ""
+			
+			if i < filters.getLength() - 1 then
+				dim nextFilter as p
+				nextFilter = filters.getIndexed(i + 1)
+				
+				if .not. (nextFilter.hasProperty("connector")) .or. (.not. isSafeConnector(nextFilter.getProperty("connector"))) then 
+					connector = "AND"
+				else 
+					connector = nextFilter.getProperty("connector")
+				end if
 			end if
 			
 			if .not. (filter.hasProperty("type")) then 
 				filter.setProperty("type", "c")
 			end if
 			filterStr = filterStr + "[" + connection.generateNativeColumnName(filter.getProperty("columnName")) + "] " + filter.getProperty("op")
-			filterStr = filterStr + " :argNum" + argCounter + " " + filter.getProperty("connector") + " "
+			filterStr = filterStr + " :argNum" + argCounter + " " + connector + " "
 			
 			' User can choose either argument or regular value 
 			if filter.getProperty("columnVal").getProperty("tag") == "value" then
@@ -304,10 +314,6 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 		next
 	end if
 	
-	if len(filterStr) != 0 then
-		' Get rid of AND or OR
-		filterStr = substr(filterStr, 1, len(filterStr) - 4)
-	end if
 	buildConstraint = Result.success(filterStr)
 end function
 

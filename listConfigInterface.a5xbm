@@ -98,6 +98,36 @@ function batchFetch as Result (e as p)
 	
 end function
 
+function getConfigNames as Result ()
+	dim cn as sql::connection
+	dim flag as l
+	''open the connection object to connect to the Database
+	flag = cn_open(cn,"::Name::conn")
+	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	cn.PortableSQLEnabled = .t.
+	'execute the SQL - pass in the sql::arguments object
+	flag = cn.execute("select config_name from alpha_anywhere_dynamic_list_settings")
+	if flag = .f. then 
+		'an error occurred - get the error message from cn.callresult.text 
+		'report the error, close the database and then end the script
+		dim errortext as c 
+		getConfigNames = Result.fail(cn.callResult.text)
+		cn.close()
+		end
+	end if
+	'DIM a SQL::Resultset object
+	dim rs as sql::resultset
+	rs = cn.resultset
+	'get the JSON from the query
+	dim json as extension::json
+	json.setJson(rs.tojson())
+	getConfigNames = Result.success(json)
+	
+	'Clean up by freeing the resultset and then closing the database
+	cn.freeresult()
+	cn.close()
+end function
+
 ' Input: e.configName (string)
 ' Output: {ok : JSON configuration} or {err: Error Message }
 
