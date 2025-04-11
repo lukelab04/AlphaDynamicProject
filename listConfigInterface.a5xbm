@@ -6,6 +6,7 @@
 exports.requestConfig = requestConfig
 exports.saveConfig = saveConfig
 exports.batchFetch = batchFetch
+exports.prepareTransformFormList =  prepareTransformFormList
 
 loadClass("Result")
 
@@ -96,6 +97,127 @@ function batchFetch as Result (e as p)
 	
 	batchFetch = Result.success(resultObj)
 	
+end function
+
+' e.formid string
+' This will return a config with the argument API_KEY for the TF API key
+' It is expected that the UX has this argument defined
+function prepareTransformFormList as Result (e as p)
+		
+	if e.data("formid") = "" then 
+		prepareTransformFormList = Result.fail("Must provide a formId")
+		end 
+	end if
+	
+	
+	dim existingConfig as Result
+	dim existingConfigArgs as p
+	existingConfigArgs.configName = e.formid
+	existingConfig = requestConfig(existingConfigArgs)
+	
+	if existingConfig.isSuccessful() then
+		' Config already exists, so nothing to do. 
+		prepareTransformFormList = Result.success("")
+		end 
+	end if
+
+	
+	dim defaultTFConfig as c
+	defaultTFConfig = <<%str%
+{
+	"name": "args.name",
+	"buttons": [],
+	"dataSource": {
+		"type": "json",
+		"endpoints": {
+			"fetch": {
+				"endpoint": {
+					"tag": "template",
+					"value": "args.defaultUrl"
+				},
+				"method": "GET",
+				"headers": {
+					"apikey": {
+						"tag": "argument",
+						"value": "API_KEY"
+					}
+				}
+			}
+		},
+		"preprocess": "res => res.result"
+	},
+	"searchOptions": {
+		"advancedSearch": false,
+		"serverSearch": false,
+	},
+	"mappings": {
+		"tag": "object",
+		"flatten": true,
+		"inDetailView": false,
+		"keys": {
+			"ID": {
+				"tag": "data",
+				"flattenedName": "ID",
+				"inList": true,
+				"readOnly": true,
+				"editType": "number",
+			},
+			"forminstanceid": {
+				"tag": "data",
+				"flattenedName": "forminstanceid",
+				"inList": true,
+				"readOnly": true,
+				"editType": "text",
+			},
+			"person": {
+				"tag": "data",
+				"flattenedName": "person",
+				"displayName": "Person",
+				"inList": true,
+				"inDetailView": true,
+				"editType": "text",
+			}
+		}
+	}
+}
+%str%
+	dim tfArgs as p
+	tfArgs.name = e.formid
+	tfArgs.defaultUrl = "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormInstancesArrayForFormId/" + e.formId + "?paginated=true&mode=Detailed&resolveMediaFields=true&getFormDefinition=false"
+	defaultTFConfig = replace_variables_in_string(defaultTFConfig, tfArgs, "args")
+	
+	dim cn as sql::connection
+	dim flag as l 
+	flag = cn_open(cn,"::Name::conn")
+	if flag = .f. then 
+		'there was an error
+		dim errorText as c 
+		errorText = cn.callresult.text
+		prepareTransformFormList = Result.fail(errorText)
+		end
+	end if 
+	'turn on portable SQL
+	cn.PortableSQLEnabled = .t.
+	dim SQL as c 
+	sql = "INSERT INTO alpha_anywhere_dynamic_list_settings([GLOBAL],CONFIG,CONFIG_NAME) VALUES (:GLOBAL,:CONFIG,:CONFIGNAME)"
+	dim args as sql::arguments
+	args.add("GLOBAL", 1)
+	args.add("CONFIG", defaultTFConfig)
+	args.add("CONFIGNAME", e.formid)
+	'execute the SQL
+	flag = cn.execute(sql,args)
+	if flag = .f. then 
+		'there was an error
+		dim errorText as c 
+		errorText = cn.callresult.text
+		cn.close()
+		prepareTransformFormList = Result.fail(errorText)
+		end
+	end if 
+	dim rowsInserted as n 
+	cn.close()
+	
+	prepareTransformFormList = Result.success("")
 end function
 
 function getConfigNames as Result ()
@@ -331,13 +453,58 @@ function screenUserConfig as p (userConfig as p, savedConfig as a)
 	dim officialMappings as extension::json 
 	officialMappings = savedConfig.getProperty("mappings")
 	
-	if officialMappings <> null_value() .and. officialMappings.hasProperty("readOnly") then 
-		userConfig.setProperty("readOnly", officialMappings.getProperty("readOnly"))
-	else
-		userConfig.setProperty("readOnly", .f.)
+	if officialMappings = null_value() then 
+		screenUserConfig = userConfig 
+		end 
 	end if
 	
-	screenUserConfig = userConfig
+	screenUserConfig = walkMappings(userConfig, officialMappings)
+end function
+
+function walkMappings as p (userMapping as extension::json, globalMapping as extension::json)
+	if userMapping.hasProperty("tag") = .f. then 
+		walkMappings = globalMapping 
+		end 
+	end if 
+	
+	dim tag as c 
+	tag = globalMapping.getProperty("tag")
+	
+	if tag <> userMapping.getProperty("tag") then 
+		walkMappings = globalMapping 
+		end 
+	end if 
+	
+	if tag = "object" then 
+		if userMapping.hasProperty("keys") = .f. then 
+			walkMappings = globalMapping 
+			end 
+		end if 
+		
+		for i = 0 to userMapping.getProperty("keys").getLength() - 1
+			dim name as c 
+			name = userMapping.getProperty("keys").nameIndexed(i)
+			
+			if globalMapping.getProperty("keys").hasProperty("name") then 
+				userMapping.getProperty("keys").setProperty(name, walkMappings(userMapping.getProperty("keys").getProperty(name), globalMapping.getProperty("keys").getProperty(name)))
+			end if 
+		next
+		
+		walkMappings = userMapping
+		end 
+	else if tag = "array" then 
+		if userMapping.hasProperty("itemMapping") = .f. then 
+			walkMappings = globalMapping 
+			end 
+		end if 
+		userMapping.setProperty("itemMapping", walkMappings(userMapping.getProperty("itemMapping"), globalMapping.getProperty("itemMapping")))
+		walkMappings = userMapping
+	else 
+		if userMapping.hasProperty("readOnly") .and. globalMapping.hasProperty("readOnly") then 
+			userMapping.setProperty("readOnly", globalMapping.getProperty("readOnly"))
+		end if 
+		walkMappings = userMapping 
+	end if
 end function
 
 

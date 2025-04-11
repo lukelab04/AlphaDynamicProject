@@ -181,8 +181,8 @@
         "info": {
             "createdBy": "lukes",
             "dateCreated": "2024-4-17",
-            "dateLastEdited": "2025-3-27",
-            "revisionnumber": 598
+            "dateLastEdited": "2025-4-3",
+            "revisionnumber": 599
         },
         "flagShowCommentsInTree": true,
         "treeCommentOffset": "6",
@@ -1069,23 +1069,21 @@
                 "idInternal": "a99c667b-1092-4d68-810e-88264b95c03e",
                 "parentContainer": 9,
                 "displayODtree": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [DYNAMIC_LIST]<<break>>",
-                "crc": "4294917398",
+                "crc": "4294914333",
+                "isCollapsed": false,
+                "parentIsCollapsed": false,
+                "containerStartIndex": 0,
                 "v": {
                     "controlType": "list",
                     "variableName": "DYNAMIC_LIST",
                     "type": "Character",
+                    "localXbasic": "",
+                    "localJavascript": "",
+                    "controlContainerStyle": "",
+                    "cssGridItemPropertiesJSON": "",
                     "maxLength": -1,
                     "watermark": {
                         "text": "<FieldLabel>"
-                    },
-                    "precalc": {
-                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_DYNAMIC_LIST'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'DYNAMIC_LIST'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'DYNAMIC_LIST'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'DYNAMIC_LIST', flag: $if(showHide == '',true,false)});}\n}\n\n",
-                        "javascriptAbstractSetupCode": "",
-                        "controlHTMLInPanelCard": "in panel card",
-                        "javascript_listViewData": "{dialog.object}._listViewData['DYNAMIC_LIST'] = [[dialog.listViewData.DYNAMIC_LIST]]; ",
-                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['DYNAMIC_LIST'] = [[dialog.listViewSettings.DYNAMIC_LIST]]; ",
-                        "javascript_listview": "{dialog.object}._controls['DYNAMIC_LIST'] =  { type: 'list',  data: {dialog.object}._listViewData['DYNAMIC_LIST'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applications. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n;this._host = {dialog.object}.dialogId;\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['DYNAMIC_LIST'] }",
-                        "_jsOnChangeFunction": "function onChange_DYNAMIC_LIST_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DYNAMIC_LIST');};"
                     },
                     "lookup": {
                         "flagIsdefined": false,
@@ -1096,6 +1094,7 @@
                             "openLookupOnFocus": false
                         }
                     },
+                    "textboxSubTheme": "",
                     "textboxAutocorrect": true,
                     "textboxAutoCapitalize": true,
                     "label": "List1",
@@ -1119,6 +1118,8 @@
                         "trimTrailingSeparatorOnBlur": false
                     },
                     "showExpression": "false",
+                    "getFunction": "",
+                    "setFunction": "",
                     "onChange_ValidationOption": "Client-side only",
                     "dataBinding": {
                         "updateable": true,
@@ -1135,44 +1136,6 @@
                         "encrypted": false,
                         "encryptionkey": ""
                     },
-                    "textboxSubTheme": "",
-                    "getFunction": "",
-                    "setFunction": "",
-                    "datePicker": {
-                        "displayTimePicker": false,
-                        "openMethod": "ClickIcon",
-                        "dateFormat": "<Default>",
-                        "iconNumber": 2,
-                        "OKButtonLabel": "OK",
-                        "CancelButtonLabel": "Cancel",
-                        "userMustSelectFromDatePicker": false,
-                        "multiple": {
-                            "allow": false,
-                            "separators": ".."
-                        },
-                        "hasMask": false,
-                        "format": {
-                            "mask": ""
-                        },
-                        "timePickerOptionsDefined": false,
-                        "display": false,
-                        "useComboBoxes": true,
-                        "lowYear": 1950,
-                        "highYear": 2050,
-                        "switchYear": 30,
-                        "lowDate": "",
-                        "highDate": "",
-                        "disabledDays": "",
-                        "disabledDates": ""
-                    },
-                    "displayAsSlider": false,
-                    "flags": {
-                        "clientSideDefinition": false
-                    },
-                    "localXbasic": "",
-                    "localJavascript": "",
-                    "controlContainerStyle": "",
-                    "cssGridItemPropertiesJSON": "",
                     "listView": {
                         "listGUID": "27accd17-2b12-4ebf-ade6-a6e11be22a51",
                         "compressList": false,
@@ -1201,7 +1164,7 @@
                         "allowKeyboardNavigationToGiveFocus": true,
                         "headerHTML": "",
                         "noRecordsMessage": {
-                            "has": false,
+                            "has": true,
                             "HTML": "No records in list.",
                             "addrecordwhenmessageiclicked": true,
                             "centerH": true,
@@ -1497,6 +1460,8 @@
                             "indicator": {
                                 "v": {
                                     "show": true,
+                                    "className": "",
+                                    "barClassName": "",
                                     "location": "right",
                                     "offset": "0px",
                                     "top": "0px",
@@ -1504,6 +1469,8 @@
                                 },
                                 "h": {
                                     "show": true,
+                                    "className": "",
+                                    "barClassName": "",
                                     "location": "top",
                                     "offset": "0px",
                                     "left": "0px",
@@ -1760,221 +1727,6 @@
                         "fieldsArray": {
                             "fields": [
                                 {
-                                    "name": "MENU",
-                                    "type": "Unknown",
-                                    "displayFormat": "",
-                                    "serverSideInlineStyle": "",
-                                    "serverSideConditionalStyle": "",
-                                    "clientSideConditionalStyle": "",
-                                    "clientSideConditionalCellStyle": "",
-                                    "encryptfield": false,
-                                    "encryptionkey": "",
-                                    "decodeValue": false,
-                                    "decodeValueLookupListJSON": "",
-                                    "securityGroups": "",
-                                    "javascriptAddressible": true,
-                                    "serversideShowhideExpn": "",
-                                    "clientSideShowHideExpn": "",
-                                    "controlType": "Menu",
-                                    "clientsideInlineStyle": "",
-                                    "wordwrap": false,
-                                    "wordwrapOption": "normal",
-                                    "clientsideClass": "",
-                                    "baseExpression": "",
-                                    "searchPropertiesJSON": "",
-                                    "image": {
-                                        "base64Encode": false,
-                                        "type": "JPG",
-                                        "scale": "",
-                                        "fileNameTransformation": "",
-                                        "imageDataType": "Name",
-                                        "base64Prefix": "data:image/jpg;base64,",
-                                        "noImageFoundImage": "",
-                                        "signS3imageURL": false,
-                                        "signS3ImageCS": ""
-                                    },
-                                    "sourceTableType": "",
-                                    "detailview": {
-                                        "serversidevalidation": "",
-                                        "defaultValueJavascript": "",
-                                        "onDetailViewPopulateJavascript": "",
-                                        "onListUpdateFromDetailView": "",
-                                        "updateable": true,
-                                        "checkforwriteConflicts": true,
-                                        "blankIsNull": false,
-                                        "updatePermissionSecurityGroups": "",
-                                        "serverSidePermissionExpression": "",
-                                        "imageCapturePropertiesJSON": "",
-                                        "ExifCapturePropertiesJSON": ""
-                                    },
-                                    "hide": false,
-                                    "button": {
-                                        "type": "Text",
-                                        "image": "",
-                                        "label": "Button",
-                                        "bubblehelp": "",
-                                        "class": "",
-                                        "style": "",
-                                        "onClick": "",
-                                        "stopPropagation": false,
-                                        "giveFocusToRowOnClick": false,
-                                        "fireEventsWhenRowGetsFocus": false,
-                                        "SystemButtonSettingsJSON": ""
-                                    },
-                                    "hyperlink": {
-                                        "label": "Hyperlink",
-                                        "bubblehelp": "",
-                                        "class": "",
-                                        "style": "",
-                                        "onClick": "",
-                                        "actionType": "Javascript",
-                                        "href": "",
-                                        "target": "New Window",
-                                        "stopPropagation": false,
-                                        "giveFocusToRowOnClick": false,
-                                        "fireEventsWhenRowGetsFocus": false
-                                    },
-                                    "unboundtype": "Menu",
-                                    "dynamicImage": {
-                                        "definition": "",
-                                        "class": "",
-                                        "style": "",
-                                        "bubbleHelp": "",
-                                        "onClick": "",
-                                        "stopPropagation": false,
-                                        "giveFocusToRowOnClick": false,
-                                        "fireEventsWhenRowGetsFocus": false,
-                                        "twoStateImage": false,
-                                        "swapImageName": "",
-                                        "toggleOnClick": true,
-                                        "rotationType": "90"
-                                    },
-                                    "menu": {
-                                        "definitionJSON": "{\n\t\"_controlBarDropdownMenu\": true,\n\t\"methodToDefineMenu\": \"Static JSON String\",\n\t\"menu\": {\n\t\t\"menuArray\": {\n\t\t},\n\t\t\"isDefined\": false\n\t},\n\t\"xbasicFunction\": \"\",\n\t\"menuJSON\": \"[\\r\\n\\t{\\r\\n\\t\\thtml: 'a',\\r\\n\\t\\tonClick: function() {alert('you clicked on a');},\\r\\n\\t\\ticon: 'imgIcon=images/$$application.alpha.png.a5image{vertical-align:middle;}',\\r\\n\\t\\tchildren: [\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c1',\\r\\n\\t\\t\\t\\tonClick: function() {alert('you clicked on c1');},\\r\\n\\t\\t\\t\\ticon: 'imgIcon=images/$$code.action.commentOut.png.a5image{vertical-align:middle;}'\\r\\n\\t\\t\\t},\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c2'\\r\\n\\t\\t\\t},\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c3'\\r\\n\\t\\t\\t}\\r\\n\\t\\t]\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'b'\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'c'\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'd'\\r\\n\\t}\\r\\n]\\r\\n\",\n\t\"menuName\": \"<Default>\",\n\t\"window\": {\n\t\t\"animation\": {\n\t\t\t\"hasAnimation\": true,\n\t\t\t\"show\": {\n\t\t\t\t\"method\": \"Slide\",\n\t\t\t\t\"speed\": \"Fast\"\n\t\t\t},\n\t\t\t\"hide\": {\n\t\t\t\t\"method\": \"None\",\n\t\t\t\t\"speed\": \"Fast\"\n\t\t\t}\n\t\t},\n\t\t\"pointer\": {\n\t\t\t\"has\": false,\n\t\t\t\"location\": \"Auto\"\n\t\t}\n\t},\n\t\"ajaxWindowPositionAttribute\": \"\",\n\t\"ajaxWindowPositionAttributeEnglish\": \"\",\n\t\"iconColumnWidth\": \"20px\",\n\t\"menuHeight\": \"\",\n\t\"menuWidth\": \"\",\n\t\"menuBackgroundColor\": \"\",\n\t\"indent\": \"24px\",\n\t\"menuinlinestyle\": \"\",\n\t\"menuclass\": \"\",\n\t\"menutype\": \"Cascading\",\n\t\"collapsebeforedisplay\": \"Yes\",\n\t\"expandonhover\": true,\n\t\"hoverdelay\": 600,\n\t\"direction\": \"ltr\",\n\t\"_rendertype\": \"DropdownMenu\"\n}",
-                                        "buttonType": "Image",
-                                        "text": "Menu",
-                                        "image": "svgIcon=#alpha-icon-bars:icon,24",
-                                        "image_rotate": true,
-                                        "bubblehelp": "",
-                                        "inlinestyle": "",
-                                        "className": "",
-                                        "focusrow": false,
-                                        "imageOpen": "svgIcon=#alpha-icon-xLarge:icon,24",
-                                        "fireEventsWhenRowGetsFocus": false,
-                                        "image_rotate_duraction": 300
-                                    },
-                                    "virtualJavascript": {
-                                        "javascript": ""
-                                    },
-                                    "serverSideSummaryFieldsHas": false,
-                                    "horizontalwidth": "200px",
-                                    "serverSideSummaryFields": "",
-                                    "clientSideSummaryFieldsHas": false,
-                                    "clientSideTypeTransform": "None",
-                                    "clientSideDateTemplate": "MM-dd-yyyy",
-                                    "clientSideDateFormat": "<None>",
-                                    "clientSideNumericFormat": "",
-                                    "inplaceEditing": {
-                                        "template": "",
-                                        "javascript": {
-                                            "validation": "",
-                                            "initialvalue": ""
-                                        },
-                                        "serverside": {
-                                            "validation": ""
-                                        },
-                                        "controltype": "Textbox",
-                                        "controljson": "",
-                                        "allow": true,
-                                        "conditionalalloweditJSfunction": "",
-                                        "securitygroups": ""
-                                    },
-                                    "customControl": {
-                                        "definition": ""
-                                    },
-                                    "chartPropertiesJSON": "",
-                                    "isComputedColumn": false,
-                                    "ink": {
-                                        "width": "300",
-                                        "height": "",
-                                        "sizeMethod": "Width-Height",
-                                        "scale": 0.25,
-                                        "zoom": "50%",
-                                        "boundsType": "Page",
-                                        "boundsMargin": 10,
-                                        "boundsX": 0,
-                                        "boundsY": 0,
-                                        "boundsWidth": 100,
-                                        "boundsHeight": 100
-                                    },
-                                    "star": {
-                                        "maxstars": 5,
-                                        "selectedColor": "Gold",
-                                        "unselectedColor": "Gray",
-                                        "width": "26px",
-                                        "height": "26px",
-                                        "readonly": false
-                                    },
-                                    "integer": {
-                                        "min": "0",
-                                        "max": "100",
-                                        "buttonClass": "[theme:button.base.className]",
-                                        "valueClass": "[class.dialogInput]",
-                                        "ValueStyle": "width: 40px;",
-                                        "hasIncrementBy10": false,
-                                        "hasIncrementBy100": false
-                                    },
-                                    "javascript": {
-                                        "methodName": ""
-                                    },
-                                    "map": {
-                                        "height": "300",
-                                        "width": "300",
-                                        "markerColor": "green",
-                                        "markerSize": "<default>",
-                                        "zoom": "8"
-                                    },
-                                    "radiobuttons": {
-                                        "choices": "",
-                                        "readonly": false,
-                                        "fillWidth": true
-                                    },
-                                    "checkboxButtons": {
-                                        "choices": "",
-                                        "readonly": false,
-                                        "fillWidth": true
-                                    },
-                                    "switch": {
-                                        "onvalue": "On",
-                                        "offValue": "Off",
-                                        "width": "100px",
-                                        "direction": "ltr",
-                                        "readonly": false,
-                                        "displaystyle": "Switch",
-                                        "htmlOn": "On",
-                                        "htmlOff": "Off",
-                                        "iconOn": "svgIcon=#alpha-icon-checkRounded:icon,24",
-                                        "iconOff": "svgIcon=#alpha-icon-squareRounded:icon,24",
-                                        "behavior": "ComboBox",
-                                        "groupName": "Group1"
-                                    },
-                                    "unboundField": true,
-                                    "display": "{data=1}{I:'$$control.menu'} MENU (Menu)",
-                                    "xbfunction": "",
-                                    "onItemDrawSystemJavascript": "",
-                                    "onItemDrawInlineStyle": "",
-                                    "onItemDrawConditionalStyle": "",
-                                    "controlHTML": "<div style=\"display:inline-block\" id=\"{dialog.componentName}.DYNAMIC_LIST.MENU.MENU.{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_MENU\">{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-bars:icon,24'>>)}</div>&nbsp;",
-                                    "controlHTMLFreeformLayout": "<div style=\"display:inline-block\" id=\"{dialog.componentName}.DYNAMIC_LIST.MENU.MENU.{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_MENU\">{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-bars:icon,24'>>)}</div>",
-                                    "deleteField": false,
-                                    "qbecontroltype": "Textbox",
-                                    "qbedefaultsearchtype": "<Default>",
-                                    "qbechoicestype": "Static",
-                                    "qbechoicesJSON": "",
-                                    "qbedefaultsearchvalue": "",
-                                    "qbedateformat": "MM/dd/yyyy"
-                                },
-                                {
                                     "name": "BUTTON",
                                     "type": "Unknown",
                                     "displayFormat": "",
@@ -2174,13 +1926,228 @@
                                         "groupName": "Group1"
                                     },
                                     "unboundField": true,
-                                    "display": "{data=2}{I:'$$control.button'} BUTTON (Button)",
+                                    "display": "{data=1}{I:'$$control.button'} BUTTON (Button)",
                                     "xbfunction": "",
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
-                                    "controlHTML": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.BUTTON.I.{*dataRow}\"><button  a5-item=\"_systemButtononClick_BUTTON\"  id=\"{dialog.componentName}.DYNAMIC_LIST.BUTTON.BTN.{*dataRow}\"  class=\"[class.dialogButton]\" style=\"cursor:pointer;\" title=\"\">Press Me&nbsp;{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-edit:icon,24'>>)}</button></span>&nbsp;",
-                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.BUTTON.I.{*dataRow}\"><button  a5-item=\"_systemButtononClick_BUTTON\"  id=\"{dialog.componentName}.DYNAMIC_LIST.BUTTON.BTN.{*dataRow}\"  class=\"[class.dialogButton]\" style=\"cursor:pointer;\" title=\"\">Press Me&nbsp;{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-edit:icon,24'>>)}</button></span>",
+                                    "controlHTML": "<span id=\"{dialog.componentName}.DUMMY.BUTTON.I.{*dataRow}\"><button  a5-item=\"_systemButtononClick_BUTTON\"  id=\"{dialog.componentName}.DUMMY.BUTTON.BTN.{*dataRow}\"  class=\"[class.dialogButton]\" style=\"cursor:pointer;\" title=\"\">Press Me&nbsp;{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-edit:icon,24'>>)}</button></span>&nbsp;",
+                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DUMMY.BUTTON.I.{*dataRow}\"><button  a5-item=\"_systemButtononClick_BUTTON\"  id=\"{dialog.componentName}.DUMMY.BUTTON.BTN.{*dataRow}\"  class=\"[class.dialogButton]\" style=\"cursor:pointer;\" title=\"\">Press Me&nbsp;{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-edit:icon,24'>>)}</button></span>",
+                                    "deleteField": false,
+                                    "qbecontroltype": "Textbox",
+                                    "qbedefaultsearchtype": "<Default>",
+                                    "qbechoicestype": "Static",
+                                    "qbechoicesJSON": "",
+                                    "qbedefaultsearchvalue": "",
+                                    "qbedateformat": "MM/dd/yyyy"
+                                },
+                                {
+                                    "name": "MENU",
+                                    "type": "Unknown",
+                                    "displayFormat": "",
+                                    "serverSideInlineStyle": "",
+                                    "serverSideConditionalStyle": "",
+                                    "clientSideConditionalStyle": "",
+                                    "clientSideConditionalCellStyle": "",
+                                    "encryptfield": false,
+                                    "encryptionkey": "",
+                                    "decodeValue": false,
+                                    "decodeValueLookupListJSON": "",
+                                    "securityGroups": "",
+                                    "javascriptAddressible": true,
+                                    "serversideShowhideExpn": "",
+                                    "clientSideShowHideExpn": "",
+                                    "controlType": "Menu",
+                                    "clientsideInlineStyle": "",
+                                    "wordwrap": false,
+                                    "wordwrapOption": "normal",
+                                    "clientsideClass": "",
+                                    "baseExpression": "",
+                                    "searchPropertiesJSON": "",
+                                    "image": {
+                                        "base64Encode": false,
+                                        "type": "JPG",
+                                        "scale": "",
+                                        "fileNameTransformation": "",
+                                        "imageDataType": "Name",
+                                        "base64Prefix": "data:image/jpg;base64,",
+                                        "noImageFoundImage": "",
+                                        "signS3imageURL": false,
+                                        "signS3ImageCS": ""
+                                    },
+                                    "sourceTableType": "",
+                                    "detailview": {
+                                        "serversidevalidation": "",
+                                        "defaultValueJavascript": "",
+                                        "onDetailViewPopulateJavascript": "",
+                                        "onListUpdateFromDetailView": "",
+                                        "updateable": true,
+                                        "checkforwriteConflicts": true,
+                                        "blankIsNull": false,
+                                        "updatePermissionSecurityGroups": "",
+                                        "serverSidePermissionExpression": "",
+                                        "imageCapturePropertiesJSON": "",
+                                        "ExifCapturePropertiesJSON": ""
+                                    },
+                                    "hide": false,
+                                    "button": {
+                                        "type": "Text",
+                                        "image": "",
+                                        "label": "Button",
+                                        "bubblehelp": "",
+                                        "class": "",
+                                        "style": "",
+                                        "onClick": "",
+                                        "stopPropagation": false,
+                                        "giveFocusToRowOnClick": false,
+                                        "fireEventsWhenRowGetsFocus": false,
+                                        "SystemButtonSettingsJSON": ""
+                                    },
+                                    "hyperlink": {
+                                        "label": "Hyperlink",
+                                        "bubblehelp": "",
+                                        "class": "",
+                                        "style": "",
+                                        "onClick": "",
+                                        "actionType": "Javascript",
+                                        "href": "",
+                                        "target": "New Window",
+                                        "stopPropagation": false,
+                                        "giveFocusToRowOnClick": false,
+                                        "fireEventsWhenRowGetsFocus": false
+                                    },
+                                    "unboundtype": "Menu",
+                                    "dynamicImage": {
+                                        "definition": "",
+                                        "class": "",
+                                        "style": "",
+                                        "bubbleHelp": "",
+                                        "onClick": "",
+                                        "stopPropagation": false,
+                                        "giveFocusToRowOnClick": false,
+                                        "fireEventsWhenRowGetsFocus": false,
+                                        "twoStateImage": false,
+                                        "swapImageName": "",
+                                        "toggleOnClick": true,
+                                        "rotationType": "90"
+                                    },
+                                    "menu": {
+                                        "definitionJSON": "{\n\t\"_controlBarDropdownMenu\": true,\n\t\"methodToDefineMenu\": \"Static JSON String\",\n\t\"menu\": {\n\t\t\"menuArray\": {\n\t\t},\n\t\t\"isDefined\": false\n\t},\n\t\"xbasicFunction\": \"\",\n\t\"menuJSON\": \"[\\r\\n\\t{\\r\\n\\t\\thtml: 'a',\\r\\n\\t\\tonClick: function() {alert('you clicked on a');},\\r\\n\\t\\ticon: 'imgIcon=images/$$application.alpha.png.a5image{vertical-align:middle;}',\\r\\n\\t\\tchildren: [\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c1',\\r\\n\\t\\t\\t\\tonClick: function() {alert('you clicked on c1');},\\r\\n\\t\\t\\t\\ticon: 'imgIcon=images/$$code.action.commentOut.png.a5image{vertical-align:middle;}'\\r\\n\\t\\t\\t},\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c2'\\r\\n\\t\\t\\t},\\r\\n\\t\\t\\t{\\r\\n\\t\\t\\t\\thtml: 'c3'\\r\\n\\t\\t\\t}\\r\\n\\t\\t]\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'b'\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'c'\\r\\n\\t},\\r\\n\\t{\\r\\n\\t\\thtml: 'd'\\r\\n\\t}\\r\\n]\\r\\n\",\n\t\"menuName\": \"<Default>\",\n\t\"window\": {\n\t\t\"animation\": {\n\t\t\t\"hasAnimation\": true,\n\t\t\t\"show\": {\n\t\t\t\t\"method\": \"Slide\",\n\t\t\t\t\"speed\": \"Fast\"\n\t\t\t},\n\t\t\t\"hide\": {\n\t\t\t\t\"method\": \"None\",\n\t\t\t\t\"speed\": \"Fast\"\n\t\t\t}\n\t\t},\n\t\t\"pointer\": {\n\t\t\t\"has\": false,\n\t\t\t\"location\": \"Auto\"\n\t\t}\n\t},\n\t\"ajaxWindowPositionAttribute\": \"\",\n\t\"ajaxWindowPositionAttributeEnglish\": \"\",\n\t\"iconColumnWidth\": \"20px\",\n\t\"menuHeight\": \"\",\n\t\"menuWidth\": \"\",\n\t\"menuBackgroundColor\": \"\",\n\t\"indent\": \"24px\",\n\t\"menuinlinestyle\": \"\",\n\t\"menuclass\": \"\",\n\t\"menutype\": \"Cascading\",\n\t\"collapsebeforedisplay\": \"Yes\",\n\t\"expandonhover\": true,\n\t\"hoverdelay\": 600,\n\t\"direction\": \"ltr\",\n\t\"_rendertype\": \"DropdownMenu\"\n}",
+                                        "buttonType": "Image",
+                                        "text": "Menu",
+                                        "image": "svgIcon=#alpha-icon-bars:icon,24",
+                                        "image_rotate": true,
+                                        "bubblehelp": "",
+                                        "inlinestyle": "",
+                                        "className": "",
+                                        "focusrow": false,
+                                        "imageOpen": "svgIcon=#alpha-icon-xLarge:icon,24",
+                                        "fireEventsWhenRowGetsFocus": false,
+                                        "image_rotate_duraction": 300
+                                    },
+                                    "virtualJavascript": {
+                                        "javascript": ""
+                                    },
+                                    "serverSideSummaryFieldsHas": false,
+                                    "horizontalwidth": "200px",
+                                    "serverSideSummaryFields": "",
+                                    "clientSideSummaryFieldsHas": false,
+                                    "clientSideTypeTransform": "None",
+                                    "clientSideDateTemplate": "MM-dd-yyyy",
+                                    "clientSideDateFormat": "<None>",
+                                    "clientSideNumericFormat": "",
+                                    "inplaceEditing": {
+                                        "template": "",
+                                        "javascript": {
+                                            "validation": "",
+                                            "initialvalue": ""
+                                        },
+                                        "serverside": {
+                                            "validation": ""
+                                        },
+                                        "controltype": "Textbox",
+                                        "controljson": "",
+                                        "allow": true,
+                                        "conditionalalloweditJSfunction": "",
+                                        "securitygroups": ""
+                                    },
+                                    "customControl": {
+                                        "definition": ""
+                                    },
+                                    "chartPropertiesJSON": "",
+                                    "isComputedColumn": false,
+                                    "ink": {
+                                        "width": "300",
+                                        "height": "",
+                                        "sizeMethod": "Width-Height",
+                                        "scale": 0.25,
+                                        "zoom": "50%",
+                                        "boundsType": "Page",
+                                        "boundsMargin": 10,
+                                        "boundsX": 0,
+                                        "boundsY": 0,
+                                        "boundsWidth": 100,
+                                        "boundsHeight": 100
+                                    },
+                                    "star": {
+                                        "maxstars": 5,
+                                        "selectedColor": "Gold",
+                                        "unselectedColor": "Gray",
+                                        "width": "26px",
+                                        "height": "26px",
+                                        "readonly": false
+                                    },
+                                    "integer": {
+                                        "min": "0",
+                                        "max": "100",
+                                        "buttonClass": "[theme:button.base.className]",
+                                        "valueClass": "[class.dialogInput]",
+                                        "ValueStyle": "width: 40px;",
+                                        "hasIncrementBy10": false,
+                                        "hasIncrementBy100": false
+                                    },
+                                    "javascript": {
+                                        "methodName": ""
+                                    },
+                                    "map": {
+                                        "height": "300",
+                                        "width": "300",
+                                        "markerColor": "green",
+                                        "markerSize": "<default>",
+                                        "zoom": "8"
+                                    },
+                                    "radiobuttons": {
+                                        "choices": "",
+                                        "readonly": false,
+                                        "fillWidth": true
+                                    },
+                                    "checkboxButtons": {
+                                        "choices": "",
+                                        "readonly": false,
+                                        "fillWidth": true
+                                    },
+                                    "switch": {
+                                        "onvalue": "On",
+                                        "offValue": "Off",
+                                        "width": "100px",
+                                        "direction": "ltr",
+                                        "readonly": false,
+                                        "displaystyle": "Switch",
+                                        "htmlOn": "On",
+                                        "htmlOff": "Off",
+                                        "iconOn": "svgIcon=#alpha-icon-checkRounded:icon,24",
+                                        "iconOff": "svgIcon=#alpha-icon-squareRounded:icon,24",
+                                        "behavior": "ComboBox",
+                                        "groupName": "Group1"
+                                    },
+                                    "unboundField": true,
+                                    "display": "{data=2}{I:'$$control.menu'} MENU (Menu)",
+                                    "xbfunction": "",
+                                    "onItemDrawSystemJavascript": "",
+                                    "onItemDrawInlineStyle": "",
+                                    "onItemDrawConditionalStyle": "",
+                                    "controlHTML": "<div style=\"display:inline-block\" id=\"{dialog.componentName}.DUMMY.MENU.MENU.{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_MENU\">{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-bars:icon,24'>>)}</div>&nbsp;",
+                                    "controlHTMLFreeformLayout": "<div style=\"display:inline-block\" id=\"{dialog.componentName}.DUMMY.MENU.MENU.{*dataRow}\" title=\"\" a5-item=\"_MENU_onClick_MENU\">{@A5.u.icon.html(<escape<'svgIcon=#alpha-icon-bars:icon,24'>>)}</div>",
                                     "deleteField": false,
                                     "qbecontroltype": "Textbox",
                                     "qbedefaultsearchtype": "<Default>",
@@ -2391,8 +2358,8 @@
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
-                                    "controlHTML": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
-                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
+                                    "controlHTML": "<span id=\"{dialog.componentName}.DUMMY.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
+                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DUMMY.FIRSTNAME.I.{*dataRow}\">{Firstname}</span>",
                                     "deleteField": false,
                                     "baseName": "Firstname",
                                     "_templateEditingFreeform": "{Firstname}"
@@ -2599,8 +2566,8 @@
                                     "onItemDrawSystemJavascript": "",
                                     "onItemDrawInlineStyle": "",
                                     "onItemDrawConditionalStyle": "",
-                                    "controlHTML": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
-                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DYNAMIC_LIST.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
+                                    "controlHTML": "<span id=\"{dialog.componentName}.DUMMY.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
+                                    "controlHTMLFreeformLayout": "<span id=\"{dialog.componentName}.DUMMY.LASTNAME.I.{*dataRow}\">{Lastname}</span>",
                                     "deleteField": false,
                                     "baseName": "Lastname",
                                     "_templateEditingFreeform": "{Lastname}"
@@ -3100,15 +3067,36 @@
                         },
                         "precalc": {
                             "javascriptOnOrientationChange": "",
-                            "settingsJSON": ""
+                            "settingsJSON": "*gzip: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"
                         },
-                        "optimizeJSONSize": true,
-                        "__listprops": false,
-                        "previewMode": false,
-                        "__useDefaultActionBar": false,
-                        "__xbjs": "ps.__checkedImage = \"svgIcon=#alpha-icon-checkCircle:icon,24\"\nps.__uncheckedImage = \"svgIcon=#alpha-icon-circle:icon,24\"",
-                        "_templateCSS": "\n",
-                        "allchildren": ""
+                        "__listprops": false
+                    },
+                    "datePicker": {
+                        "displayTimePicker": false,
+                        "openMethod": "ClickIcon",
+                        "dateFormat": "<Default>",
+                        "iconNumber": 2,
+                        "OKButtonLabel": "OK",
+                        "CancelButtonLabel": "Cancel",
+                        "userMustSelectFromDatePicker": false,
+                        "multiple": {
+                            "allow": false,
+                            "separators": ".."
+                        },
+                        "hasMask": false,
+                        "format": {
+                            "mask": ""
+                        },
+                        "timePickerOptionsDefined": false,
+                        "display": false,
+                        "useComboBoxes": true,
+                        "lowYear": 1950,
+                        "highYear": 2050,
+                        "switchYear": 30,
+                        "lowDate": "",
+                        "highDate": "",
+                        "disabledDays": "",
+                        "disabledDates": ""
                     },
                     "info": {
                         "level": 4,
@@ -3133,21 +3121,26 @@
                         "parentPanelCardId": "ef1248ab-632e-4417-a170-bd5b2ed9dac1",
                         "break": true,
                         "display": "{B=White,Light Blue}{I:'vertline'}{I:'vertline'}{I:'vertline'}{I:'vertline'}{Data=a99c667b-1092-4d68-810e-88264b95c03e}{I:'$$control.browse'} [DYNAMIC_LIST]<<break>>"
+                    },
+                    "displayAsSlider": false,
+                    "precalc": {
+                        "controlHTMLInPanelCard": "in panel card",
+                        "javascript_listViewData": "{dialog.object}._listViewData['DYNAMIC_LIST'] = [[dialog.listViewData.DYNAMIC_LIST]]; ",
+                        "javascript_listViewSettings": "{dialog.object}._listViewSettings['DYNAMIC_LIST'] = [[dialog.listViewSettings.DYNAMIC_LIST]]; ",
+                        "javascript_listview": "{dialog.object}._controls['DYNAMIC_LIST'] =  { type: 'list',  data: {dialog.object}._listViewData['DYNAMIC_LIST'],  onInitialize: function() {;if (!this.allowNullSelection){ var that = this; setTimeout(function() {that._onSelect(); delete that; },10);};\n\t\tvar pe = $(this.contId).parentElement;\n\t\tif(typeof this.listVariableName != 'undefined') { \n\t\t\tvar _cn = '{dialog.componentName}_' + this.listVariableName.toUpperCase() + '_2';\n\t\t\t$acn(pe,_cn);\n\t\t}\n\t\n\n\n\nvar flagCordova = true;\nif (typeof window['cordova'] == 'undefined') {\n\tvar flagCordova = false;\n}\nif(flagCordova) { \n\tif(this.__flagPersist) { \n\t\tif(this.__persistWhere.toLowerCase() == 'indexdb') { \n\t\t\talert('Error. App is running as a Cordova app. You cannot set the persist location to \\'IndexedDB\\' for Cordova applications. You must set the persist location to \\'FileSystem\\'');\n\t\t}\n\t}\n}\n\n;var that = this;\ntry{\n\t\n\tif(this._hasDetailView) { \n\t\tif(this._JSONForm) { \n\t\n\t\t\tsetTimeout(function() { \n\t\t\tthat.resize();\n\t\n\t\t\t},10);\n\t\t}\n\t}\n}catch(e){};\n\t\n;this._host = {dialog.object}.dialogId;\n\nif(typeof this.__flagHasFixedColumnFooters != 'undefined') { \n\tif(this.__flagHasFixedColumnFooters) { \n\t\tthis.refresh();\n\t}\n}\n\n; if(this.initializeVirtualizedColumns) this.initializeVirtualizedColumns(); if(this._setupAlphabetSearch) this._setupAlphabetSearch.call(this)},  settings: {dialog.object}._listViewSettings['DYNAMIC_LIST'] }",
+                        "javascriptClientSideWatches": "{dialog.object}.dialogWatches['SHOWHIDE_DYNAMIC_LIST'] = {\n\t\twatch: [],\n\t\tvariables: [],\n\t\tonChange: function(data) {\n\t\n\tvar dialog = {};\n\tvar summary = {};;\n\t;\n\tvar showHide = '';\n\tif( (false == true) == true ) showHide = '';\n\telse showHide = 'none';\t\n\tif(showHide == 'none') {\t\n\t\t{dialog.object}.setControlDisplay(''+'DYNAMIC_LIST'+'',false,'display');\n\t} else {\n\t\t{dialog.object}.setControlDisplay(''+'DYNAMIC_LIST'+'',true,'display');\n\t}\n\t\n\t;\n\t{dialog.object}._executeEvent('onWatchEvent',{type: 'show/hide', control: 'DYNAMIC_LIST', flag: $if(showHide == '',true,false)});}\n}\n\n",
+                        "_jsOnChangeFunction": "function onChange_DYNAMIC_LIST_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DYNAMIC_LIST');};",
+                        "javascriptAbstractSetupCode": ""
+                    },
+                    "flags": {
+                        "clientSideDefinition": false
                     }
                 },
                 "precalc": {
-                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST\" name=\"V.R{grid.rownumber}.DYNAMIC_LIST\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST.CONTROL\"  class=\"{grid.componentName}_DYNAMIC_LIST\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
-                    "DesignViewHTML": "",
                     "columnInfo": "'DYNAMIC_LIST': {info: {controlType: 'list'}, hiddenVal: false, type: 'control', isCalc: false, hlp: '', isArray: true, dataType: 'C'  }\n",
-                    "listviewData": "[[%%[[DYNAMIC_LIST]]%%]]",
-                    "listviewSearchReplace": "[[dialog.listViewData.DYNAMIC_LIST]] = tmpl.page_fields[9].precalc.listViewData",
-                    "listViewHasBeenRendered": false,
-                    "js_afterListInitialize": "var listObj = {UXPRERENDEREDALIAS}_DlgObj.getControl('DYNAMIC_LIST');\nif(listObj) listObj._state.recordCount = 1;\nif(listObj) listObj._state.recordCountFormatted = '1';\nif(listObj) listObj._state.lastBreakValue = '<None>';\nif(listObj) listObj._state.pageCount = 0;\nif(listObj) listObj._state.pageSize = 20;\nif(listObj) {var ele = $('{UXPRERENDEREDALIAS}.DYNAMIC_LIST.RECORDCOUNT'); if(ele) ele.innerHTML = listObj._state.recordCountFormatted;};\nif(listObj) listObj._state.paginated = true;\n\nif(listObj) listObj._state.highlight = {  };\nif(listObj) listObj._state.whereClause = '';\nif(listObj) listObj._state.whereParameters = '';\nlistObj._state.order = '';\n\t\t\n\t\tvar flagPersist = false;\n\t\tif(typeof listObj._flagPersistDataOK != 'undefined') { \n\t\t\tif(listObj._flagPersistDataOK) { \n\t\t\t\tvar data = listObj._data;\n\t\t\t\tlistObj.persistToStorage({mode:'populate', data: data, submode: 'ListViewData'});\n\t\t\t}\n\t\t}\n\t\t\n\t\t\n;\n{UXPRERENDEREDALIAS}_DlgObj._list_executeEvent('DYNAMIC_LIST','afterRenderComplete',{});\n\nif(listObj._refreshStateMessages) listObj._refreshStateMessages();",
-                    "list_CapturedFieldValueFromFirstRow": ""
-                },
-                "isCollapsed": false,
-                "parentIsCollapsed": false,
-                "containerStartIndex": 0
+                    "ControlHTML": "<div class=\"A5CWLayout\" style=\"width: 100%\" >\n\t<!--FldS--><!--JSControlStart--><input type=\"hidden\" id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST\" name=\"V.R{grid.rownumber}.DYNAMIC_LIST\" /><!--JSControlEnd-->\n<div   style=\"padding:0px; \"  >\n\t<div id=\"{grid.componentname}.V.R{grid.rownumber}.DYNAMIC_LIST.CONTROL\"  class=\"{grid.componentName}_DYNAMIC_LIST\" style=\"overflow: auto; width: 100%; \"></div>\n</div>\n<!--FldE-->\n</div><!--breakbegin--><br  style=\"clear:both; \" /><!--breakend-->",
+                    "DesignViewHTML": ""
+                }
             },
             {
                 "controlType": "layout_directive_ContainerEnd",
@@ -3685,12 +3678,6 @@
                 "display": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}{Data=d6a52b0e-06f0-4cd2-adb8-307559b4bcf9}{I:'vertLineCap'} [Panel Navigator End: PANELNAVIGATOR_1]",
                 "idInternal": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9",
                 "crc": "4294907970",
-                "precalc": {
-                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
-                    "DesignViewHTML": ""
-                },
-                "isCollapsed": false,
-                "containerStartIndex": 1,
                 "v": {
                     "info": {
                         "level": 0,
@@ -3716,7 +3703,13 @@
                         "parentPanelCardId": "",
                         "display": "{C=#51+111+61,White}{B=White,#51+111+61}{F=+B}{Data=d6a52b0e-06f0-4cd2-adb8-307559b4bcf9}{I:'vertLineCap'} [Panel Navigator End: PANELNAVIGATOR_1]"
                     }
-                }
+                },
+                "precalc": {
+                    "ControlHTML": "'xbasic\nv._dirty = .f.\n",
+                    "DesignViewHTML": ""
+                },
+                "isCollapsed": false,
+                "containerStartIndex": 1
             }
         ],
         "builderType": "Dialog2",
@@ -3753,9 +3746,9 @@
         "keyboardShortcutsJSON": "",
         "preRenderWarningMessageShow": false,
         "autoSetPreRenderOnForAllUX": false,
-        "selected": "d6a52b0e-06f0-4cd2-adb8-307559b4bcf9\n",
+        "selected": "a99c667b-1092-4d68-810e-88264b95c03e\n",
         "designPaneIndex": 1,
-        "masterPaneC": "XbasicFunctions",
+        "masterPaneC": "controls",
         "serverSideEventIndex": 1,
         "clientSideEventIndex": 13,
         "clientSideEventIndexC": "13",
@@ -3773,7 +3766,7 @@
         "alphaFiveBuildNumber": "12",
         "openedFromTemplate": false,
         "builtWithVersionNumer": 1,
-        "_buildCount": "597",
+        "_buildCount": "598",
         "securityEnabled": false,
         "showHideIsUsed": false,
         "precalc": {
@@ -3872,7 +3865,7 @@
             "flagLoadFirestore": false,
             "__freeformLayoutsJS": "",
             "flagUseCordovaFederatedAuth": false,
-            "_jsOnChangeFunctions": "function onChange_JForm1_eb4bb02853714fe3998f1e3ea6f5943a(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('JFORM1');};",
+            "_jsOnChangeFunctions": "function onChange_DYNAMIC_LIST_a99c667b10924d68810e88264b95c03e(_dlgObj){if(_dlgObj.executeWatchEventForControl) _dlgObj.executeWatchEventForControl('DYNAMIC_LIST');};",
             "_jsOnClickFunctions": ""
         },
         "FieldsInRepeatingSectionsDeletedBySecurity": "",
@@ -3941,7 +3934,7 @@
         "sassProcessor": true,
         "debugMode": false,
         "__jsLibraries": "<script type=\"text/javascript\" src=\"javascript/a5.js\"></script>\n<script type=\"text/javascript\" src=\"javascript/a5_url.js\"></script>\n",
-        "A5SaveTimeStamp": "20250327152749124",
+        "A5SaveTimeStamp": "20250403151729084",
         "a_actionJavascript": [
             {
                 "actionGuid": "a2677221-6104-474f-99c2-a100731de8b7   ",
@@ -4129,6 +4122,9 @@
         "loadFirestoreClient": false,
         "unboundActionShowOnNewActionMessage": true,
         "actionJavascriptUnboundLastEdited": "21dbf0a0-e9db-4747-99cb-8459f0cff60d",
+        "__idinternalCurrentControl": "a99c667b-1092-4d68-810e-88264b95c03e",
+        "__nameCurrentControl": "DYNAMIC_LIST",
+        "_flagForceRecalcChildren": true,
         "arguments": [
             {
                 "Name": "API_KEY",
@@ -4151,11 +4147,8 @@
                 "ArgumentDescription": ""
             }
         ],
-        "_containerstorecalc": "",
-        "__idinternalCurrentControl": "eb4bb028-5371-4fe3-998f-1e3ea6f5943a",
-        "__nameCurrentControl": "JForm1",
-        "_flagForceRecalcChildren": true,
         "informixFix": false,
-        "__suppressContainerWarnings": ""
+        "__suppressContainerWarnings": "",
+        "_containerstorecalc": ""
     }
 }

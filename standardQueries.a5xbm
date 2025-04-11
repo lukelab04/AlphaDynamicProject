@@ -73,10 +73,12 @@ function querySqlWithFilters as Result (e as p)
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
 		dim columns[0] as a
-		for i = 0 to configJson.getProperty("mappings").getLength() - 1
+		for i = 0 to configJson.getProperty("mappings").getProperty("keys").getLength() - 1
+			dim colName as c
+			colName = configJson.getProperty("mappings").getProperty("keys").nameIndexed(i)
 			dim index as n
 			index = columns.append(1)
-			columns[index] = configJson.getProperty("mappings").getIndexed(i).getProperty("columnName")
+			columns[index] = colName
 		next
 		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString)
 	else
@@ -275,7 +277,24 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 			filter = filters.getIndexed(i)
 			if .not. (filter.hasProperty("op")) .or. (.not. isSafeOp(filter.getProperty("op"))) then 
 				filter.setProperty("op", "=")
-			end if 
+			end if
+			
+			' Frontend allows using operators ..x, x.., or ..x..
+			' This doesn't work with SQL, so we'll want to transform those to LIKE
+			' But we want to know what the value *was* so we can add % as necessary
+			dim textContainedOp as c
+			textContainedOp = ""
+			
+			if filter.getProperty("op") == "..x" then 
+				textContainedOp = "..x"
+				filter.setProperty("op", "LIKE")
+			else if filter.getProperty("op") == "x.." then 
+				textContainedOp = "x.."
+				filter.setProperty("op", "LIKE")
+			else if filter.getProperty("op") == "..x.." then 
+				textContainedOp = "..x.."
+				filter.setProperty("op", "LIKE")
+			end if
 			
 			dim connector as c
 			connector = ""
@@ -294,12 +313,14 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 			if .not. (filter.hasProperty("type")) then 
 				filter.setProperty("type", "c")
 			end if
-			filterStr = filterStr + "[" + connection.generateNativeColumnName(filter.getProperty("columnName")) + "] " + filter.getProperty("op")
+			filterStr = filterStr + " [" + filter.getProperty("columnName") + "] " + filter.getProperty("op")
 			filterStr = filterStr + " :argNum" + argCounter + " " + connector + " "
 			
 			' User can choose either argument or regular value 
 			if filter.getProperty("columnVal").getProperty("tag") == "value" then
-				args.add("argNum" + argCounter, convert_type(filter.getProperty("columnVal").getProperty("value"), filter.getProperty("type")))
+				dim argVal as c
+				argVal = convert_type(filter.getProperty("columnVal").getProperty("value"), filter.getProperty("type"))
+				args.add("argNum" + argCounter, modifyConstraintValue(argVal, textContainedOp))
 			else
 				dim argName as c = filter.getProperty("columnVal").getProperty("value")
 				if e.arguments.argumentNumber(argName) == -1 then 
@@ -308,13 +329,25 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 				end if 
 				dim argVal as c
 				argVal = e.arguments.find(argName).data
-				args.add("argNum" + argCounter, convert_type(argVal, filter.getProperty("type")))
+				argVal = convert_type(argVal, filter.getProperty("type"))
+				args.add("argNum" + argCounter, modifyConstraintValue(argVal, textContainedOp))
 			end if
 			argCounter = argCounter + 1
 		next
 	end if
-	
 	buildConstraint = Result.success(filterStr)
+end function
+
+function modifyConstraintValue as c (value as c, textContainedOp as c)
+	if textContainedOp == "..x" then 
+		modifyConstraintValue = "%" + value
+	else if textContainedOp == "x.." then 
+		modifyConstraintValue = value + "%"
+	else if textContainedOp == "..x.." then 
+		modifyConstraintValue = "%" + value + "%"
+	else
+		modifyConstraintValue = value
+	end if
 end function
 
 function isSafeConnector as l (conn as c) 
@@ -322,14 +355,17 @@ function isSafeConnector as l (conn as c)
 end function
 
 function isSafeOp as l (op as c)
-	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE")
+	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE") .or. (op == "..x") .or. (op == "x..") .or. (op == "..x..")
 end function 
 
 function getMappingFromMappings as Result (mappings as extension::json, column as c)
-	for i = 0 to mappings.getLength() - 1
+	for i = 0 to mappings.getProperty("keys").getLength() - 1
 		dim m as extension::json 
-		if mappings.getIndexed(i).getProperty("columnName") == column then 
-			getMappingFromMappings = Result.success(mappings.getIndexed(i))
+		dim colName as c
+		colName = mappings.getProperty("keys").nameIndexed(i)
+		
+		if colName == column then 
+			getMappingFromMappings = Result.success(mappings.getProperty("keys").getIndexed(i))
 			end 
 		end if
 	next
@@ -757,10 +793,8 @@ function customSqlCount as n (query as c, args as sql::Arguments, cn as sql::Con
 	end if
 end function
 
-' e.configName string 
-' e.endpoint? fetch, search, etc
-
-' Values of the header, body, and url can be arbitrary xbasic expressions
+' e.configName string
+' e.endpoint string
 function performFetch as Result (e as p)
 	dim configInterface as p
 	dim config as p
@@ -773,87 +807,74 @@ function performFetch as Result (e as p)
 	end if
 	config = config.getInner()
 
+	dim endpoint as extension::json 
+	dim endpoints as extension::json 
+	
+	if config.getProperty("dataSource").hasProperty("endpoints") = .f. then 
+		performFetch = Result.fail("Configuration does not have any endpoints")
+		end
+	end if 
+	endpoints = config.getProperty("dataSource").getProperty("endpoints")
+	
+	if endpoints.hasProperty(e.endpoint) then 
+		endpoint = endpoints.getProperty(e.endpoint)
+	else 
+		performFetch = Result.fail("Configuration does not have an endpoint configured for " + e.endpoint)
+		end 
+	end if 
+	
+	dim fullUrl as c
+	fullUrl = fillEndpointItem(e, endpoint.getProperty("endpoint"))
+	
+	dim headers as c
+	headers = ""
+	
+	if endpoint.hasProperty("headers") then 
+		dim headerObj as extension::JSON
+		headerObj = endpoint.getProperty("headers")
+		
+		for i = 0 to headerObj.getLength() - 1 
+			headers = headers + headerObj.nameIndexed(i) + ": "
+			headers = headers + fillEndpointItem(e, headerObj.getIndexed(i))
+			
+			if i < headerObj.getLength() - 1 then 
+				headers = headers + crlf()
+			end if
+		next
+	end if 
+	
 	
 	dim settings as p
-	dim settings.endpoint as c
-	dim settings.method as c
-	dim settings.host as c
-	dim settings.url as c
-	dim options as p
-	dim urlData as p
+	settings.method = endpoint.getProperty("method")
+	settings.header = headers
+	dim splitUrl as p
+	splitUrl = a5_split_url(fullUrl)
+	settings.host = splitUrl.server
+	settings.port = splitUrl.port
+	settings.page = splitUrl.path + splitUrl.page
+	settings.query_string = splitUrl.query_string
 	
+	dim fetchRes as p
+	fetchRes = http_fetch(settings)
 	
-	if e.data("endpoint") == "" then 
-		settings.endpoint = "fetch"
+	if fetchRes.error_code <> 0 then 
+		performFetch = Result.fail(fetchRes.error_text)
 	else 
-		settings.endpoint = e.endpoint
+		dim jsonRes as extension::json 
+		jsonRes.setJson(fetchRes.body)
+		performFetch = Result.success(jsonRes)
 	end if
 	
-		
-	dim endpointInfo as p
-	dim allEndpoints as p
-	if config.getProperty("dataSource").hasProperty("endpoints") then 
-		allEndpoints = config.getProperty("dataSource").getProperty("endpoints")
-		if allEndpoints.hasProperty(settings.endpoint) then 
-			endpointInfo = allEndpoints.getProperty(settings.endpoint)
-			settings.method = endpointInfo.getProperty("method")
-		else 
-			performFetch = Result.fail("Endpoint was not defined for method " + settings.endpoint)
-			end 
-		end if 
-	else 
-		performFetch = Result.fail("Datasource is not configured for API endpoints")
-		end 
+end function
+
+function fillEndpointItem as c (e as p, item as extension::json)
+	if item.getProperty("tag") = "template" then 
+		fillEndpointItem = item.getProperty("value")
+	else
+		dim val as c 
+		val = item.getProperty("value")
+		fillEndpointItem = e.arguments.find("API_KEY").data
 	end if
-	
-	if endpointInfo.hasProperty("headers") then
-		dim headers as p 
-		headers = json_parse(endpointInfo.getProperty("headers").getJson())
-		dim settings.header as c
-		settings.header = ""
-		
-		for each property in properties_enum(headers)
-			dim val as c
-			if .not. eval_valid(headers.data(property.value)) then
-				performFetch = Result.fail("Header property for key " + property.value + " is not a valid XBasic expression.")
-				end
-			end if
-			val = eval(headers.data(property.value))
-			settings.header = settings.header + property.value + ": " + val
-		next
-	end if
-	
-	if endpointInfo.hasProperty("body") then
-		dim bodyObj as p 
-		bodyObj = json_parse(endpointInfo.getProperty("body").getJson())
-		dim settings.body as c
-		dim bodyJson as extension::json 
-		bodyJson.setJson("{}")
-		for each property in properties_enum(bodyObj)
-			dim val as c
-			if .not. eval_valid(bodyObj.data(property.value)) then
-				performFetch = Result.fail("Body property for key " + property.value + " is not a valid XBasic expression.")
-				end
-			end if
-			val = eval(bodyObj.data(property.value))
-			bodyJson.setProperty(property.value, val)
-		next
-		
-		settings.body = bodyJson.getJson()
-	end if
-	
-	urlData = a5_split_url(eval(endpointInfo.getProperty("endpoint")))
-	settings.host = urlData.server
-	dim settings.page as c
-	settings.page = urlData.path + urlData.page
-	
-	if urlData.query_string <> "" then 
-		dim settings.query_string as c 
-		settings.query_string = urlData.query_string
-	end if
-	
-	performFetch = Result.success(json_generate(http_fetch(settings)))
-	
 end function
 
 exports.getTableData = getTableData

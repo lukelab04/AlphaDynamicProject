@@ -1,0 +1,114 @@
+loadClass("Result")
+
+function batch_fetch as c (e as p)
+	dim configInterface as p
+	dim batch as c
+	configInterface = require("listConfigInterface")
+	batch = configInterface.batchFetch(e).toJson().getJson()
+	batch_fetch = "{dialog.object}.stateInfo.apiResult = " + batch + ";"
+end function
+
+function fetch_config_names as c (e as p)
+	dim configInterface as p
+	dim names as c
+	configInterface = require("listConfigInterface")
+	names = configInterface.getConfigNames().toJson().getJson()
+	fetch_config_names = "{dialog.object}.stateInfo.apiResult = " + names + ";"
+end function
+
+' e.formid
+function prepare_transform_form_list as c (e as p)
+	dim configInterface as p
+	dim res as p
+	configInterface = require("listConfigInterface")
+	res = configInterface.prepareTransformFormList(e)
+	prepare_transform_form_list = "{dialog.object}.stateInfo.apiResult = " + res.toJson().getJson() + ";"
+end function
+
+' Takes e.connectionName and e.tableName
+function getSchemaAjaxCallback as c (e as p)
+	dim schemaInfo as p
+	dim schemaRes as Result
+	schemaInfo = require("schemaInfo")
+	schemaRes = schemaInfo.getConnectionSchemaJSON(e.connectionName, e.tableName)
+	
+	getSchemaAjaxCallback = "{dialog.object}.stateInfo.apiResult = " + schemaRes.toJson().getJson() + ";"
+end function
+
+function getAllDataForTable as c (e as p)
+	dim standardQueries as p
+	dim result as Result
+	stdQueries = require("standardQueries")
+	result = stdQueries.querySqlWithFilters(e)
+	getAllDataForTable = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+end function
+
+function updateData as c (e as p)
+	dim standardQueries as p
+	dim results[0] as p
+	stdQueries = require("standardQueries")
+	stdQueries.updateTableData(e, results, e.connectionName)
+	
+	dim errorList as extension::json
+	errorList.setJson("[]")
+	for each result in results
+		if .not. result.isSuccessful() then
+			errorList.push(result.toJson().getProperty("err"))
+		end if
+	next
+	
+	dim result as Result
+	if errorList.getLength() == 0 then 
+		result = Result.success("")
+	else 
+		result = Result.fail(errorList)
+	end if
+	
+	updateData = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+end function
+
+function fetch as c (e as p)
+	dim stdQueries as p
+	dim result as Result
+	stdQueries = require("standardQueries")
+	result = stdQueries.performFetch(e)
+	fetch = "{dialog.object}.stateInfo.fetchResult = " + result.toJson().getJson() + ";"
+	
+end function
+
+' e.configName (string)
+function request_list_config as c (e as p)
+	dim configInterface as p
+	dim config as c
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e).toJson().getJson()
+	request_list_config = "{dialog.object}.stateInfo.apiResult = " + config + ";"
+end function
+
+' Input: e.global -- Flag to save as global (will fail, depending on user)
+' Input: e.configName -- Name to save the config under
+' Input: e.payload
+' 	If global is true, then this is the entire configuration 
+' 	If global is false, then this is just the mapping portion of the config
+function save_config as c (e as p)
+	dim configInterface as p
+	dim result as c
+	configInterface = require("listConfigInterface")
+	result = configInterface.saveConfig(e).toJson().getJson()
+	save_config = "{dialog.object}.stateInfo.apiResult = " + result + ";"
+end function
+
+function is_admin as c (e as p) 
+	dim username as c = context.security.currentuser
+	if .not. context.security.callresult.success then 
+		username = ""
+	end if
+	
+	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
+	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) then 
+		is_admin = "{dialog.object}.stateInfo.apiResult = { \"ok\": false };"
+		end 
+	end if
+	
+	is_admin = "{dialog.object}.stateInfo.apiResult = { \"ok\": true };"
+end function
