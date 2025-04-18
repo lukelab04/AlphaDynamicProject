@@ -114,7 +114,7 @@ DIM googleStaticMapsAPIkey as C
 DIM aexFiles as P
 DIM aexFiles.fileNames as C
 DIM fileDownload as P
-DIM fileDownload.allowedFilenamePatterns as C = "*.xls*,*.pdf,*.jpg,*.jpeg,*.bmp,*.png,*.rtf"
+DIM fileDownload.allowedFilenamePatterns as C = "*.xls*,*.pdf,*.jpg,*.jpeg,*.bmp,*.png,*.rtf,*.xlsx"
 DIM fileDownload.allowedFolderPatterns as C
 DIM fileDownload.blockedFilenamePatterns as C
 DIM reportServer as P
@@ -160,7 +160,7 @@ DIM cssLibraries as P
 DIM cssLibraries.links as C
 DIM cssLibraries.jQuery as C = "No Theme"
 DIM protocol as C = "https:"
-DIM excelfilesExtension as C = ".xls"
+DIM excelfilesExtension as C = ".xlsx"
 DIM initializationJavascript as C
 DIM templateformatDirectives as C
 DIM deleteOldBackups as L
@@ -335,7 +335,7 @@ DIM application.library as C
 DIM publish as P
 DIM publish.onPublish as C
 DIM publish.library as C
-DIM __token as C = "9b49b31e41a74538b1a0dc4021e30d07"
+DIM __token as C = "e545c6b683fd464296ca7698958a88e8"
 %txt%
 
 dim gv as p 
@@ -346,10 +346,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 202543431113434141
+gv.__A5PublishTimestamp = 2025212118162144080
 gv.__buildNumberExe__ = 9529
 gv.__buildNumberAddins__ = 5718
-gv.__guid = "03548339-47c2-4332-9144-247720392040"
+gv.__guid = "d7b6beb5-c009-4800-a6fc-9cdd3c953bc9"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

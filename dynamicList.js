@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, DataMappingTypeSchema, RootMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, DataMappingTypeSchema, RootMappingTypeSchema, MappingTraverse, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -125,6 +125,23 @@ const RootMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Typ
     keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), MappingTypeSchema),
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal(false),
 });
+class MappingTraverse {
+    traverse(m) {
+    }
+    visitObj(m) { }
+    traverseObj(m) {
+        for (const key in m.keys) {
+            this.traverse(m.keys[key]);
+        }
+    }
+    visitArr(m) {
+    }
+    traverseArr(m) {
+    }
+    visitData(d) { }
+    traverseData(d) {
+    }
+}
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     advancedSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     serverSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
@@ -6491,7 +6508,44 @@ function Errors(...args) {
     return new ValueErrorIterator(iterator);
 }
 
+;// ./src/util.ts
+function displayErrorMessage(msg) {
+    let errContainer;
+    let existing = document.getElementById("list-config-error-container");
+    if (existing) {
+        existing.innerHTML = "";
+        errContainer = existing;
+    }
+    else {
+        errContainer = document.createElement('div');
+        document.body.append(errContainer);
+    }
+    let msgContainer = document.createElement('div');
+    msgContainer.style.marginBottom = "2rem";
+    let ok = document.createElement('button');
+    ok.innerText = "OK";
+    ok.onclick = () => {
+        errContainer.style.display = "none";
+    };
+    msgContainer.innerHTML = msg;
+    msgContainer.classList.add("error-message-content");
+    errContainer.append(msgContainer, ok);
+    errContainer.style.position = "absolute";
+    errContainer.style.top = "50%";
+    errContainer.style.left = "50%";
+    errContainer.style.transform = "translate(-50%, -50%)";
+    errContainer.style.zIndex = "5";
+    errContainer.style.display = "flex";
+    errContainer.style.backgroundColor = "white";
+    errContainer.style.flexDirection = "column";
+    errContainer.style.padding = "1rem";
+    errContainer.style.alignItems = "center";
+    errContainer.style.border = "2px solid red";
+    errContainer.style.fontSize = "1.3rem";
+}
+
 ;// ./src/jsonForms.ts
+
 
 
 function safe(text) {
@@ -6763,7 +6817,8 @@ class ObjectForm {
         let allKeys = new Set(Object.keys(this.options.requiredKeys));
         (Object.keys((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {})).forEach(k => allKeys.add(k));
         Object.keys(this.entries).forEach(k => allKeys.add(k));
-        for (const key of allKeys) {
+        let allKeyList = Array.from(allKeys);
+        for (const key of allKeyList) {
             i += 1;
             let formDef;
             if (key in this.options.requiredKeys) {
@@ -6791,6 +6846,7 @@ class ObjectForm {
             let formIsBool = formDef.type == 'simple' && formDef.options.type == 'boolean';
             if (formDynamic) {
                 headerItems.deleteBtns = this.makeDeleteButtons(key);
+                headerItems.moveBtns = this.makeMoveButtons(key);
             }
             if (!formEnabled || formIsBool) {
                 let check;
@@ -6900,6 +6956,12 @@ class ObjectForm {
                     onClick: () => {
                         let name = this.dynForm.formBox.data[newKeyNameId];
                         if (name && name != '') {
+                            if (name in this.entries) {
+                                displayErrorMessage("The key " + name + " was already added.");
+                                this.dynForm.formBox.data[newKeyNameId] = '';
+                                this.dynForm.refresh();
+                                return;
+                            }
                             let definition = this.evalKeyDependentFn(newKey.definition, name);
                             let newForm = constructForm(definition, this, this.dynForm);
                             let defaultVal = this.evalKeyDependentFn(newKey.defaultValue, name);
@@ -6990,16 +7052,17 @@ class ObjectForm {
             i.push(items.enableCheck);
         if (items.collapseBtn)
             i.push(items.collapseBtn);
+        if (items.label)
+            i.push(items.label);
         if (items.deleteBtns)
             i.push(items.deleteBtns);
         if (items.moveBtns)
             i.push(items.moveBtns);
-        if (items.label)
-            i.push(items.label);
         return {
             type: 'group',
             items: i,
             container: {
+                className: 'dynamic-form-item-group',
                 style: `;
                     display: flex;
                     flex-direction: row;
@@ -7056,12 +7119,74 @@ class ObjectForm {
         return {
             type: 'button',
             control: {
-                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon:24'),
+                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
                 onClick: () => {
                     delete this.entries[key];
                     this.dynForm.refresh();
                 }
             }
+        };
+    }
+    makeMoveButtons(key) {
+        let swap = (arr, i1, i2) => {
+            let tmp = arr[i1];
+            arr[i1] = arr[i2];
+            arr[i2] = tmp;
+        };
+        let reorder = newKeys => {
+            let newEntries = {};
+            newKeys.forEach(k => newEntries[k] = this.entries[k]);
+            this.entries = newEntries;
+        };
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    disabled: () => Object.keys(this.entries)[0] == key,
+                    control: {
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
+                        onClick: () => {
+                            var _a;
+                            let entries = Object.keys(this.entries);
+                            let idx = entries.findIndex(s => s == key);
+                            if (idx >= 1) {
+                                let optional = entries[idx - 1] in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
+                                let required = entries[idx - 1] in this.options.requiredKeys;
+                                if (optional || required)
+                                    return;
+                                swap(entries, idx, idx - 1);
+                                reorder(entries);
+                                this.dynForm.refresh();
+                            }
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    disabled: () => {
+                        let entries = Object.keys(this.entries);
+                        return entries[entries.length - 1] == key;
+                    },
+                    control: {
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
+                        onClick: () => {
+                            var _a;
+                            let entries = Object.keys(this.entries);
+                            let idx = entries.findIndex(s => s == key);
+                            if (idx < entries.length - 1) {
+                                let optional = entries[idx + 1] in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
+                                let required = entries[idx + 1] in this.options.requiredKeys;
+                                if (optional || required)
+                                    return;
+                                swap(entries, idx, idx + 1);
+                                reorder(entries);
+                                this.dynForm.refresh();
+                            }
+                        }
+                    }
+                }
+            ]
         };
     }
     makeCollapseBtn(key) {
@@ -7086,8 +7211,8 @@ class ObjectForm {
                         this.dynForm.refresh();
                     }
                 },
-                disabled: () => f == null,
-            }
+            },
+            disabled: () => f == null,
         };
     }
     getLabel(def, key) {
@@ -8073,42 +8198,6 @@ function changeDetectionToRaw(c) {
 
 // EXTERNAL MODULE: ./src/types.ts
 var types = __webpack_require__(397);
-;// ./src/util.ts
-function displayErrorMessage(msg) {
-    let errContainer;
-    let existing = document.getElementById("list-config-error-container");
-    if (existing) {
-        existing.innerHTML = "";
-        errContainer = existing;
-    }
-    else {
-        errContainer = document.createElement('div');
-        document.body.append(errContainer);
-    }
-    let msgContainer = document.createElement('div');
-    msgContainer.style.marginBottom = "2rem";
-    let ok = document.createElement('button');
-    ok.innerText = "OK";
-    ok.onclick = () => {
-        errContainer.style.display = "none";
-    };
-    msgContainer.innerHTML = msg;
-    msgContainer.classList.add("error-message-content");
-    errContainer.append(msgContainer, ok);
-    errContainer.style.position = "absolute";
-    errContainer.style.top = "50%";
-    errContainer.style.left = "50%";
-    errContainer.style.transform = "translate(-50%, -50%)";
-    errContainer.style.zIndex = "5";
-    errContainer.style.display = "flex";
-    errContainer.style.backgroundColor = "white";
-    errContainer.style.flexDirection = "column";
-    errContainer.style.padding = "1rem";
-    errContainer.style.alignItems = "center";
-    errContainer.style.border = "2px solid red";
-    errContainer.style.fontSize = "1.3rem";
-}
-
 ;// ./src/listAction.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8139,9 +8228,9 @@ function fetchConfigNames(obj) {
         });
     });
 }
-function executeListAction(list, action, rowData) {
+function executeListAction(list, action, rowData, row) {
     if (action.actionName == 'openDetailView') {
-        list.newDetailViewRecord();
+        list.newDetailViewRecord(row);
     }
     else if (action.actionName == 'openLinkedList') {
         let tabTemplate = A5.u.template.parse(action.tabName);
@@ -8153,14 +8242,26 @@ function executeListAction(list, action, rowData) {
         list.linkNewPanel(action.configurationName, filled, action.linkedColumns, action.makeFilter);
     }
     else if (action.actionName == 'openJSONSublist') {
-        let selected = list.data[list.getSelectedRows()[0]];
-        list.linkSublistToField(action.configurationName, action.tabName, action.fromColumn, JSON.parse(selected[action.fromColumn]), list.getSelectedRows()[0], selected);
+        let selected;
+        if (row !== undefined) {
+            selected = list.data[row];
+        }
+        else {
+            selected = list.data[list.getSelectedRows()[0]];
+        }
+        let tabTemplate = A5.u.template.parse(action.tabName);
+        let templateData = {
+            list: list,
+            row: rowData
+        };
+        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
+        list.linkSublistToField(action.configurationName, filled, action.fromColumn, selected[action.fromColumn], list.getSelectedRows()[0], selected);
     }
 }
 function listActionEditor(obj, config) {
     return __awaiter(this, void 0, void 0, function* () {
         let formConfigOptions = {
-            linkableCols: [],
+            linkableCols: DataScopeManager.getDataMappings(config).map(x => { var _a, _b; return { value: (_a = x.mapping.flattenedName) !== null && _a !== void 0 ? _a : x.key, text: (_b = x.mapping.displayName) !== null && _b !== void 0 ? _b : x.key }; }),
             foreignCols: [],
             availableConfigs: yield fetchConfigNames(obj)
         };
@@ -8173,6 +8274,13 @@ function listActionEditor(obj, config) {
                 return [];
             });
         };
+        let jsonCols = [];
+        for (const key in config.mappings.keys) {
+            let m = config.mappings.keys[key];
+            if (m.tag == 'array') {
+                jsonCols.push({ text: key, value: key });
+            }
+        }
         let f = {
             type: 'multi',
             options: {
@@ -8300,24 +8408,20 @@ function listActionEditor(obj, config) {
                                         }
                                     },
                                     configurationName: {
-                                        type: 'simple',
+                                        type: 'dropdown',
                                         options: {
-                                            type: 'string',
-                                            label: 'Configuration Name'
+                                            label: 'Configuration Name',
+                                            allowCustomValue: true,
+                                            dropdownItems: formConfigOptions.availableConfigs.map(x => { return { text: x, value: x }; })
                                         }
                                     },
-                                    tabName: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'string',
-                                            label: 'Tab Name'
-                                        }
-                                    },
+                                    tabName: templateHelper(DataScopeManager.getDataMappings(config).map(x => { var _a; return (_a = x.mapping.flattenedName) !== null && _a !== void 0 ? _a : x.key; }), 'Tab Name'),
                                     fromColumn: {
-                                        type: 'simple',
+                                        type: 'dropdown',
                                         options: {
-                                            type: 'string',
-                                            label: 'Column with JSON Data'
+                                            label: 'Column with JSON Data',
+                                            allowCustomValue: true,
+                                            dropdownItems: jsonCols
                                         }
                                     },
                                 }
@@ -8479,6 +8583,7 @@ class DynamicList {
             list.data = [];
             list.rawData = [];
             list.schema = { tag: 'none' };
+            ops.obj.stateInfo.configName = list.config.name;
             if (ops.prefetch.schema) {
                 list.mapRawSchema(ops.prefetch.schema);
             }
@@ -8501,8 +8606,6 @@ class DynamicList {
             ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
             list.settings = list.buildSettings();
             list.buildList();
-            list.listBox._size = () => { };
-            list.listBox._resize = () => { };
             resolve(list);
         })
             .then((list) => {
@@ -8549,10 +8652,25 @@ class DynamicList {
     openDetailView() {
         this.obj.runAction('Navigate Detail View');
     }
-    newDetailViewRecord(allowMultipleEdit = false) {
+    downloadExcelTemplate() {
+        this.obj.runAction('Download Excel Template');
+    }
+    uploadFileToList() {
+        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+        this.obj.stateInfo.currentFilters = filters;
+        this.obj.runAction('File Upload');
+    }
+    downloadDataToFile() {
+        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+        this.obj.stateInfo.currentFilters = filters;
+        this.obj.runAction('File Download');
+    }
+    newDetailViewRecord(row, allowMultipleEdit = false) {
         let rowNum;
-        if (this.listBox.selection.length > 0) {
-            rowNum = this.listBox.selection[0];
+        if (row !== undefined)
+            rowNum = row;
+        else if (this.selectedRows.size > 0) {
+            rowNum = this.getSelectedRows()[0];
         }
         else {
             rowNum = null;
@@ -8565,12 +8683,11 @@ class DynamicList {
     saveDynamicListEdits() {
         var _a;
         if (this.onSaveOverride) {
-            let data = [];
-            throw new Error("Unimplemented");
-            // this.onSaveOverride(this, data);
-            // this.obj.refreshClientSideComputations(true);
-            // this.reRender(true);
-            // return;
+            let data = this.dataBridge.processedToRaw(this.data);
+            this.onSaveOverride(this, data);
+            this.obj.refreshClientSideComputations(true);
+            this.reRender(true);
+            return;
         }
         let harvest = this.listBox.harvestList();
         harvest.forEach(elem => {
@@ -8684,7 +8801,7 @@ class DynamicList {
                 b.setDisabled(true);
             }
             b.onClick = () => {
-                this.newDetailViewRecord(true);
+                this.newDetailViewRecord(undefined, true);
             };
         }
     }
@@ -8821,12 +8938,12 @@ class DynamicList {
             onSelect: (index) => {
                 let populateControls = this.listBox.populateUXControls.bind(this.listBox);
                 populateControls();
-                this.listBox._selectedRow = this.listBox.selection[0];
+                this.listBox._selectedRow = this.getSelectedRows()[0];
                 this.obj._listRowSelect(LIST_NAME, this.listBox);
-                this.listBox._selectedRow = this.listBox.selection[0];
+                this.listBox._selectedRow = this.getSelectedRows()[0];
             },
             onClick: () => {
-                this.obj._listSystemOnClick(LIST_NAME, this.listBox.selection[0]);
+                this.obj._listSystemOnClick(LIST_NAME, this.getSelectedRows()[0]);
             },
             onBeforePopulate: (data) => {
                 if (this.listBox)
@@ -8965,6 +9082,57 @@ class DynamicList {
                         lObj._getRoute(mode, obj);
                 }
                 return obj;
+            },
+            addTableRow: function (dataObj, options) {
+                var parentList = this.parentList;
+                if (typeof parentList != 'undefined' && parentList != '') {
+                    var _dlgObj = window[this._hostComponentId + '_DlgObj'];
+                    var lp = _dlgObj.getControl(parentList);
+                    var r = lp.selection[0];
+                    if (typeof r == 'undefined') {
+                        alert('Can not add row to list ' + this.listVariableName + ' as there is no row selected in this List\'s parent list (\'' + parentList + '\')');
+                        return false;
+                    }
+                }
+                if (typeof options == 'undefined') {
+                    options = {};
+                }
+                if (typeof options.setFocusToTargetRow == 'undefined')
+                    options.setFocusToTargetRow = false;
+                var obj = {};
+                obj.programmatic = true;
+                obj.data = {};
+                if (this.__pkisguid) {
+                    if (this.__assignPKGuidClientSide) {
+                        if (typeof dataObj[this.__pkfieldname] == 'undefined') {
+                            dataObj[this.__pkfieldname] = A5.UUID();
+                            if (!this.__stripcurlyfromguid) {
+                                dataObj[this.__pkfieldname] = '{' + dataObj[this.__pkfieldname] + '}';
+                            }
+                        }
+                    }
+                }
+                $u.o.assign(obj.data, dataObj);
+                obj.primaryKeyOrRowNumber = null;
+                obj.setFocusToTargetRow = options.setFocusToTargetRow;
+                if (typeof options.insertRow == 'undefined')
+                    options.insertRow = false;
+                obj.insertRow = options.insertRow;
+                obj.insertRowPosition = options.insertPosition;
+                var _dlg = window[this._hostComponentId + '_DlgObj'];
+                _dlg._updateListDataFromUXControls(this.listVariableName, null, obj);
+                var parentListName = this.parentList;
+                if (typeof parentListName != 'undefined' && parentListName != '') {
+                    var thisData = obj.data;
+                    var plObj = window[this._hostComponentId + '_DlgObj'].getControl(this.parentList);
+                    if (plObj._setDirtyByChild) {
+                        plObj._setDirtyByChild(true, thisData, this.listVariableName);
+                    }
+                }
+                if (!options.preventOnSelect)
+                    this._onSelect();
+                _dlg.refreshClientSideComputations();
+                return obj.data;
             },
             _setRoute: (route, _mode) => {
                 if (this.listBox.multiple)
@@ -9690,7 +9858,7 @@ class DynamicList {
                     this.obj.runAction(button.onClick.action);
                 }
                 else {
-                    executeListAction(this, button.onClick.listAction, data);
+                    executeListAction(this, button.onClick.listAction, data, idx);
                 }
             }
         };
@@ -9908,7 +10076,7 @@ class DynamicList {
             var _a, _b, _c, _e;
             if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
                 let d = {};
-                if (rowsToChange.length == 1) {
+                if (rowsToChange.length <= 1) {
                     d = (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.serialize();
                 }
                 else {
@@ -10022,11 +10190,9 @@ class DynamicList {
         };
         openNewPanel(ops);
     }
-    // Open a new list with data that persists to a field on the current list
-    // Data should come statically from the currently selected list row
     linkSublistToField(name, label, columnName, populateWith, currRow, currData) {
         let onSave = (newData) => {
-            currData[columnName] = JSON.stringify(newData);
+            currData[columnName] = this.dataBridge.rawToProcessed(newData);
             this.listBox.updateRow(currRow, currData);
         };
         this.openSublistFromNested(name, label, populateWith, onSave);
@@ -10265,7 +10431,7 @@ class DynamicList {
         }
     }
     populateListBox() {
-        this.listBox.populate(this.data);
+        this.listBox.populate(jQuery.extend(true, [], this.data));
         this.listBox._refreshStateMessages();
         for (const f of this.onRender) {
             f();
@@ -10813,8 +10979,9 @@ class DataBridge {
             return this.unprocessJSON(key, point);
         }
         else {
+            let alphaKeys = ['*key', '*renderIndex', '*value', '__selected', '__displayStyle', '_isDirty', '_isNewRow', '_hasServerSideError', '_hasWriteConflictErrors', '_isDeleted', '_oldData', '_serverSideErrors', '_writeConflictErrors'];
             for (const key in mapping.keys) {
-                if (key in point) {
+                if (key in point && !alphaKeys.includes(key)) {
                     point[key] = this._unprocessPoint(point[key], mapping.keys[key], key);
                 }
             }
@@ -10860,6 +11027,9 @@ class DynamicListSearch {
         this.dynamicDropdowns = [];
         this.formContainerId = obj.getPointer(contId).id;
         this.form = new DynamicForm(this.obj, this.formContainerId, this.buildForm(), [this.makeButtons()]);
+        this.resetForm();
+    }
+    resetForm() {
         this.form.populate(this.list.config.searchOptions.advancedSearch ? [] : {});
     }
     findInSchema(path, schema) {
@@ -11251,6 +11421,7 @@ class DynamicListSearch {
         };
         this.list.listBox.clearSearchList = (_obj) => {
             var _a;
+            this.resetForm();
             ((_a = this.obj.stateInfo.onClearSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach((f) => f(this));
             let mode = this.serverOrClientSearch(_obj);
             let flagResult = this.obj._list_executeEvent(this.list.listBox.listVariableName, 'beforeSearch', { searchMode: 'clear', searchWhere: mode });
@@ -11267,10 +11438,6 @@ class DynamicListSearch {
             }
         };
         this.list.listBox._clearSearchListServerSide = () => {
-            let map = this.list.listBox._searchPart.fieldMap;
-            for (const m of map) {
-                this.obj.setValue(m.control, '', false);
-            }
             this.list.setFilterAndFetch([]);
             this.obj._setDVClean(this.list.listBox);
         };
@@ -11279,10 +11446,6 @@ class DynamicListSearch {
                 return true;
             this.list.listBox._state.highlight = {};
             this.list.listBox.setFilter(false);
-            let map = this.list.listBox._searchPart.fieldMap;
-            for (let i = 0; i < map.length; i++) {
-                this.obj.setValue(map[i].control, '', false);
-            }
             this.list.listBox.setFilter(false);
             delete this.list.listBox.__queryByFormValues;
             this.obj._setDVClean(this.list.listBox);
@@ -12011,6 +12174,7 @@ function buildMappingForm(configName, admin, schema) {
         options: {
             label: "List Mappings",
             name: "mappingsRoot",
+            forceLaunchInTab: admin,
             requiredKeys: {
                 tag: { type: 'const', options: { value: 'object' } },
                 flatten: { type: 'const', options: { value: true } },
@@ -12019,8 +12183,7 @@ function buildMappingForm(configName, admin, schema) {
                     type: 'object',
                     options: {
                         label: 'Mappings',
-                        forceLaunchInTab: admin,
-                        forceNoCollapse: !admin,
+                        forceNoCollapse: true,
                         requiredKeys: {},
                         newKeyTemplate: {
                             defaultValue: (key) => {
@@ -12041,11 +12204,14 @@ function buildMappingForm(configName, admin, schema) {
         }
     };
 }
-function dataSubmappings(configName, admin, flattenedName) {
+function dataSubmappings(configName, admin, fullPath, flattenedName) {
+    let preLabel = fullPath.filter(x => x != '').join(".");
+    if (preLabel != '')
+        preLabel += '.';
     let form = {
         type: 'object',
         options: {
-            label: (_1, _2, key) => 'Mapping for ' + key,
+            label: (_1, _2, key) => 'Mapping for ' + preLabel + key,
             requiredKeys: {
                 tag: { type: 'const', options: { value: 'data' } }
             },
@@ -12403,7 +12569,7 @@ function rootMapping(configName, constFlattenedName, admin) {
             definitions: {
                 'Data Mapping': {
                     defaultValue: { tag: 'data', flattenedName: constFlattenedName },
-                    definition: dataSubmappings(configName, admin, constFlattenedName)
+                    definition: dataSubmappings(configName, admin, [], constFlattenedName)
                 },
                 'Object Mapping': {
                     defaultValue: { tag: 'object', flatten: false, keys: {} },
@@ -12420,8 +12586,8 @@ function rootMapping(configName, constFlattenedName, admin) {
 }
 function nonRootMapping(configName, admin, fullPath) {
     let label = 'Item Mapping';
-    if (fullPath.length > 0 && fullPath[fullPath.length - 1] != "") {
-        label += " for " + fullPath[fullPath.length - 1];
+    if (fullPath.filter(x => x != '').length > 0) {
+        label += " for " + fullPath.filter(x => x != '').join('.');
     }
     return {
         type: 'multi',
@@ -12432,7 +12598,7 @@ function nonRootMapping(configName, admin, fullPath) {
             definitions: {
                 'Data Mapping': {
                     defaultValue: { tag: 'data', flattenedName: '' },
-                    definition: dataSubmappings(configName, admin)
+                    definition: dataSubmappings(configName, admin, fullPath)
                 },
                 'Object Mapping': {
                     defaultValue: { tag: 'object', flatten: false, keys: {} },
@@ -12681,7 +12847,8 @@ function buildDatasourceForm(allColumns) {
                                     type: 'simple',
                                     options: {
                                         label: 'SQL Query',
-                                        type: 'string'
+                                        textarea: true,
+                                        type: 'string',
                                     }
                                 },
                                 filters: filters
@@ -13186,7 +13353,6 @@ function prepareTFList(obj, formId) {
     return new Promise((resolve) => {
         obj.ajaxCallback('', '', 'prepare_transform_form_list', '', 'formid=' + encodeURIComponent(formId), {
             onComplete: () => {
-                debugger;
                 resolve(obj.stateInfo.apiResult);
             }
         });

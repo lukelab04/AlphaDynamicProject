@@ -8,8 +8,7 @@ loadClass("Result")
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 ' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
-' Input: e.sortOptions like {"columnName": name "order": "asc" | "desc"}[] or NOTHING
-function querySqlWithFilters as Result (e as p)
+function querySqlWithFilters as Result (e as p, returnResultSet as l = .f.)
 	dim configInterface as p
 	dim config as Result
 	dim configJson as extension::Json
@@ -53,8 +52,10 @@ function querySqlWithFilters as Result (e as p)
 	dim sortOptions as a 
 	sortOptions = null_value()
 	
-	if configJson.getProperty("dataSource").hasProperty("serverSort") then
-		sortOptions = configJson.getProperty("dataSource").getProperty("serverSort")
+	if configJson.getProperty("dataSource").hasProperty("serverSort") then 
+		if configJson.getProperty("dataSource").getProperty("serverSort").getLength() > 0 then
+			sortOptions = configJson.getProperty("dataSource").getProperty("serverSort")
+		end if
 	end if
 	
 	if e.data("sortOptions") <> "" then
@@ -80,16 +81,16 @@ function querySqlWithFilters as Result (e as p)
 			index = columns.append(1)
 			columns[index] = colName
 		next
-		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString)
+		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, returnResultSet)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString)
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString, returnResultSet)
 	end if
 	
 end function
 
-function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c)
+function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, returnResultSet as l = .f.)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -113,26 +114,28 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 	end if
 	
 	dim result as Result
-	result = runSqlFetch(cn, sql, args, pageOptions, sortOptions)
+	result = runSqlFetch(cn, sql, args, pageOptions, sortOptions, returnResultSet)
 	
 	if .not. result.isSuccessful() then 
 		getTableDataFromSql = result 
 	else 
-		dim count as n
-		count = customSqlCount(sql, args, cn)
-		dim data as extension::json 
-		data.setJson("{}")
-		data.setProperty("result", result.getInner())
-		data.setProperty("count", count)
-		getTableDataFromSql = Result.success(data)
+		if returnResultSet then 
+			getTableDataFromSql = Result.success(result.getInner())
+		else
+			dim count as n
+			count = customSqlCount(sql, args, cn)
+			dim data as extension::json 
+			data.setJson("{}")
+			data.setProperty("result", result.getInner())
+			data.setProperty("count", count)
+			getTableDataFromSql = Result.success(data)
+		end if
 	end if
 	
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
 	cn.close()
 end function
 
-function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c)
+function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, returnResultSet as l = .f.)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -188,23 +191,25 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
 	dim data as Result
-	data = runSqlFetch(cn, sql, args, pageOptions, sortOptions)
+	data = runSqlFetch(cn, sql, args, pageOptions, sortOptions, returnResultSet)
 	
 	if .not. data.isSuccessful() then 
 		getTableData = data
 		end
 	end if 
 	
-	dim count as n
-	count = sql_count(cn, tableName, "*", wherePart, args);
-	dim dataObj as extension::json 
-	dataObj.setJson("{}")
-	dataObj.setProperty("count", count)
-	dataObj.setProperty("result", data.getInner())
-	getTableData = Result.success(dataObj)
+	if returnResultSet then 
+		getTableData = Result.success(data.getInner())
+	else
+		dim count as n
+		count = sql_count(cn, tableName, "*", wherePart, args);
+		dim dataObj as extension::json 
+		dataObj.setJson("{}")
+		dataObj.setProperty("count", count)
+		dataObj.setProperty("result", data.getInner())
+		getTableData = Result.success(dataObj)
+	end if
 	
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
 	cn.close()
 	
 end function
@@ -216,7 +221,7 @@ end function
 ' sortOptions
 '	columnName: string
 ' 	order: "asc" | "desc"
-function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a, sortOptions as a)
+function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a, sortOptions as a, returnResultSet as l)
 	dim result as Result
 	
 	if pageOptions == null_value() then 
@@ -254,13 +259,17 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	dim cr as sql::CallResult 
 	cr = cn.CallResult
 	
-	'get the JSON from the query
-	dim jsonStr as c 
-	jsonStr = rs.toJSON(getRows, rowStart)
-	dim json as extension::json
-	json.setJson(jsonStr)
-	result = Result.success(json)
-	runSqlFetch = result
+	if returnResultSet then 
+		runSqlFetch = Result.success(rs)
+	else
+		'get the JSON from the query
+		dim jsonStr as c 
+		jsonStr = rs.toJSON(getRows, rowStart)
+		dim json as extension::json
+		json.setJson(jsonStr)
+		result = Result.success(json)
+		runSqlFetch = result
+	end if
 end function
 
 function buildConstraint as Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p)
@@ -275,7 +284,7 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 		argCounter = 0
 		for i = 0 to filters.getLength() - 1
 			filter = filters.getIndexed(i)
-			if .not. (filter.hasProperty("op")) .or. (.not. isSafeOp(filter.getProperty("op"))) then 
+			if .not. (filter.hasProperty("op")) .or. (.not. isSafeOp(filter.getProperty("op"))) then
 				filter.setProperty("op", "=")
 			end if
 			
@@ -310,7 +319,7 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 				end if
 			end if
 			
-			if .not. (filter.hasProperty("type")) then 
+			if .not. (filter.hasProperty("type")) then
 				filter.setProperty("type", "c")
 			end if
 			filterStr = filterStr + " [" + filter.getProperty("columnName") + "] " + filter.getProperty("op")
@@ -372,8 +381,8 @@ function getMappingFromMappings as Result (mappings as extension::json, column a
 	getMappingFromMappings = Result.fail("Mapping " + column + " was not specified.")
 end function
 
-' Input: configName
-' Input: dirty (from 'harvestList')
+' Input: e.configName
+' Input: e.dirty (from 'harvestList') should be a string
 ' Input: resultsOut output parameter list of results
 function updateTableData as v (e as p, resultsOut as p, connName as c)
 	dim configInterface as p
@@ -877,8 +886,273 @@ function fillEndpointItem as c (e as p, item as extension::json)
 	end if
 end function
 
+function downloadExcelTemplate as Result (configName as c)
+	dim configInterface as p
+	dim config as Result
+	dim configJson as extension::Json
+	dim configRequestArgs as p
+	configRequestArgs.configName = configName
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(configRequestArgs)
+	
+	if .not. config.isSuccessful() then
+		downloadExcelTemplate = config
+		end 
+	end if
+	
+	configJson = config.getInner()
+	
+	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
+		downloadExcelTemplate = Result.fail("Cannot get template for non-SQL list")
+		end
+	end if
+	
+	if configJson.getProperty("dataSource").hasProperty("table") = .f. then 
+		downloadExcelTemplate = Result.fail("Cannot get template for custom SQL List")
+		end
+	end if
+	
+	dim dataSource as extension::json 
+	dataSource = configJson.getProperty("dataSource")
+	
+	dim tableNames[0] as c
+	dim cnName as c
+
+	dim flag as l
+	if dataSource.hasProperty("connectionString") then 
+		cnName = dataSource.getProperty("connectionString")
+	else 
+		cnName = "::Name::conn"
+	end if 
+
+	if dataSource.hasProperty("table") then
+		tableNames[] = dataSource.getProperty("table")
+	else 
+		dim query as sql::query 
+		if query.parse(dataSource.getProperty("sql")) = .f. then 
+			downloadExcelTemplate = Result.fail("Could not parse SQL!")
+			end 
+		end if
+
+		for each queryTableName in query.selectTableReferences 
+			tableNames[] = queryTableName.value.name 
+		next
+	end if	
+	
+	dim columnNames[0] as c 
+	for each tableName in tableNames 
+		dim schemaRes as Result 
+		dim schemaInfo as p
+		dim schema as p
+		schemaInfo = require("schemaInfo")
+		
+		schemaRes = schemaInfo.getConnectionSchemaJSON(cnName, tableName.value)
+		if schemaRes.isSuccessful() = .f. then 
+			downloadExcelTemplate = schemaRes 
+			end 
+		end if 
+
+		schema = json_parse(schemaRes.getInner())
+		
+		for each column in schema.jsonOutput.column 
+			if column.value.autoGenerate .or. column.value.autoIncrement then 
+				continue 
+			end if 
+
+			' columnNames[] = tableName + "." + column.value.name
+			columnNames[] = column.value.name
+		next
+	next
+	
+	dim sheet as Office::Spreadsheet
+	dim doc as Office::ExcelDocument
+	sheet = doc.addSheet(configName)
+
+	for i = 1 to columnNames.size()
+		sheet.write(1, i, columnNames[i])
+	next
+
+	dim fileName as c = context.request.GetRequestTempFileName(".xlsx")
+	if doc.save(filename) then 
+		downloadExcelTemplate = Result.success(filename)
+	else 
+		downloadExcelTemplate = Result.fail("Could not generate Excel template") 
+	end if
+	
+end function
+
+' Create Spreadsheet from data, then return filename if successful
+' Filters is JSON string of filters
+function doFileDownload as Result (configName as c, filters as c)
+	dim configInterface as p
+	dim config as Result
+	dim configJson as extension::Json
+	dim configRequestArgs as p
+	configRequestArgs.configName = configName
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(configRequestArgs)
+	
+	if .not. config.isSuccessful() then
+		doFileDownload = config
+		end 
+	end if
+	
+	configJson = config.getInner()
+	
+	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
+		doFileDownload = Result.fail("Cannot upload data to non-SQL List")
+		end
+	end if
+	
+	dim dataResult as Result 
+	dim resultSet as sql::ResultSet
+	dim fetchArgs as p
+	fetchArgs.configName = configName
+	fetchArgs.filters = filters
+	dataResult = querySqlWithFilters(fetchArgs, .t.)
+	
+	if dataResult.isSuccessful() = .f. then 
+		doFileDownload = dataResult 
+		end 
+	else 
+		resultSet = dataResult.getInner()
+	end if
+	
+	dim sheet as Office::Spreadsheet
+	dim doc as Office::ExcelDocument
+	sheet = doc.AddSheetFromResultSet(resultSet, configName, .t.) 
+
+	dim mappings as extension::json
+	mappings = configJson.getProperty("mappings")
+	for i = sheet.firstColumn to sheet.NextAvailableColumn
+		dim fmt as Office::Format
+		dim cellValue as a
+		cellValue = sheet.read(sheet.firstRow, i, fmt)
+		
+		if typeof(cellValue) = "c" then 
+			if mappings.getProperty("keys").hasProperty(cellValue) then 
+				dim mapping as extension::json 
+				mapping = mappings.getProperty("keys").getProperty(cellValue)
+				if mapping.hasProperty("displayName") then 
+					sheet.write(sheet.firstRow, i, mapping.getProperty("displayName"), fmt)
+				end if
+			end if
+		end if
+	next
+	
+	dim filename as c = context.request.GetRequestTempFileName(".xlsx")
+	if doc.save(filename) then 
+		doFileDownload = Result.success(filename)
+	else 
+		doFileDownload = Result.fail("Could not generate Excel file")
+	end if
+	
+end function
+
+
+function doFileUpload as v (fileList as p, configName as c, results as p)
+	dim configInterface as p
+	dim config as Result
+	dim configJson as extension::Json
+	dim configRequestArgs as p
+	configRequestArgs.configName = configName
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(configRequestArgs)
+	
+	if .not. config.isSuccessful() then
+		doFileUpload = config
+		end 
+	end if
+	
+	configJson = config.getInner()
+	
+	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
+		doFileUpload = Result.fail("Cannot upload data to non-SQL List")
+		end
+	end if
+	if configJson.getProperty("dataSource").hasProperty("table") = .f. then 
+		downloadExcelTemplate = Result.fail("Cannot upload data for custom SQL List")
+		end
+	end if
+	
+	dim connName as c
+	if configJson.getProperty("dataSource").hasProperty("connectionString") then 
+		connName = configJson.getProperty("dataSource").getProperty("connectionString")
+	else 
+		connName = "conn"
+	end if
+	
+	for each file in fileList
+		dim fileResult as Result
+		dim fileData as extension::JSON
+		if file.file.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" then 
+			fileResult = getExcel2007Data(file)
+		else if file.file.contentType = "text/csv" then 
+			fileResult = getCSVData(file)
+		end if
+
+		if fileResult.isSuccessful() then 
+			fileData = fileResult.getInner() 
+		else 
+			results[] = fileResult 
+			continue 
+		end if
+	
+		' setIndexed() doesn't work when trying to update an object element of an array, apparently
+		' So we cannot modify in place
+		dim newFileData as extension::json 
+		newFileData.setJson("[]")
+		for i = 0 to fileData.getLength() - 1
+			dim row as p
+			row = fileData.getIndexed(i)
+			row.setProperty("_isNewRow", .t.)
+			newFileData.push(row)
+		next
+		
+		dim updateParams as p
+		updateParams.configName = configName 
+		updateParams.dirty = newFileData.getJson()
+		
+		updateTableData(updateParams, results, connName)
+	next
+end function
+
+function getExcel2007Data as Result (file as p)
+	dim obj as Office::ExcelDocument
+	dim flag as l
+	flag = obj.load(file.tempFileUploadedData)
+	
+	if .not. flag then
+		getExcel2007Data = Result.fail("Could not load file " + file.fileName)
+		end
+	end if
+	
+	dim json as extension::JSON
+	json.setJson(obj.toJson())
+	
+	if json.getLength() = 0 then 
+		getExcel2007Data = Result.fail("No sheets exist in file " + file.fileName)
+		end 
+	end if 
+	
+	getExcel2007Data = Result.success(json.getIndexed(0))
+end function
+
+function getCSVData as Result (file as p)
+	dim text as c 
+	text = get_from_file(file.tempFileUploadedData)
+
+	dim json as extension::json 
+	json.setJson(extension::json::JsonFromCSV(text))
+	
+	getCSVData = Result.success(json)
+end function
+
 exports.getTableData = getTableData
 exports.updateTableData = updateTableData
 exports.performFetch = performFetch
 exports.querySqlWithFilters = querySqlWithFilters
+exports.doFileUpload = doFileUpload
+exports.doFileDownload = doFileDownload
+exports.downloadExcelTemplate = downloadExcelTemplate
 

@@ -1,5 +1,84 @@
 loadClass("Result")
 
+function handle_template_download as c (e as p)
+	e.ajaxCallBackType = "FileDownload"
+	e.Action = "Display Message"
+	e.downloadMethod = "direct"
+
+	dim standardQueries as p
+	dim result as Result
+	stdQueries = require("standardQueries")
+	
+	dim stateInfo as p
+	stateInfo = json_parse(e._stateInfoJSON)
+	
+	result = stdQueries.downloadExcelTemplate(stateInfo.configName)
+	
+	if result.isSuccessful() then 
+		e.fileToDownload = result.getInner()
+		e.CSFilename = stateInfo.configName + " Template"
+		handle_template_download = result.getInner()
+	else 
+		e.Message = result.getInner()
+		handle_template_download = ""
+	end if
+end function
+
+function handle_file_download as c (e as p)
+	e.ajaxCallBackType = "FileDownload"
+	e.Action = "Display Message"
+	e.downloadMethod = "direct"
+	
+	dim standardQueries as p
+	dim result as Result
+	stdQueries = require("standardQueries")
+	
+	dim stateInfo as p
+	stateInfo = json_parse(e._stateInfoJSON)
+	
+	result = stdQueries.doFileDownload(stateInfo.configName, stateInfo.currentFilters)
+	
+	if result.isSuccessful() then 
+		e.fileToDownload = result.getInner()
+		e.CSFilename = stateInfo.configName
+		handle_file_download = result.getInner()
+	else 
+		e.Message = result.getInner()
+		handle_file_download = ""
+	end if
+
+end function
+
+
+function handle_data_upload as v (e as p)
+	dim standardQueries as p
+	dim results[0] as p
+	stdQueries = require("standardQueries")
+	
+	dim stateInfo as p
+	stateInfo = json_parse(e.__si)
+	stdQueries.doFileUpload(e.fileArray, stateInfo.configName, results)
+	
+	dim errorList as extension::json
+	errorList.setJson("[]")
+	for each result in results
+		if .not. result.isSuccessful() then
+			errorList.push(result.toJson().getProperty("err"))
+		end if
+	next
+	
+	dim result as Result
+	if errorList.getLength() > 0 then 
+		e.abort = .t.
+		e.errorText = ""
+		
+		for i = 0 to errorList.getLength() - 1 
+			e.errorText = e.errorText + errorList.getIndexed(i) + crlf()
+		next
+	end if
+		
+end function
+
 function batch_fetch as c (e as p)
 	dim configInterface as p
 	dim batch as c
