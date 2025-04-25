@@ -9,10 +9,11 @@ exports.batchFetch = batchFetch
 exports.prepareTransformFormList =  prepareTransformFormList
 
 loadClass("Result")
+loadClass("ConfigVersionHandler")
 
 ' Input: e.configName (string)
 ' Input: e.filters (filter array)
-' Output: Result(ok: {data array, schema (if schema can be fetched), isAdmin (bool), config)
+' Output: Result(ok: {data array, schema (if schema can be fetched), isAdmin (bool), config) OR Result(err: { configVersion: string })
 function batchFetch as Result (e as p)
 	dim resultObj as extension::json 
 	resultObj.setJson("{}")
@@ -103,7 +104,6 @@ end function
 ' This will return a config with the argument API_KEY for the TF API key
 ' It is expected that the UX has this argument defined
 function prepareTransformFormList as Result (e as p)
-		
 	if e.data("formid") = "" then 
 		prepareTransformFormList = Result.fail("Must provide a formId")
 		end 
@@ -150,35 +150,29 @@ function prepareTransformFormList as Result (e as p)
 		"advancedSearch": false,
 		"serverSearch": false,
 	},
-	"mappings": {
-		"tag": "object",
-		"flatten": true,
-		"inDetailView": false,
-		"keys": {
-			"ID": {
-				"tag": "data",
-				"flattenedName": "ID",
-				"inList": true,
-				"readOnly": true,
-				"editType": "number",
-			},
-			"forminstanceid": {
-				"tag": "data",
-				"flattenedName": "forminstanceid",
-				"inList": true,
-				"readOnly": true,
-				"editType": "text",
-			},
-			"person": {
-				"tag": "data",
-				"flattenedName": "person",
-				"displayName": "Person",
-				"inList": true,
-				"inDetailView": true,
-				"editType": "text",
-			}
+	"mappings": [
+		{
+			tag: "data",
+			flattenedName: "ID",
+			inList: true,
+			editType: "number"
+		},
+		{
+			tag: "data",
+			flattenedName: "forminstanceid",
+			displayName: "Form Instance ID",
+			inList: true,
+			editType: "text",
+			readOnly: true,
+		},
+		{
+			tag: "data",
+			flattenedName: "person",
+			displayName: "Person",
+			inList: true,
+			editType: "text"
 		}
-	}
+	]
 }
 %str%
 	dim tfArgs as p
@@ -260,12 +254,18 @@ function requestConfig as Result (e as p)
 		username = ""
 	end if
 	
+	dim configVersionHandler as ConfigVersionHandler
+	dim errMsg as extension::json 
+	errMsg.setJson("{}")
+	errMsg.setProperty("version", configVersionHandler.CURRENT_VERSION)
+	
 	'DIM a SQL arguments object
 	dim args as sql::arguments
 	args.add("username", username)
 	
 	if e.data("configName") == "" then 
-		requestConfig = Result.fail("property configName cannot be empty")
+		errMsg.setProperty("message", "property configName cannot be empty")
+		requestConfig = Result.fail(errMsg)
 		end 
 	else 
 		args.add("listname", e.configName)
@@ -281,13 +281,15 @@ function requestConfig as Result (e as p)
 	userMappings = fetchFromDb(userSql, args, "conn")
 	globalConfig = fetchFromDb(globalSql, args, "conn")
 	
-	if .not. globalConfig.isSuccessful() then 
-		requestConfig = globalConfig
+	if .not. globalConfig.isSuccessful() then
+		errMsg.setProperty("message", globalConfig.getInner())
+		requestConfig = Result.fail(errMsg)
 		end
 	end if 
 	
 	if globalConfig.getInner().getJson() == "" then 
-		requestConfig = Result.fail("config does not exist")
+		errMsg.setProperty("message", "config does not exist")
+		requestConfig = Result.fail(errMsg)
 		end 
 	end if
 	
@@ -295,6 +297,18 @@ function requestConfig as Result (e as p)
 	
 	if userMappings.isSuccessful() .and. userMappings.getInner().getJson() <> "" then 
 		globalConfig.setProperty("mappings", userMappings.getInner())
+	end if
+	
+	globalConfig = configVersionHandler.handleConversion(globalConfig)
+	
+	' May need to re-write to DB
+	if configVersionHandler.MADE_CHANGES then 
+		dim saveOps as p
+		saveOps.global = "true"
+		saveOps.configName = e.configName
+		saveOps.payload = globalConfig.getJson()
+		
+		saveConfig(saveOps, .t.)
 	end if
 	
 	requestConfig = Result.success(globalConfig)
@@ -338,7 +352,8 @@ end function
 ' Input: e.payload
 ' 	If global is true, then this is the entire configuration 
 ' 	If global is false, then this is just the mapping portion of the config
-function saveConfig as Result (e as p) 
+' Input: saveAsSystem -- Flag for the system to save something without being logged in.
+function saveConfig as Result (e as p, saveAsSystem as l = .f.) 
 	if e.data("global") == "" then 
 		saveConfig = Result.fail("Field 'global' is required")
 		end 
@@ -361,6 +376,10 @@ function saveConfig as Result (e as p)
 	if .not. context.security.callresult.success then 
 		username = ""
 	end if
+	
+	if saveAsSystem = .t. then 
+		username = "SYSTEM"
+	end if
 
 	' Ensure user is logged in
 	if username == "" then 
@@ -370,7 +389,10 @@ function saveConfig as Result (e as p)
 	
 	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
 	' User is trying to save globally, but isn't an admin?
-	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) .and. saveGlobal then 
+	dim securityFail as l = .not. context.security.callresult.success
+	dim noSavePermission as l = .not. has_permissions
+	dim userCannotSave as l = saveGlobal .and. (securityFail .or. noSavePermission)
+	if userCannotSave .and. (saveAsSystem = .f.) then 
 		saveConfig = Result.fail("User does not have permissions to save globally.")
 		end 
 	end if
@@ -398,12 +420,16 @@ function saveConfig as Result (e as p)
 	dim globalConfig as a
 	dim maybeGlobalConfig as Result
 	userSuppliedConfig.setJson(e.payload)
-	maybeGlobalConfig = requestConfig(e)
 	
-	if maybeGlobalConfig.isSuccessful() then 
-		globalConfig = maybeGlobalConfig.data
-	else 
+	if saveGlobal then 
 		globalConfig = null_value()
+	else
+		maybeGlobalConfig = requestConfig(e)
+		if maybeGlobalConfig.isSuccessful() then 
+			globalConfig = maybeGlobalConfig.getInner()
+		else 
+			globalConfig = null_value()
+		end if 
 	end if
 	
 	if already_exists then
@@ -412,7 +438,14 @@ function saveConfig as Result (e as p)
 			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .t.", args)
 		else
 			' saveGlobal false, so not admin
-			userSuppliedConfig = screenUserConfig(userSuppliedConfig, globalConfig)
+			dim mappingsResult as Result 
+			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
+			if mappingsResult.isSuccessful() = .f. then 
+				saveConfig = mappingsResult
+				end 
+			else 
+				userSuppliedConfig = mappingsResult.getInner()
+			end if
 			args.add("config", userSuppliedConfig.getJson())
 			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .f. AND USER_NAME = :username", args)
 		end if
@@ -422,7 +455,15 @@ function saveConfig as Result (e as p)
 			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, NULL)", args)
 		else 
 			' saveGlobal false, so not admin
-			userSuppliedConfig = screenUserConfig(userSuppliedConfig, globalConfig)
+			dim mappingsResult as Result 
+			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
+			if mappingsResult.isSuccessful() = .f. then 
+				saveConfig = mappingsResult
+				end 
+			else 
+				userSuppliedConfig = mappingsResult.getInner()
+			end if
+
 			dim exists_globally as l = config_exists("", .t., e.configName)
 			if .not. exists_globally then 
 				saveConfig = Result.fail("Cannot save user config when no corresponding global config exists").toJson().getJson()
@@ -449,62 +490,61 @@ end function
 ' userConfig should be just the Mapping portion of the config, supplied by the front end
 ' savedConfig should be the entire config from the DB OR a null value (this function will choose defaults)
 ' Function ensures user has not changed admin only options (like readonly) and returns a screened JSON object
-function screenUserConfig as p (userConfig as p, savedConfig as a) 
+function screenUserConfig as Result (userConfig as p, savedConfig as a) 
 	dim officialMappings as extension::json 
 	officialMappings = savedConfig.getProperty("mappings")
 	
 	if officialMappings = null_value() then 
-		screenUserConfig = userConfig 
+		screenUserConfig = Result.success(userConfig) 
 		end 
 	end if
 	
-	screenUserConfig = walkMappings(userConfig, officialMappings)
+	if userConfig.isArray() = .f. then 
+		screenUserConfig = Result.success(officialMappings) 
+		end 
+	end if
+	
+	dim userConfigReadonlyKeys as extension::json 
+	userConfigReadonlyKeys.setJson("{}")
+	
+	dim officialConfigReadonlyKeys as extension::json 
+	officialConfigReadonlyKeys.setJson("{}")
+	debug(1)
+	
+	for i = 0 to userConfig.getLength() - 1
+		getReadonlyColumns(userConfig.getIndexed(i), userConfigReadonlyKeys)
+		getReadonlyColumns(officialMappings.getIndexed(i), officialConfigReadonlyKeys)
+	next
+	
+	for i = 0 to officialConfigReadonlyKeys.getLength() - 1
+		dim name as c
+		name = officialConfigReadonlyKeys.nameIndexed(i)
+		
+		if userConfigReadonlyKeys.hasProperty(name) = .f. then 
+			screenUserConfig = Result.fail("Cannot change readonly keys as non-administrator")
+			end 
+		end if 
+	next
+	
+	screenUserConfig = Result.success(userConfig)
 end function
 
-function walkMappings as p (userMapping as extension::json, globalMapping as extension::json)
-	if userMapping.hasProperty("tag") = .f. then 
-		walkMappings = globalMapping 
-		end 
-	end if 
-	
+function getReadonlyColumns as v (mapping as extension::json, keySet as extension::json)
 	dim tag as c 
-	tag = globalMapping.getProperty("tag")
+	tag = mapping.getProperty("tag")
 	
-	if tag <> userMapping.getProperty("tag") then 
-		walkMappings = globalMapping 
-		end 
-	end if 
-	
-	if tag = "object" then 
-		if userMapping.hasProperty("keys") = .f. then 
-			walkMappings = globalMapping 
-			end 
-		end if 
-		
-		for i = 0 to userMapping.getProperty("keys").getLength() - 1
-			dim name as c 
-			name = userMapping.getProperty("keys").nameIndexed(i)
-			
-			if globalMapping.getProperty("keys").hasProperty("name") then 
-				userMapping.getProperty("keys").setProperty(name, walkMappings(userMapping.getProperty("keys").getProperty(name), globalMapping.getProperty("keys").getProperty(name)))
-			end if 
-		next
-		
-		walkMappings = userMapping
-		end 
-	else if tag = "array" then 
-		if userMapping.hasProperty("itemMapping") = .f. then 
-			walkMappings = globalMapping 
-			end 
-		end if 
-		userMapping.setProperty("itemMapping", walkMappings(userMapping.getProperty("itemMapping"), globalMapping.getProperty("itemMapping")))
-		walkMappings = userMapping
-	else 
-		if userMapping.hasProperty("readOnly") .and. globalMapping.hasProperty("readOnly") then 
-			userMapping.setProperty("readOnly", globalMapping.getProperty("readOnly"))
-		end if 
-		walkMappings = userMapping 
+	if tag = "nested" then 
+		getReadonlyColumns(mapping.getProperty("mapping"), keySet)
+	else if tag = "object" .or. tag = "array" then 
+		getReadonlyColumns(mapping.getProperty("item"), keySet)
+	else if tag = "data" then
+		if mapping.hasProperty("readOnly") then 
+			if mapping.getProperty("readOnly") = .t. then 
+				keySet.setProperty(mapping.getProperty("flattenedName"), 0)
+			end if
+		end if
 	end if
+	
 end function
 
 

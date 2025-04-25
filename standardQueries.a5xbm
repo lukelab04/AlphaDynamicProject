@@ -74,12 +74,17 @@ function querySqlWithFilters as Result (e as p, returnResultSet as l = .f.)
 	' we construct the SQL query given information from mappings & filters.
 	if configJson.getProperty("dataSource").hasProperty("table") then
 		dim columns[0] as a
-		for i = 0 to configJson.getProperty("mappings").getProperty("keys").getLength() - 1
-			dim colName as c
-			colName = configJson.getProperty("mappings").getProperty("keys").nameIndexed(i)
-			dim index as n
-			index = columns.append(1)
-			columns[index] = colName
+		for i = 0 to configJson.getProperty("mappings").getLength() - 1
+			dim mapping as extension::json 
+			mapping = configJson.getProperty("mappings").getIndexed(i)
+			
+			if mapping.getProperty("tag") = "data" then 
+				dim colName as c
+				colName = mapping.getProperty("flattenedName")
+				dim index as n
+				index = columns.append(1)
+				columns[index] = colName
+			end if
 		next
 		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, returnResultSet)
 	else
@@ -368,14 +373,18 @@ function isSafeOp as l (op as c)
 end function 
 
 function getMappingFromMappings as Result (mappings as extension::json, column as c)
-	for i = 0 to mappings.getProperty("keys").getLength() - 1
+	for i = 0 to mappings.getLength() - 1
 		dim m as extension::json 
-		dim colName as c
-		colName = mappings.getProperty("keys").nameIndexed(i)
+		m = mappings.getIndexed(i)
 		
-		if colName == column then 
-			getMappingFromMappings = Result.success(mappings.getProperty("keys").getIndexed(i))
-			end 
+		if m.getProperty("tag") = "data" then 
+			dim colName as c
+			colName = m.getProperty("flattenedName")
+			
+			if colName == column then 
+				getMappingFromMappings = Result.success(m)
+				end 
+			end if
 		end if
 	next
 	getMappingFromMappings = Result.fail("Mapping " + column + " was not specified.")
@@ -1029,10 +1038,12 @@ function doFileDownload as Result (configName as c, filters as c)
 		dim cellValue as a
 		cellValue = sheet.read(sheet.firstRow, i, fmt)
 		
-		if typeof(cellValue) = "c" then 
-			if mappings.getProperty("keys").hasProperty(cellValue) then 
+		if typeof(cellValue) = "c" then
+			dim mappingRes as Result 
+			mappingRes = getMappingFromMappings(mappings, cellValue)
+			if mappingRes.isSuccessful() then 
 				dim mapping as extension::json 
-				mapping = mappings.getProperty("keys").getProperty(cellValue)
+				mapping = mappingRes.getInner()
 				if mapping.hasProperty("displayName") then 
 					sheet.write(sheet.firstRow, i, mapping.getProperty("displayName"), fmt)
 				end if

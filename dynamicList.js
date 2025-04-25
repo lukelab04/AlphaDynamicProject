@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, DataMappingTypeSchema, RootMappingTypeSchema, MappingTraverse, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -24,6 +24,7 @@ const EditTypeTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.U
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('datetime'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('bool'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
 ]);
 const EndpointTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     method: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
@@ -86,10 +87,31 @@ const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Re
     ]),
     children: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(Self)),
 }));
+const JsonFieldTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("object"),
+        keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self)
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("array"),
+        item: Self
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("data"),
+        dataType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean')
+        ]),
+        defaultValue: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+    })
+]));
 const DataMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('data'),
     displayName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-    flattenedName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    // If top level, mapping is the column key
+    // Otherwise it is a unique identifier
+    flattenedName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     inList: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
@@ -97,51 +119,36 @@ const DataMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Typ
     serverDateFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    // Required iff edit type is json
+    jsonConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        editorType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('text'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('form')]),
+        definition: JsonFieldTypeSchema
+    })),
     dropdownConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ choices: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
     ]))
 });
-const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+const NestedMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive((Self) => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
-        flatten: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
-        // Mutually exclusive with flatten
-        inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
-        keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self)
+        key: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        item: Self
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('array'),
-        flatten: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
-        // Mutually exclusive with flatten
-        inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
-        itemMapping: Self,
+        item: Self
     }),
-    DataMappingTypeSchema
+    DataMappingTypeSchema,
 ]));
-const RootMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-    tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
-    flatten: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal(true),
-    keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), MappingTypeSchema),
-    inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal(false),
-});
-class MappingTraverse {
-    traverse(m) {
-    }
-    visitObj(m) { }
-    traverseObj(m) {
-        for (const key in m.keys) {
-            this.traverse(m.keys[key]);
-        }
-    }
-    visitArr(m) {
-    }
-    traverseArr(m) {
-    }
-    visitData(d) { }
-    traverseData(d) {
-    }
-}
+const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('nested'),
+        key: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        mapping: NestedMappingTypeSchema
+    }),
+    DataMappingTypeSchema,
+]);
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     advancedSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     serverSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
@@ -170,6 +177,7 @@ const ServerSortTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     order: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('asc'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('desc')])
 }));
 const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    version: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     onInitialize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dataSource: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
@@ -208,7 +216,7 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
             preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
         }),
     ]),
-    mappings: RootMappingTypeSchema,
+    mappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(MappingTypeSchema),
     searchOptions: SearchOptionsTypeSchema,
     multiSelect: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     buttons: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListBtnTypeSchema),
@@ -6585,6 +6593,7 @@ function constructForm(options, parent, dynForm) {
 }
 class SimpleForm {
     constructor(options, dynForm, parent) {
+        this.jsonEditorRenderCallbackId = null;
         this.options = options;
         this.dynForm = dynForm;
         this.changed = false;
@@ -6637,7 +6646,11 @@ class SimpleForm {
                     d.fromFormat(val, (_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : listBuilder_DEFAULT_DATETIME_FMT);
                     jsonVal = d;
                 }
+                break;
             }
+            case "json":
+                jsonVal = JSON.parse(val);
+                break;
         }
         return {
             changed: this.changed,
@@ -6648,6 +6661,29 @@ class SimpleForm {
         var _a;
         if (this.options.display && !this.options.display(this, this.parent)) {
             return {};
+        }
+        if (this.options.type == 'json') {
+            let container = {
+                type: 'html',
+                control: {
+                    html: `<div class="dynamic-form-json-editor" id="${this.id}" style="width: 80%"></div>`
+                }
+            };
+            if (this.jsonEditorRenderCallbackId)
+                this.dynForm.removeCallback(this.jsonEditorRenderCallbackId);
+            this.jsonEditorRenderCallbackId = this.dynForm.addCallback('afterRender', () => {
+                if ($(this.id).children.length > 0)
+                    return;
+                let editor = new TF.u.code.Editor(this.id, {
+                    lang: 'json'
+                });
+                editor.setValue(this.dynForm.formBox.data[this.id]);
+                let simpleForm = this;
+                editor.onChange = function () {
+                    simpleForm.dynForm.formBox.data[simpleForm.id] = this.value;
+                };
+            });
+            return container;
         }
         let editType;
         switch (this.options.type) {
@@ -6750,6 +6786,10 @@ class SimpleForm {
             d[this.id] = data;
             return d;
         }
+        if (this.options.type == 'json' && data instanceof Object) {
+            d[this.id] = JSON.stringify(data, undefined, '\t');
+            return d;
+        }
         if (typeof data != this.options.type && this.options.default == undefined) {
             throw new PopulateError("Data type does not match declared type.");
         }
@@ -6770,6 +6810,12 @@ class ObjectForm {
         this.changed = false;
         this.parent = parent;
         this.id = uuidv4();
+    }
+    getRequiredDefn(k) {
+        let d = this.options.requiredKeys[k];
+        if (typeof d == 'function')
+            return d(this);
+        return d;
     }
     evalKeyDependentFn(f, key) {
         if (typeof f == 'function') {
@@ -6822,7 +6868,7 @@ class ObjectForm {
             i += 1;
             let formDef;
             if (key in this.options.requiredKeys) {
-                formDef = this.options.requiredKeys[key];
+                formDef = this.getRequiredDefn(key);
             }
             else if (this.options.optionalKeys && key in this.options.optionalKeys) {
                 formDef = this.options.optionalKeys[key].definition;
@@ -7267,7 +7313,7 @@ class ObjectForm {
         let viewedKeys = new Set();
         for (const key in this.options.requiredKeys) {
             viewedKeys.add(key);
-            let newEntry = constructForm(this.options.requiredKeys[key], this, this.dynForm);
+            let newEntry = constructForm(this.getRequiredDefn(key), this, this.dynForm);
             this.entries[key] = {
                 form: newEntry,
                 collapsed: true
@@ -7362,6 +7408,11 @@ class ArrayForm {
         this.parent = parent;
         this.changed = false;
         this.id = uuidv4();
+    }
+    calcTempate() {
+        if (typeof this.options.itemTemplate == 'function')
+            return this.options.itemTemplate(this);
+        return this.options.itemTemplate;
     }
     getOptions() {
         return { type: 'array', options: this.options };
@@ -7519,7 +7570,7 @@ class ArrayForm {
                     control: {
                         html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
                         onClick: () => {
-                            let newForm = constructForm(this.options.itemTemplate, this, this.dynForm);
+                            let newForm = constructForm(this.calcTempate(), this, this.dynForm);
                             Object.assign(this.dynForm.formBox.data, newForm.getPopulateData(this.options.defaultValue));
                             this.entries.push({ collapsed: false, form: newForm });
                             this.data.push(this.options.defaultValue);
@@ -7553,7 +7604,7 @@ class ArrayForm {
         this.entries = [];
         let d = {};
         for (const elem of data) {
-            let newForm = constructForm(this.options.itemTemplate, this, this.dynForm);
+            let newForm = constructForm(this.calcTempate(), this, this.dynForm);
             this.entries.push({ form: newForm, collapsed: true });
             Object.assign(d, newForm.getPopulateData(elem));
         }
@@ -7685,12 +7736,9 @@ class MultiForm {
         this.parent = parent;
         this.changed = false;
         this.id = uuidv4();
-        let dropdownItems = Object.keys(this.options.definitions).map(k => {
-            return {
-                value: k,
-                text: k
-            };
-        });
+    }
+    clearCache() {
+        this.elements = {};
     }
     getId() {
         return this.id;
@@ -7711,6 +7759,13 @@ class MultiForm {
             d.changed = true;
         return d;
     }
+    getDefaultValue() {
+        let val = this.options.definitions[this.currDropdownItem].defaultValue;
+        if (typeof val == 'function') {
+            return this.options.definitions[this.currDropdownItem].defaultValue(this);
+        }
+        return val;
+    }
     buildJsonForm() {
         if (this.options.display && !this.options.display(this, this.parent))
             return {};
@@ -7724,7 +7779,7 @@ class MultiForm {
                 defn = currDef;
             }
             let f = constructForm(defn, this, this.dynForm);
-            let newData = f.getPopulateData(this.options.definitions[this.currDropdownItem].defaultValue);
+            let newData = f.getPopulateData(this.getDefaultValue());
             Object.assign(this.dynForm.formBox.data, newData);
             this.elements[this.currDropdownItem] = f;
         }
@@ -7973,6 +8028,10 @@ class DynamicForm {
         this.otherItems = other;
         this.obj = obj;
         this.containerId = containerId;
+        this.callbacks = {
+            beforeRender: {},
+            afterRender: {}
+        };
         let oldContainer = $(containerId);
         DynamicForm.removeOldEventHandlers(oldContainer);
         this.form = constructForm(formDefn, null, this);
@@ -8118,9 +8177,11 @@ class DynamicForm {
         };
     }
     setDirty(dirty) {
-        this.formBox.isDirtyImmediate = true;
+        this.formBox.isDirtyImmediate = dirty;
         this.obj.refreshClientSideComputations(true);
+        Object.values(this.callbacks.beforeRender).forEach(f => f());
         this.formBox.refresh();
+        Object.values(this.callbacks.afterRender).forEach(f => f());
     }
     refresh() {
         var _a;
@@ -8140,7 +8201,9 @@ class DynamicForm {
                 `
             }
         };
+        Object.values(this.callbacks.beforeRender).forEach(f => f());
         this.formBox.load({ form: { items: [tabGroup, ...((_a = this.otherItems) !== null && _a !== void 0 ? _a : [])] }, guides: DynamicForm.guides }, this.formBox.data);
+        Object.values(this.callbacks.afterRender).forEach(f => f());
     }
     serializeWithChanges() {
         return this.form.serialize(this.formBox.data);
@@ -8148,6 +8211,15 @@ class DynamicForm {
     serialize() {
         let withChanges = this.form.serialize(this.formBox.data);
         return changeDetectionToRaw(withChanges);
+    }
+    addCallback(point, f) {
+        let id = uuidv4();
+        this.callbacks[point][id] = f;
+        return id;
+    }
+    removeCallback(id) {
+        delete this.callbacks.beforeRender[id];
+        delete this.callbacks.afterRender[id];
     }
 }
 DynamicForm.guides = {
@@ -8261,7 +8333,7 @@ function executeListAction(list, action, rowData, row) {
 function listActionEditor(obj, config) {
     return __awaiter(this, void 0, void 0, function* () {
         let formConfigOptions = {
-            linkableCols: DataScopeManager.getDataMappings(config).map(x => { var _a, _b; return { value: (_a = x.mapping.flattenedName) !== null && _a !== void 0 ? _a : x.key, text: (_b = x.mapping.displayName) !== null && _b !== void 0 ? _b : x.key }; }),
+            linkableCols: DataScopeManager.getDataMappings(config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); }),
             foreignCols: [],
             availableConfigs: yield fetchConfigNames(obj)
         };
@@ -8269,7 +8341,7 @@ function listActionEditor(obj, config) {
             return requestListConfig(obj, config).then(() => {
                 let c = obj.stateInfo.apiResult;
                 if ('ok' in c) {
-                    return DataScopeManager.getTopLevelColumns(c.ok).map(x => { return { text: x.displayName, value: x.name }; });
+                    return c.ok.mappings.filter(x => x.tag == 'data').map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
                 }
                 return [];
             });
@@ -8334,7 +8406,8 @@ function listActionEditor(obj, config) {
                                                         allowCustomValue: true,
                                                         onSelect: (e, f) => {
                                                             getForeignColsFor(e).then(cols => {
-                                                                formConfigOptions.foreignCols = cols;
+                                                                formConfigOptions.foreignCols.length = 0;
+                                                                formConfigOptions.foreignCols.push(...cols);
                                                                 f.dynForm.refresh();
                                                             });
                                                         },
@@ -8415,7 +8488,7 @@ function listActionEditor(obj, config) {
                                             dropdownItems: formConfigOptions.availableConfigs.map(x => { return { text: x, value: x }; })
                                         }
                                     },
-                                    tabName: templateHelper(DataScopeManager.getDataMappings(config).map(x => { var _a; return (_a = x.mapping.flattenedName) !== null && _a !== void 0 ? _a : x.key; }), 'Tab Name'),
+                                    tabName: templateHelper(DataScopeManager.getDataMappings(config).map(x => x.flattenedName), 'Tab Name'),
                                     fromColumn: {
                                         type: 'dropdown',
                                         options: {
@@ -8682,13 +8755,6 @@ class DynamicList {
     }
     saveDynamicListEdits() {
         var _a;
-        if (this.onSaveOverride) {
-            let data = this.dataBridge.processedToRaw(this.data);
-            this.onSaveOverride(this, data);
-            this.obj.refreshClientSideComputations(true);
-            this.reRender(true);
-            return;
-        }
         let harvest = this.listBox.harvestList();
         harvest.forEach(elem => {
             this.foreignKeys.forEach(fk => {
@@ -8703,7 +8769,8 @@ class DynamicList {
             }
             else if (typeof x == 'object') {
                 for (const key in x) {
-                    if (key.startsWith("*")) {
+                    let alphaFields = ['__displayStyle', '_isDirty', '_isNewRow', '_oldData', '_hasServerSideErrors', '_hasWriteConflictErrors', '_isDeleted', '_serverWideErrors', '_writeConflictErrors'];
+                    if (key.startsWith("*") || alphaFields.includes(key)) {
                         delete x[key];
                         continue;
                     }
@@ -8716,6 +8783,12 @@ class DynamicList {
             harvest[i] = removeMetadataFields(harvest[i]);
         }
         harvest = this.dataBridge.processedToRaw(harvest);
+        if (this.onSaveOverride) {
+            this.onSaveOverride(this, harvest);
+            this.obj.refreshClientSideComputations(true);
+            this.reRender(true);
+            return;
+        }
         let onComplete = () => {
             let result = this.obj.stateInfo.apiResult;
             if (result.err) {
@@ -8806,7 +8879,6 @@ class DynamicList {
         }
     }
     buildSettings() {
-        var _a;
         let columns = [];
         let listFields = [];
         let menuSettings = {};
@@ -8818,9 +8890,10 @@ class DynamicList {
             columns.push(this.buildCheckboxColumn());
         }
         for (const mapping of DataScopeManager.getDataMappings(this.config)) {
-            columns.push(this.buildColumnDefinition(mapping.mapping, mapping.key));
-            let name = (_a = mapping.mapping.flattenedName) !== null && _a !== void 0 ? _a : mapping.key;
-            listFields.push(this.buildListFieldDefn(name));
+            if (mapping.tag == 'data') {
+                columns.push(this.buildColumnDefinition(mapping, mapping.flattenedName));
+                listFields.push(this.buildListFieldDefn(mapping.flattenedName));
+            }
         }
         for (let i = 0; i < this.config.buttons.length; i++) {
             columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
@@ -9520,7 +9593,7 @@ class DynamicList {
                         this.searchMemoization[index] = matches(data, field);
                     });
                 }
-                let topLevel = DataScopeManager.getTopLevelColumns(this.config).map(x => x.name);
+                let topLevel = this.config.mappings.filter(x => x.tag == 'data').map(x => x.flattenedName);
                 let flag;
                 if (topLevel.includes(field)) {
                     flag = matches(data, field);
@@ -10073,35 +10146,33 @@ class DynamicList {
             this.obj.refreshClientSideComputations(true);
         };
         let doSave = () => {
-            var _a, _b, _c, _e;
-            if ((_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) {
-                let d = {};
-                if (rowsToChange.length <= 1) {
-                    d = (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.serialize();
-                }
-                else {
-                    let changes = (_e = (_c = this.detailView) === null || _c === void 0 ? void 0 : _c.serializeWithChanges()) !== null && _e !== void 0 ? _e : { changed: false, raw: null };
-                    if ('keys' in changes) {
-                        for (const key in changes.keys) {
-                            let item = changes.keys[key];
-                            if ('raw' in item && item.changed) {
-                                d[key] = item.raw;
-                            }
-                            else if ('keys' in item && item.changed) {
-                                d[key] = item.keys;
-                            }
-                            else if ('elements' in item && item.changed) {
-                                d[key] = item.elements;
-                            }
+            var _a, _b, _c;
+            let d = {};
+            if (rowsToChange.length <= 1) {
+                d = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.serialize();
+            }
+            else {
+                let changes = (_c = (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.serializeWithChanges()) !== null && _c !== void 0 ? _c : { changed: false, raw: null };
+                if ('keys' in changes) {
+                    for (const key in changes.keys) {
+                        let item = changes.keys[key];
+                        if ('raw' in item && item.changed) {
+                            d[key] = item.raw;
+                        }
+                        else if ('keys' in item && item.changed) {
+                            d[key] = item.keys;
+                        }
+                        else if ('elements' in item && item.changed) {
+                            d[key] = item.elements;
                         }
                     }
                 }
-                if (rowsToChange.length == 0) {
-                    this.listBox.addTableRow(d, { setFocusToTargetRow: true });
-                }
-                else {
-                    rowsToChange.forEach(s => this.listBox.updateTableRow(s, d));
-                }
+            }
+            if (rowsToChange.length == 0) {
+                this.listBox.addTableRow(d, { setFocusToTargetRow: true });
+            }
+            else {
+                rowsToChange.forEach(s => this.listBox.updateTableRow(s, d));
             }
             if (this.detailView) {
                 this.detailView.formBox.isDirtyImmediate = false;
@@ -10113,7 +10184,6 @@ class DynamicList {
             type: 'group',
             items: [
                 {
-                    disabled: () => { var _a, _b; return !((_b = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.formBox.isDirtyImmediate) !== null && _b !== void 0 ? _b : false); },
                     type: 'button',
                     control: {
                         html: `
@@ -10165,12 +10235,13 @@ class DynamicList {
     }
     openSublistFromNested(name, label, data, onSave) {
         let newSchema = {
+            version: this.config.version,
             name: name,
             dataSource: {
                 type: 'json',
                 jsonData: JSON.stringify(data)
             },
-            mappings: { tag: 'object', flatten: true, keys: {}, inDetailView: false },
+            mappings: [],
             searchOptions: {},
             buttons: [],
         };
@@ -10521,85 +10592,54 @@ class DataScopeManager {
         this.expandedIdxToRawIdx = {};
     }
     static lookupMapping(name, config) {
-        let lookup = (m, key) => {
-            if (m.tag == 'data' && m.flattenedName === name)
-                return { mapping: m, key: key };
-            else if (m.tag == 'array')
-                return lookup(m.itemMapping, key);
-            else if (m.tag == 'object') {
-                for (const key in m.keys) {
-                    let match = lookup(m.keys[key], key);
-                    if (match)
-                        return match;
-                }
-            }
-            return null;
-        };
-        for (const key in config.mappings.keys) {
-            let l = lookup(config.mappings.keys[key], key);
-            if (l)
-                return l;
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data' && mapping.flattenedName == name)
+                return mapping;
         }
         throw new Error("No mapping " + name);
     }
-    static getDataMappings(config) {
-        let getData = (m, key) => {
-            if (m.tag == 'data')
-                return [{ mapping: m, key: key }];
-            if (m.tag == 'array')
-                return getData(m.itemMapping, key);
-            let arr = [];
-            for (const key in m.keys) {
-                arr.push(...getData(m.keys[key], key));
-            }
-            return arr;
-        };
-        let arr = [];
-        for (const key in config.mappings.keys) {
-            arr.push(...getData(config.mappings.keys[key], key));
-        }
-        return arr;
-    }
     static getDetailViewMappings(config) {
-        let getDvMapping = (m, key) => {
-            if (m.inDetailView)
-                return [{ mapping: m, key: key }];
-            if (m.tag == 'data')
-                return [];
-            else if (m.tag == 'array')
-                return getDvMapping(m.itemMapping, key);
-            let arr = [];
-            for (const key in m.keys) {
-                arr.push(...getDvMapping(m.keys[key], key));
-            }
-            return arr;
+        let traverse = (s) => {
+            if (s.tag == 'data' && s.inDetailView)
+                return s;
+            else if (s.tag == 'array' || s.tag == 'object')
+                return traverse(s.item);
+            return null;
         };
-        let arr = [];
-        for (const key in config.mappings.keys) {
-            arr.push(...getDvMapping(config.mappings.keys[key], key));
-        }
-        return arr;
-    }
-    static getTopLevelColumns(config) {
-        var _a, _b;
         let out = [];
-        for (const key in config.mappings.keys) {
-            let m = config.mappings.keys[key];
-            if (m.tag == 'data') {
-                let name = (_a = m.flattenedName) !== null && _a !== void 0 ? _a : key;
-                out.push({ displayName: (_b = m.displayName) !== null && _b !== void 0 ? _b : name, name: name });
-            }
-            else {
-                out.push({ displayName: key, name: key });
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data' && mapping.inDetailView)
+                out.push({ mapping, key: mapping.flattenedName });
+            else if (mapping.tag == 'nested') {
+                let x = traverse(mapping.mapping);
+                if (x)
+                    out.push({ mapping: x, key: mapping.key });
             }
         }
         return out;
+    }
+    static getDataMappings(config) {
+        let traverse = (s) => {
+            if (s.tag == 'data')
+                return s;
+            return traverse(s.item);
+        };
+        return config.mappings.map(x => x.tag == 'nested' ? traverse(x.mapping) : x);
     }
     flattenData(data, config) {
         let result = [];
         data.forEach((dataPoint, originalIndex) => {
             let n1 = result.length;
-            result.push(...this._flattenPoint(dataPoint, config.mappings));
+            let toExpand = [];
+            for (const mapping of config.mappings) {
+                let key = (mapping.tag == 'nested') ? mapping.key : mapping.flattenedName;
+                if (key in dataPoint) {
+                    let items = this._flattenPoint(dataPoint, mapping);
+                    dataPoint[key] = items;
+                    toExpand.push(key);
+                }
+            }
+            result.push(...this.explodeObject(dataPoint, toExpand));
             let n2 = result.length;
             for (let i = n1; i < n2; i++) {
                 this.expandedIdxToRawIdx[i] = originalIndex;
@@ -10607,223 +10647,288 @@ class DataScopeManager {
         });
         return result;
     }
+    explodeObject(obj, keys) {
+        if (keys.length == 0)
+            return [obj];
+        let toExplode = {};
+        for (const key in obj) {
+            if (keys.includes(key)) {
+                toExplode[key] = obj[key];
+                delete obj[key];
+            }
+        }
+        let out = [];
+        for (const key in toExplode) {
+            let points = toExplode[key];
+            if (out.length == 0) {
+                out = points;
+                continue;
+            }
+            let newOut = [];
+            for (const point of points) {
+                for (const elem of out) {
+                    let eCpy = jQuery.extend(true, {}, elem);
+                    Object.assign(eCpy, point);
+                    newOut.push(eCpy);
+                }
+            }
+            out = newOut;
+        }
+        for (let elem of out) {
+            let pCpy = jQuery.extend(true, {}, obj);
+            Object.assign(elem, pCpy);
+        }
+        return out;
+    }
     _flattenPoint(point, mapping) {
         if (mapping.tag == 'data') {
-            return [point];
+            let p = {};
+            p[mapping.flattenedName] = point[mapping.flattenedName];
+            return [p];
         }
-        else if (mapping.tag == 'array') {
-            if (!mapping.flatten)
-                return [point];
+        else {
+            return this.flattenSubPoint(point[mapping.key], mapping.mapping);
+        }
+    }
+    flatName(s) {
+        if (s.tag == 'data')
+            return s.flattenedName;
+        if (s.tag == 'array')
+            return this.flatName(s.item);
+        return this.flatName(s.item);
+    }
+    flattenSubPoint(point, sub) {
+        if (sub.tag == 'data')
+            return [point];
+        else if (sub.tag == 'array') {
             let out = [];
             for (const elem of point) {
-                out.push(...this._flattenPoint(elem, mapping.itemMapping));
+                out.push(...this.flattenSubPoint(elem, sub.item));
             }
             return out;
         }
         else {
-            if (!mapping.flatten)
-                return [point];
-            let toExpand = [];
-            let newPoint = {};
-            for (const key in mapping.keys) {
-                let flatName = key;
-                let m = mapping.keys[key];
-                if ('flatten' in m && m.flatten == false) {
-                    newPoint[key] = point[key];
-                    continue;
-                }
-                if (m.tag == 'data' && m.flattenedName)
-                    flatName = m.flattenedName;
-                let result = this._flattenPoint(point[key], mapping.keys[key]);
-                if (result.length > 1) {
-                    toExpand.push(flatName);
-                    newPoint[flatName] = result;
-                }
-                else {
-                    if (typeof result[0] === 'object' && !(result[0] instanceof Date)) {
-                        Object.assign(newPoint, result[0]);
-                    }
-                    else {
-                        newPoint[flatName] = result[0];
-                    }
-                }
+            let expandedSub = this.flattenSubPoint(point[sub.key], sub.item);
+            let out = [];
+            let newKey = this.flatName(sub);
+            for (const elem of expandedSub) {
+                let pointCpy = jQuery.extend(true, {}, point);
+                delete pointCpy[sub.key];
+                pointCpy[newKey] = elem;
+                out.push(pointCpy);
             }
-            if (toExpand.length == 0)
-                return [newPoint];
-            let cartesianProduct = [];
-            for (const expandKey of toExpand) {
-                if (cartesianProduct.length == 0) {
-                    cartesianProduct = newPoint[expandKey];
-                }
-                else {
-                    let newProduct = [];
-                    for (const elem of newPoint[expandKey]) {
-                        for (const prodElem of cartesianProduct) {
-                            let prodCpy = jQuery.extend({}, prodElem);
-                            Object.assign(prodCpy, elem);
-                            newProduct.push(prodCpy);
-                        }
-                    }
-                    cartesianProduct = newProduct;
-                }
-                delete newPoint[expandKey];
-            }
-            for (const elem of cartesianProduct) {
-                Object.assign(elem, newPoint);
-            }
-            return cartesianProduct;
+            return out;
         }
     }
     getSearchableColumns(config) {
+        var _a, _b;
         let traverse = (m, quantifiable, key) => {
             var _a, _b, _c;
-            if (m.tag == 'data') {
+            if (m.tag == 'data' && m.editType != 'json') {
                 let name = (_a = m.flattenedName) !== null && _a !== void 0 ? _a : key;
-                return [{
-                        displayName: (_b = m.displayName) !== null && _b !== void 0 ? _b : name,
-                        columnName: name,
-                        quantifiable: quantifiable,
-                        editType: (_c = m.editType) !== null && _c !== void 0 ? _c : 'text',
-                        mapping: m
-                    }];
+                return {
+                    displayName: (_b = m.displayName) !== null && _b !== void 0 ? _b : name,
+                    columnName: name,
+                    quantifiable: quantifiable,
+                    editType: (_c = m.editType) !== null && _c !== void 0 ? _c : 'text',
+                    mapping: m
+                };
             }
             else if (m.tag == 'array') {
-                if (!m.flatten)
-                    return [];
-                return traverse(m.itemMapping, true, key);
+                return traverse(m.item, true, key);
             }
-            else {
-                let arr = [];
-                for (const key in m.keys) {
-                    arr.push(...traverse(m.keys[key], quantifiable, key));
-                }
-                return arr;
+            else if (m.tag == 'object') {
+                return traverse(m.item, quantifiable, m.key);
             }
+            return undefined;
         };
         let arr = [];
-        for (const key in config.mappings.keys) {
-            arr.push(...traverse(config.mappings.keys[key], false, key));
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data' && mapping.editType != 'json') {
+                arr.push({
+                    displayName: (_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.flattenedName,
+                    columnName: mapping.flattenedName,
+                    quantifiable: false,
+                    editType: (_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text',
+                    mapping: mapping
+                });
+            }
+            else if (mapping.tag == 'nested') {
+                let x = traverse(mapping.mapping, false, mapping.key);
+                if (x)
+                    arr.push(x);
+            }
         }
         return arr;
     }
 }
-function mappingToInput(list, mapping, key) {
-    var _a, _b, _c, _e;
-    if (mapping.tag == 'data') {
-        let value = {
-            type: 'simple',
-            options: {
-                type: 'string',
-                label: '',
-                readonly: (_a = mapping.readOnly) !== null && _a !== void 0 ? _a : false,
-            }
-        };
-        switch (mapping.editType) {
-            case 'number':
-                value.options.type = 'number';
-                value.options.default = 0;
-                break;
-            case 'dropdown':
-                if (mapping.dropdownConfig === undefined)
-                    break;
-                // Static dropdown list
-                let choices = [];
-                if ('choices' in mapping.dropdownConfig) {
-                    choices = mapping.dropdownConfig.choices;
-                }
-                else if ('fromColumn' in mapping.dropdownConfig) {
-                    let set = new Set();
-                    list.listBox._data.forEach((d) => {
-                        if (mapping.dropdownConfig === undefined)
-                            return;
-                        if (!('fromColumn' in mapping.dropdownConfig))
-                            return;
-                        set.add(d[mapping.dropdownConfig.fromColumn].toString());
-                    });
-                    choices = Array.from(set);
-                }
-                value = {
-                    type: 'dropdown',
-                    options: {
-                        label: '',
-                        default: '',
-                        dropdownItems: choices.map(c => { return { value: c, text: c }; }),
-                        allowCustomValue: mapping.dropdownConfig.allowCustom
-                    }
-                };
-                break;
-            case 'bool':
-                value.options.type = 'boolean';
-                value.options.default = false;
-                break;
-            case 'time':
-            case 'datetime':
-                value.options.type = 'datetime';
-                value.options.dateFmt = (_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT;
-                value.options.default = new Date();
-                break;
-            case 'text':
-            default:
-                value.options.default = '';
-                break;
-        }
-        let name = (_c = mapping.flattenedName) !== null && _c !== void 0 ? _c : key;
-        value.options.label = (_e = mapping.displayName) !== null && _e !== void 0 ? _e : name;
-        return value;
-    }
-    else if (mapping.tag == 'array') {
-        if (mapping.flatten)
-            return { type: 'const', options: { value: [] } };
-        return {
-            type: 'array',
-            options: {
-                label: key,
-                defaultValue: makeObviousDefault(mapping.itemMapping),
-                itemTemplate: mappingToInput(list, mapping.itemMapping, key)
-            }
-        };
-    }
+function mappingToInput(list, m, key) {
+    var _a, _b, _c, _e, _f, _g;
+    let mapping;
+    if (m.tag == 'data')
+        mapping = m;
     else {
-        if (mapping.flatten)
-            return { type: 'const', options: { value: [] } };
-        let obj = {
-            type: 'object',
-            options: {
-                label: key,
-                requiredKeys: {}
-            }
+        let traverse = (s) => {
+            if (s.tag == 'data')
+                return s;
+            return traverse(s.item);
         };
-        for (const key in mapping.keys) {
-            obj.options.requiredKeys[key] = mappingToInput(list, mapping.keys[key], key);
+        mapping = traverse(m.mapping);
+    }
+    let value = {
+        type: 'simple',
+        options: {
+            type: 'string',
+            label: '',
+            readonly: (_a = mapping.readOnly) !== null && _a !== void 0 ? _a : false,
         }
-        return obj;
+    };
+    switch ((_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text') {
+        case 'number':
+            value.options.type = 'number';
+            value.options.default = 0;
+            break;
+        case 'dropdown':
+            if (mapping.dropdownConfig === undefined)
+                break;
+            // Static dropdown list
+            let choices = [];
+            if ('choices' in mapping.dropdownConfig) {
+                choices = mapping.dropdownConfig.choices;
+            }
+            else if ('fromColumn' in mapping.dropdownConfig) {
+                let set = new Set();
+                list.listBox._data.forEach((d) => {
+                    if (mapping.dropdownConfig === undefined)
+                        return;
+                    if (!('fromColumn' in mapping.dropdownConfig))
+                        return;
+                    set.add(d[mapping.dropdownConfig.fromColumn].toString());
+                });
+                choices = Array.from(set);
+            }
+            value = {
+                type: 'dropdown',
+                options: {
+                    label: '',
+                    default: '',
+                    dropdownItems: choices.map(c => { return { value: c, text: c }; }),
+                    allowCustomValue: mapping.dropdownConfig.allowCustom
+                }
+            };
+            break;
+        case 'bool':
+            value.options.type = 'boolean';
+            value.options.default = false;
+            break;
+        case 'time':
+        case 'datetime':
+            value.options.type = 'datetime';
+            value.options.dateFmt = (_c = mapping.serverDateFormat) !== null && _c !== void 0 ? _c : listBuilder_DEFAULT_DATETIME_FMT;
+            value.options.default = new Date();
+            break;
+        case 'text':
+            value.options.default = '';
+            break;
+        case 'json': {
+            let makeForm = (j, fullPath) => {
+                if (j.tag == 'data') {
+                    return {
+                        type: 'simple',
+                        options: {
+                            label: fullPath.join('.'),
+                            type: j.dataType,
+                            default: makeObviousJsonDefault(j, false)
+                        }
+                    };
+                }
+                else if (j.tag == 'array') {
+                    return {
+                        type: 'array',
+                        options: {
+                            label: fullPath.join('.'),
+                            defaultValue: makeObviousJsonDefault(j.item, false),
+                            itemTemplate: makeForm(j.item, [...fullPath, '[...]']),
+                        }
+                    };
+                }
+                else {
+                    let f = {
+                        type: 'object',
+                        options: {
+                            requiredKeys: {},
+                            label: fullPath.join('.'),
+                        }
+                    };
+                    for (const key in j.keys) {
+                        f.options.requiredKeys[key] = makeForm(j.keys[key], [...fullPath, key]);
+                    }
+                    return f;
+                }
+            };
+            let jConfig = (_e = mapping.jsonConfig) !== null && _e !== void 0 ? _e : { editorType: 'form', definition: { tag: 'data', dataType: 'string' } };
+            if (jConfig.editorType == 'form') {
+                value = makeForm(jConfig.definition, [mapping.flattenedName || key]);
+            }
+            else {
+                value.options.textarea = true;
+                value.options.default = JSON.stringify(makeObviousJsonDefault(jConfig.definition, true), undefined, '\t');
+                value.options.type = 'json';
+            }
+        }
+    }
+    let name = (_f = mapping.flattenedName) !== null && _f !== void 0 ? _f : key;
+    value.options.label = (_g = mapping.displayName) !== null && _g !== void 0 ? _g : name;
+    return value;
+}
+function makeObviousDefault(m) {
+    var _a, _b, _c;
+    let mapping;
+    if (m.tag == 'data')
+        mapping = m;
+    else {
+        let traverse = (s) => {
+            if (s.tag == 'data')
+                return s;
+            return traverse(s.item);
+        };
+        mapping = traverse(m.mapping);
+    }
+    switch ((_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text') {
+        case "number":
+            return 0;
+        case "bool":
+            return false;
+        case "time":
+        case "datetime":
+            return new Date();
+        case "text":
+        case "dropdown":
+            return '';
+        case 'json': {
+            return makeObviousJsonDefault((_c = (_b = mapping.jsonConfig) === null || _b === void 0 ? void 0 : _b.definition) !== null && _c !== void 0 ? _c : { tag: 'data', dataType: 'string' }, false);
+        }
     }
 }
-function makeObviousDefault(mapping) {
-    var _a;
-    if (mapping.tag == 'data') {
-        switch ((_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text') {
-            case "number":
-                return 0;
-            case "bool":
-                return false;
-            case "time":
-            case "datetime":
-                return new Date();
-            case "text":
-            case "dropdown":
-                return '';
+function makeObviousJsonDefault(j, fillArray) {
+    if (j.tag == 'data') {
+        switch (j.dataType) {
+            case 'string': return '';
+            case 'number': return 0;
+            case 'boolean': return false;
         }
     }
-    else if (mapping.tag == 'array') {
+    else if (j.tag == 'array') {
+        if (fillArray)
+            return [makeObviousJsonDefault(j.item, fillArray)];
         return [];
     }
     else {
-        let d = {};
-        for (const key in mapping.keys) {
-            d[key] = makeObviousDefault(mapping.keys[key]);
+        let defaultVal = {};
+        for (const key in j.keys) {
+            defaultVal[key] = makeObviousJsonDefault(j.keys[key], fillArray);
         }
-        return d;
+        return defaultVal;
     }
 }
 // Convert raw data -> usable data
@@ -10919,71 +11024,98 @@ class DataBridge {
             return this.jsonConverters[key].unprocess(data);
         return data;
     }
-    rawToProcessed(data) {
-        return data.map(x => this._processPoint(x, this.config.mappings, ''));
+    rawToProcessed(d) {
+        let data = jQuery.extend(true, [], d);
+        data.forEach(x => {
+            for (const mapping of this.config.mappings) {
+                if (mapping.tag == 'data' && mapping.flattenedName in x) {
+                    x[mapping.flattenedName] = this._processPoint(x[mapping.flattenedName], mapping, mapping.flattenedName);
+                }
+                else if (mapping.tag == 'nested' && mapping.key in x) {
+                    x[mapping.key] = this._processSubMapping(x[mapping.key], mapping.mapping, mapping.key);
+                }
+            }
+        });
+        return data;
     }
-    processedToRaw(data) {
-        return data.map(x => this._unprocessPoint(x, this.config.mappings, ''));
+    processedToRaw(d) {
+        let data = jQuery.extend(true, [], d);
+        data.forEach(x => {
+            for (const mapping of this.config.mappings) {
+                if (mapping.tag == 'data' && mapping.flattenedName in x) {
+                    x[mapping.flattenedName] = this._unprocessPoint(x[mapping.flattenedName], mapping, mapping.flattenedName);
+                }
+                else if (mapping.tag == 'nested' && mapping.key in x) {
+                    x[mapping.key] = this._unprocessSubmapping(x[mapping.key], mapping.mapping, mapping.key);
+                }
+            }
+        });
+        return data;
     }
     _processPoint(point, mapping, key) {
         var _a, _b;
-        if (mapping.tag == 'data') {
-            let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
-            if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-                return this.processDate(name, point, (_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT);
-            }
-            else if (mapping.editType == 'bool' && typeof point == 'string') {
-                return this.processBool(name, point);
-            }
-            else if (mapping.editType == 'number' && typeof point == 'string') {
-                return this.processNum(name, point);
-            }
-            return point;
+        let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
+        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
+            return this.processDate(name, point, (_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT);
         }
+        else if (mapping.editType == 'bool' && typeof point == 'string') {
+            return this.processBool(name, point);
+        }
+        else if (mapping.editType == 'number' && typeof point == 'string') {
+            return this.processNum(name, point);
+        }
+        else if (mapping.editType == 'json' && typeof point == 'string') {
+            return this.processJSON(name, point);
+        }
+        return point;
+    }
+    _processSubMapping(point, mapping, key) {
+        if (mapping.tag == 'data')
+            return this._processPoint(point, mapping, mapping.flattenedName);
         else if (mapping.tag == 'array') {
             point = this.processJSON(key, point);
             for (let i = 0; i < point.length; i++) {
-                point[i] = this._processPoint(point[i], mapping.itemMapping, key + '_ARRAY_ENTRY_');
+                point[i] = this._processSubMapping(point[i], mapping.item, key + '_ARRAY_ITEM_');
             }
             return point;
         }
         else {
             point = this.processJSON(key, point);
-            for (const key in mapping.keys) {
-                if (key in point) {
-                    point[key] = this._processPoint(point[key], mapping.keys[key], key);
-                }
+            if (mapping.key in point) {
+                point[mapping.key] = this._processSubMapping(point[mapping.key], mapping.item, key + '.' + mapping.key);
             }
             return point;
         }
     }
     _unprocessPoint(point, mapping, key) {
         var _a;
-        if (mapping.tag == 'data') {
-            let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
-            if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-                return this.unprocessDate(key, point);
-            }
-            else if (mapping.editType == 'bool') {
-                return this.unprocessBool(key, point);
-            }
-            else if (mapping.editType == 'number') {
-                return this.unprocessNum(key, point);
-            }
-            return point;
+        let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
+        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
+            return this.unprocessDate(name, point);
         }
-        else if (mapping.tag == 'array') {
+        else if (mapping.editType == 'bool') {
+            return this.unprocessBool(name, point);
+        }
+        else if (mapping.editType == 'number') {
+            return this.unprocessNum(name, point);
+        }
+        else if (mapping.editType == 'json') {
+            return this.unprocessJSON(name, point);
+        }
+        return point;
+    }
+    _unprocessSubmapping(point, sub, key) {
+        if (sub.tag == 'data')
+            return this._unprocessPoint(point, sub, key);
+        else if (sub.tag == 'array') {
             for (let i = 0; i < point.length; i++) {
-                point[i] = this._unprocessPoint(point[i], mapping.itemMapping, key + '_ARRAY_ENTRY_');
+                point[i] = this._unprocessSubmapping(point[i], sub.item, key + '_ARRAY_ITEM_');
             }
             return this.unprocessJSON(key, point);
         }
         else {
-            let alphaKeys = ['*key', '*renderIndex', '*value', '__selected', '__displayStyle', '_isDirty', '_isNewRow', '_hasServerSideError', '_hasWriteConflictErrors', '_isDeleted', '_oldData', '_serverSideErrors', '_writeConflictErrors'];
-            for (const key in mapping.keys) {
-                if (key in point && !alphaKeys.includes(key)) {
-                    point[key] = this._unprocessPoint(point[key], mapping.keys[key], key);
-                }
+            if (sub.key in point) {
+                point[sub.key] = this._unprocessSubmapping(point[sub.key], sub.item, key + '.' + sub.key);
             }
             return this.unprocessJSON(key, point);
         }
@@ -11122,23 +11254,7 @@ class DynamicListSearch {
         let definitions = {};
         let defaults = [];
         for (const col of cols) {
-            let defaultVal = '';
-            switch (col.editType) {
-                case 'text':
-                case 'dropdown':
-                    defaultVal = '';
-                    break;
-                case 'time':
-                case 'datetime':
-                    defaultVal = new Date();
-                    break;
-                case 'number':
-                    defaultVal = 0;
-                    break;
-                case 'bool':
-                    defaultVal = false;
-                    break;
-            }
+            let defaultVal = makeObviousDefault(col.mapping);
             let def = {
                 type: 'object',
                 options: {
@@ -11808,6 +11924,83 @@ function batchFetch(obj, configName, filters) {
         });
     });
 }
+class FlatNameSuggestor {
+    constructor(mappings) {
+        this.reservedNames = new Set();
+        this.paths = {};
+        this.init(mappings);
+    }
+    init(mappings) {
+        let traverse = (s, path) => {
+            if (s.tag == "data") {
+                this.setName(path, s.flattenedName);
+            }
+            else if (s.tag == 'object') {
+                traverse(s.item, [...path, s.key]);
+            }
+            else {
+                traverse(s.item, path);
+            }
+        };
+        for (const mapping of mappings) {
+            if (mapping.tag == 'data') {
+                this.setName([mapping.flattenedName], mapping.flattenedName);
+            }
+            else {
+                traverse(mapping.mapping, [mapping.key]);
+            }
+        }
+    }
+    lookup(path) {
+        let curr = this.paths;
+        for (let i = 0; i < path.length; i++) {
+            if (typeof curr == 'object' && path[i] in curr)
+                curr = curr[path[i]];
+            else
+                return undefined;
+        }
+        if (typeof curr == 'string')
+            return curr;
+        return undefined;
+    }
+    set(path, value) {
+        let curr = this.paths;
+        for (let i = 0; i < path.length - 1; i++) {
+            if (typeof curr != 'object')
+                throw new Error('Bad path: ' + JSON.stringify(path));
+            if (!(path[i] in curr))
+                curr[path[i]] = {};
+            curr = curr[path[i]];
+        }
+        if (typeof curr != 'object')
+            throw new Error('Bad path: ' + JSON.stringify(path));
+        let last = path[path.length - 1];
+        curr[last] = value;
+    }
+    suggestName(starter) {
+        let s = starter !== null && starter !== void 0 ? starter : "property";
+        if (!this.reservedNames.has(s))
+            return s;
+        let idx = 1;
+        let curr = s + '_' + idx;
+        while (this.reservedNames.has(curr)) {
+            idx += 1;
+            curr = s + '_' + idx;
+        }
+        return curr;
+    }
+    nameExists(name) {
+        return this.reservedNames.has(name);
+    }
+    setName(path, name) {
+        if (path.length == 0)
+            throw new Error("Empty path");
+        if (this.nameExists(name))
+            throw new Error("Name " + name + " already exists");
+        this.reservedNames.add(name);
+        this.set(path, name);
+    }
+}
 function requestListConfig(obj, configName) {
     configName = encodeURIComponent(configName);
     return new Promise((resolve, reject) => {
@@ -11831,17 +12024,13 @@ function tryRecoverConfig(obj, admin, configName) {
     }
     else if (response.err) {
         return {
+            version: response.err.configVersion,
             name: configName,
             dataSource: {
                 type: 'json',
                 jsonData: '[]',
             },
-            mappings: {
-                tag: 'object',
-                keys: {},
-                flatten: true,
-                inDetailView: false
-            },
+            mappings: [],
             searchOptions: {},
             buttons: []
         };
@@ -11925,10 +12114,12 @@ function initList(ops) {
         otherProperties: ops.otherProps,
     }).then((list) => {
         let search = new DynamicListSearch(list, ops.embeddedSearch, ops.embeddedSearch.getPointer('SEARCH_CONTAINER').id);
+        let nameSuggestor = new FlatNameSuggestor(list.config.mappings);
         DYNAMIC_LIST_LOOKUP[ops.prefetch.config.name] = {
             list: list,
             search: search,
-            config: ops.obj
+            config: ops.obj,
+            nameSuggestor
         };
         manageConfigForm({
             obj: ops.obj,
@@ -11952,7 +12143,8 @@ function initList(ops) {
         DYNAMIC_LIST_LOOKUP[ops.prefetch.config.name] = {
             list: undefined,
             search: undefined,
-            config: ops.obj
+            config: ops.obj,
+            nameSuggestor: new FlatNameSuggestor(ops.prefetch.config.mappings)
         };
         manageConfigForm({
             obj: ops.obj,
@@ -11972,10 +12164,13 @@ function manageConfigForm(ops) {
     let show;
     let runValidation = (config) => {
         if ('name' in config) {
+            // Throws error if names clash
+            new FlatNameSuggestor(config.mappings);
             validateConfig(config);
         }
         else {
             let c = config;
+            new FlatNameSuggestor(c);
             c.forEach(m => validateMapping(m));
         }
     };
@@ -12043,6 +12238,10 @@ function manageConfigForm(ops) {
     });
     configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, ops.preFetch.config);
     let populateWith = ops.preFetch.isAdmin ? ops.preFetch.config : ops.preFetch.config.mappings;
+    const showError = (e) => {
+        console.error(e);
+        displayErrorMessage(e.toString());
+    };
     show = (configData) => listConfiguration_awaiter(this, void 0, void 0, function* () {
         let config = yield configForm;
         try {
@@ -12058,6 +12257,13 @@ function manageConfigForm(ops) {
                 }
                 else {
                     ops.preFetch.config.mappings = newConfig;
+                }
+                try {
+                    runValidation(newConfig);
+                }
+                catch (e) {
+                    showError(e);
+                    return;
                 }
                 let dynamicItems = (_a = DYNAMIC_LIST_LOOKUP[ops.preFetch.config.name]) !== null && _a !== void 0 ? _a : undefined;
                 if (dynamicItems === undefined)
@@ -12077,15 +12283,11 @@ function manageConfigForm(ops) {
                     dynamicItems.list = newList;
                     dynamicItems.search = newSearch;
                     dynamicItems.list.reRender(false);
-                }).catch((e) => {
-                    console.error(e);
-                    displayErrorMessage(e.toString());
-                });
+                }).catch(showError);
             };
         }
         catch (e) {
-            console.error(e);
-            displayErrorMessage(e.toString());
+            showError(e);
         }
     });
     show(populateWith);
@@ -12103,6 +12305,9 @@ function buildConfigForm(obj, adminConfig, config) {
         let form = {
             label: 'List Configuration',
             requiredKeys: {
+                version: {
+                    type: 'const', options: { value: config.version }
+                },
                 name: {
                     type: 'simple',
                     options: {
@@ -12117,7 +12322,7 @@ function buildConfigForm(obj, adminConfig, config) {
                         supply(_parent, _data) {
                             let cols = [];
                             if (config.name in DYNAMIC_LIST_LOOKUP) {
-                                cols = DataScopeManager.getTopLevelColumns(config).map(x => { return { text: x.name, value: x.displayName }; });
+                                cols = DataScopeManager.getDataMappings(config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
                             }
                             return buildDatasourceForm(cols);
                         },
@@ -12154,49 +12359,101 @@ function buildConfigForm(obj, adminConfig, config) {
         return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'object', options: form });
     });
 }
-function getDefaultForSchemaKey(schema, defaultFlattenedName) {
-    switch (schema.tag) {
-        case "object": return { tag: 'object', flatten: true, keys: {} };
-        case "array": return { tag: 'array', flatten: true, itemMapping: getDefaultForSchemaKey(schema.elem) };
-        case "none":
-        case "rawData": return { tag: 'data', flattenedName: defaultFlattenedName !== null && defaultFlattenedName !== void 0 ? defaultFlattenedName : '' };
-    }
-}
-// Root mapping form
-function buildMappingForm(configName, admin, schema) {
-    let defaultValue = { tag: 'data', flattenedName: '' };
-    let availableKeys = [];
-    if (schema && schema.tag == 'object') {
-        availableKeys = Object.keys(schema.keys).map(x => { return { text: x, value: x }; });
-    }
+function buildMappingForm(configName, isAdmin, schema) {
+    var _a;
+    let cols = [];
+    if (schema.tag == 'object')
+        cols = Object.keys(schema.keys);
+    let { dataMappingForm, dataMappingDefault } = dataMapping(configName, cols, isAdmin);
+    let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [cols[0]], schema.tag == 'object' ? schema.keys[cols[0]] : undefined);
+    let nestedOps = {
+        nestedDefault,
+        nestedMappingForm,
+        key: (_a = cols[0]) !== null && _a !== void 0 ? _a : ''
+    };
+    let tryGetFullPath = (n) => {
+        if (n.tag == 'object')
+            return [n.key, ...tryGetFullPath(n.item)];
+        if (n.tag == 'nested')
+            return [n.key, ...tryGetFullPath(n.mapping)];
+        if (n.tag == 'array')
+            return tryGetFullPath(n.item);
+        return [];
+    };
     return {
-        type: 'object',
+        type: 'array',
         options: {
-            label: "List Mappings",
-            name: "mappingsRoot",
-            forceLaunchInTab: admin,
-            requiredKeys: {
-                tag: { type: 'const', options: { value: 'object' } },
-                flatten: { type: 'const', options: { value: true } },
-                inDetailView: { type: 'const', options: { value: false } },
-                keys: {
-                    type: 'object',
-                    options: {
-                        label: 'Mappings',
-                        forceNoCollapse: true,
-                        requiredKeys: {},
-                        newKeyTemplate: {
-                            defaultValue: (key) => {
-                                if (schema && schema.tag == 'object' && key in schema.keys) {
-                                    return getDefaultForSchemaKey(schema.keys[key], key);
+            label: 'List Mappings',
+            defaultValue: dataMappingDefault,
+            itemTemplate: {
+                type: 'multi',
+                options: {
+                    label: (_, b) => {
+                        if (!b)
+                            return '';
+                        if ('tag' in b && b.tag == "nested") {
+                            return tryGetFullPath(b).join('.');
+                        }
+                        else if ('tag' in b && b.tag == 'data') {
+                            return b.flattenedName;
+                        }
+                        return '';
+                    },
+                    definitions: {
+                        'Data Mapping': {
+                            defaultValue: dataMappingDefault,
+                            definition: dataMappingForm
+                        },
+                        'Nested Mapping': {
+                            defaultValue: () => ({
+                                tag: 'nested',
+                                key: nestedOps.key,
+                                mapping: nestedOps.nestedDefault
+                            }),
+                            definition: () => ({
+                                type: 'object',
+                                options: {
+                                    label: 'Nested Mapping',
+                                    requiredKeys: {
+                                        tag: {
+                                            type: 'const',
+                                            options: { value: 'nested' }
+                                        },
+                                        key: {
+                                            type: 'dropdown',
+                                            options: {
+                                                label: 'From Column',
+                                                dropdownItems: cols.map(x => ({ text: x, value: x })),
+                                                allowCustomValue: true,
+                                                onSelect: (val, form) => {
+                                                    if (val) {
+                                                        let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [val], schema.tag == 'object' ? schema.keys[val] : undefined);
+                                                        nestedOps.nestedMappingForm = nestedMappingForm;
+                                                        nestedOps.nestedDefault = nestedDefault;
+                                                        nestedOps.key = val;
+                                                        let objForm = form.parent;
+                                                        let multiForm = objForm.parent;
+                                                        multiForm.clearCache();
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        mapping: () => nestedOps.nestedMappingForm
+                                    },
+                                    optionalKeys: {
+                                        inDetailView: {
+                                            defaultValue: false,
+                                            definition: {
+                                                type: 'simple',
+                                                options: {
+                                                    label: "In Detail View",
+                                                    type: 'boolean'
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                return { type: 'data' };
-                            },
-                            definition: (key) => {
-                                defaultValue.flattenedName = key;
-                                return rootMapping(configName, key, admin);
-                            },
-                            keyOptions: availableKeys.length > 0 ? availableKeys : undefined
+                            })
                         }
                     }
                 }
@@ -12204,66 +12461,185 @@ function buildMappingForm(configName, admin, schema) {
         }
     };
 }
-function dataSubmappings(configName, admin, fullPath, flattenedName) {
-    let preLabel = fullPath.filter(x => x != '').join(".");
-    if (preLabel != '')
-        preLabel += '.';
-    let form = {
+function nestedMapping(configName, isAdmin, fullPath, schema) {
+    var _a;
+    let keys = [];
+    if (schema && schema.tag == 'object')
+        keys = Object.keys(schema.keys);
+    let dataDefault = {
+        tag: 'data',
+        flattenedName: 
+        // If the schema exists, then we must have been able to pass a key in, so fullPath is good
+        schema
+            ? DYNAMIC_LIST_LOOKUP[configName].nameSuggestor.suggestName(fullPath[fullPath.length - 1])
+            : ''
+    };
+    let objDefault = {
+        tag: 'object',
+        key: '',
+        item: dataDefault
+    };
+    let arrDefault = {
+        tag: 'array',
+        item: dataDefault
+    };
+    let setDefault = dataDefault;
+    let defaultKey = (_a = keys[0]) !== null && _a !== void 0 ? _a : '';
+    if (schema && schema.tag == 'object') {
+        let { nestedDefault } = nestedMapping(configName, isAdmin, [...fullPath, defaultKey], schema.keys[defaultKey]);
+        objDefault = {
+            tag: 'object',
+            key: keys[0],
+            item: nestedDefault
+        };
+        setDefault = objDefault;
+    }
+    else if (schema && schema.tag == 'array') {
+        let { nestedDefault } = nestedMapping(configName, isAdmin, fullPath, schema.elem);
+        arrDefault.item = nestedDefault;
+        setDefault = arrDefault;
+    }
+    let f = {
+        type: 'multi',
+        options: {
+            label: 'Nested Item Definition',
+            definitions: {
+                'Object Mapping': {
+                    defaultValue: objDefault,
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: 'Object Mapping',
+                            requiredKeys: {
+                                tag: {
+                                    type: 'const',
+                                    options: { value: 'object' }
+                                },
+                                key: {
+                                    type: 'dropdown',
+                                    options: {
+                                        label: 'Object Key',
+                                        dropdownItems: keys.map(x => ({ text: x, value: x })),
+                                        allowCustomValue: true
+                                    }
+                                },
+                                item: {
+                                    type: "supplier",
+                                    options: {
+                                        label: 'Key Definition',
+                                        default: { type: 'const', options: { value: 0 } },
+                                        supply: (parent) => {
+                                            let keyForm = parent.getChild('key');
+                                            let key = undefined;
+                                            if (keyForm) {
+                                                key = keyForm.selected;
+                                            }
+                                            let s = undefined;
+                                            if (schema && schema.tag == 'object')
+                                                s = schema.keys[key];
+                                            if (schema && schema.tag == 'array')
+                                                s = schema.elem;
+                                            return nestedMapping(configName, isAdmin, [...fullPath, key]).nestedMappingForm;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'Array Mapping': {
+                    defaultValue: arrDefault,
+                    definition: {
+                        type: 'object',
+                        options: {
+                            label: "Array Mapping",
+                            requiredKeys: {
+                                tag: { type: 'const', options: { value: 'array' } },
+                                item: {
+                                    type: 'supplier',
+                                    options: {
+                                        default: { type: 'const', options: { value: '' } },
+                                        supply: () => nestedMapping(configName, isAdmin, fullPath, (schema && schema.tag == 'array') ? schema.elem : undefined).nestedMappingForm
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                'Data Mapping': {
+                    defaultValue: dataDefault,
+                    definition: dataMapping(configName, null, isAdmin).dataMappingForm
+                }
+            }
+        }
+    };
+    return {
+        nestedDefault: setDefault,
+        nestedMappingForm: f
+    };
+}
+function dataMapping(configName, column, isAdmin) {
+    let flatName;
+    if (column) {
+        flatName = {
+            type: 'dropdown',
+            options: {
+                label: 'Column Name',
+                dropdownItems: column.map(x => ({ text: x, value: x })),
+                allowCustomValue: true
+            }
+        };
+    }
+    else {
+        flatName = {
+            type: 'simple',
+            options: {
+                label: "Flattened Column Name",
+                type: 'string',
+            }
+        };
+    }
+    let f = {
         type: 'object',
         options: {
-            label: (_1, _2, key) => 'Mapping for ' + preLabel + key,
+            label: 'Data Mapping',
             requiredKeys: {
-                tag: { type: 'const', options: { value: 'data' } }
+                tag: { type: 'const', options: { value: 'data' } },
+                flattenedName: flatName,
             },
             optionalKeys: {
+                displayName: {
+                    defaultValue: '',
+                    definition: {
+                        type: 'simple',
+                        options: {
+                            type: 'string',
+                            label: 'Display Name'
+                        }
+                    }
+                },
                 readOnly: {
                     defaultValue: false,
                     definition: {
                         type: 'simple',
                         options: {
+                            label: "Read Only",
                             type: 'boolean',
-                            label: 'Read-Only',
-                            display: () => admin,
-                        }
-                    },
-                    inline: true
-                },
-                displayName: {
-                    defaultValue: "",
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'string',
-                            label: 'Display Name',
-                            help: "The name to display to the user. This will appear on the list column header, in the search form, etc."
+                            display: () => isAdmin
                         }
                     }
                 },
                 inList: {
                     defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'boolean',
-                            label: 'Display In List',
-                        }
-                    },
-                    inline: true,
+                    definition: { type: 'simple', options: { type: 'boolean', label: 'Display In List' } },
                 },
                 inDetailView: {
                     defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'boolean',
-                            label: 'Display In Detail View'
-                        }
-                    },
-                    inline: true,
+                    definition: { type: 'simple', options: { type: 'boolean', label: 'Display In Detail View' } },
                 },
                 editType: {
                     defaultValue: 'text',
-                    definition: editTypeDropdown(),
+                    definition: editTypeDropdown()
                 },
                 serverDateFormat: {
                     defaultValue: '',
@@ -12271,63 +12647,162 @@ function dataSubmappings(configName, admin, fullPath, flattenedName) {
                         type: 'simple',
                         options: {
                             type: 'string',
-                            label: 'Server Date Format'
-                        }
-                    }
+                            label: 'Server Date Format',
+                            display: (_, parent) => {
+                                var _a;
+                                let val = (_a = parent.getChild('editType')) === null || _a === void 0 ? void 0 : _a.selected;
+                                if (val === 'datetime')
+                                    return true;
+                                return false;
+                            }
+                        },
+                    },
                 },
-                width: {
-                    defaultValue: '',
+                jsonConfig: {
+                    defaultValue: { editorType: 'form', definition: { tag: 'object', keys: {} } },
                     definition: {
-                        type: 'simple',
+                        type: 'object',
                         options: {
-                            type: 'string',
-                            label: 'Width'
-                        }
-                    }
-                },
-                template: {
-                    defaultValue: '',
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'string',
-                            label: 'Template'
+                            display: (_, parent) => {
+                                var _a;
+                                if (!parent || !parent.getChild)
+                                    return true;
+                                let val = (_a = parent.getChild('editType')) === null || _a === void 0 ? void 0 : _a.selected;
+                                if (val === 'json')
+                                    return true;
+                                return false;
+                            },
+                            label: 'JSON Options',
+                            requiredKeys: {
+                                definition: {
+                                    type: "multi",
+                                    options: {
+                                        name: "JsonField",
+                                        label: "JSON Field Schema",
+                                        definitions: {
+                                            "Object": {
+                                                defaultValue: { tag: 'object', keys: {} },
+                                                definition: {
+                                                    type: 'object',
+                                                    options: {
+                                                        label: 'JSON Object Definition',
+                                                        requiredKeys: {
+                                                            tag: {
+                                                                type: 'const', options: { value: 'object' }
+                                                            },
+                                                            keys: {
+                                                                type: 'object',
+                                                                options: {
+                                                                    label: 'Object Keys',
+                                                                    requiredKeys: {},
+                                                                    newKeyTemplate: {
+                                                                        defaultValue: { tag: 'data', dataType: 'string' },
+                                                                        definition: {
+                                                                            type: 'recursive',
+                                                                            options: { label: (_1, _2, k) => "Key Definition for " + k, recurseOn: 'JsonField' }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                    }
+                                                }
+                                            },
+                                            "Array": {
+                                                defaultValue: { tag: 'array', item: { tag: 'data', dataType: 'string' } },
+                                                definition: {
+                                                    type: 'object',
+                                                    options: {
+                                                        label: "Array Definition",
+                                                        requiredKeys: {
+                                                            tag: { type: 'const', options: { value: 'array' } },
+                                                            item: {
+                                                                type: 'recursive',
+                                                                options: { label: "Item Definition", recurseOn: 'JsonField' }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "Data": {
+                                                defaultValue: { tag: 'data', dataType: 'string' },
+                                                definition: {
+                                                    type: 'object',
+                                                    options: {
+                                                        label: "Data Definition",
+                                                        requiredKeys: {
+                                                            tag: { type: 'const', options: { value: 'data' } },
+                                                            dataType: {
+                                                                type: 'dropdown',
+                                                                options: {
+                                                                    label: 'Data Type',
+                                                                    dropdownItems: [
+                                                                        { text: 'String', value: 'string' },
+                                                                        { text: 'Number', value: 'number' },
+                                                                        { text: 'Boolean', value: 'boolean' },
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        optionalKeys: {
+                                                            defaultValue: {
+                                                                defaultValue: '',
+                                                                definition: {
+                                                                    type: 'simple',
+                                                                    options: {
+                                                                        label: "Default Value",
+                                                                        type: 'string'
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                editorType: {
+                                    type: 'dropdown',
+                                    options: {
+                                        label: 'Editor Type',
+                                        dropdownItems: [{ text: 'Text Window', value: 'text' }, { text: 'Form', value: 'form' }]
+                                    }
+                                }
+                            }
                         }
                     }
                 },
                 dropdownConfig: {
-                    defaultValue: {
-                        choices: [],
-                    },
+                    defaultValue: { choices: [] },
                     definition: {
                         type: 'multi',
                         options: {
-                            display: (_f, parent) => {
-                                let mappings = parent;
-                                let editForm = mappings.getChild('editType');
-                                if (editForm === undefined)
-                                    return false;
-                                let editId = editForm.getId();
-                                return mappings.dynForm.formBox.data[editId] == 'dropdown';
+                            label: "Dropdown Config",
+                            display: (_, p) => {
+                                let edit = p.getChild("editType");
+                                if (edit) {
+                                    return edit.selected == "dropdown";
+                                }
+                                return true;
                             },
-                            label: 'Dropdown Config',
                             definitions: {
-                                'Choices': {
-                                    defaultValue: { choices: [], allowCustom: false },
+                                'Static Choices': {
+                                    defaultValue: { choices: [] },
                                     definition: {
                                         type: 'object',
                                         options: {
-                                            label: 'Choices',
+                                            label: 'Static Choices',
                                             requiredKeys: {
                                                 choices: {
                                                     type: 'array',
                                                     options: {
+                                                        label: 'Choices',
                                                         defaultValue: '',
-                                                        label: 'Dropdown Choices',
                                                         itemTemplate: {
                                                             type: 'simple',
                                                             options: {
-                                                                label: 'Dropdown Item',
+                                                                label: "Choice",
                                                                 type: 'string'
                                                             }
                                                         }
@@ -12340,7 +12815,7 @@ function dataSubmappings(configName, admin, fullPath, flattenedName) {
                                                     definition: {
                                                         type: 'simple',
                                                         options: {
-                                                            label: 'Allow Custom Value',
+                                                            label: "Allow Custom Value",
                                                             type: 'boolean'
                                                         }
                                                     }
@@ -12352,50 +12827,44 @@ function dataSubmappings(configName, admin, fullPath, flattenedName) {
                                 'From Column': {
                                     defaultValue: { fromColumn: '' },
                                     definition: {
-                                        type: 'object',
+                                        type: 'supplier',
                                         options: {
-                                            label: 'From Column',
-                                            requiredKeys: {
-                                                fromColumn: {
-                                                    type: 'supplier',
+                                            default: { type: 'const', options: { value: 0 } },
+                                            supply: () => {
+                                                var _a;
+                                                let l = (_a = DYNAMIC_LIST_LOOKUP[configName]) === null || _a === void 0 ? void 0 : _a.list;
+                                                let topLvlCols = [];
+                                                if (l && l.config) {
+                                                    topLvlCols = DataScopeManager.getDataMappings(l.config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
+                                                }
+                                                return {
+                                                    type: 'object',
                                                     options: {
-                                                        default: { type: 'const', options: { value: 0 } },
-                                                        supply: (_f, _d) => {
-                                                            let columns = [];
-                                                            if (configName in DYNAMIC_LIST_LOOKUP && DYNAMIC_LIST_LOOKUP[configName].list) {
-                                                                let l = DYNAMIC_LIST_LOOKUP[configName].list;
-                                                                columns = DataScopeManager.getDataMappings(l.config).map(x => {
-                                                                    var _a;
-                                                                    return {
-                                                                        value: x.key,
-                                                                        text: (_a = x.mapping.displayName) !== null && _a !== void 0 ? _a : x.key
-                                                                    };
-                                                                });
-                                                            }
-                                                            return {
+                                                        label: 'Choose From Column',
+                                                        requiredKeys: {
+                                                            fromColumn: {
                                                                 type: 'dropdown',
                                                                 options: {
-                                                                    allowCustomValue: true,
-                                                                    default: '',
-                                                                    label: 'Derive from Column',
-                                                                    dropdownItems: columns
+                                                                    label: "Column Name",
+                                                                    dropdownItems: topLvlCols,
+                                                                    allowCustomValue: true
                                                                 }
-                                                            };
+                                                            }
+                                                        },
+                                                        optionalKeys: {
+                                                            allowCustom: {
+                                                                defaultValue: false,
+                                                                definition: {
+                                                                    type: 'simple',
+                                                                    options: {
+                                                                        label: "Allow Custom Value",
+                                                                        type: 'boolean'
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            },
-                                            optionalKeys: {
-                                                allowCustom: {
-                                                    defaultValue: false,
-                                                    definition: {
-                                                        type: 'simple',
-                                                        options: {
-                                                            label: 'Allow Custom Value',
-                                                            type: 'boolean'
-                                                        }
-                                                    }
-                                                }
+                                                };
                                             }
                                         }
                                     }
@@ -12403,214 +12872,32 @@ function dataSubmappings(configName, admin, fullPath, flattenedName) {
                             }
                         }
                     }
-                }
-            }
-        }
-    };
-    if (flattenedName !== undefined) {
-        form.options.requiredKeys['flattenedName'] = {
-            type: 'const',
-            options: {
-                value: flattenedName
-            }
-        };
-    }
-    else {
-        form.options.optionalKeys['flattenedName'] = {
-            defaultValue: "",
-            definition: {
-                type: 'simple',
-                options: {
-                    label: 'Flattened Name',
-                    type: 'string'
-                }
-            }
-        };
-    }
-    return form;
-}
-function objSubmappings(configName, admin, fullPath) {
-    let autoComplete = undefined;
-    let foundSchema = null;
-    if (DYNAMIC_LIST_LOOKUP[configName] && DYNAMIC_LIST_LOOKUP[configName].list) {
-        let s = DYNAMIC_LIST_LOOKUP[configName].list.schema;
-        let successfullyFoundRoot = true;
-        for (let i = 0; i < fullPath.length; i++) {
-            if (s.tag == 'rawData' || s.tag == 'none') {
-                successfullyFoundRoot = false;
-                break;
-            }
-            if (fullPath[i] == "" && s.tag == 'array') {
-                s = s.elem;
-            }
-            else if (s.tag == 'object' && fullPath[i] in s.keys) {
-                s = s.keys[fullPath[i]];
-            }
-            else {
-                successfullyFoundRoot = false;
-                break;
-            }
-        }
-        if (successfullyFoundRoot && s.tag == 'object') {
-            autoComplete = Object.keys(s.keys).map(x => { return { text: x, value: x }; });
-            foundSchema = s;
-        }
-    }
-    return {
-        type: 'object',
-        options: {
-            name: 'objectMapping',
-            label: 'Object Mapping',
-            requiredKeys: {
-                tag: { type: 'const', options: { value: 'object' } },
-                flatten: {
-                    type: 'simple',
-                    options: {
-                        type: 'boolean',
-                        label: 'Flatten Keys'
-                    }
                 },
-                keys: {
-                    type: 'object',
-                    options: {
-                        label: 'Object Keys',
-                        forceLaunchInTab: true,
-                        requiredKeys: {},
-                        newKeyTemplate: {
-                            defaultValue: (key) => {
-                                if (foundSchema && foundSchema.tag == 'object' && key in foundSchema.keys) {
-                                    return getDefaultForSchemaKey(foundSchema.keys[key], key);
-                                }
-                                return { tag: 'data', flattenedName: key };
-                            },
-                            definition: (key) => nonRootMapping(configName, admin, [...fullPath, key]),
-                            keyOptions: autoComplete
-                        }
-                    }
-                }
-            },
-            optionalKeys: {
-                inDetailView: {
-                    defaultValue: false,
+                tempalte: {
+                    defaultValue: '',
                     definition: {
                         type: 'simple',
                         options: {
-                            label: 'In Detail View',
-                            type: 'boolean',
-                            display: (form, parent) => {
-                                let pObj = parent;
-                                let flat = pObj.getChild('flatten');
-                                if (flat) {
-                                    let val = flat.getValue();
-                                    if (val == false || val == "false")
-                                        return true;
-                                    if (form)
-                                        form.setValue(false);
-                                    return false;
-                                }
-                                return true;
-                            }
+                            label: "Template",
+                            type: 'string'
                         }
                     }
-                }
-            }
-        }
-    };
-}
-function arraySubmappings(configName, admin, fullPath) {
-    return {
-        type: 'object',
-        options: {
-            label: 'Array Mapping',
-            requiredKeys: {
-                tag: { type: 'const', options: { value: 'array' } },
-                flatten: {
-                    type: 'simple',
-                    options: {
-                        type: 'boolean',
-                        label: 'Flatten Array Items'
-                    }
                 },
-                itemMapping: nonRootMapping(configName, admin, [...fullPath, ''])
-            },
-            optionalKeys: {
-                inDetailView: {
-                    defaultValue: false,
+                width: {
+                    defaultValue: '',
                     definition: {
                         type: 'simple',
                         options: {
-                            label: 'In Detail View',
-                            type: 'boolean',
-                            display: (form, parent) => {
-                                let pObj = parent;
-                                let flat = pObj.getChild('flatten');
-                                if (flat) {
-                                    let val = flat.getValue();
-                                    if (val == false || val == "false")
-                                        return true;
-                                    if (form)
-                                        form.setValue(false);
-                                    return false;
-                                }
-                                return true;
-                            }
+                            label: "Width",
+                            type: 'string'
                         }
-                    },
-                }
-            }
-        }
-    };
-}
-function rootMapping(configName, constFlattenedName, admin) {
-    let root = {
-        type: 'multi',
-        options: {
-            label: (_1, _2, key) => 'Item Mapping for ' + key,
-            definitions: {
-                'Data Mapping': {
-                    defaultValue: { tag: 'data', flattenedName: constFlattenedName },
-                    definition: dataSubmappings(configName, admin, [], constFlattenedName)
-                },
-                'Object Mapping': {
-                    defaultValue: { tag: 'object', flatten: false, keys: {} },
-                    definition: objSubmappings(configName, admin, [constFlattenedName])
-                },
-                'Array Mapping': {
-                    defaultValue: { tag: 'array', flatten: false, itemMapping: { tag: 'data', flattenedName: constFlattenedName } },
-                    definition: arraySubmappings(configName, admin, [constFlattenedName])
+                    }
                 },
             }
         }
     };
-    return root;
-}
-function nonRootMapping(configName, admin, fullPath) {
-    let label = 'Item Mapping';
-    if (fullPath.filter(x => x != '').length > 0) {
-        label += " for " + fullPath.filter(x => x != '').join('.');
-    }
-    return {
-        type: 'multi',
-        options: {
-            name: 'mapping',
-            forceNoCollapse: (fullPath.length > 0 && fullPath[fullPath.length - 1] == ''),
-            label: label,
-            definitions: {
-                'Data Mapping': {
-                    defaultValue: { tag: 'data', flattenedName: '' },
-                    definition: dataSubmappings(configName, admin, fullPath)
-                },
-                'Object Mapping': {
-                    defaultValue: { tag: 'object', flatten: false, keys: {} },
-                    definition: (_) => objSubmappings(configName, admin, fullPath)
-                },
-                'Array Mapping': {
-                    defaultValue: { tag: 'array', flatten: false, itemMapping: { tag: 'data', flattenedName: '' } },
-                    definition: (_) => arraySubmappings(configName, admin, fullPath)
-                },
-            }
-        }
-    };
+    let defaultValue = { tag: 'data', flattenedName: (column && column[0]) ? column[0] : '' };
+    return { dataMappingDefault: defaultValue, dataMappingForm: f };
 }
 function buildSearchOptionsForm() {
     return {
@@ -12851,9 +13138,20 @@ function buildDatasourceForm(allColumns) {
                                         type: 'string',
                                     }
                                 },
-                                filters: filters
                             },
                             optionalKeys: {
+                                filters: {
+                                    defaultValue: {
+                                        columnName: '',
+                                        columnVal: {
+                                            tag: 'value',
+                                            value: ''
+                                        },
+                                        connector: 'AND',
+                                        op: '=',
+                                    },
+                                    definition: filters
+                                },
                                 preprocess: {
                                     defaultValue: () => { },
                                     definition: {
@@ -13324,6 +13622,7 @@ function editTypeDropdown() {
                 { text: 'Date & Time', value: 'datetime' },
                 { text: 'True/False', value: 'bool' },
                 { text: 'Number', value: 'number' },
+                { text: 'JSON Data', value: 'json' },
             ],
             default: 'text',
         }
@@ -13445,11 +13744,5686 @@ function launch(formId, obj) {
     });
 }
 
+;// ./src/tfc.js
+const tfc_TF = {
+	theme: 'Alpha',
+	url: 'tfc.a5w',
+	_: {
+		saveState: function (refresh) {
+			var sl = tfc_TF.state.login;
+			localStorage.setItem('A5TFState', JSON.stringify(sl));
+			if (refresh) {
+				if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
+				if (typeof tfc_TF.ui.user._.h != 'undefined') tfc_TF.ui.user._.h.refresh();
+				if (typeof tfc_TF.ui.account._.h != 'undefined') tfc_TF.ui.account._.h.refresh();
+				if (typeof tfc_TF.ui.home._.vb != 'undefined') tfc_TF.ui.home._.vb.getStructure();
+			}
+		},
+		act: function (t, d) {
+			// t: navigate, login, logout
+			tfc_TF.state.login.activity.unshift({ type: t, data: d, at: Date.now() });
+		},
+		beta: function () {
+			return location.hostname != 'transform.alphasoftware.com';
+		},
+		r: {
+			t: {
+				'login': { method: 'GET' },
+				'login-confirm': { method: 'GET' },
+				'login-two-factor': { method: 'GET' },
+				'login-account': { method: 'GET' },
+				'login-reset-pw': { method: 'GET' },
+				'login-forgot-pw': { method: 'GET' },
+				'login-check-user': { method: 'GET' },
+				'login-create-user': { method: 'GET' },
+				'login-create-account': { method: 'GET' },
+				'login-confirm-user': { method: 'GET' },
+
+				'get-preferences': { method: 'GET' },
+				'set-preferences': { method: 'POST' },
+				'get-profile': { method: 'GET' },
+				'set-profile': { method: 'POST' },
+
+				'get-log': { method: 'GET' },
+				'update-log': { method: 'GET' },
+
+
+				'get-api-keys': { method: 'GET' },
+				'create-api-key': { method: 'GET' },
+				'revoke-api-key': { method: 'GET' },
+				'remove-api-key': { method: 'GET' },
+
+				'get-members': { method: 'GET' },
+				'update-members': { method: 'POST' },
+
+				'get-connections': { method: 'GET' },
+				'authenticate-connection': { method: 'GET' },
+				'create-connection': { method: 'POST' },
+				'update-connection': { method: 'POST' },
+				'remove-connections': { method: 'GET' },
+
+				'get-plan': { method: 'GET' },
+				'update-plan': { method: 'POST' },
+
+				'get-structure': { method: 'GET' },
+
+				'get-form-info': { method: 'GET' },
+
+				'get-form-defs': { method: 'POST' },
+				'update-form-defs': { method: 'POST' },
+
+			},
+			i: {},
+			e: { // errors
+				pd: { // permission-denied
+					'generic': { title: 'Permission Denied', text: 'You do not have permission to do the requested action on this account.' }
+				},
+				lad: { // login-account-denied
+					'generic': { title: 'Account Error', text: 'You cannot login to the selected account. Please contact your account administrator to fix the issue.' },
+					'user-count': { title: 'Account Error', text: 'The account you are trying to log into has exceeded the licensed user count. Please contact your account administrator to fix the issue.' },
+				},
+				id: { // invalid-data
+					'plan-key': {
+						'exists': { title: 'Key', text: 'The key that you entered is already in use.' },
+						'invalid': { title: 'Key', text: 'The key that you entered is not valid.' }
+					}
+				}
+			}
+		},
+		l: {
+			ra: [],
+			i: function () { // login initialize
+				var s = tfc_TF.state;
+				var sl = s.login;
+				var sJSON = localStorage.getItem('A5TFState');
+				if (sJSON) {
+					try {
+						var lss = JSON.parse(sJSON);
+						A5.u.object.assign(sl, lss);
+						if (typeof sl.expires == 'string') sl.expires = new Date(sl.expires);
+						if (sl.expires.getFullYear() == NaN) sl.expires = new Date();
+						if (sl.expires <= Date.now() && sl.state != 'logged-out') {
+							sl.state = 'login-expired';
+						}
+						if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
+					} catch (e) {
+						//console.log('couldn\'t restore state from storage');
+					}
+				}
+
+				var args = location.href.split('?');
+				args.shift();
+				args = args.join('?').split('&');
+				var arg = null;
+				var argsObj = {};
+				for (var i = 0; i < args.length; i++) {
+					arg = args[i].split('=');
+					if (arg.length == 2) argsObj[arg[0].trim()] = arg[1].trim();
+				}
+
+				if (argsObj.mode == 'dev') {
+					s.ui.editing.json.forms = true;
+					s.ui.editing.json.lists = true;
+				} else if (argsObj.mode == 'create-account' || argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
+					sl.mode = { type: argsObj.mode };
+					if (argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
+						if (typeof argsObj.code == 'string') sl.mode.code = argsObj.code;
+						else sl.mode = null;
+					}
+				}
+				// page interval
+				setInterval(function () {
+					// activity log
+					var a = tfc_TF.state.login.activity;
+					if (Array.isArray(a)) {
+						var al = a.length;
+						if (al != 0) {
+							tfc_TF.request('update-log', { type: 'activity', log: a }).then(function () {
+								if (tfc_TF.state.login.activity.length == al) tfc_TF.state.login.activity = [];
+								else tfc_TF.state.login.activity.splice(0, al);
+							});
+						}
+					}
+				}, 60000);
+				tfc_TF._.l.initialized = true;
+			},
+			d: function (d, c) { // login done - set variables
+				var s = tfc_TF.state;
+				var sl = s.login;
+				sl.state = 'logged-in';
+				sl.mode = null;
+				sl.expires = new Date(d.expires);
+				if (sl.expires.getFullYear() == NaN) {
+					sl.expires = new Date();
+					sl.state = 'login-expired';
+				}
+
+				if (A5.u.typeOf(d.user) == 'object') {
+					A5.u.object.assign(d.user, {
+						id: null, // logged in user ID (email)
+						name: null // logged in user name
+					}, true);
+					sl.user = d.user;
+				}
+				if (A5.u.typeOf(d.account) == 'object') {
+					A5.u.object.assign(d.account, {
+						id: null, // account ID
+						name: null, // selected account name
+						member: {
+							roles: null,
+							ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
+						}, // information about logged in user relative to account
+						permissions: {} // account permissions
+					}, true);
+					sl.account = d.account;
+				}
+
+				var slam = sl.account.member;
+				slam.ui = {
+					allow: {
+						design: (slam.roles.indexOf('FormDesigner') != -1),
+						manage: (slam.roles.indexOf('ManagementConsole') != -1),
+						dashboard: (slam.roles.indexOf('ManagementConsole') != -1),
+						filler: {
+							web: (slam.roles.indexOf('browseruser') != -1),
+							mobile: (slam.roles.indexOf('user') != -1)
+						},
+						account: (slam.roles.indexOf('AccountAdmin') != -1),
+						developer: (slam.roles.indexOf('AccountAdmin') != -1)
+					}
+				}
+				if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
+				this.ele.style.display = 'none';
+				tfc_TF._.saveState(true);
+				var ra = this.ra;
+				var ri, args = null;
+				for (var i = 0; i < ra.length; i++) {
+					ri = tfc_TF._.r.i[ra[i]];
+					if (typeof ri != 'undefined') {
+						args = ['type=' + ri.type];
+						if (typeof ri.data == 'object' && ri.data) args.push('data=' + urlencode(JSON.stringify(ri.data)));
+						args.push('token=' + (tfc_TF.state.login.token ? urlencode(tfc_TF.state.login.token) : ""));
+						args = args.join('&');
+						ri.xhr.open('POST', tfc_TF.url);
+						ri.xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+						ri.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+						ri.xhr.overrideMimeType('text/html; charset=UTF-8');
+						ri.xhr.send(args);
+					}
+				}
+				this.ra = [];
+				// clear data
+				tfc_TF.u.filler._.route.m = false;
+				tfc_TF.u.filler._.route.q = false;
+				var m_ = tfc_TF.ui.main._;
+				// reset ui
+				if (c) {
+					// need to update JWT on loaded UXs
+					var ux = m_.ux;
+					if (m_.d.ux) ux.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+					if (m_.m.ux) ux.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+					if (m_.b.ux) ux.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+				} else {
+					// diff user/account - reset all
+					var p = m_.ux.panelGet('TRANSFORM_MAIN_NAV');
+					m_.vb.setTab('home');
+
+					// TFIFrameLoading
+					if (m_.d.ux) { // dash
+						m_.d.ux._destroy();
+						m_.d.ux = null;
+						delete p.state._render['TRANSFORM_DASHBOARD'];
+						var pc = m_.ux.panelGet('TRANSFORM_DASHBOARD');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+					if (m_.m.ux) { // manage
+						m_.m.ux._destroy();
+						m_.m.ux = null;
+						delete p.state._render['TRANSFORM_MANAGE'];
+						var pc = m_.ux.panelGet('TRANSFORM_MANAGE');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+					if (m_.b.ux) { // designer
+						m_.b.ux._destroy();
+						m_.b.ux = null;
+						delete p.state._render['TRANSFORM_DESIGN'];
+						var pc = m_.ux.panelGet('TRANSFORM_DESIGN');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+				}
+
+				if (tfc_TF.u.filler._.iEle) tfc_TF.u.filler._.iEle.src = '';
+
+				var l = tfc_TF.state.login;
+				tfc_TF._.act('login', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
+			},
+			a: function (t) { // login actions
+				var f = this.f;
+				var fd = f.data;
+				if (t == 'login') {
+					var id = fd.userId;
+					tfc_TF.request('login', {
+						userId: id,
+						pw: fd.pw
+					}).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						tfc_TF.state.login.user.id = id;
+						if (d.step == 'done') _l.d(d, false);
+						else if (d.step == 'account') {
+							l.state = 'logging-in';
+							_l.f.accounts = d.accounts;
+							tfc_TF.login('account');
+						} else if (d.step == 'two-factor') {
+							l.state = 'logging-in';
+							_l.f.tfSentTo = d.sentTo;
+							tfc_TF.login('two-factor');
+						}
+					}).catch(function (d) {
+						if (d.error == 'login-id-pw') {
+							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'confirm') {
+					tfc_TF.request('login-confirm', {
+						userId: tfc_TF.state.login.user.id,
+						account: tfc_TF.state.login.account.id,
+						pw: fd.confirmPW,
+					}).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, true);
+						else if (d.step == 'two-factor') {
+							l.state = 'logging-in';
+							_l.f.tfSentTo = d.sentTo;
+							tfc_TF.login('two-factor');
+						}
+					}).catch(function (d) {
+						if (d.error == 'login-id-pw') {
+							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'account') {
+					tfc_TF.request('login-account', {
+						account: fd.account,
+					}).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, false);
+						else if (d.step == 'two-factor') {
+							_l.f.tfSentTo = d.sentTo;
+							tfc_TF.login('two-factor');
+						}
+					});
+				} else if (t == 'forgot-pw') {
+					var id = fd.userId;
+					tfc_TF.request('login-forgot-pw', { userId: id }).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						tfc_TF.state.login.user.id = id;
+						tfc_TF.login('code-reset-pw');
+					}).catch(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						tfc_TF.state.login.user.id = id;
+						tfc_TF.login('code-reset-pw');
+					});
+				} else if (t == 'reset-pw') {
+					var d = {
+						method: 'pw',
+						newPW: fd.newPW1
+					}
+					if (fd.state == 'code-reset-pw') {
+						d.method = 'code'
+						d.code = fd.fpCode;
+					} else d.oldPW = fd.currentPW;
+					tfc_TF.request('login-reset-pw', d).then(function (d) {
+						tfc_TF.u.message.show('confirm', 'Password Changed', 'Your password was reset.');
+						if (d.step == 'login') tfc_TF.login();
+						else {
+							var _l = tfc_TF._.l;
+							var l = tfc_TF.state.login;
+							if (d.token) l.token = d.token;
+							if (d.step == 'done') _l.d(d, false);
+						}
+
+					}).catch(function (d) {
+						if (d.error == 'login-code') {
+							if (d.type == 'used') tfc_TF.u.message.show('confirm', 'Error', 'The code has already been used. Please request a new code to be sent.');
+							else if (d.type == 'expired') tfc_TF.u.message.show('confirm', 'Error', 'The code has expired. Please request a new code to be sent.');
+							else if (d.type == 'invalid') tfc_TF.u.message.show('confirm', 'Error', 'Invalid code. Please correct or request a new code to be sent.');
+						} else tfc_TF.u.message.show('confirm', 'Error', 'Could not reset password.');
+					});
+				} else if (t == 'tf-submit') {
+					tfc_TF.request('login-two-factor', {
+						type: 'submit',
+						code: fd.tfCode,
+						sentTo: f.tfSentTo
+					}).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, false);
+					}).catch(function (d) {
+						if (d.error == 'login-code') {
+							tfc_TF.u.message.show('confirm', 'Error', 'Invalid two-factor authentication code. Please try again.');
+						}
+					});;
+				} else if (t == 'tf-resend') {
+					tfc_TF.request('login-two-factor', {
+						type: 'resend',
+						method: arguments[1]
+					}).then(function (d) {
+						var _l = tfc_TF._.l;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						_l.f.tfSentTo = d.sentTo;
+						_l.f.refresh();
+						A5.u.element.cls('TF.LOGIN.TWO-FACTOR.MSG', '+=TFElementIndicate');
+					});
+				} else if (t == 'tf-resend-choose') {
+					tfc_TF.u.message.show('choice-cancel', 'Choose method', 'Choose how you would like to perform your two-factor authentication.', {
+						options: [
+							{ html: 'Email', value: 'email' },
+							{ html: 'SMS', value: 'sms' },
+							{ html: 'Authenticator App', value: 'app' }
+						],
+						action: function (t) {
+							if (t == 'email' || t == 'sms' || t == 'app') tfc_TF._.l.a('tf-resend', t);
+						}
+					});
+				} else if (t == 'create-pw') {
+					tfc_TF.request('login-check-user', { userId: fd.userId }).then(function (d) {
+						var f = tfc_TF._.l.f;
+						f.data.exists = d.exists;
+						f.data.state = 'create-user-pw';
+						f.refresh();
+					}).catch(function () {
+
+					});
+				} else if (t == 'create-user-pw') {
+					tfc_TF.request('login-create-user', {
+						userId: fd.userId,
+						firstName: fd.firstName,
+						lastName: fd.lastName,
+						company: fd.company,
+						phone: fd.phone,
+						agree: {
+							tos: fd.readTOS,
+							pp: fd.readPP,
+							email: fd.allowEmail
+						}
+					}).then(function (d) {
+						var f = tfc_TF._.l.f;
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						f.data.state = 'create-account';
+						f.refresh();
+					}).catch(function () {
+						if (d.error == 'login-id-pw') {
+							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'create-account') {
+					tfc_TF.request('login-create-user', {
+						account: fd.account
+					}).then(function (d) {
+						var l = tfc_TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, true);
+					}).catch(function () {
+						if (d.error == 'login-id-pw') {
+							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				}
+
+			},
+			c: function () { // login create UI
+				if (!this.ele) {
+					var id = 'TF.LOGIN';
+					var idP = 'TF.LOGIN.PANEL';
+					var ele = document.createElement('div');
+					ele.id = id;
+					ele.className = 'TFLogin';
+					A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom:0px; z-index: 49;');
+					ele.innerHTML = '<div id="' + idP + '" class="TFLoginPanel"></div>';
+					document.body.appendChild(ele);
+					this.ele = ele;
+					this.f = new A5.FormBox(idP, {
+						form: {
+							items: [
+								{ // LOGIN PANEL
+									"type": "group",
+									"id": "login",
+									"include": function () {
+										return this.data.state == 'login';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">What will you TransForm today?</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "pw",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'login') return;
+															if (v == '') {
+																return 'You must enter your password.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) tfc_TF._.l.a('login');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"control": {
+												"theme": tfc_TF.theme + ":primary",
+												"html": "Sign In",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) tfc_TF._.l.a('login');
+												}
+											}
+										},
+										{
+											"type": "html",
+											"container": { "className": "TFLoginFooter" },
+											"control": {
+												"html": function () {
+
+													var html = [
+														'<div style="font-size: 90%;">',
+														'With sign in, you agree to the ',
+														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_terms_of_service" target="_blank">Terms of Service</a> ',
+														'and ',
+														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_privacy_policy" target="_blank">Privacy Policy</a>.',
+														'</div>',
+														'<div>',
+														'<a class="link" href="#" onclick="TF.login(\'forgot-pw\');">Forgot password?</a>',
+														'</div>',
+														'<div style="font-size: 90%;">',
+														'or',
+														'</div>',
+														'<div>',
+														'<a class="link" href="#" onclick="TF.login(\'create-user\');">Create a new user & account.</a>',
+														'</div>'
+													].join('');
+													return html;
+												}
+											}
+										}
+									]
+								},
+								{ // CREATE USER PANEL
+									"type": "group",
+									"id": "create-user",
+									"include": function () {
+										return this.data.state == 'create-user';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">Step 1: Register Email Address</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"label": { "text": "Email" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "firstname",
+														"required": true,
+													},
+													"label": { "text": "First Name" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "First Name" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "lastname",
+														"required": true,
+													},
+													"label": { "text": "Last Name" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Last Name" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": { "from": "company" },
+													"label": { "text": "Company" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Company" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": { "from": "phone" },
+													"label": { "text": "Phone" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Phone" }
+													}
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "readTOS" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " I agree to Alpha TransForm <a href=\"https://server.alphasoftware.com/transform_terms_of_service\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Terms of Service</a>." },
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "readPP" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " I have read and understand the <a href=\"https://server.alphasoftware.com/transform_privacy_policy\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Private Policy</a>." },
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "allowEmail" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " You may send emails about new features, info, and offers." },
+												},
+												{
+													"type": "group",
+													"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
+													"items": [
+														{
+															"type": "button",
+															"layout": "tf-simple",
+															"control": {
+																"theme": tfc_TF.theme + ":subtle",
+																"html": "Cancel",
+																"style": "width: 100%;",
+																"width": "100%",
+																"onClick": function () {
+																	tfc_TF.state.login.mode = null;
+																	tfc_TF.login();
+																}
+															}
+														},
+														{
+															"type": "button",
+															"layout": "tf-simple",
+															"control": {
+																"theme": tfc_TF.theme + ":primary",
+																"html": "Next",
+																"style": "width: 100%;",
+																"width": "100%",
+																"onClick": function () {
+																	if (this.validate()) {
+																		if (!this.data.readTOS || !this.data.readPP) {
+																			tfc_TF.u.message.show('confirm', 'Error', 'You must read and agree to both the terms of service and private policy,');
+																		} else tfc_TF._.l.a('create-pw');
+																	}
+																}
+															}
+														}
+													]
+												}
+											]
+										}
+									]
+								},
+								{ // CREATE USER PASSWORD PANEL
+									"type": "group",
+									"id": "create-pw",
+									"include": function () {
+										return this.data.state == 'create-user-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">',
+														(this.data.exists ? 'Step 2: Enter Password' : 'Step 2: Create Password'),
+														'</div>'
+													].join('');
+
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "pw",
+														"required": true,
+														"validate": function (p, v, d) { if (v == '') return 'You must enter a password.'; }
+													},
+													"label": { "text": "Password" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"behavior": { "edit": { "autocomplete": "password" } }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"include": function () {
+														return !this.data.exists;
+													},
+													"data": {
+														"from": "confirmPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state == 'create-user-pw') {
+																if (v == '') return 'You must enter a password.';
+																else if (v != this.data.pw) return 'Passwords do not match.';
+															}
+														}
+													},
+													"label": { "text": "Confirm Password" },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"behavior": { "edit": { "autocomplete": "password" } }
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Back",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															this.data.state = 'create-user';
+															this.refresh();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () { return this.data.exists },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"html": "Login",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) tfc_TF._.l.a('create-user-pw');
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () { return !this.data.exists },
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"html": "Create User",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) tfc_TF._.l.a('create-user-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // CREATE ACCOUNT PANEL
+									"type": "group",
+									"id": "create-account",
+									"include": function () {
+										return this.data.state == 'create-account';
+									},
+									"items": [
+
+									]
+								},
+								{ // CONFIRM LOGIN PANEL
+									"type": "group",
+									"id": "confirm",
+									"include": function () {
+										return this.data.state == 'confirm';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var ls = tfc_TF.state.login.state;
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginConfirmMsg">',
+														(ls == 'login-expired' ? 'Session has expired. Please confirm login for: ' : 'Confirm login for: '),
+														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
+														'<br/>Account: <strong>' + tfc_TF.state.login.account.name + ' <span style="font-family: monospace; font-size: 10px;">(' + tfc_TF.state.login.account.id + ')</span></strong>',
+														'</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "confirmPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'confirm') return;
+															if (v == '') {
+																return 'You must enter your password.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) tfc_TF._.l.a('confirm');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"control": {
+												"theme": tfc_TF.theme + ":primary",
+												"html": "Confirm Login",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) tfc_TF._.l.a('confirm');
+												}
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRowSpaced TFLoginVerticalSpace" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Logout",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { tfc_TF.logout(); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { $('TF.LOGIN').style.display = 'none'; }
+													}
+												},
+											]
+										}
+
+									]
+								},
+								{ // FORGOT PASSWORD PANEL
+									"type": "group",
+									"id": "forgot-pw",
+									"include": function () {
+										return this.data.state == 'forgot-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginPWMsg">',
+														'Enter your email and press the "Send Code" button. ',
+														'A reset password code will be sent to your email. ',
+														'</div>'
+													].join('');
+													return html;
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (tfc_TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
+															else tfc_TF.login();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"html": "Send Code",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) tfc_TF._.l.a('forgot-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // RESET PASSWORD PANEL
+									"type": "group",
+									"id": "reset-pw",
+									"include": function () {
+										return this.data.state == 'reset-pw' || this.data.state == 'force-reset-pw' || this.data.state == 'code-reset-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginPWMsg">',
+														(this.data.state == 'force-reset-pw' ? 'You must reset ' : 'Reset '),
+														'the password for: ',
+														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
+														'</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit-password",
+													"include": function () {
+														return this.data.state == 'reset-pw';
+													},
+													"layout": "tf-simple",
+													"data": {
+														"from": "currentPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'reset-pw') return;
+															if (v == '') {
+																return 'You must enter your current password.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Current password" }
+													}
+												},
+												{
+													"type": "edit",
+													"include": function () { return this.data.state == 'code-reset-pw'; },
+													"layout": "tf-simple",
+													"data": {
+														"from": "fpCode",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'code-reset-pw') return;
+															if (v == '') {
+																return 'You must enter the code that was emailed to you.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"style": "text-align: center;",
+														"placeholder": { "text": "Code" }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () {
+														return this.data.state == 'code-reset-pw';
+													},
+													"container": { "style": "text-align: right;" },
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Send New Code",
+														"style": "",
+														"width": "",
+														"onClick": function () { this.data.userId = tfc_TF.state.login.user.id; tfc_TF._.l.a('forgot-pw'); }
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "newPW1",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state.indexOf('reset-pw') == -1) return;
+															if (v == '') {
+																return 'You must enter a new password.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "New password" }
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "newPW2",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state.indexOf('reset-pw') == -1) return;
+															if (v == '') {
+																return 'You must enter a new password.';
+															} else if (v != d.newPW1) {
+																return 'Your passwords do not match.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Confirm new password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) tfc_TF._.l.a('reset-pw');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"include": function () {
+														return this.data.state != 'force-reset-pw';
+													},
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (tfc_TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
+															else tfc_TF.login();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"html": "Change Password",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) tfc_TF._.l.a('reset-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // ACCOUNT PANEL
+									"type": "group",
+									"id": "account",
+									"include": function () {
+										return this.data.state == 'account';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginAccountMsg">Logged in as: ',
+														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
+														'<br />',
+														'Please select the TransForm account you wish to use.',
+														'</div>'
+													].join('');
+													return html;
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "list",
+													"layout": "tf-simple",
+													"data": {
+														"from": "account",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'account') return;
+															if (v == '') {
+																return 'You must chose an account.';
+															}
+														}
+													},
+													"control": {
+														"onDblClick": function () {
+															if (this.validate()) tfc_TF._.l.a('account');
+														},
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"content": {
+															"style": "max-height: 120px; overflow: auto; text-align: left;"
+														},
+														"data": {
+															"src": function () {
+																return { src: this.accounts };
+															}
+														},
+														"layout": "main",
+														"layouts": {
+															"main": {
+																"item": {
+																	"html": '<div style="display: flex; flex-direction: row; align-items: center;"><div style="flex: 1 1 auto;">{name}</div><div style="font-size: 10px;">({id})</div></div>',
+																	"value": "id"
+																}
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Logout",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { tfc_TF.login(); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"html": "Select Account",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) tfc_TF._.l.a('account');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // TWO-FACTOR PANEL
+									"type": "group",
+									"id": "two-factor",
+									"include": function () {
+										return this.data.state == 'two-factor';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var method = this.tfSentTo;
+													var msg = '';
+													if (method == 'app') msg = 'Use the authenticator application to finish login.';
+													else if (method == 'sms') msg = 'Enter the authentication code you\'ve received via SMS.';
+													else if (method == 'email') msg = 'Enter the authentication code you\'ve received via email.';
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div id="TF.LOGIN.TWO-FACTOR.MSG" class="TFLoginTwoFactorMsg">' + msg + '</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "tfCode",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'two-factor') return;
+															if (v == '') {
+																return 'You must must enter the authentication code you received via email or SMS.';
+															}
+														}
+													},
+													"control": {
+														"theme": tfc_TF.theme + ":primary",
+														"width": "100%",
+														"style": "text-align: center;",
+														"placeholder": { "text": "Authentication code" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) tfc_TF._.l.a('tf-submit');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"container": { "className": "TFLoginVerticalSpace" },
+											"control": {
+												"theme": tfc_TF.theme + ":primary",
+												"html": "Submit Code",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) tfc_TF._.l.a('tf-submit');
+												}
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRowSpaced" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Resend code",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { tfc_TF._.l.a('tf-resend', 'default'); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": tfc_TF.theme + ":subtle",
+														"html": "Use a different method",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { tfc_TF._.l.a('tf-resend-choose', 'default'); }
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"container": { "style": "text-align: left;" },
+											"control": {
+												"theme": tfc_TF.theme + ":subtle",
+												"html": "Logout",
+												"onClick": function () { tfc_TF.login(); }
+											}
+										}
+									]
+								},
+								{
+									"type": "html",
+									"include": function () {
+										var s = this.data.state;
+										return s == 'login' || s == 'create-user';
+									},
+									"container": { "className": "TFLoginCopyright" },
+									"control": {
+										"html": function () {
+											var d = new Date();
+											return '&copy; Copyright ' + d.getFullYear() + ' Alpha Software Corporation.<br/>All Rights Reserved.';
+										}
+									}
+								}
+							]
+						}
+					}, {}, {
+						theme: tfc_TF.theme
+					});
+				}
+			}
+		}
+
+	},
+
+
+	// current state
+	state: {
+		login: {
+			state: 'logged-out',
+			mode: null,
+			expires: null,
+			token: null,
+			user: {
+				id: null, // logged in user ID (email)
+				name: null // logged in user name
+			},
+			account: {
+				id: null, // account ID
+				name: null, // selected account name
+				member: {
+					roles: null,
+					ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
+				}, // information about logged in user relative to account
+				permissions: {} // account permissions
+			},
+			activity: []
+		},
+		ui: {
+			tab: 'home',
+			dirty: {
+				dashboard: false,
+				manage: false,
+				design: false
+			},
+			dock: {
+				type: '',
+				active: false
+			},
+			help: {
+				mode: 'docked'
+			},
+			home: {
+				forms: { collapsed: false },
+				dashboards: { collapsed: false }
+			},
+			editing: {
+				json: {
+					forms: false
+				}
+			}
+		}
+	},
+
+	init: function () {
+		if (typeof A5.formBox != 'undefined') {
+			A5.u.object.assign(A5.formBox.guides.layouts, {
+				"tf-label-flex": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-label-above": "<div class=\"TFFormItem\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-button": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">&nbsp;</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-simple": "{content}{error}"
+			});
+		}
+		if (!this._.l.initialized) this._.l.i();
+	},
+
+	// login/out
+	login: function () {
+		var type = typeof arguments[0] == 'string' ? arguments[0] : 'login';
+		var ls = this.state.login.state;
+		var d = {
+			state: '',
+			userId: '',
+			pw: '',
+			confirmPW: '',
+			currentPW: '',
+			newPW1: '',
+			newPW2: '',
+			account: '',
+			tfCode: '',
+			fpCode: ''
+		}
+		if (type != 'forgot-pw' && type != 'create-user' && type != 'code-reset-pw') {
+			if (ls == 'login-expired') {
+				if (type != 'confirm') type = 'login';
+			} else if (ls != 'logged-in' && ls != 'logging-in') type = 'login';
+
+			var lm = this.state.login.mode;
+			if (lm) {
+				if (lm.type == 'create-account') type = 'create-user';
+				else if (lm.type == 'confirm-user') type = 'create-user';
+				else if (lm.type == 'code-reset-pw') {
+					type = lm.type;
+					d.fpCode = lm.code;
+				}
+			}
+		}
+
+
+		// make old create user get opened
+		if (!tfc_TF._.beta() && type == 'create-user') {
+			window.open('CreateAccount.html');
+			return false;
+		}
+
+		d.state = type;
+		var l = this._.l;
+		l.c();
+		l.f.populate(d);
+		l.ele.style.display = '';
+		if (type == 'confirm' || type == 'reset-pw') A5.u.element.cls(l.ele, '+=TFLoginTrans');
+		else A5.u.element.cls(l.ele, '-=TFLoginTrans');
+	},
+	logout: function () {
+		tfc_TF.u.message.show('confirm-cancel', 'Logout', 'Are you sure you want to logout?', {
+			action: function (v) {
+				if (v == 'confirm') {
+					var l = tfc_TF.state.login;
+					tfc_TF._.act('logout', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
+					A5.u.object.assign(tfc_TF.state.login, {
+						state: 'logged-out',
+						expires: null,
+						token: null,
+						user: {
+							name: null,
+							id: null,
+						},
+						account: {
+							id: null,
+							name: null,
+							member: {
+								roles: null,
+								ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false } }
+							},
+							permissions: {}
+						},
+						activity: []
+					});
+					tfc_TF._.saveState();
+					location.href = location.href;
+				}
+			}
+		});
+	},
+
+	// request
+	request: function (type, data) {
+		return new Promise(function (resolve, reject) {
+			const td = tfc_TF._.r.t[type];
+			if (typeof td == 'undefined') {
+				// error - not a valid type
+				reject({ error: 'request-type', type: type });
+			} else {
+				const url = tfc_TF.url;
+				const uid = Date.now();
+
+				var args = ['type=' + type];
+				if (typeof data == 'object' && data) args.push('data=' + urlencode(JSON.stringify(data)));
+				args.push('token=' + (tfc_TF.state.login.token ? urlencode(tfc_TF.state.login.token) : ""));
+				args = args.join('&')
+				const xhr = new XMLHttpRequest();
+				xhr.open('POST', url);
+				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+				xhr.overrideMimeType('text/html; charset=UTF-8');
+				xhr.onload = function () {
+					// server response
+					if (xhr.status >= 200 && xhr.status < 300) {
+						try {
+							// parse JSON response
+							var res = JSON.parse(xhr.response);
+						} catch (err) {
+							// error - response not JSON
+							reject({ error: 'request-response', type: 'json-parse', data: err });
+							delete tfc_TF._.r.i[uid];
+						}
+						if (res) {
+							if (!res.success) {
+								// problem on server
+								if (res.data?.error == 'login-expired') {
+									tfc_TF.state.login.state = 'login-expired';
+									tfc_TF.login('confirm');
+									tfc_TF._.l.ra.push(uid);
+								} else if (res.data?.error == 'login-required') {
+									tfc_TF.state.login.state = 'logged-out';
+									tfc_TF.login();
+									tfc_TF._.l.ra.push(uid);
+								} else {
+									reject(res.data);
+									delete tfc_TF._.r.i[uid];
+									if (res.data?.error == 'custom') tfc_TF.u.message.show('confirm', res.data.message.title, res.data.message.text, { icon: 'warning' });
+									else if (res.data?.error == 'permission-denied' || res.data?.error == 'invalid-data' || res.data?.error == 'login-account-denied') {
+										var msg = null;
+										var ed = tfc_TF._.r.e;
+										if (res.data.error == 'permission-denied') msg = ed.pd.generic;
+										else if (res.data.error == 'login-account-denied') {
+											msg = ed.lad.generic;
+											if (typeof ed.lad[res.data?.type] == 'object') msg = ed.lad[res.data.type];
+											tfc_TF.login();
+										} else {
+											// get the type
+											var edt = A5.u.object.get(ed.id, res.data?.type);
+											// get the issue
+											if (edt) msg = A5.u.object.get(edt, res.data?.issue);
+										}
+										if (msg) tfc_TF.u.message.show('confirm', msg.title, msg.text, { icon: 'warning' });
+									}
+								}
+							} else {
+								resolve(res.data);
+								delete tfc_TF._.r.i[uid];
+							}
+						}
+					} else {
+						// no success on server - preform resend?
+					}
+				};
+				xhr.onerror = function (err) {
+					// callback error
+					reject({ error: 'request-response', type: 'server', data: err });
+					delete tfc_TF._.r.i[uid];
+				};
+				tfc_TF._.r.i[uid] = { type: type, data: data, def: td, count: 0, xhr: xhr };
+
+				if ((tfc_TF.state.login.state == 'login-expired' || tfc_TF.state.login.state == 'logged-out') && !(type.indexOf('login') == 0 || (type == 'update-log' && data?.type == 'activity'))) {
+					tfc_TF.login((tfc_TF.state.login.state == 'login-expired' ? 'confirm' : null));
+					tfc_TF._.l.ra.push(uid);
+				} else xhr.send(args);
+			}
+		});
+	},
+
+	// utilities
+	u: {
+		re: {
+			url: /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+			email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+		},
+		code: {
+			lang: {
+				'json': {
+					validate: function (json) {
+						try {
+							var o = JSON.parse(json);
+						} catch (e) {
+							return e;
+						}
+						return true;
+					},
+					reformat: function (json) {
+						try {
+							var o = JSON.parse(json);
+							json = JSON.stringify(o, '', '\t');
+						} catch (e) { }
+						return json;
+					},
+					keywords: {
+						caseSensitive: true,
+						values: []
+					},
+					draw: function (v) {
+						var ti = v[0];
+						var tin = '';
+						var lookFor = false;
+						var v2 = [];
+						var lookI = 0;
+						for (var i = 0; i < v.length; i++) {
+							tin = v[i + 1];
+							if (lookFor) {
+								lookI = v.substr(i).search(lookFor);
+								if (lookI == -1) {
+									v2.push(v.substr(i));
+									break;
+								} else {
+									v2.push(v.substr(i, lookI + 1));
+									v2.push('__ENDSPAN__');
+									i += lookI;
+								}
+								tin = v[i + 1];
+								lookFor = false;
+							} else {
+								if (ti == '"') {
+									lookFor = '"';
+									v2.push('__STR__');
+								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
+									lookFor = /[^0-9\.]/;
+									v2.push('__NUM__');
+								}
+								v2.push(ti);
+							}
+							ti = tin;
+						}
+						v = v2.join('');
+						v = A5.u.html.escape(v);
+						v = v.replace(/(\{|\}|\[|\])/g, '<span class="TFCodeJSONBrackets">$1</span>');
+						v = v.replace(/(,|:)/g, '<span class="TFCodeJSONSep">$1</span>');
+						v = v.replace(/(false|true)([^A-z]|$)/g, '<span class="TFCodeJSONBool">$1</span>$2');
+						v = v.split('__STR__').join('<span class="TFCodeJSONStr">');
+						v = v.split('__NUM__').join('<span class="TFCodeJSONNum">');
+						v = v.split('__ENDSPAN__').join('</span>');
+						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
+					}
+				},
+				'js': {
+					keywords: {
+						caseSensitive: true,
+						values: ['Array', 'Date', 'eval', 'function', 'hasOwnProperty', 'Infinity', 'isFinite', 'isNaN', 'isPrototypeOf', 'length', 'Math', 'NaN', 'Number', 'Object', 'prototype', 'String', 'toString', 'undefined', 'valueOf', 'abstract', 'arguments', 'await', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'double', 'else', 'enum', 'eval', 'export', 'extends', 'false', 'final', 'finally', 'float', 'for', 'function', 'goto', 'if', 'implements', 'import', 'in', 'instanceof', 'int', 'interface', 'let', 'long', 'native', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'short', 'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with', 'yield']
+					},
+					draw: function (v) {
+						var ti = v[0];
+						var tin = '';
+						var lookFor = false;
+						var v2 = [];
+						var lookI = 0;
+						for (var i = 0; i < v.length; i++) {
+							tin = v[i + 1];
+							if (lookFor) {
+								lookI = v.substr(i).search(lookFor);
+								if (lookI == -1) {
+									v2.push(v.substr(i));
+									break;
+								} else {
+									v2.push(v.substr(i, lookI + 1));
+									v2.push('__ENDSPAN__');
+									i += lookI;
+								}
+								tin = v[i + 1];
+								lookFor = false;
+							} else {
+								if (ti == '/' && tin == '/') {
+									lookFor = '\n';
+									v2.push('__COMMENT__');
+								} else if (ti == '/' && tin == '*') {
+									lookFor = '\\*/';
+									v2.push('__COMMENT__');
+								} else if (ti == '\'') {
+									lookFor = '\'';
+									v2.push('__STR__');
+								} else if (ti == '"') {
+									lookFor = '"';
+									v2.push('__STR__');
+								} else if (ti == '`') {
+									lookFor = '`';
+									v2.push('__STR__');
+								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
+									lookFor = /[^0-9\.]/;
+									v2.push('__NUM__');
+								}
+								v2.push(ti);
+							}
+							ti = tin;
+						}
+						v = v2.join('');
+						v = v.replace(/(\{|\}|\[|\]|\(|\)|instanceof|typeof|>>>|!==|===|\*\*=|>>|<<|\|\||&&|<=|>=|!=|==|%=|\/=|\*=|-=|\+=|--|\+\+|\*\*|\^|~|\||&|!|\?|<|>|=|%|\/|\*|-|\+|;|:)/g, '<span class="op">$1</span>');
+						v = v.replace(/(Array|Date|eval|function|hasOwnProperty|Infinity|isFinite|isNaN|isPrototypeOf|length|Math|NaN|Number|Object|prototype|String|toString|undefined|valueOf|abstract|arguments|await|boolean|break|byte|case|catch|char|const|continue|debugger|default|delete|do|double|else|enum|eval|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|let|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|var|void|volatile|while|with|yield)([^A-z]|$)/g, '<span class="keyword">$1</span>$2');
+						v = v.split('__STR__').join('<span class="str">');
+						v = v.split('__NUM__').join('<span class="num">');
+						v = v.split('__COMMENT__').join('<span class="comment">');
+						v = v.split('__ENDSPAN__').join('</span>');
+						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
+					}
+				},
+				'tpl': {
+					keywords: {
+						caseSensitive: false,
+						values: ['IF', 'ELSEIF', 'ELSE', 'ENDIF', 'FOR', 'TO', 'STEP', 'CONTINUE', 'EXITFOR', 'ENDFOR', 'ON', 'ENDON', 'FUNCTION', 'ENDFUNCTION', 'RETURN', 'DEBUGGER'],
+					},
+					draw: function (v) {
+						v = v.split('\n');
+						var t = null;
+						var ti = null;
+						var pti = null;
+						var nti = null;
+						var html = [];
+						var lErr = null;
+						var errors = {};
+						var errorsOn = [];
+						var suf = '';
+						var qRE = /"/g;
+						for (var i = 0; i < v.length; i++) {
+							lErr = null;
+							html.push('<div>');
+							if (v[i] == '') html.push('\n');
+							else if (v[i][0] == '\'') html.push('<span class="tplCode-comment">' + v[i] + '</span>\n');
+							else {
+								t = breakIntoTokens(v[i], 0);
+								pti = null;
+								if (t.length > 0) {
+									ti = t[0];
+									for (var j = 0; j < t.length; j++) {
+										nti = j < t.length - 1 ? t[j + 1] : null;
+										if (nti && nti.type == 'error') {
+											if (ti.type == 'string') html.push('<span class="tplCode-error">"' + A5.u.html.escape(ti.text) + '</span>');
+											else html.push('<span class="tplCode-error">' + A5.u.html.escape(ti.text) + '</span>');
+											lErr = A5.u.html.escape(nti.text.replace(qRE, '\\"'));
+										} else if (ti.type != 'error' && ti.type != 'eol') {
+											if (ti.type == 'spacing') html.push(ti.text);
+											else if (ti.type == 'string') html.push('<span class="tplCode-string">"' + A5.u.html.escape(ti.text.replace(qRE, '\\"')) + '"</span>');
+											else if (ti.type == 'text') {
+												if (this.keywords.values.indexOf(ti.text.toUpperCase()) != -1) html.push('<span class="tplCode-keyword">' + A5.u.html.escape(ti.text) + '</span>');
+												else if (nti && nti.type == 'op' && nti.text == '(') html.push('<span class="tplCode-call">' + A5.u.html.escape(ti.text) + '</span>');
+												else html.push('<span class="tplCode-text">' + A5.u.html.escape(ti.text) + '</span>');
+											} else if (ti.type == 'op') {
+												if (ti.op == 'M') html.push('<span class="tplCode-number">-</span>');
+												else if (ti.op == 'P') html.push('<span class="tplCode-number">+</span>');
+												else html.push('<span class="tplCode-op">' + A5.u.html.escape(ti.op) + '</span>');
+											} else html.push('<span class="tplCode-' + ti.type + '">' + A5.u.html.escape(ti.text) + '</span>');
+										}
+										pti = ti;
+										ti = nti;
+									}
+
+									if (pti.pos < v[i].length) {
+										suf = v[i].substr(pti.pos + (pti.typeof != 'eol' ? pti.text.length : 0));
+										if (suf[0] == '\'') suf = '<span class="tplCode-comment">' + suf + '</span>';
+										else suf = '<span class="tplCode-text">' + suf + '</span>';
+										html.push(suf);
+									}
+								}
+							}
+							html.push('</div>');
+
+							if (lErr) {
+								errorsOn.push(i);
+								errors['line-' + i] = lErr;
+							}
+						}
+						html = html.join('');
+
+						return { html: html, lines: { errors: errors, errorsOn: errorsOn, count: v.length } };
+					}
+				}
+			},
+			Editor: A5.u.object.creator({
+				init: function (id, s) {
+					A5.u.object.assign(s, {
+						lang: '',
+						className: '',
+						size: {
+							font: '15px',
+							line: '20px',
+							tab: '20px',
+							padding: '6px'
+						},
+						margin: {
+							show: true,
+							className: '',
+							line: {
+								base: 1,
+								className: '',
+								errorClassName: ''
+							}
+						},
+						onChange: null,
+						onStateChange: null
+					}, true);
+					A5.u.object.assign(this, s);
+
+					var ele = $(id);
+					var html = [
+						'<div class="' + this.margin.className + '" style="min-width: 40px; line-height: inherit; font-family: inherit; font-size: 12px; overflow: hidden; ' + (!this.margin.show ? 'display: none;' : '') + '"><div class="' + this.margin.line.className + '">' + this.margin.line.base + '</div></div>',
+						'<div style="overflow: auto; flex: 1 1 0%;" onscroll="this.previousSibling.scrollTop = this.scrollTop;">',
+						'<div style="position: relative; min-width: 100%; min-height: 100%; width: fit-content;">',
+						'<div id="' + id + '.COLORIZED" style="white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; padding: 0px ' + this.size.padding + '; box-sizing: border-box;"></div>',
+						'<textarea id="' + id + '.CODE" spellcheck="false" style="position: absolute; top: 0px; left: 0px; bottom: 0px; width: 100%; color: transparent; caret-color: #000; background: transparent; resize: none; padding: 0px ' + this.size.padding + '; border: none; outline: none; white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; box-sizing: border-box;"></textarea>',
+						'&nbsp;',
+						'</div>',
+						'</div>'
+					];
+
+
+					ele.innerHTML = html.join('');
+					ele.className = this.className;
+					A5.u.element.style(ele, '+=position: relative; display: inline-flex; font-family: monospace; font-size: ' + this.size.font + '; line-height: ' + this.size.line + '; tab-size: ' + this.size.tab + '; overflow: hidden;');
+
+					$e.add(id + '.CODE', 'input', function (e, c) {
+						if (c.value == this.value) return false;
+						var cc = tfc_TF.u.code.lang[c.lang];
+						var res = {};
+						if (cc) res = cc.draw(this.value);
+						else {
+							res.html = this.value;
+							res.lines = {
+								errorsOn: [],
+								errors: {},
+								count: res.html.split('\n').length
+							}
+
+							/*
+								var res = cc.parse(value[,start[,end]])
+								res.html = ['<div>....','...']
+								res.errors = [{index: n, text: ''}]
+								res.warnings = [{index: n, text: ''}]
+								res.info = [{index: n, text: ''}]
+							*/
+						}
+
+						this.previousSibling.innerHTML = res.html;
+						var lHTML = [];
+						var lb = c.margin.line.base;
+						for (var i = 0; i < res.lines.count; i++) {
+							if (res.lines.errorsOn.indexOf(i) != -1) lHTML.push('<div class="' + c.margin.line.className + ' ' + c.margin.line.errorClassName + '" title="' + res.lines.errors['line-' + i] + '">' + (i + lb) + '</div>');
+							else lHTML.push('<div class="' + c.margin.line.className + '">' + (i + lb) + '</div>');
+						}
+
+						lHTML.push('<div style="height: 100px;">&nbsp;</div>')
+						lHTML = lHTML.join('');
+						this.parentNode.parentNode.previousSibling.innerHTML = lHTML;
+						c._.state(c, 'dirty', true);
+						c.value = this.value;
+						if (typeof c.onChange == 'function') c.onChange();
+					}, this);
+					$e.add(id + '.CODE', 'keyup', function (e, c) {
+						if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Enter'].indexOf(e.code) != -1) {
+							c._.nav();
+						} else if (e.code[0] == 'K') {
+							c._.sel.start++;
+							c._.sel.end = c._.sel.start;
+							c._.sel.length = 0;
+						}
+					}, this);
+					$e.add(id + '.CODE', 'keydown', function (e, c) {
+						if (e.code == 'Tab') {
+							e.preventDefault();
+							A5.edit.insert(this, '\t');
+						} else if (e.code == 'Enter' && c._.line > 0) {
+							e.preventDefault();
+							var ele = c._.ele;
+							var ws = ele.value.split('\n')[c._.line];
+							var txt = ws.replace(/^[\s]+/, '');
+							ws = ws.substr(0, ws.length - txt.length)
+							A5.edit.insert(this, '\n' + ws);
+
+						}
+					}, this);
+					$e.add(id + '.CODE', A5.d.evnts.click, function (e, c) { c._.nav(); }, this);
+
+					this.state = {
+						isDirty: false
+					}
+					this._ = {
+						id: id,
+						ele: $(id + '.CODE'),
+						sel: null,
+						line: -1,
+						col: -1,
+						state: function (c, t, v) {
+							if (t == 'dirty') {
+								if (c.state.isDirty != v) {
+									c.state.isDirty = v;
+									if (typeof c.onStateChange == 'function') c.onStateChange(t, v);
+								}
+							}
+						},
+						nav: function () {
+							var ele = this.ele;
+							var sel = A5.edit.getSelection(ele);
+							var lns = ele.value.substr(0, sel.end).split('\n');
+							this.line = lns.length - 1;
+							this.col = lns[lns.length - 1].length;
+							this.sel = sel;
+						}
+					}
+				},
+				setValue: function (v) {
+					var ele = this._.ele;
+					A5.edit.setSelection(ele, 0, ele.value.length);
+					A5.edit.insert(ele, v);
+					$e.execute(ele, 'input');
+					this._.state(this, 'dirty', false);
+					if (typeof this.onChange == 'function') this.onChange();
+				},
+				setDirty: function (v) { this._.state(this, 'dirty', v); }
+			}),
+			editors: {
+				json: {
+					_: { h: null },
+					edit: function (d, h) {
+						if (!this._.je) {
+							var ele = document.createElement('div');
+							ele.id = 'TF.JSON.EDIT';
+							A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 10;');
+							ele.className = '';
+							ele.innerHTML = [
+								'<div class="window" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column;">',
+								'<div class="TFDockHeader" style="display: flex; flex-direction: row;">',
+								'<div style="flex: 1 1 auto;">',
+								A5.buttons.html('TF.JSON.EDIT.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }),
+								A5.buttons.html('TF.JSON.EDIT.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }),
+								'</div>',
+								'<div>',
+								A5.buttons.html('TF.JSON.EDIT.SAVE', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
+								A5.buttons.html('TF.JSON.EDIT.CANCEL', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
+								'</div>',
+								'</div>',
+								'<div id="TF.JSON.EDIT.EDITOR" style="flex: 1 1 auto"></div>',
+								'</div>'
+							].join('');
+							document.body.appendChild(ele);
+
+							$e.add('TF.JSON.EDIT.CANCEL', 'click', function () {
+								tfc_TF.u.code.editors.json._.ele.style.display = 'none';
+								tfc_TF.u.code.editors.json._.h = null;
+							});
+							$e.add('TF.JSON.EDIT.SAVE', 'click', function () {
+								var json = tfc_TF.u.code.editors.json._.je.value;
+								var res = tfc_TF.u.code.lang.json.validate(json);
+								if (res !== true) {
+									tfc_TF.u.message.show('confirm', 'Error', res.message);
+								} else {
+									var d = JSON.parse(json);
+									var h = tfc_TF.u.code.editors.json._.h;
+									if (typeof h == 'function') h(d);
+									else if (typeof h == 'object' && typeof h.populate == 'function') h.populate(d);
+									tfc_TF.u.code.editors.json._.ele.style.display = 'none';
+									tfc_TF.u.code.editors.json._.h = null;
+								}
+							});
+							$e.add('TF.JSON.EDIT.VALIDATE', 'click', function (e) {
+								var json = tfc_TF.u.code.editors.json._.je.value;
+								var res = tfc_TF.u.code.lang.json.validate(json);
+								if (res !== true) {
+									tfc_TF.u.message.show('confirm', 'Error', res.message);
+								}
+							});
+							$e.add('TF.JSON.EDIT.REFORMAT', 'click', function (e) {
+								var json = tfc_TF.u.code.editors.json._.je.value;
+								json = tfc_TF.u.code.lang.json.reformat(json);
+								tfc_TF.u.code.editors.json._.je.setValue(json);
+							});
+
+							var je = new tfc_TF.u.code.Editor('TF.JSON.EDIT.EDITOR', {
+								lang: 'json',
+								className: 'TFCodeEditor',
+								margin: {
+									show: true,
+									className: 'TFCodeEditorMargin'
+								},
+								onStateChange: function (t, v) {
+									if (t == 'dirty') {
+
+									}
+								}
+							});
+							this._.ele = ele;
+							this._.je = je;
+						}
+						var json = JSON.stringify(d, '', '\t');
+						this._.je.setValue(json);
+						this._.h = h;
+						this._.ele.style.display = 'flex';
+					}
+				}
+			}
+		},
+		docks: {
+			tabs: {
+				html: function (idp, tabs, tab) {
+					var html = [];
+					if (!this.buttons) {
+						this.icons = {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {fill: #ff9000; width: 7px; height: 7px;}')
+						}
+						this.buttons = {
+							save: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
+							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						}
+					}
+
+					var hasGroup = false;
+					var ti = null;
+					var tk = null;
+					var ta = null;
+					var count = 0;
+					for (var i = 0; i < tabs.length; i++) {
+						ti = tabs[i];
+						if (Array.isArray(ti.items)) {
+							hasGroup = true;
+							html.push('<div class="TFDockTabGroup"' + (typeof ti.color == 'string' ? ' style="background: ' + ti.color + ';"' : '') + '>');
+							html.push('<div>' + ti.title + '</div>');
+							html.push('<div>');
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (tab == tk.value) ta = tk;
+								this.tabHTML(idp, count, tk, tab, html);
+								count++;
+							}
+							html.push('</div>');
+							html.push('</div>');
+						} else {
+							if (tab == ti.value) ta = ti;
+							html.push('<div class="TFDockTabSingle">');
+							this.tabHTML(idp, count, ti, tab, html);
+							html.push('</div>');
+						}
+						count++;
+					}
+					html.push('<div class="TFDockTabEnd">');
+					html.push('<div></div>');
+					html.push('<div>');
+					if (ta && ta.dirty) {
+						html.push('<div class="TFDockTabActions">');
+						html.push('<div id="' + idp + '.TAB.COMMIT" a5-item="tab-action:commit" onmouseenter="TF.u.flyout.show(this,\'Save changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.save + '</div>');
+						html.push('<div id="' + idp + '.TAB.CANCEL" a5-item="tab-action:cancel" onmouseenter="TF.u.flyout.show(this,\'Discard changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.cancel + '</div>');
+						html.push('</div>');
+					}
+					html.push('</div>');
+					html.push('</div>');
+
+					if (hasGroup) html.unshift('<div class="TFDockTabs TFDockTabsGroups">');
+					else html.unshift('<div class="TFDockTabs">');
+
+					html.push('</div>');
+					return html.join('');
+				},
+				tabHTML: function (idp, i, ti, tab, html) {
+					html.push('<div id="' + idp + '.TAB.' + i + '" a5-item="tab:' + ti.value + '" class="TFDockTab' + (tab == ti.value ? ' TFDockTabSelected' : '') + '">' + ti.html + (ti.dirty ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + this.icons.dirty + '</div>' : '') + '</div>');
+				},
+				setTabDirty: function (t, v) {
+					var ti, tk = null;
+					for (var i = 0; i < this.data.tabs.length; i++) {
+						ti = this.data.tabs[i];
+						if (Array.isArray(ti.items)) {
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (t == tk.value) {
+									tk.dirty = v;
+									this.refresh();
+									return true;
+								}
+							}
+						} else if (t == ti.value) {
+							ti.dirty = v;
+							this.refresh();
+							return true;
+						}
+
+					}
+					return false;
+				},
+				getTab: function (t) {
+					var ti, tk = null;
+					if (typeof t == 'undefined') t = this.data.tab;
+					for (var i = 0; i < this.data.tabs.length; i++) {
+						ti = this.data.tabs[i];
+						if (Array.isArray(ti.items)) {
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (t == tk.value) {
+									return tk;
+								}
+							}
+						} else if (t == ti.value) return ti;
+					}
+					return false;
+				},
+				items: {
+					'tab': {
+						selectable: false,
+						onClick: function (v, ia) {
+							var otv = this.data.tab;
+							var ntv = ia;
+							if (otv == ntv) return false;
+							var ot, nt, ti, tk = null;
+							for (var i = 0; i < this.data.tabs.length; i++) {
+								ti = this.data.tabs[i];
+								if (Array.isArray(ti.items)) {
+									for (var k = 0; k < ti.items.length; k++) {
+										tk = ti.items[k];
+										if (tk.value == otv) ot = tk;
+										else if (tk.value == ntv) nt = tk;
+									}
+								} else {
+									if (ti.value == otv) ot = ti;
+									else if (ti.value == ntv) nt = ti;
+								}
+							}
+							var res = true;
+							if (ot && typeof ot.onBeforeHide == 'function') var res = ot.onBeforeHide();
+							if (res) {
+								if (nt && typeof nt.onShow == 'function') nt.onShow();
+								if (ot && typeof ot.onHide == 'function') var res = ot.onHide();
+								this.data.tab = ntv;
+								tfc_TF._.act('navigate', { context: this.context, target: ntv });
+								this.refresh();
+							}
+						}
+					},
+					'tab-action': {
+						selectable: false,
+						onClick: function (v, ia) {
+							tfc_TF.u.flyout.hide();
+							var tv = this.data.tab;
+							var t, ti, tk = null;
+							for (var i = 0; i < this.data.tabs.length; i++) {
+								ti = this.data.tabs[i];
+
+								if (Array.isArray(ti.items)) {
+									for (var k = 0; k < ti.items.length; k++) {
+										tk = ti.items[k];
+										if (tk.value == tv) {
+											t = tk;
+											break;
+										}
+									}
+								} else {
+									if (ti.value == tv) {
+										t = ti;
+										break;
+									}
+								}
+							}
+							if (t) {
+								if (typeof t.action == 'function') t.action(ia, false);
+							}
+						}
+					}
+				}
+			}
+		},
+		panels: {
+			lockable: function (p) {
+				var id = p.getPanelId();
+				var ele = $(id);
+				var lEle = document.createElement('div');
+				lEle.id = id + '.LOCK';
+				lEle.className = 'TFWorkingMessageOverlay';
+				lEle.innerHTML = '<div class="TFWorkingMessage"></div>';
+				lEle.style.display = 'none';
+				ele.appendChild(lEle);
+
+				p.lock = function (m) {
+					var lEle = $(this.contId + '.LOCK');
+					var mEle = lEle.children[0]
+					if (arguments[1]) A5.u.element.cls(mEle, '+=TFWorkingMessageNoInd');
+					else A5.u.element.cls(mEle, '-=TFWorkingMessageNoInd');
+					mEle.innerHTML = m;
+					lEle.style.display = '';
+				}
+				p.unlock = function (m) {
+					var lEle = $(this.contId + '.LOCK');
+					lEle.style.display = 'none';
+				}
+			}
+		},
+		flyout: {
+			_: {
+				t: false,
+				id: '',
+				hide: function (id) {
+					if (id != this.id) this.t.hide();
+				}
+			},
+			/*
+				show a flyout message
+					e = element to flyout from
+					m = message 
+			*/
+			show: function (e, m, s) {
+				var id = Date.now().toString(36);
+				if (!this._.t) {
+					this._.t = new A5.Transient({
+						theme: 'Alpha',
+						content: { type: 'html', html: '' },
+						layout: 'v',
+						layouts: {
+							v: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-center'],
+								behavior: { type: 'modeless' }
+							},
+							vl: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-left'],
+								behavior: { type: 'modeless' }
+							},
+							vr: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-right'],
+								behavior: { type: 'modeless' }
+							},
+							h: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['flyout-top'],
+								behavior: { type: 'modeless' }
+							}
+						}
+					});
+					var tEle = this._.t.getElement()
+					tEle.style.zIndex = '1000';
+					tEle.style.pointerEvents = 'none'
+				}
+				if (typeof s.direction == 'string') {
+					var l = 'v';
+					if (s.direction[0] == 'h') l = 'h';
+					else if (s.direction == 'vertical-left') l = 'vl';
+					else if (s.direction == 'vertical-right') l = 'vr';
+
+					if (this._.t.layout != l) this._.t.setLayout(l);
+				}
+				var cEle = this._.t.getElement('content');
+				cEle.innerHTML = m;
+				this._.id = id;
+				this._.t.show(e);
+				return id;
+			},
+			hide: function () {
+				var hide = true;
+				if (typeof arguments[0] == 'string' && arguments[0] != this._.id) hide = false;
+				if (hide) this._.t.hide();
+
+			},
+			/*
+				show a flyout message
+					id = flyout message instance ID
+					m = message html
+			*/
+			update: function (id, m) {
+				if (id == this._.id) {
+					var cEle = this._.t.getElement('content');
+					cEle.innerHTML = m;
+				}
+			}
+		},
+
+		message: {
+			_: {
+				ele: null
+			},
+			show: function (t, mt, m, s) {
+				if (typeof s == 'undefined') s = {};
+				if (!this._.ele) {
+					var ele = document.createElement('div');
+					ele.id = 'TF.MSG';
+					A5.u.element.style(ele, 'display: none; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 50;');
+					ele.className = 'TFMsg';
+					ele.innerHTML = '<div id="TF.MSG.CONTENT" class="TFMsgPanel"></div>';
+					document.body.appendChild(ele);
+					this._.ele = ele;
+
+					var vb = new A5.ViewBox('TF.MSG.CONTENT', [], {
+						captureFocus: false,
+						buttons: {
+							confirm: A5.buttons.html('TF.MSG.B.[[[i]]].CONFIRM', {
+								theme: tfc_TF.theme + ':confirm',
+								html: '[[[text]]]'
+							}, 'a5-item=button:confirm|[[[i]]]'),
+							deny: A5.buttons.html('TF.MSG.B.[[[i]]].DENY', {
+								theme: tfc_TF.theme + ':deny',
+								html: '[[[text]]]'
+							}, 'a5-item=button:deny|[[[i]]]'),
+							cancel: A5.buttons.html('TF.MSG.B.[[[i]]].CANCEL', {
+								theme: tfc_TF.theme + ':subtle',
+								html: '[[[text]]]'
+							}, 'a5-item=button:cancel|[[[i]]]')
+						},
+						icons: {
+							defaults: {
+								'confirm': 'info',
+								'confirm-deny': 'question',
+								'confirm-cancel': 'question',
+								'choice': 'question',
+								'choice-deny': 'question',
+								'choice-cancel': 'question',
+								'prompt': 'question',
+								'prompt-cancel': 'question',
+								'deny-cancel': 'warning',
+								'confirm-deny-cancel': 'warning'
+							},
+							q: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{width: 32px; height: 32px;}'),
+							e: A5.u.icon.html('svgIcon=#alpha-icon-exclamationTriangle:icon{width: 32px; height: 32px;}'),
+							i: A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}')
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									var di, dit, opk = null;
+									var html = [];
+									for (var i = 0; i < d.length; i++) {
+										di = d[i]
+										html.push('<div class="TFMsgItem">');
+										html.push('<div>');
+										html.push('<div>');
+										if (di.type == 'wait' || di.type == 'wait-cancel') {
+											html.push('<div class="TFMsgItemWait"></div>');
+										} else {
+											var icon = di.settings.icon || (typeof this.icons.defaults[di.type] == 'string' ? this.icons.defaults[di.type] : 'info');
+											if (icon == 'question') html.push(this.icons.q);
+											else if (icon == 'warning') html.push(this.icons.e);
+											else if (icon != 'info') html.push(A5.u.icon.html(icon));
+											else html.push(this.icons.i);
+										}
+										html.push('</div>');
+										html.push('<div style="flex: 1 1 auto;">');
+										if (di.title) {
+											html.push('<div class="TFMsgItemTitle">');
+											html.push(di.title);
+											html.push('</div>');
+										}
+										if (di.msg) {
+											html.push('<div class="TFMsgItemMsg">');
+											html.push(di.msg);
+											html.push('</div>');
+										}
+										html.push('</div>');
+										html.push('</div>');
+										if (di.type == 'confirm' || di.type == 'confirm-deny' || di.type == 'confirm-cancel' || di.type == 'deny-cancel' || di.type == 'confirm-deny-cancel' || di.type == 'wait-cancel') {
+											dit = di.settings.text;
+											html.push('<div class="TFMsgItemButtons">');
+											if (di.type == 'confirm') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+											} else if (di.type == 'confirm-deny') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+											} else if (di.type == 'confirm-cancel') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'deny-cancel') {
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'confirm-deny-cancel') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'wait-cancel') {
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											}
+											html.push('</div>');
+										} else if (di.type == 'choice' || di.type == 'choice-deny' || di.type == 'choice-cancel') {
+											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
+
+											for (var k = 0; k < di.settings.options.length; k++) {
+												opk = di.settings.options[k];
+												html.push(A5.buttons.html('TF.MSG.B.' + i + '.OPTION.' + k, {
+													theme: tfc_TF.theme + ':confirm',
+													html: (typeof opk == 'string' ? opk : opk.html)
+												}, 'a5-item=button:choose|' + i + '|' + k));
+											}
+											dit = di.settings.text;
+											if (di.type == 'choice-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											else if (di.type == 'choice-deny') html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+											html.push('</div>');
+										} else if (di.type == 'prompt' || di.type == 'prompt-cancel') {
+											html.push('<div class="TFMsgItemEdit">');
+											if (Array.isArray(di.settings.value)) {
+												for (var k = 0; k < di.settings.value.length; k++) {
+													html.push('<input class="editPrimary' + (di.error[k] ? ' editError' : '') + '" value="' + di.settings.value[k] + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value[' + k + '] = this.value;" placeholder="' + di.settings.placeholder[k] + '">');
+													if (di.error[k]) html.push('<div class="TFMsgItemEditError">' + di.error[k] + '</div>');
+												}
+											} else {
+												html.push('<input class="editPrimary' + (di.error ? ' editError' : '') + '" value="' + di.settings.value + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value = this.value;" placeholder="' + di.settings.placeholder + '">');
+												if (di.error) html.push('<div class="TFMsgItemEditError">' + di.error + '</div>');
+											}
+											html.push('</div>');
+											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
+											dit = di.settings.text;
+											html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+											if (di.type == 'prompt-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											html.push('</div>');
+										}
+										html.push('</div>');
+									}
+									return html.join('');
+								}
+							}
+						},
+						items: {
+							'button': {
+								selectable: false,
+								onClick: function (v, ia) {
+									ia = ia.split('|');
+									var di = this.data[ia[1]];
+									if (typeof di.settings.action == 'function') {
+										if (ia[0] == 'choose') {
+											var o = di.settings.options[ia[2]];
+											if (o) di.settings.action((typeof o == 'string' ? o : o.value));
+										} else if (di.type.indexOf('prompt') == 0) {
+											var res = di.settings.action(ia[0], di.settings.value);
+											if (A5.u.typeOf(res) == 'object') {
+												di.error = res.error;
+												this.refresh();
+												return false;
+											}
+										} else di.settings.action(ia[0]);
+									}
+									tfc_TF.u.message.hide(di.id, false);
+								}
+							}
+						}
+					});
+					this._.vb = vb;
+				} else {
+					var ele = this._.ele;
+					var vb = this._.vb;
+				}
+
+				var d = vb.data;
+
+				if (t.indexOf('deny') != -1) {
+					A5.u.object.assign(s, {
+						text: { confirm: 'Yes', deny: 'No', cancel: 'Cancel' }
+					}, true);
+				} else {
+					A5.u.object.assign(s, {
+						text: { confirm: 'OK', deny: 'No', cancel: 'Cancel' }
+					}, true);
+				}
+
+				if (t.indexOf('prompt') == 0) {
+					A5.u.object.assign(s, {
+						value: '',
+						placeholder: ''
+					}, true);
+				}
+				var di = {
+					id: (typeof s.id == 'string' ? s.id : 'pid:' + Date.now()),
+					type: t,
+					title: mt,
+					msg: m,
+					error: false,
+					settings: (A5.u.typeOf(s) == 'object' ? s : {})
+				}
+				var res = di.id;
+
+				if (typeof s.duration == 'number') setTimeout(function () { tfc_TF.u.message.hide(res); }, s.duration);
+
+				d.push(di);
+				ele.style.display = '';
+				if (d.length == 1) {
+					A5.u.element.transition(ele.children[0], {
+						from: { transform: 'translateY(-110%)' },
+						to: { transform: 'translateY(0px)' },
+						duration: 200
+					});
+				}
+				vb.refresh();
+				return res;
+			},
+			update: function (id, mt, m) {
+				var vb = this._.vb;
+				var d = vb.data;
+				var di = null;
+				for (var i = d.length - 1; i >= 0; i--) {
+					di = d[i];
+					if (di.id == id) {
+						if (typeof mt == 'string') di.title = mt;
+						if (typeof m == 'string') di.msg = m;
+						vb.refresh();
+						break;
+					}
+				}
+			},
+			hide: function (id) {
+				var ele = this._.ele;
+				var vb = this._.vb;
+				var d = vb.data;
+				var di = null;
+				var fa = typeof arguments[1] == 'boolean' ? arguments[1] : true;
+				for (var i = d.length - 1; i >= 0; i--) {
+					di = d[i];
+					if (di.id == id) {
+						if (typeof di.settings.action == 'function' && fa) di.settings.action('hide');
+						d.splice(i, 1);
+						break;
+					}
+				}
+				if (d.length == 0) {
+					A5.u.element.transition(ele.children[0], {
+						from: { transform: 'translateY(0px)' },
+						to: { transform: 'translateY(-110%)' },
+						duration: 200
+					}, function () {
+						if (tfc_TF.u.message._.vb.data.length == 0) this.parentNode.style.display = 'none';
+					}
+					);
+				} else vb.refresh();
+			}
+		},
+
+		filler: {
+			_: {
+				ele: null,
+				iEle: null,
+				dirty: false,
+				route: {
+					m: false,
+					q: false,
+					default: null,
+					current: null,
+					tip: function (ele, show) {
+						if (show) {
+							var m = 'Form will not be routed on save.';
+							var c = this.current;
+							if (c) {
+								if (c.indexOf('queue:') == 0) {
+									c = c.split(':');
+									c.shift();
+									c.pop();
+									var q = this.q ? this.q.src : false;
+									if (q) {
+										var cq = '';
+										for (var i = 0; i < c.length; i++) {
+											cq = c[i];
+											for (var k = 0; k < q.length; k++) {
+												if (q[k].queueID == cq) {
+													cq = q[k].name;
+													break;
+												}
+											}
+											c[i] = '"' + cq + '"';
+										}
+									} else {
+										for (var i = 0; i < c.length; i++) c[i] = '"' + c[i] + '"';
+									}
+									m = 'Form will be routed to the ' + c.join(', ') + ' queue' + (c.length > 1 ? 's' : '') + ' on save.';
+								} else m = 'Form will be routed to "' + A5.u.html.escape(c) + '" on save.';
+							}
+							tfc_TF.u.flyout.show(ele, m, { direction: 'vertical' });
+						} else {
+							tfc_TF.u.flyout.hide();
+						}
+					},
+					shown: false,
+					show: function () {
+						var _f = tfc_TF.u.filler._;
+						var _r = _f.route;
+
+						var d = { type: 'none' };
+						var c = _r.current;
+						if (typeof c == 'string') {
+							if (c.indexOf('queue:') == 0) {
+								c = c.split(':');
+								c.shift();
+								c.pop();
+								d.type = 'queue';
+								d.queue = c;
+							} else if (c.trim() != '') {
+								d.type = 'member';
+								d.member = c;
+							}
+						}
+						_r.f.populate(d);
+						_f.rEle.style.display = '';
+						_f.lEle.setAttribute('mode', 'route');
+						_f.lEle.style.display = '';
+						this.shown = true;
+						A5.u.element.transition(_f.rEle, {
+							from: { transform: 'translateY(-100%)' },
+							to: { transform: 'translateY(0%)' }
+						});
+					},
+					hide: function () {
+						if (this.shown) {
+							A5.u.element.transition(tfc_TF.u.filler._.rEle, {
+								from: { transform: 'translateY(0%)' },
+								to: { transform: 'translateY(-100%)' },
+								after: { display: 'none' }
+							}, function () { tfc_TF.u.filler._.lEle.style.display = 'none'; });
+							this.shown = false;
+						}
+					},
+					set: function () {
+						var _f = tfc_TF.u.filler._;
+						var p = _f.route.current;
+						if (!p) p = tfc_TF.state.login.user.id;
+						_f.iEle.contentWindow.postMessage({ cmd: 'setPersonFiller', person: p }, "*");
+					}
+				},
+				jwtMsg: function (args) {
+					var l = tfc_TF.state.login;
+					var d = l.expires;
+					var e = String(Number(d) / 1000);
+					var p = JSON.stringify(l.account.permissions);
+					var res = {
+						cmd: 'setJWTFromParent',
+						efobj: {
+							JWTname: l.user.id,
+							JWTuserToken: l.token,
+							JWTexpiration: e,
+							JWTdisplayName: l.user.name,
+							JWTaccount: l.account.id,
+							JWTrole: l.account.member.roles.join(','),
+							JWTpermissions: p,
+							EFJWTname: l.user.id,
+							EFJWTuserToken: l.token,
+							EFJWTexpiration: e,
+							EFJWTdisplayName: l.user.name,
+							EFJWTaccount: l.account.id,
+							EFJWTrole: l.account.member.roles.join(','),
+							EFJWTpermissions: p,
+
+						}
+					}
+					if (typeof args == 'string' && args.trim() != '') res.efobj.JWToverridesearchparams = args;
+					return res;
+				},
+				msg: function (event) {
+					var msg = event.data;
+					if (typeof msg != 'object') msg = {};
+					if (event.origin != location.origin) return; // 2023-11-15 DSB let go to some other handler
+					var f = tfc_TF.u.filler;
+					var ele = f._.iEle;
+					if (!ele || event.source != ele.contentWindow) return; // 2023-11-15 DSB let go to some other handler
+					switch (msg.cmd) {
+						case 'fillerCentralDoneLogout':
+							//console.log('Got quicklink embed logout. Should not.');
+							break;
+						case 'fillerCentralGetParentJWT':
+							ele.contentWindow.postMessage(f._.jwtMsg(), "*");
+							break;
+						case 'fillerCentralLoggedInEditForm':
+							//console.log('Quicklink embed LoggedInEditForm.');
+							setTimeout(function () {
+								tfc_TF.u.filler._.lEle.style.display = 'none';
+							}, 600);
+							if (f._.route.current) f._.route.set();
+							break;
+						case 'fillerCentralUpdateDirtyValue':
+							f._.dirty = msg.isDirty;
+							f._.setState();
+							//console.log("Quicklink embed message: "+(msg.isDirty ? "Is dirty" : "Is not dirty."));
+							break;
+
+						case 'fillerCentralAfterSyncWithErrors':
+							//console.log('Got AfterSyncWithErrors. Updated:'+msg.updated+", inserted:"+msg.inserted);
+							//console.log(JSON.stringify(msg.errors));
+							break;
+
+						case 'fillerCentralAfterSuccessfulSync':
+							//console.log('Got AfterSuccessfulSync. Updated:'+msg.updated+", inserted:"+msg.inserted);
+							if (typeof f._.s.onCommit == 'function') f._.s.onCommit(f._.m, f._.id, f._.s);
+							f._.ele.style.display = 'none';
+							f._.route.hide();
+							break;
+
+						case 'ignore':
+							break;
+
+						default:
+					}
+				},
+				setState: function () {
+					var bEle = $('TF.FILLER.COMMIT');
+					if (this.dirty) {
+						bEle.disabled = false;
+						A5.u.element.cls(bEle, '-=buttonDisabled');
+					} else {
+						bEle.disabled = true;
+						A5.u.element.cls(bEle, '+=buttonDisabled');
+					}
+					if (this.route.current) {
+						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeOn:icon');
+						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Routed';
+					} else {
+						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeEnd:icon');
+						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Not Routed';
+					}
+				},
+				cancel: function () {
+					tfc_TF._.act('filler', { action: 'cancel', mode: this.m, id: this.id });
+					this.iEle.contentWindow.postMessage({ cmd: 'cancelFiller' }, "*");
+					this.ele.style.display = 'none';
+					this.route.hide();
+				}
+			},
+
+			start: function (m, id, s) { // mode, formId / formInstId
+				if (this._.ele == null) {
+					var ele = document.createElement('div');
+					ele.id = 'TF.FILLER';
+					A5.u.element.style(ele, 'display: none; z-index: 49;');
+					ele.className = 'TFModal';
+					var html = [
+						'<div id="TF.FILLER.CONTENT" class="TFModalPanel TFFillerPanel">',
+						'<div class="TFModalPanelHeader">',
+						'<div id="TF.FILLER.TITLE">',
+						'Filler',
+						'</div>',
+						'<div>',
+						A5.buttons.html('TF.FILLER.ROUTE', { theme: tfc_TF.theme + ':subtle', html: A5.u.icon.html('svgIcon=#alpha-icon-routeEnd:icon', 'id="TF.FILLER.ROUTE.ICON"') + ' <span id="TF.FILLER.ROUTE.TEXT">Route</span>' }),
+						A5.buttons.html('TF.FILLER.COMMIT', { theme: tfc_TF.theme + ':confirm', html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
+						A5.buttons.html('TF.FILLER.CANCEL', { theme: tfc_TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }),
+						'</div>',
+						'</div>',
+						'<div style="position: relative; overflow: hidden;">',
+						'<div id="TF.FILLER.IFRAME.LOCK" mode="loading" style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px;" onclick="if(this.getAttribute(\'mode\') == \'route\') TF.u.filler._.route.hide();"></div>',
+						'<div id="TF.FILLER.ROUTE.PANEL" class="TFFillerRoutePanel" style="display: none; position: absolute; top: 0px; right: 0px; width: 320px; max-height: 100%;">',
+						'<div id="TF.FILLER.ROUTE.FORM" class="TFForm"></div>',
+						'</div>',
+						'<iframe id="TF.FILLER.IFRAME" src="" border="0" style="width: 100%; height: 100%;" />',
+						'</div>',
+						'</div>'
+					];
+					ele.innerHTML = html.join('');
+					document.body.appendChild(ele);
+
+					$e.add('TF.FILLER.COMMIT', 'click', function () { tfc_TF.u.filler.commit(); });
+					$e.add('TF.FILLER.CANCEL', 'click', function () { tfc_TF.u.filler.cancel(); });
+					$e.add('TF.FILLER.ROUTE', 'click', function () {
+						var r = tfc_TF.u.filler._.route;
+						if (r.shown) r.hide();
+						else {
+							tfc_TF.u.flyout.hide();
+							r.show();
+						}
+					});
+					$e.add('TF.FILLER.ROUTE', 'mouseenter', function () { tfc_TF.u.filler._.route.tip(this, true); });
+					$e.add('TF.FILLER.ROUTE', 'mouseleave', function () { tfc_TF.u.filler._.route.tip(this, false); });
+
+					this._.route.f = new A5.FormBox('TF.FILLER.ROUTE.FORM', {
+						form: {
+							items: [
+								{
+									type: 'button-list',
+									layout: 'tf-label-above',
+									data: { from: 'type' },
+									label: { text: 'Route to' },
+									control: {
+										style: 'display: flex; flex-direction: row;',
+										allowNullSelection: false,
+										data: {
+											src: [
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-docCheckSolid:icon') + ' Myself', value: 'none', style: 'flex: 1 1 0%;' },
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-personInSolid:icon') + ' Member', value: 'member', style: 'flex: 1 1 0%;' },
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-trayFull:icon') + ' Queue', value: 'queue', style: 'flex: 1 1 0%;' }
+											]
+										}
+									}
+								},
+								{
+									type: 'edit-picker',
+									show: function (d) { return d.form.data.type == 'member' },
+									data: { from: 'member' },
+									container: { className: 'TFFormItem' },
+									control: {
+										width: '100%',
+										behavior: { show: { mode: 'change' } },
+										picker: {
+											type: 'list',
+											data: { filter: 'contains' }
+										},
+										buttons: {
+											after: [{
+												html: A5.u.icon.html('svgIcon=#alpha-icon-refresh:icon'),
+												click: function () { tfc_TF.u.filler._.route.m = false; }
+											}]
+										},
+										data: {
+											src: function () {
+												if (tfc_TF.u.filler._.route.m) return tfc_TF.u.filler._.route.m;
+												else {
+													tfc_TF.request('get-members', { manage: false }).then(function (d) {
+														var ld = [];
+														var di = null
+														for (var i = 0; i < d.members.length; i++) {
+															di = d.members[i];
+															ld.push({
+																html: '<div class="listItemPartMain">' + di.name + '</div><div class="listItemPartSub">' + di.userId + '</div>',
+																value: di.userId
+															});
+														}
+														tfc_TF.u.filler._.route.m = { src: ld };
+														tfc_TF.u.filler._.route.f.ctrls.picker.update('data', ld);
+													}).catch(function () {
+														tfc_TF.u.filler._.route.f.ctrls.picker.hide();
+													});
+													return null;
+												}
+											}
+										}
+									}
+								},
+								{
+									type: 'group',
+									show: function (d) { return d.form.data.type == 'queue' },
+									items: [
+										{
+											type: 'list',
+											data: { from: 'queue' },
+											container: { className: 'TFFormItem' },
+											control: {
+												width: '100%',
+												style: 'max-height: 200px; overflow: auto;',
+												multiple: true,
+												selectionMode: 'additive',
+												className: 'list TFFillerQueuesList',
+												data: {
+													src: function () {
+														if (tfc_TF.u.filler._.route.q) return tfc_TF.u.filler._.route.q;
+														else {
+															tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+																var qd = A5.u.object.get(d.data, 'queues.listOfQueues');
+																if (!Array.isArray(qd)) qd = [];
+																tfc_TF.u.filler._.route.q = { src: qd };
+																tfc_TF.u.filler._.route.f.refresh();
+															});
+															return null;
+														}
+													}
+												},
+												layout: 'main',
+												layouts: { main: { item: { html: '<div style="display: flex; flex-direction: row; gap: 6px; align-items: center;"><div style="display: inline-block; width: 20px; height: 20px; background: {color}; border: 1px solid #fff; border-radius: 4px;"></div><div>{name}</div></div>', value: 'queueID' } } }
+											}
+										},
+										{
+											type: 'group',
+											container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row;' },
+											items: [
+												{
+													type: 'button',
+													layout: 'tf-simple',
+													container: { style: 'flex: 1 1 auto;' },
+													control: {
+														theme: tfc_TF.theme + ':subtle',
+														html: 'Clear Selection',
+														onClick: function () { this.update('queue', []); }
+													}
+												},
+												{
+													type: 'button',
+													layout: 'tf-simple',
+													control: {
+														theme: tfc_TF.theme + ':subtle',
+														html: 'Refresh Queues List',
+														onClick: function () {
+															tfc_TF.u.filler._.route.q = false;
+															tfc_TF.u.filler._.route.f.refresh();
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									type: 'switch',
+									layout: 'tf-label-flex',
+									data: { from: 'makeDefault' },
+									label: { text: 'Make default route' },
+									control: { width: '50px' }
+								},
+								{
+									type: 'html',
+									show: function (d) { return d.form.data.makeDefault },
+									container: { className: 'TFFormNote' },
+									control: {
+										html: 'When you press "Done", the selected value will be stored, and the next time you fill in a form instance the form will be routed to the same location.'
+									}
+								},
+								{
+									type: 'group',
+									container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row' },
+									items: [
+										{
+											type: 'button',
+											container: { style: 'flex: 1 1 auto;' },
+											control: {
+												html: 'Done',
+												style: 'width: 100%;',
+												onClick: function () {
+													var _f = tfc_TF.u.filler._;
+													var _r = _f.route;
+
+													_r.hide();
+													var d = this.data;
+													if (d.type == 'none') _r.current = null;
+													else if (d.type == 'member') _r.current = d.member;
+													else if (d.type == 'queue') _r.current = 'queue:' + d.queue.join(':') + ':';
+													if (d.makeDefault) _r.default = _r.current;
+													_r.set();
+													_f.setState();
+												}
+											}
+										},
+										{
+											type: 'button',
+											container: { style: 'flex: 1 1 auto;' },
+											control: {
+												html: 'Cancel',
+												theme: tfc_TF.theme + ':subtle',
+												style: 'width: 100%;',
+												onClick: function () {
+													tfc_TF.u.filler._.route.hide();
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}, {}, { theme: tfc_TF.theme, item: { label: { style: '' }, description: { style: '' } } });
+
+					this._.ele = ele;
+					this._.tEle = $('TF.FILLER.TITLE');
+					this._.lEle = $('TF.FILLER.IFRAME.LOCK');
+					this._.iEle = $('TF.FILLER.IFRAME');
+					this._.rEle = $('TF.FILLER.ROUTE.PANEL');
+					window.addEventListener("message", this._.msg, false);
+				}
+				var bEle = $('TF.FILLER.ROUTE');
+				if (tfc_TF.state.login.account.member.ui.allow.manage) bEle.style.display = '';
+				else bEle.style.display = 'none';
+				this._.dirty = false;
+				this._.route.current = this._.route.default;
+				this._.setState();
+
+				if (this._.iEle.src.indexOf('QuickLink.html') != -1) this._.iEle.contentWindow.postMessage(this._.jwtMsg('m=n&a=' + tfc_TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N'), "*");
+				else this._.iEle.src = 'QuickLink.html?m=n&a=' + tfc_TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N';
+				//m=q&a=Account1&q=default3 - get queue
+
+				if (m == 'create') {
+					this._.tEle.innerHTML = 'New Form Instance';
+					this._.lEle.setAttribute('message', 'Creating form...');
+				} else {
+					this._.tEle.innerHTML = 'Edit Form Instance';
+					this._.lEle.setAttribute('message', 'Loading form...');
+				}
+				this._.lEle.setAttribute('mode', 'loading');
+				this._.lEle.style.display = '';
+				this._.ele.style.display = '';
+				this._.m = m;
+				this._.id = id;
+				this._.s = s || {};
+
+				tfc_TF._.act('filler', { action: 'start', mode: m, id: id });
+			},
+
+			commit: function () {
+				this._.iEle.contentWindow.postMessage({ cmd: 'saveFiller' }, "*");
+				tfc_TF._.act('filler', { action: 'commit', mode: this._.m, id: this._.id });
+			},
+			cancel: function () {
+				if (this._.ele) {
+					if (this._.dirty) {
+						tfc_TF.u.message.show('confirm-cancel', 'Discard Form', 'Are you sure you want to discard the current form?', {
+							action: function (a) {
+								if (a == 'confirm') tfc_TF.u.filler._.cancel();
+							}
+						});
+					} else this._.cancel();
+				}
+			}
+		}
+	},
+	forms: {},
+
+	// UI element definitions and helper functions
+	ui: {
+		// top level UI (e.g. the masthead)
+		main: {
+			_: {
+				ux: null,
+				d: {
+					id: null,
+					gotoList: false,
+					ux: null,
+					getIndx: function (id) {
+						var d = this.ux.getControl('REPORTCHOOSERVIEWBOX').data;
+						for (var i = 0; i < d.reports.defs.length; i++) {
+							if (d.reports.defs[i].name == id) {
+								return i;
+								break;
+							}
+						}
+						return null;
+					}
+				},
+				m: {
+					id: null,
+					ux: null
+				},
+				b: {
+					id: null,
+					ux: null
+				},
+				di: {
+					"adv": {
+						"include": function () {
+							return tfc_TF.state.ui.editing.json.forms;
+						},
+						"type": "frame",
+						"container": {
+							"collapse": { "allow": true, "initial": true },
+							"title": { "html": "Advanced" }
+						},
+						"items": [
+							{
+								"layout": "tf-button",
+								"type": "button",
+								"control": {
+									"html": "Edit JSON...",
+									"onClick": function () {
+										tfc_TF.u.code.editors.json.edit(this.data, this);
+									}
+								}
+							}
+						]
+					}
+				}
+			},
+			init: function (ux) {
+				setInterval(function () { ux.getControl('TRANSFORM_MASTHEAD').refresh(); }, 30000);
+				this._.vb = ux.getControl('TRANSFORM_MASTHEAD');
+				this._.p = ux.panelGet('TRANSFORM');
+			},
+			html: function (vb) {
+				var html = [];
+				const iconHome = A5.u.icon.html('svgIcon=#alpha-icon-home:icon');
+				const iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon');
+				const iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon');
+				const iconManage = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
+				const iconApps = A5.u.icon.html('svgIcon=#alpha-icon-appGrid:icon {width: 32px; height: 32px;}');
+
+				const iconNotification = A5.u.icon.html('svgIcon=#alpha-icon-bell:icon {width: 32px; height: 32px;}');
+				const iconDeveloper = A5.u.icon.html('svgIcon=#alpha-icon-docXMLSolid:icon {width: 32px; height: 32px;}');
+				const iconAccount = A5.u.icon.html('svgIcon=#alpha-icon-gear:icon {width: 32px; height: 32px;}');
+				const iconPerson = A5.u.icon.html('svgIcon=#alpha-icon-personSolid:icon {position: absolute; top: 0px; left: 4px; width: 52px; height: 52px;}');
+				const iconHelp = A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon {width: 32px; height: 32px;}');
+				const iconDot = A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}');
+
+
+				const sui = tfc_TF.state.ui;
+				const sl = tfc_TF.state.login;
+
+
+				const tab = sui.tab;
+				const allow = sl.account.member.ui.allow;
+				const dirty = sui.dirty;
+				const dock = sui.dock;
+				const idp = vb.contId + '.';
+
+				html.push('<div class="TFHeadLine"></div>');
+				html.push('<div class="TFHead">');
+				html.push('<div class="TFHeadLogo">');
+				html.push('<img src="TFLogo78x78.png" style="height: 100%;"/>');
+				html.push('</div>');
+				html.push('<div class="TFHeadTabs">');
+				html.push('<div id="' + idp + 'HOME" a5-item="tab:home" class="TFHeadTab TFHeadTabHome' + (tab == 'home' ? ' TFHeadTabSelected' : '') + '">' + iconHome + '<span class="TFHeadTabText">Home</span>&ZeroWidthSpace;</div>');
+				if (allow.dashboard) html.push('<div id="' + idp + 'DASHBOARD" a5-item="tab:dashboard" class="TFHeadTab TFHeadTabDashboard' + (tab == 'dashboard' ? ' TFHeadTabSelected' : '') + '">' + iconDashboard + '<span class="TFHeadTabText">Dashboard</span>&ZeroWidthSpace;' + (dirty.dashboard ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				if (allow.manage) html.push('<div id="' + idp + 'MANAGE" a5-item="tab:manage" class="TFHeadTab TFHeadTabManage' + (tab == 'manage' ? ' TFHeadTabSelected' : '') + '">' + iconManage + '<span class="TFHeadTabText">Manage</span>&ZeroWidthSpace;' + (dirty.manage ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				if (allow.design) html.push('<div id="' + idp + 'DESIGNER" a5-item="tab:designer" class="TFHeadTab TFHeadTabDesign' + (tab == 'designer' ? ' TFHeadTabSelected' : '') + '">' + iconFormDesign + '<span class="TFHeadTabText">Design</span>&ZeroWidthSpace;' + (dirty.designer ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				html.push('</div>');
+				html.push('<div class="TFHeadSettings">');
+				/*	
+				var n = vb.data.notifications;
+				var ii = null;
+				var now = Date.now();
+				for(var i=n.items.length-1;i>=0;i--){
+					ii = n.items[i];
+					if(ii.dismiss && ii.dismiss < now) n.items.splice(i,1);
+				}
+				
+				if(n.items.length > 0){
+					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices<div class="TFHeadButtonNotification">'+iconDot+'</div></div>');
+				} else{
+					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices</div>');
+				}
+				*/
+
+				html.push('<div id="' + idp + 'APPS" a5-item="docks:apps" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'apps' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconApps + '<br/>Apps</div>');
+				if (allow.developer) html.push('<div id="' + idp + 'DEVELOPER" a5-item="docks:developer" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'developer' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconDeveloper + '<br/>Configure</div>');
+				if (allow.account) html.push('<div id="' + idp + 'ACCOUNT" a5-item="docks:account" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'account' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconAccount + '<br/>Account</div>');
+				html.push('</div>');
+
+				html.push('<div a5-item="docks:user" class="TFHeadUser TFHeadButton' + (dock.active && dock.type == 'user' ? ' TFHeadUserActive' : '') + '">');
+				html.push(iconPerson + '<div class="TFHeadUserName">' + sl.user.name + '</div><div class="TFHeadUserAccount">' + sl.account.name + '</div>');
+
+				var lsDelta = (sl.expires - Date.now()) / 60000;
+				var lss = 'Good';
+				if (lsDelta <= 0) lss = 'Expired';
+				else if (lsDelta < 60) lss = 'Expiring';
+				vb.data.expiresStatus = lss.toLowerCase();
+				html.push('<div class="TFHeadLoginStatus' + lss + '" style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>');
+				html.push('</div>');
+				if (tfc_TF.state.ui.help.mode != 'pinned') {
+					html.push('<div id="' + idp + 'HELP" a5-item="help" class="TFHeadHelp TFHeadButton">');
+					html.push(iconHelp + '<br/>Help');
+					html.push('</div>');
+				}
+				html.push('</div>');
+
+
+				return html.join('');
+			},
+			action: function (a, d, f) {
+				var pp = 'TRANSFORM_MAIN_NAV:';
+				var vb = tfc_TF.ui.main._.vb;
+				var pUX = tfc_TF.ui.main._.ux;
+				if (a == 'home') {
+					vb.setTab('home');
+				} else if (a.indexOf('dashboard') == 0) {
+					var _d = tfc_TF.ui.main._.d;
+					var ux = _d.ux;
+					if (ux && !f) {
+						var s = pUX.sendMessageToChild('FORMDASHBOARD', { type: "query", cmd: "uistate" });
+						if (s.busy) {
+							tfc_TF.u.message.show('confirm-deny', 'Dashboard', 'The dashboard is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+								action: function (ba) {
+									if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
+									else tfc_TF.ui.main._.vb.setTab('dashboard');
+								}
+							});
+							return false;
+						}
+					}
+					if (a == 'dashboard') {
+						if (d.id) {
+							if (ux) {
+								var id = _d.getIndx(d.id);
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
+							} else _d.id = d.id;
+							vb.setTab('dashboard');
+						}
+					} else if (a == 'dashboard-create') {
+						tfc_TF.u.message.show('confirm', 'Dashboard', 'Create new dashboard.');
+						vb.setTab('dashboard');
+					} else if (a == 'dashboard-manage') {
+						if (d.id) {
+							if (ux) {
+								var id = _d.getIndx(d.id);
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
+							} else _d.id = d.id;
+							_d.gotoList = true;
+							vb.setTab('dashboard');
+						}
+					}
+				} else if (a == 'manage') {
+					if (d.id) {
+						var _m = tfc_TF.ui.main._.m;
+						var ux = _m.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBROWSER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									tfc_TF.u.message.show('confirm-deny', 'Manager', 'The form manger is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
+											else tfc_TF.ui.main._.vb.setTab('manage');
+										}
+									});
+									return false;
+								}
+							}
+
+							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "resetuistate" });
+							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "loadformtype", formid: d.id });
+						} else _m.id = d.id;
+						vb.setTab('manage');
+					}
+				} else if (a == 'form-design') {
+					if (d.id) {
+						var _b = tfc_TF.ui.main._.b;
+						var ux = _b.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									tfc_TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
+											else tfc_TF.ui.main._.vb.setTab('designer');
+										}
+									});
+									return false;
+								}
+							}
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "loadformtype", formid: d.id });
+						} else {
+							_b.id = d.id;
+							_b.mode = 'edit';
+						}
+						vb.setTab('designer');
+					}
+				} else if (a == 'form-create') {
+					var _b = tfc_TF.ui.main._.b;
+					if (d.create) {
+						var ux = _b.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									tfc_TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
+											else tfc_TF.ui.main._.vb.setTab('designer');
+										}
+									});
+									return false;
+								}
+							}
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
+							if (d.from == 'blank') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: '' });
+							else if (d.from == 'copy') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: d.id });
+							else if (d.from == 'template') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addtemplateformtype" });
+						} else {
+							_b.mode = 'create';
+							_b.from = d.from;
+							_b.id = d.id;
+						}
+						vb.setTab('designer');
+					} else {
+						if (!_b.t) {
+							_b.t = new A5.Transient({
+								theme: tfc_TF.theme,
+								content: {
+									type: 'html',
+									html: ''
+								},
+								layout: 'main',
+								layouts: {
+									'main': {
+										stretch: 'none',
+										animation: { show: { type: 'fade' }, hide: { type: 'fade' } },
+										location: 'flyout-center',
+										offset: { major: 4 }
+									}
+								},
+								onShow: function () {
+									var p = tfc_TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
+									p.lock('', true);
+								},
+								onHide: function () {
+									var p = tfc_TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
+									p.unlock();
+								}
+							});
+							var tEle = _b.t.getElement('top');
+							tEle.style.zIndex = '1000';
+							var id = _b.t.getElement('content').id;
+
+							_b.tVB = new A5.ViewBox(id, { mode: 'main' }, {
+								icons: {
+									ai: A5.u.icon.html('svgIcon=#alpha-icon-ai:icon'),
+									template: A5.u.icon.html('svgIcon=#alpha-icon-folderOpen:icon'),
+									copy: A5.u.icon.html('svgIcon=#alpha-icon-docDuplicate:icon'),
+									blank: A5.u.icon.html('svgIcon=#alpha-icon-docAdd:icon'),
+									children: A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
+								},
+								buttons: {
+									back: A5.buttons.html(id + '.COPY.BACK', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="back"'),
+									cancel: A5.buttons.html(id + '.CANCEL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="cancel"'),
+								},
+								layout: 'main',
+								layouts: {
+									'main': {
+										type: 'static',
+										html: function () {
+											var html = [];
+											var idp = this.contId + '.';
+											var fStyle = ' style="display: flex; flex-direction: row; align-items: center;"';
+											html.push('<div class="TFTileAddMenu" style="display: flex; flex-direction: column;">');
+											var liEvnts = ' onmouseenter="A5.u.element.cls(this,\'+=listItemHover\')" onmouseleave="A5.u.element.cls(this,\'-=listItemHover\')"';
+											if (this.data.mode == 'copy') {
+												html.push('<div class="listItemTitle"' + fStyle + '>');
+												html.push(this.buttons.back);
+												html.push('<div>&nbsp;Select Form Type</div>')
+												html.push('</div>');
+												html.push('<div style="flex: 1 1 0%; overflow: auto;">');
+												var ft = tfc_TF.ui.home._.vb.data.forms.types;
+												var fti = null;
+												for (var i = 0; i < ft.length; i++) {
+													fti = ft[i];
+													html.push('<div id="' + idp + 'COPY.' + i + '" a5-item="create:' + fti.id + '" a5-value="copy" class="listItem"' + liEvnts + '>' + fti.name + '</div>');
+												}
+												html.push('</div>');
+
+											} else {
+
+												html.push('<div>');
+												html.push('<div class="listItemTitle"' + fStyle + '>');
+												html.push(this.buttons.cancel);
+												html.push('<div>&nbsp;Add Form Type</div>')
+												html.push('</div>');
+												if (tfc_TF._.beta()) {
+													html.push('<div id="' + idp + 'AI" a5-item="create" a5-value="ai" class="listItem"' + fStyle + liEvnts + '>' + this.icons.ai + '<div><span class="TFAIFont">AI</span> Form Builder &nbsp;&nbsp;<span class="TFFormItemDescData">BETA</span></div></div>');
+												}
+												html.push('<div id="' + idp + 'TEMPLATE" a5-item="create" a5-value="template" class="listItem"' + fStyle + liEvnts + '>' + this.icons.template + '<div>New from Template</div></div>');
+												html.push('<div id="' + idp + 'BLANK" a5-item="create" a5-value="blank" class="listItem"' + fStyle + liEvnts + '>' + this.icons.blank + '<div>Blank Form Type</div></div>');
+												html.push('<div id="' + idp + 'COPY" a5-item="copy" class="listItem"' + fStyle + liEvnts + '>' + this.icons.copy + '<div style="flex: 1 1 auto;">Copy Existing</div>' + this.icons.children + '</div>');
+												html.push('</div>');
+											}
+											html.push('</div>');
+											return html.join('');
+										}
+									}
+								},
+								items: {
+									'create': {
+										onClick: function (v, ia) {
+											if (v == 'blank') tfc_TF.ui.main.action('form-create', { create: true, from: 'blank' });
+											else if (v == 'template') tfc_TF.ui.main.action('form-create', { create: true, from: 'template' });
+											else if (v == 'copy') tfc_TF.ui.main.action('form-create', { create: true, from: 'copy', id: ia });
+											else if (v == 'ai') tfc_TF.ui.ai.form.start();
+											tfc_TF.ui.main._.b.t.hide();
+
+										}
+									},
+									'copy': {
+										onClick: function () {
+											this.data.mode = 'copy';
+											this.refresh();
+											tfc_TF.ui.main._.b.t.refresh();
+										}
+									},
+									'back': {
+										onClick: function () {
+											this.data.mode = 'main';
+											this.refresh();
+											tfc_TF.ui.main._.b.t.refresh();
+										}
+									},
+									'cancel': {
+										onClick: function () {
+											tfc_TF.ui.main._.b.t.hide();
+										}
+									}
+								}
+							});
+
+						}
+						_b.tVB.populate({ mode: 'main' });
+						_b.t.show(tfc_TF.ui.home._.vb.contId + '.FORMS.CREATE');
+					}
+				} else if (a == 'form-fill') {
+					tfc_TF.u.filler.start('create', d.id, {
+						onCommit: function (m, id, s) {
+							if (m == 'create') {
+								var vb = tfc_TF.ui.home._.vb;
+								var indx = -1;
+								var ft = vb.data.forms.types;
+								for (var i = 0; i < ft.length; i++) {
+									if (ft[i].id == id) {
+										indx = i;
+										break;
+									}
+								}
+								if (indx != -1) {
+									var ele = $(vb.contId + '.FORMS.' + indx + '.COUNT');
+									var count = String(ele.innerText).toNumber() + 1 || 1;
+									if (count > 99) count = '99+';
+									ele.innerText = count;
+									vb.badgeUpdated(vb.contId + '.FORMS.' + indx + '.COUNT', 1);
+								}
+							}
+						}
+					});
+				}
+				return true;
+			}
+		},
+		// AI
+		ai: {
+			form: {
+				_: { ele: false },
+				start: function () {
+					if (!this._.ele) {
+						var ele = document.createElement('div');
+						ele.id = 'TF.AI.FORM';
+						ele.className = 'TFModal';
+						A5.u.element.style(ele, 'display: none; z-index: 49;');
+						ele.innerHTML = [
+							'<div class="TFModalPanel" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;">',
+							'<div class="TFModalPanelHeader">',
+							'<div style="flex: 1 1 auto;"><span class="TFAIFont">AI</span> Form Builder</div>',
+							A5.buttons.html('TF.AI.FORM.SAVE', { theme: tfc_TF.theme, html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
+							A5.buttons.html('TF.AI.FORM.CLOSE', { theme: tfc_TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }, 'onclick="this.parentNode.parentNode.parentNode.style.display = \'none\';"'),
+							'</div>',
+							'<div id="TF.AI.FORM.BUILDER" style="flex: 1 1 auto"></div>',
+							'</div>'
+						].join('');
+						document.body.appendChild(ele);
+						this._.ele = ele;
+
+						A5.component.runGenericComponent({
+							dialog2Div: 'TF.AI.FORM.BUILDER',
+							dialog2Name: 'transformAIFormBuilder01',
+							type: 'dialog2',
+							alias: 'TF_AI_FB',
+							workingMessage: '<div class="TFWorkingMessage">Loading...</div>'
+						});
+						$e.add('TF.AI.FORM.SAVE', A5.d.evnts.click, function () {
+							tfc_TF.ui.ai.form._.ux
+							var pUX = tfc_TF.ui.main._.ux;
+							var cmds = pUX.sendMessageToChild('TF_AI_FB', { type: "action", cmd: "getDefinition" });
+							if (cmds) {
+								// DLG1_DlgObj.getControl('formslist')._data[0].formdata
+								tfc_TF.u.message.show('prompt-cancel', 'Save Form', 'Please enter the ID you would like to use for the form.', {
+									action: function (a, id) {
+										if (a == 'confirm') {
+											var fd = {
+												id: id,
+												version: 1,
+												display: {
+													name: id,
+													color: { main: '', text: '' },
+													icon: '',
+													templates: {
+														heading: '',
+														listing: '',
+														printing: ''
+													}
+												},
+												data: {
+													preview: {},
+													instance: {
+														init: '',
+														status: ''
+													}
+												},
+												settings: { generation: 2 },
+												security: { statusRoleGroup: '' },
+												tpl: { code: '' },
+												cmds: cmds
+											};
+											tfc_TF.u.message.show('wait', 'Creating Form', 'Please wait while the form is created.', { id: 'ai-form-save-wait' });
+											tfc_TF.request('update-form-defs', { create: [fd] }).then(function () {
+												tfc_TF.u.message.hide('ai-form-save-wait');
+												$('TF.AI.FORM').style.display = 'none';
+												tfc_TF.ui.home._.vb.getStructure();
+											}).catch(function () {
+												tfc_TF.u.message.hide('ai-form-save-wait');
+												tfc_TF.u.message.show('confirm', 'Error', 'Form was unable to be saved.');
+											});
+										}
+									}
+								})
+							}
+						});
+						$e.add(window, 'resize', function () { $e.execute('TF.AI.FORM.BUILDER', 'a5resize'); });
+					}
+					this._.ele.style.display = '';
+				},
+				builder: {
+					init: function (ux) {
+						tfc_TF.ui.ai.form._.ux = ux;
+						var pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'body');
+						var ele = $(pId);
+						var html = [
+							'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style=""></iframe></div>',
+							'<div class="TFAIBuilderPreviewShownHide" style="position: absolute; top: 5px; left: 5px;">',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.HIDE', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
+							'</div>'
+						];
+						ele.innerHTML = html.join('');
+						//'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style="" /></div>';
+						ele.className = 'TFAIBuilderPreview';
+						ele.parentNode.className = 'TFAIBuilderPreviewPanel';
+
+						ele = $('TF.AI.FORM.BUILDER.FILLER');
+						$e.add(ele, 'load', function (e, ux) {
+							var iEle = this;
+							if (typeof ux != 'undefined' && ux.f && typeof ux.f.fillerembedIFRAMELoaded != 'undefined') setTimeout(function () { ux.f.fillerembedIFRAMELoaded(iEle) }, 0);
+						}, ux);
+						pId = ux.panelGetId('AI_BUILDER_CHAT', 'footer');
+						html = [
+							'<div class="TFAIBuilderChatCmdBar" style="">',
+							'<div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.REVERT', { theme: tfc_TF.theme, layout: 'text icon', html: 'Revert', icon: 'svgIcon=#alpha-icon-triUpSolid:icon', style: 'text-align: right; width: 100%;' }),
+							'</div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.RESTORE', { theme: tfc_TF.theme, layout: 'text icon', html: 'Restore', icon: 'svgIcon=#alpha-icon-triDownSolid:icon', style: 'text-align: right; width: 100%;' }),
+							'</div>',
+							'</div>',
+							'<div style="flex: 1 1 auto;">',
+							'<textarea id="TF.AI.FORM.BUILDER.INPUT" class="edit" style="resize: none; width: 100%; height: 100%; box-sizing: border-box;" placeholder="Type your instructions here..." onkeydown="if(!event.shiftKey && event.key == \'Enter\' && this.value.trim() != \'\'){ $e.stopEvent(event); doCreateForm(); }"></textarea>',
+							'</div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.SEND', { theme: tfc_TF.theme, html: 'Send', icon: 'svgIcon=#alpha-icon-paperPlaneSolid:icon', style: 'height: 100%;' }, 'onclick="if($(\'TF.AI.FORM.BUILDER.INPUT\').value.trim() != \'\') doCreateForm();"'),
+							'</div>',
+							'</div>'
+						];
+						ele = $(pId);
+						ele.innerHTML = html.join('');
+						ele.className = 'TFDockFooter';
+
+						$e.add('TF.AI.FORM.BUILDER.REVERT', A5.d.evnts.click, ux.f.doRevert);
+						$e.add('TF.AI.FORM.BUILDER.RESTORE', A5.d.evnts.click, ux.f.doRestore);
+
+						var p = ux.panelGet('AI_BUILDER_CHAT');
+						p.setDisplay('footer', true);
+
+						pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'footer');
+						html = [
+							'<div style="display: flex; flex-direction: row; gap: 4px; padding: 4px;">',
+							'<div style="flex: 1 1 auto;"></div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.PHONE', { theme: tfc_TF.theme + ':subtle', html: 'Phone', icon: 'svgIcon=#alpha-icon-devicePhone:icon' }),
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.TABLET', { theme: tfc_TF.theme + ':subtle', html: 'Tablet', icon: 'svgIcon=#alpha-icon-deviceTablet:icon' }),
+							'&nbsp;',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-arrowCounterClockwise:icon', 'id="TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON"') }),
+							'</div>',
+							'<div style="flex: 1 1 auto;"></div>',
+							'</div>'
+						];
+						ele = $(pId);
+						ele.innerHTML = html.join('');
+						ele.className = 'TFDockFooter';
+						p = ux.panelGet('AI_BUILDER_PREVIEW');
+						p.setDisplay('footer', true);
+
+						p = ux.panelGet('AI_BUILDER');
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.HIDE', A5.d.evnts.click, function (e, ci) {
+							ci.hideDock();
+						}, p);
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.PHONE', A5.d.evnts.click, function () {
+							var p = tfc_TF.ui.ai.form.builder.preview;
+							if (p.active.device != 'phone') {
+								p.active.device = 'phone';
+								p.refresh();
+							}
+						});
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.TABLET', A5.d.evnts.click, function () {
+							var p = tfc_TF.ui.ai.form.builder.preview;
+							if (p.active.device != 'tablet') {
+								p.active.device = 'tablet';
+								p.refresh();
+							}
+						});
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', A5.d.evnts.click, function () {
+							var p = tfc_TF.ui.ai.form.builder.preview;
+							p.active.landscape = !p.active.landscape;
+							p.refresh();
+						});
+
+						tfc_TF.ui.ai.form._.p = ux.panelGet('AI_BUILDER');
+
+						ele = $('TF.AI.FORM.BUILDER.CHAT');
+						ele.style.position = 'absolute';
+						A5.u.element.setScroll(ele, 0, 10000);
+
+						this.preview.refresh();
+
+					},
+
+					preview: {
+						active: {
+							device: 'phone',
+							landscape: false
+						},
+						refresh: function () {
+							var p = tfc_TF.ui.ai.form._.p;
+
+							var pd = this.devices;
+							var pa = this.active;
+							var pSize = pd.phone;
+							var ele = $('TF.AI.FORM.BUILDER.FILLER').parentNode;
+							var bpEle = $('TF.AI.FORM.BUILDER.PREVIEW.PHONE');
+							var btEle = $('TF.AI.FORM.BUILDER.PREVIEW.TABLET');
+							var iEle = $('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON')
+							if (pa.device == 'tablet') {
+								pSize = pd.tablet;
+								A5.u.element.cls(btEle, '+=buttonPressed');
+								btEle.setAttribute('a5-pressed', 'true');
+								A5.u.element.cls(bpEle, '-=buttonPressed');
+								bpEle.setAttribute('a5-pressed', 'false');
+							} else {
+								A5.u.element.cls(bpEle, '+=buttonPressed');
+								bpEle.setAttribute('a5-pressed', 'true');
+								A5.u.element.cls(btEle, '-=buttonPressed');
+								btEle.setAttribute('a5-pressed', 'false');
+							}
+							if (pa.landscape) {
+								pSize = pSize.l;
+								ele.className = 'TFAIBuilderPreviewLandscape';
+								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(0deg); transition: transform 500ms;}');
+							} else {
+								pSize = pSize.p;
+								ele.className = 'TFAIBuilderPreviewPortrait';
+								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(90deg); transition: transform 500ms;}');
+							}
+
+							var sAdj = 20;
+							ele.style.maxHeight = (pSize.height + sAdj) + 'px';
+							ele.style.width = (pSize.width + sAdj) + 'px';
+
+							p.panels[1].size = '1064px'; //(pSize.width+sAdj+20)+'px';
+
+							p.refresh();
+						},
+						devices: {
+							phone: {
+								p: { width: 320, height: 600 },
+								l: { width: 600, height: 320 }
+							},
+							tablet: {
+								p: { width: 768, height: 1024 },
+								l: { width: 1024, height: 768 }
+							}
+						}
+					}
+				}
+			}
+		},
+
+		// help dock UI
+		help: {
+			_: { w: null },
+			setMode: function (mode) {
+				if (mode == tfc_TF.state.ui.help.mode) mode = 'docked';
+				var ux = tfc_TF.ui.main._.ux;
+				var uis = tfc_TF.state.ui;
+				var p = ux.panelGet('TRANSFORM');
+				var hp = p.getPanel('TRANSFORM_HELP');
+				var vb = ux.getControl('TRANSFORM_HELP');
+				if (mode == 'pinned') {
+					uis.help.mode = 'pinned';
+					hp.dock = '';
+					uis.dock.type = '';
+					uis.dock.active = false;
+					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
+					$(p.contId + '.DOCKOVERLAY').style.display = 'none';
+					//} else if(mode == 'float'){
+					//	uis.help.mode = 'float';
+					//	hp.show = false;
+					//	$(p.contId+'.DOCKOVERLAY').style.display = 'none';
+					//	this._.w = window.open('about:blank','TFHelp');
+					//	this._.w.onbeforeunload = function(){ this.opener.TF.ui.help._.w = null;}
+					//	p.hideDock();
+				} else {
+					uis.help.mode = 'docked';
+					hp.dock = 'collapse-after';
+					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
+				}
+				if (uis.help.mode != 'float' && this._.w) this._.w.close();
+				p.refresh();
+				vb.refresh();
+				tfc_TF.ui.main._.vb.refresh();
+			},
+			html: function (vb) {
+				var html = [];
+				html.push('<div class="TFHelpHeader">');
+				html.push(A5.buttons.html('TF.HELP.PIN', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: (tfc_TF.state.ui.help.mode == 'pinned' ? 'svgIcon=#alpha-icon-unpin:icon' : 'svgIcon=#alpha-icon-pin:icon') }, 'a5-item="mode:pinned"'));
+				html.push('<div style="flex: 1 1 auto;">');
+				html.push('<input class="editPrimary" style="width: 100%; box-sizing: border-box;" placeholder="Search help..."/>');
+				html.push('</div>');
+				html.push(A5.buttons.html('TF.HELP.SEARCH.DO', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-magGlass:icon' }, 'a5-item="search:execute"'));
+				html.push(A5.buttons.html('TF.HELP.SEARCH.CLEAR', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="search:clear"'));
+				html.push('</div>');
+				var ii = null;
+				var co = vb.data.contexts[vb.data.context];
+				if (co) {
+					html.push('<div class="TFHelpContext">');
+					html.push('<div class="TFHelpTitle">' + co.name + '</div>');
+					html.push('<div class="TFHelpGroupTitle">Videos</div>');
+					html.push('<div class="TFHelpGroup">');
+					for (var i = 0; i < co.videos.length; i++) {
+						ii = co.videos[i];
+						html.push('<div id="' + vb.contId + '.CV' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
+					}
+					html.push('</div>');
+					html.push('</div>');
+				}
+				html.push('<div class="TFHelpItem">Documentation</div>');
+				html.push('<div class="TFHelpItem">Release notes</div>');
+
+				html.push('<div class="TFHelpGroupTitle" id="' + vb.contId + '.V" a5-item="toggle:allVideos">All Videos</div>');
+				html.push('<div class="TFHelpGroup" style="' + (vb.data.show.allVideos ? '' : 'display: none; ') + 'overflow: hidden;">');
+				for (var c in vb.data.contexts) {
+					co = vb.data.contexts[c];
+					for (var i = 0; i < co.videos.length; i++) {
+						ii = co.videos[i];
+						html.push('<div id="' + vb.contId + '.V' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
+					}
+				}
+				html.push('</div>');
+
+				html.push('<div class="TFHelpExtra">Version ' + 2 + '</div>');
+
+				return html.join('');
+			}
+		},
+		// user dock UI
+		user: {
+			_: {},
+			init: function (ux) {
+				if (typeof tfc_TF.ui.user._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+					tfc_TF.u.panels.lockable(p);
+					ux.userPreferencesForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.userPreferences, {}, {
+						theme: tfc_TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								tfc_TF.ui.user._.h.setTabDirty('preferences', d.value);
+							}
+						}
+					});
+					var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+					tfc_TF.u.panels.lockable(p);
+					ux.userProfileForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.userProfile, {}, {
+						theme: tfc_TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								tfc_TF.ui.user._.h.setTabDirty('profile', d.value);
+							}
+						}
+					});
+
+					var p = ux.panelGet('TRANSFORM_USER');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+					tfc_TF.ui.user._.h = new A5.ViewBox(ele.id, {
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Preferences',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_USER_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+										p.lock('Loading preferences...');
+										tfc_TF.request('get-preferences', { type: 'user' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.userPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+									if (t == 'commit') {
+										p.lock('Saving preferences...');
+										tfc_TF.request('set-preferences', { type: 'user', data: ux.userPreferencesForm.data }).then(function (d) {
+											ux.userPreferencesForm.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences...');
+										tfc_TF.request('get-preferences', { type: 'user' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.userPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.userPreferencesForm.setDirty(false);
+									}
+								}
+							},
+							{
+								html: 'Your Profile',
+								value: 'profile',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_USER_PROFILE');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+										p.lock('Loading profile...');
+										tfc_TF.request('get-profile', { type: 'user' }).then(function (d) {
+											ux.userProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+									if (t == 'commit') {
+										p.lock('Saving profile...');
+										var fd = JSON.stringify(ux.userProfileForm.data);
+										tfc_TF.request('set-profile', { type: 'user', data: fd }).then(function (d) {
+											ux.userProfileForm.setDirty(false);
+											tfc_TF.state.login.user.name = ux.userProfileForm.data.name;
+											tfc_TF._.saveState(true);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading profile...');
+										tfc_TF.request('get-profile', { type: 'user' }).then(function (d) {
+											ux.userProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.userProfileForm.setDirty(false);
+									}
+								}
+							}
+						]
+					}, {
+						context: 'user',
+						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
+						getTab: tfc_TF.u.docks.tabs.getTab,
+						icons: {
+							status: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}')
+						},
+						buttons: {
+							login: [
+								'<div style="display: flex; flex-direction: row;">',
+								A5.buttons.html('TFUserButtonConfirmLogin', { theme: tfc_TF.theme + ':confirm', html: 'Confirm Login', icon: 'svgIcon=#alpha-icon-checkShield:icon' }, 'a5-item="confirmLogin"'),
+								'<div style="flex: 1 1 auto;"></div>',
+								A5.buttons.html('TFUserButtonLogout', { theme: tfc_TF.theme + ':deny', html: 'Logout', icon: 'svgIcon=#alpha-icon-exit:icon' }, 'a5-item="logout"'),
+								'</div>'
+							].join(''),
+							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var html = [];
+									var d = this.data;
+									var hObj = ux.getControl('TRANSFORM_MASTHEAD');
+									var ed = tfc_TF.state.login.expires;
+									var es = hObj.data.expiresStatus;
+									var loginMsg = '';
+									var iconDot = this.icons.status;
+									var loginMsgCls = '';
+									if (es == 'good') {
+										if (ed.same('day')) {
+											loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('hh:mm') + '.';
+										} else if (ed.same('week')) {
+											loginMsg = iconDot + 'Login will expire ' + ed.toFormat('Weekday') + ' at ' + ed.toFormat('hh:mm') + '.';
+										} else {
+											loginMsg = iconDot + 'Login will expire on ' + ed.toFormat('Month d') + ' at ' + ed.toFormat('hh:mm') + '.';
+										}
+										loginMsgCls = 'TFUserLoginStatusMessageGood';
+									} else if (es == 'expiring') {
+										loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('h:mm') + '.';
+										loginMsgCls = 'TFUserLoginStatusMessageExpiring';
+									} else {
+										loginMsg = iconDot + 'Login has expired. You must re-confirm login.';
+										loginMsgCls = 'TFUserLoginStatusMessageExpired';
+									}
+
+									html.push('<div class="TFDockHeader">');
+									html.push(this.buttons.login);
+									html.push('<div class="' + loginMsgCls + '">' + loginMsg + '</div>');
+									html.push('</div>');
+									html.push(tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab));
+									return html.join('');
+								}
+							}
+						},
+						items: {
+							'confirmLogin': {
+								selectable: false,
+								onClick: function () {
+									tfc_TF.login('confirm');
+								}
+							},
+							'logout': {
+								selectable: false,
+								onClick: function () {
+									tfc_TF.logout();
+								}
+							},
+							'tab': tfc_TF.u.docks.tabs.items['tab'],
+							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+				} else {
+					tfc_TF.ui.user._.h.refresh();
+				}
+				tfc_TF.ui.user._.h.getTab().onShow();
+			}
+		},
+
+		// account dock UI
+		account: {
+			_: {},
+			init: function (ux) {
+				if (typeof tfc_TF.ui.account._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+					tfc_TF.u.panels.lockable(p);
+					ux.accountPreferencesForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.accountPreferences, {}, {
+						theme: tfc_TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								tfc_TF.ui.account._.h.setTabDirty('preferences', d.value);
+							}
+						}
+					});
+					p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+					tfc_TF.u.panels.lockable(p);
+					ux.accountProfileForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.accountProfile, {}, {
+						theme: tfc_TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								tfc_TF.ui.account._.h.setTabDirty('profile', d.value);
+							}
+						}
+					});
+					p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+					tfc_TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_ACCOUNT');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+					tfc_TF.ui.account._.h = new A5.ViewBox(ele.id, {
+						account: { rename: false },
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Preferences',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+										p.lock('Loading preferences...');
+										tfc_TF.request('get-preferences', { type: 'account' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.accountPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+									if (t == 'commit') {
+										p.lock('Saving preferences...');
+										tfc_TF.request('set-preferences', { type: 'account', data: ux.accountPreferencesForm.data }).then(function (d) {
+											ux.accountPreferencesForm.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences...');
+										tfc_TF.request('get-preferences', { type: 'account' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.accountPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.accountPreferencesForm.setDirty(false);
+									}
+								}
+							},
+							{
+								html: 'Account Profile', value: 'profile',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_PROFILE');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+										p.lock('Loading profile...');
+										tfc_TF.request('get-profile', { type: 'account' }).then(function (d) {
+											ux.accountProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t, hide) {
+									if (t == 'commit') {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+										p.lock('Saving profile...');
+										var d = A5.u.object.clone(ux.accountProfileForm.data);
+										tfc_TF.request('set-profile', { type: 'account', data: d }).then(function () {
+											tfc_TF.state.login.account.name = d.name;
+											tfc_TF._.saveState(true);
+											p.unlock();
+											tfc_TF.ui.account._.h.setTabDirty('profile', false);
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										tfc_TF.ui.members.list._.l.getMembersData();
+									} else if (t == 'discard') {
+										tfc_TF.ui.account._.h.setTabDirty('profile', false);
+									}
+								}
+							},
+							{
+								html: 'Billing & Usage', value: 'billingAndUsage',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+									var p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+									p.lock('Loading billing & usage...');
+									tfc_TF.request('get-plan', {}).then(function (d) {
+										ux.getControl('TRANSFORM_BILLING_USAGE').populate(d);
+										p.unlock();
+									}).catch(function () {
+										p.unlock();
+									});
+								}
+							},
+							{
+								html: 'Members', value: 'members', onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_MEMBERS');
+									if (!this.dirty) {
+										var l = tfc_TF.ui.members.list._.l;
+										if (l) l.getMembersData();
+									}
+								},
+								action: function (t) {
+									var po = ux.getChildObject('members');
+									var p = po.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
+									if (t == 'commit') {
+										p.lock('Saving members...');
+										var d = tfc_TF.ui.members.list._.l.generateCRUD();
+										tfc_TF.request('update-members', d).then(function (d) {
+											tfc_TF.ui.members.list._.l.getMembersData();
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										tfc_TF.ui.members.list._.l.getMembersData();
+									} else if (t == 'discard') {
+										tfc_TF.ui.account._.h.setTabDirty('members', false);
+									}
+								}
+							}
+						]
+					}, {
+						context: 'account',
+						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
+						getTab: tfc_TF.u.docks.tabs.getTab,
+						icons: {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
+						},
+						buttons: {
+							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									return tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
+								}
+							}
+						},
+						items: {
+							'tab': tfc_TF.u.docks.tabs.items['tab'],
+							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+				} else {
+					tfc_TF.ui.account._.h.refresh();
+				}
+				tfc_TF.ui.account._.h.getTab().onShow();
+			}
+		},
+
+		members: {
+			init: function (ux) {
+				var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
+				tfc_TF.u.panels.lockable(p);
+			},
+			list: {
+				_: {},
+				init: function (ux, l) {
+					var html = [];
+					html.push('<div style="display: flex; flex-direction: row;">');
+					html.push('<div style="display: flex; flex-direction: row; width: 385px;">');
+					html.push(A5.buttons.html('TF.MEMBERS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+					html.push(A5.buttons.html('TF.MEMBERS.ADD', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Add', icon: 'svgIcon=#alpha-icon-peopleAddSolid:icon' }));
+					html.push(A5.buttons.html('TF.MEMBERS.REMOVE', { theme: tfc_TF.theme + ':deny', style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Remove', icon: 'svgIcon=#alpha-icon-personXSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESTORE', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Restore', icon: 'svgIcon=#alpha-icon-personInSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.SETROLES', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Roles', icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITE', { theme: tfc_TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Resend Invite', icon: 'svgIcon=#alpha-icon-envelopeOut:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITECANCEL', { theme: tfc_TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Cancel Resend', icon: 'svgIcon=#alpha-icon-envelopeIn:icon' }));
+					html.push('</div>');
+					html.push(A5.buttons.html('TF.MEMBERS.EXPORT', { theme: tfc_TF.theme, className: 'button buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-export:icon' }));
+					html.push('<div style="width: 4px;"></div>');
+					html.push('<input id="TF.MEMBERS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+					html.push('<div style="width: 4px;"></div>');
+					html.push(A5.buttons.html('TF.MEMBERS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+					html.push('</div>');
+
+					//var ele = $('TF.MEMBERS.LISTHEADER');
+					var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS_LIST');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFPanelHeader';
+					ele.innerHTML = html.join('');
+
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+					$e.add('TF.MEMBERS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+					$e.add('TF.MEMBERS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
+					$e.add('TF.MEMBERS.SELECTALL', 'click', function (e, l) {
+						if (l.selection.length != 0) l.setValue(false);
+						else l.setValue({ select: 'all' });
+					}, l);
+					$e.add('TF.MEMBERS.ADD', 'click', function (e, l) { l.inviteMembers(); }, l);
+					$e.add('TF.MEMBERS.REMOVE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(true); }, l);
+					$e.add('TF.MEMBERS.RESTORE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(false); }, l);
+					$e.add('TF.MEMBERS.SETROLES', 'click', function (e, l) { if (!this.disabled) l.setRoles(); }, l);
+					$e.add('TF.MEMBERS.RESENDINVITE', 'click', function (e, l) { if (!this.disabled) l.resendInvite(true); }, l);
+					$e.add('TF.MEMBERS.RESENDINVITECANCEL', 'click', function (e, l) { if (!this.disabled) l.resendInvite(false); }, l);
+					$e.add('TF.MEMBERS.EXPORT', 'click', function () {
+						tfc_TF.ui.members.list._.ux.exportListData('members', {
+							data: 'listData',
+							exportType: 'excel',
+							action: 'download',
+							clientsidefilename: '',
+							maxRecords: -1,
+							onlyexportcolumnsinschema: true,
+							datatransformationjavascript: 'data.state = data._.state; if(data.invite.guid) data.link = location.origin+\'/transformAcceptInvite.a5w?mode=acceptInvite&uid=\'+urlencode(data.userId)+\'&invitationguid=\'+data.invite.guid; ',
+							schema: {
+								userId: { type: 'C', size: 30, columnHeading: 'User ID' },
+								name: { type: 'C', size: 20, columnHeading: 'User Name' },
+								roles: { type: 'C', size: 100, columnHeading: 'User Roles' },
+								state: { type: 'C', size: 20, columnHeading: 'Invitation State' },
+								link: { type: 'C', size: 20, columnHeading: 'Invitation Link' }
+							}
+						});
+					});
+
+					$e.add('TF.MEMBERS.EXPORT', 'mouseenter', function () {
+						tfc_TF.u.flyout.show(this, 'Export visible members to Excel...</div>', { direction: 'vertical-left' });
+					});
+					$e.add('TF.MEMBERS.EXPORT', 'mouseleave', function () { tfc_TF.u.flyout.hide(); });
+
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseenter', function () {
+						var html = [
+							'<div style="display: flex; flex-direction: row;">',
+							'<div style="align-self: center;">',
+							A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}'),
+							'</div>',
+							'<div class="TFFormItemExtra" style="max-width: 300px; white-space: wrap; text-align: justify;">',
+							'<div>',
+							'A prefix of <span class="TFFormItemDescData">roles:</span> will target the search to roles.',
+							'</div>',
+							'<div style="margin-top: 6px;">',
+							'A prefix of <span class="TFFormItemDescData">state:</span> will filter on the states ',
+							'<span class="TFFormItemDescData">dirty</span>, <span class="TFFormItemDescData">clean</span>, <span class="TFFormItemDescData">deleted</span>, <span class="TFFormItemDescData">pending</span>, <span class="TFFormItemDescData">expired</span>, <span class="TFFormItemDescData">unsent</span> and <span class="TFFormItemDescData">resend</span>.',
+							'</div>',
+							'<div style="margin-top: 6px;">',
+							'For <span class="TFFormItemDescData">roles:</span> and <span class="TFFormItemDescData">state:</span> multiple values are allowed using a <span class="TFFormItemDescData">,</span> as a separator.',
+							'</div>',
+							'</div>',
+							'</div>'
+						]
+						tfc_TF.u.flyout.show(this, html.join(''), { direction: 'vertical-right' });
+					});
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseleave', function () { tfc_TF.u.flyout.hide(); });
+
+					A5.u.element.cls(l.contId, 'TFMembersList TFMembersDragAllow');
+
+					p.setDisplay('header', true);
+					l.refreshToolbar();
+
+					l.sortMenu = new A5.Menu([
+						{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+						'-',
+						{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+						{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+						{ html: 'Date Added Ascending', value: 'invite.added:1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
+						{ html: 'Date Added Descending', value: 'invite.added:-1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
+						'-',
+						{ html: 'Unsaved', value: '_.isDirty:-1', icon: 'svgIcon=#alpha-icon-broom:icon' },
+						{ html: 'Pending Members', value: '_.sortP:1', icon: 'svgIcon=#alpha-icon-questionCircle:icon' },
+						{ html: 'Expired Members', value: '_.sortE:1', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }
+					], {
+						theme: tfc_TF.theme,
+						style: 'white-space: nowrap;',
+						onClick: function (i) {
+							var v = i.value.split(':');
+							var l = tfc_TF.ui.members.list._.l;
+							if (v.length > 1) {
+								var dir = v[1].toNumber();
+								l.setOrder([[v[0], dir]]);
+							} else l.setOrder(false);
+						}
+					});
+
+					this._.l = l;
+					this._.ux = ux;
+				}
+			},
+			invite: {
+				html: function (vb) {
+
+					var html = [];
+					var d = vb.data;
+					html.push('<div class="TFFormItemFlex" style="margin-top: 4px;">');
+					html.push('<div class="TFFormItemLabel">Create users without sending invitations</div>');
+					html.push('<div class="TFFormItemContent" style="display: inline-block; width: 60px;">');
+					html.push(A5.switches.html(vb.noInvite || false, { theme: tfc_TF.theme }, ' id="' + this.contId + '.NOINVITE" a5-item="noInvite"'));
+					html.push('</div>');
+					html.push('</div>');
+					if (Array.isArray(d) && d.length > 0) {
+						var di, rk, idp = null;
+						var rm = vb._rm;
+						html.push('<div id="' + vb.contId + '.LIST" style="display: grid; grid-template-columns: 150px 100px' + (vb.noInvite ? ' 100px' : '') + ' 1fr auto auto; grid-column-gap: 4px; row-gap: 4px; margin-top: 4px;">');
+						html.push('<div class="TFFormItemLabel">Email</div>');
+						html.push('<div class="TFFormItemLabel">Name</div>');
+						if (vb.noInvite) html.push('<div class="TFFormItemLabel">Password</div>');
+						html.push('<div class="TFFormItemLabel">Roles</div>');
+						html.push('<div class="TFFormItemLabel"></div>');
+						html.push('<div class="TFFormItemLabel"></div>');
+						var rolesBtn = A5.buttons.html(vb.contId + '.__I__.ROLES', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, 'a5-item="setRoles:__I__"');
+						var remBtn = A5.buttons.html(vb.contId + '.__I__.REMOVE', { theme: tfc_TF.theme + ':deny', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="remove:__I__"');
+						var re = /__I__/g;
+						for (var i = 0; i < d.length; i++) {
+							di = d[i]
+							idp = vb.contId + '.' + i + '.';
+							html.push('<input id="' + idp + 'email" a5-value-from="' + i + ':email" value="' + di.email + '" spellcheck="false" class="edit' + (tfc_TF.u.re.email.test(di.email) ? '' : ' editError') + '" style="align-self: start;"/>');
+							html.push('<input id="' + idp + 'name" a5-value-from="' + i + ':name" value="' + di.name + '" placeholder="Display name..." spellcheck="false" class="edit' + (di.name.trim() != '' ? '' : ' editError') + '" style="align-self: start;"/>');
+							if (vb.noInvite) html.push('<input id="' + idp + 'pw" a5-value-from="' + i + ':pw" value="' + di.pw + '" ondblclick="this.select();" spellcheck="false" class="edit' + (di.pw != '' ? '' : ' editError') + '" style="align-self: start;"/>');
+							html.push('<div style="flex: 1 1 auto; align-self: center;">');
+							if (di.roles.length == 0) {
+								html.push('<div class="TFFormItemLabel">Click button to select roles...</div>');
+							} else {
+								for (var k = 0; k < di.roles.length; k++) {
+									rk = di.roles[k];
+									html.push('<div class="TFListDataBadge">' + (typeof rm[rk] == 'string' ? rm[rk] : rk) + '</div>');
+								}
+							}
+
+							html.push('</div>');
+							html.push(rolesBtn.replace(re, i));
+							html.push(remBtn.replace(re, i));
+						}
+						html.push('</div>');
+					}
+					html.push('<div style="margin-top: 4px; margin-bottom: 8px;">');
+					html.push('<textarea id="' + vb.contId + '.ADD" a5-value-from="add" onkeyup="if(event.key == \'Enter\'){this.dispatchEvent(new Event(\'change\',{bubbles: true}));}" class="edit" style="width: 100%; resize: none; box-sizing: border-box;" placeholder="Enter or paste email addresses..."></textarea>');
+					html.push('</div>');
+
+					html.push('<div class="TFFormNote">');
+					html.push('<p>');
+					html.push('You may use standard email formatting in the above input. ');
+					html.push('When entering a member by typing in above input, you must hit the ENTER key to add the member. ');
+					html.push('When pasting, you may enter multiple members with one member on each line. ');
+					html.push('</p>');
+					html.push('<p>');
+					html.push('You can select the roles to give each member by clicking the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-personDocSolid:icon') + '</span> button.');
+					html.push('</p>');
+					html.push('<p>');
+					html.push('Once you have entered the members you wish to add to the account you must press the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-peopleAddSolid:icon') + 'Add Members</span> button to add the members to the account.');
+					html.push('</p>');
+					html.push('</div>');
+					return html.join('');
+
+				}
+			},
+			roles: {
+				_: {},
+				select: function (ele, v, r, c) {
+					if (typeof this._.vb == 'undefined') {
+						this._.t = new A5.Transient({
+							theme: tfc_TF.theme,
+							content: {
+								type: 'html',
+								html: ''
+							},
+							layout: 'main',
+							layouts: {
+								'main': {
+									stretch: 'none',
+									location: ['dropdown-left', 'dropdown-right']
+								}
+							}
+						});
+						var tEle = this._.t.getElement('top');
+						tEle.style.zIndex = '1000';
+						var id = this._.t.getElement('content').id;
+						this._.vb = new A5.ViewBox(id, [], {
+							wrapper: {
+								allow: true,
+								html: [
+									'<div a5-layout-target="true" class="TFListSubtle" style="max-height: 200px; min-width: 200px;"></div>',
+									'<div class="windowButtons">',
+									'<div id="TF.MEMBERS.ROLES.MULTIPLE" style="display: flex; flex-direction: row; padding: 4px; padding-bottom: 0px;">',
+									A5.buttons.html('TF.MEMBERS.ROLES.ADD', { theme: tfc_TF.theme, html: 'Add', style: 'flex: 1 1 0%;' }, 'a5-item="done:add"'),
+									A5.buttons.html('TF.MEMBERS.ROLES.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Remove', style: 'flex: 1 1 0%;' }, 'a5-item="done:remove"'),
+									'</div>',
+									'<div style="display: flex; flex-direction: row; padding: 4px;">',
+									A5.buttons.html('TF.MEMBERS.ROLES.COMMIT', { theme: tfc_TF.theme, html: 'Set Roles', style: 'flex: 1 1 0%;' }, 'a5-item="done:set"'),
+									A5.buttons.html('TF.MEMBERS.ROLES.CANCEL', { theme: tfc_TF.theme + ':subtle', html: 'Cancel', style: 'flex: 1 1 0%;' }, 'a5-item="done:cancel"'),
+									'</div>',
+									'</div>'
+								].join('')
+
+							},
+							scroll: { axis: 'y' },
+							multiple: true,
+							selectionMode: 'additive',
+							allowNullDeselection: true,
+							allowTextSelection: false,
+							layout: 'main',
+							layouts: {
+								'main': {
+									type: 'template',
+									template: [
+										'<div id="' + id + '.{[count]}" a5-item="item" a5-value="{value}" class="listItem listItemSubtle" style="display: flex; flex-direction: row;">',
+										'<div style="align-self: center;">',
+										A5.u.icon.html('svgIcon=#alpha-icon-circle:icon TFCheckboxListUnselected'),
+										A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon TFCheckboxListSelected'),
+										'</div>',
+										'<div style="flex: 1 1 auto; align-self: center; padding-left: 4px;">',
+										'{html}',
+										'</div>',
+										'</div>'
+									].join('')
+								}
+							},
+							items: {
+								'item': {
+									selectable: true,
+									selectedClassName: 'listItemSelected'
+								},
+								'done': {
+									selectable: false,
+									onClick: function (v, ia) {
+										if (ia != 'cancel') this.commit(this.value, ia);
+										tfc_TF.ui.members.roles._.t.hide();
+									}
+								}
+							}
+						});
+					}
+					this._.vb.populate(r);
+					var s = { multiple: false };
+					if (!Array.isArray(v)) {
+						A5.u.object.assign(s, v);
+						v = [];
+					}
+
+					if (s.multiple) $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'flex';
+					else $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'none';
+
+					this._.vb.setValue(v);
+					this._.t.show(ele);
+					this._.vb.commit = c;
+				}
+			}
+		},
+
+		// dev dock UI
+		dev: {
+			_: { e: {} },
+			init: function (ux) {
+				if (typeof tfc_TF.ui.dev._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_DEVELOPER');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+
+					tfc_TF.ui.dev._.h = new A5.ViewBox(ele.id, {
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Settings',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_DEVELOPER_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+										p.lock('Loading preferences JSON...');
+										tfc_TF.request('get-preferences', { type: 'developer' }).then(function (d) {
+											var v = d.data;
+											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+											tfc_TF.ui.dev._.e.p.setValue(v);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+									if (t == 'commit') {
+										if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev._.e.p.value) !== true) {
+											tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+											return false;
+										}
+										p.lock('Saving preferences JSON...');
+										tfc_TF.request('set-preferences', { type: 'developer', data: JSON.parse(tfc_TF.ui.dev._.e.p.value) }).then(function (d) {
+											tfc_TF.ui.dev._.e.p.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences JSON...');
+										tfc_TF.request('get-preferences', { type: 'developer' }).then(function (d) {
+											var v = d.data;
+											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+											tfc_TF.ui.dev._.e.p.setValue(v);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								}
+							},
+							{
+								html: 'Permissions',
+								value: 'permissions',
+								onShow: function () {
+									ux._currentPermissions = null;
+									ux.panelSetActive('TRANSFORM_DEVELOPER_PERMISSIONS');
+									ux.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
+								},
+								action: function (t) {
+									var pUX = tfc_TF.ui.main._.ux;
+									if (t == 'commit') {
+										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "save" });
+									} else if (t == 'cancel') {
+										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
+									}
+								}
+							},
+							{
+								html: 'Dispatch Forms',
+								value: 'dispatch',
+								onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_DISPATCH_FORMS'); },
+							},
+							{
+								title: 'Actions',
+								color: '#fdd5b3',
+								items: [
+									{
+										html: 'Builder', value: 'onsubmit',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS');
+											if (!this.dirty) {
+												var po = ux.getChildObject('actionEditor');
+												if (po) po.getActions();
+											}
+										},
+										action: function (t) {
+											var p = tfc_TF.ui.dev.actions._.p;
+											if (t == 'commit') {
+												if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev.actions._.e.value) !== true) {
+													tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+													return false;
+												}
+												p.lock('Saving actions JSON...');
+												tfc_TF.request('set-preferences', { type: 'actions', data: JSON.parse(tfc_TF.ui.dev.actions._.e.value) }).then(function (d) {
+													tfc_TF.ui.dev.actions._.e.setDirty(false);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											} else if (t == 'cancel') {
+												var po = ux.getChildObject('actionEditor');
+												if (po) po.getActions();
+											}
+
+										}
+									},
+									{ html: 'Event Log', value: 'onsubmitLog', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS_LOG'); } }
+								]
+							},
+							{
+								title: 'Assets',
+								color: '#b0d6fd',
+								items: [
+									{
+										html: 'On Device', value: 'deviceAssets',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_ASSETS');
+											if (!this.dirty) {
+												if (typeof tfc_TF.ui.dev.assets.list._.l != 'undefined') tfc_TF.ui.dev.assets.list._.l.getAssetsData();
+											}
+										},
+										action: function (t) {
+											if (t == 'commit') {
+												tfc_TF.ui.dev.assets.list._.l.setAssetsData();
+											} else if (t == 'cancel') {
+												tfc_TF.ui.dev.assets.list._.l.getAssetsData();
+											}
+
+										}
+									},
+									{
+										html: 'Policies & Queues',
+										value: 'policiesAndQueues',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+											if (!this.dirty) {
+												var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+												p.lock('Loading policies & queues JSON...');
+												tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+													var v = d.data;
+													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+													tfc_TF.ui.dev._.e.pq.setValue(v);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											}
+										},
+										action: function (t) {
+											var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+											if (t == 'commit') {
+												if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev._.e.pq.value) !== true) {
+													tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+													return false;
+												}
+												p.lock('Saving policies & queues JSON...');
+												tfc_TF.request('set-preferences', { type: 'device-assets-options', data: JSON.parse(tfc_TF.ui.dev._.e.pq.value) }).then(function (d) {
+													tfc_TF.ui.dev._.e.pq.setDirty(false);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											} else if (t == 'cancel') {
+												p.lock('Loading policies & queues JSON...');
+												tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+													var v = d.data;
+													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+													tfc_TF.ui.dev._.e.pq.setValue(v);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											}
+										}
+									}
+								]
+							},
+							{
+								title: 'Integrations',
+								items: [
+									{ html: 'API Keys', value: 'apiKeys', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_APIKEYS'); } },
+									{
+										html: 'Connected Apps', value: 'connectedApps',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_APPS');
+											if (!this.dirty) {
+												if (typeof tfc_TF.ui.dev.apps.list._.l != 'undefined') tfc_TF.ui.dev.apps.list._.l.getConnectedAppsData();
+											}
+										},
+										action: function (t) {
+											if (t == 'commit') {
+												tfc_TF.ui.dev.apps.list._.l.setConnectedAppsData();
+											} else if (t == 'cancel') {
+												tfc_TF.ui.dev.apps.list._.l.getConnectedAppsData();
+											}
+										}
+									},
+									{ html: 'Zapier', value: 'zapier', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ZAPIER'); } },
+								]
+							}
+						]
+					}, {
+						context: 'configure',
+						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
+						getTab: tfc_TF.u.docks.tabs.getTab,
+						icons: {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
+						},
+						buttons: {
+							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									return tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
+								}
+							}
+						},
+						items: {
+							'tab': tfc_TF.u.docks.tabs.items['tab'],
+							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+					tfc_TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.PREFERENCES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					tfc_TF.ui.dev._.e.p = new tfc_TF.u.code.Editor('TF.DEV.PREFERENCES', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								tfc_TF.ui.dev._.h.setTabDirty('preferences', v);
+							}
+						}
+					});
+					ele = $(p.getPanelId('header'));
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The preferences are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=otheraccountsettings" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.PREFERENCES.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
+					html.push(A5.buttons.html('TF.DEV.PREFERENCES.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.PREFERENCES.VALIDATE', 'click', function (e) {
+						var json = tfc_TF.ui.dev._.e.p.value;
+						var res = tfc_TF.u.code.lang.json.validate(json);
+						if (res !== true) {
+							tfc_TF.u.message.show('confirm', 'Error', res.message);
+						}
+					});
+					$e.add('TF.DEV.PREFERENCES.REFORMAT', 'click', function (e) {
+						var json = tfc_TF.ui.dev._.e.p.value;
+						json = tfc_TF.u.code.lang.json.reformat(json);
+						tfc_TF.ui.dev._.e.p.setValue(json);
+					});
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_PERMISSIONS');
+					tfc_TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+					tfc_TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.POLICIES_QUEUES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					tfc_TF.ui.dev._.e.pq = new tfc_TF.u.code.Editor('TF.DEV.POLICIES_QUEUES', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								tfc_TF.ui.dev._.h.setTabDirty('policiesAndQueues', v);
+							}
+						}
+					});
+					ele = $(p.getPanelId('header'));
+
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The policies & queues are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=ondevice%20assets%20policy" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
+					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.POLICIES_QUEUES.VALIDATE', 'click', function (e) {
+						var json = tfc_TF.ui.dev._.e.pq.value;
+						var res = tfc_TF.u.code.lang.json.validate(json);
+						if (res !== true) {
+							tfc_TF.u.message.show('confirm', 'Error', res.message);
+						}
+					});
+					$e.add('TF.DEV.POLICIES_QUEUES.REFORMAT', 'click', function (e) {
+						var json = tfc_TF.ui.dev._.e.pq.value;
+						json = tfc_TF.u.code.lang.json.reformat(json);
+						tfc_TF.ui.dev._.e.pq.setValue(json);
+					});
+
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+				} else {
+					tfc_TF.ui.dev._.h.refresh();
+				}
+				tfc_TF.ui.dev._.h.getTab().onShow();
+			},
+			assets: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
+					this._.p = p;
+					tfc_TF.u.panels.lockable(p);
+					var pId = p.getPanelId();
+					var ele = $(pId);
+					var fEle = document.createElement('div');
+					fEle.id = 'TF.ASSETS.FORM';
+					fEle.style.display = 'none';
+					fEle.style.zIndex = '5';
+					fEle.className = 'TFOverlayForm';
+					fEle.innerHTML = '<div id="TF.ASSETS.FORM.CONTENT" class="TFForm"></div>';
+					ele.appendChild(fEle);
+					this._.f = new A5.FormBox('TF.ASSETS.FORM.CONTENT', tfc_TF.forms.deviceAssets, {}, {
+						theme: tfc_TF.theme
+					});
+				},
+				getFoldersList: function () {
+					var d = this.list._.l._data;
+					var dtf = null;
+					var res = [];
+					for (var i = 0; i < d.length; i++) {
+						dtf = d[i].targetFolder;
+						if (typeof dtf == 'string' && dtf != '' && res.indexOf(dtf) == -1) res.push(dtf);
+					}
+					res.unshift({ "html": "[Top Level]", "value": "" });
+					return res;
+				},
+				list: {
+					_: {},
+					init: function (ux, l) {
+						var dev = tfc_TF.state.ui.editing.json.lists;
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px; padding-bottom: 2px;">');
+						html.push('<div class="TFFormItemLabel">Manifest source</div>');
+						html.push('<div id="TF.ASSETS.SRC"><button class="button" style="visibility: hidden;">Button</button></div>');
+						html.push('<input id="TF.ASSETS.SRC.URL" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Specify the URL of the JSON file..." spellcheck="false" />');
+						html.push('</div>');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push(A5.buttons.html('TF.ASSETS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+						html.push(A5.buttons.html('TF.ASSETS.ADD', { theme: tfc_TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.EDIT', { theme: tfc_TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Remove', icon: 'svgIcon=#alpha-icon-x:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.RESTORE', { theme: tfc_TF.theme, html: 'Restore', icon: 'svgIcon=#alpha-icon-docInSolid:icon' }));
+						html.push('</div>');
+						html.push('<div style="width: 4px;"></div>');
+						html.push('<input id="TF.ASSETS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." spellcheck="false" />');
+						html.push('<div style="width: 4px;"></div>');
+						html.push(A5.buttons.html('TF.ASSETS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.ASSETS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+						if (dev) html.push(A5.buttons.html('TF.ASSETS.JSON.EDIT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-dataJSON:icon' }))
+
+
+						html.push('</div>');
+
+						//var ele = $('TF.ASSETS.LISTHEADER');
+						var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
+						var ele = $(p.getPanelId('header'));
+						ele.className = 'TFPanelHeader';
+						ele.innerHTML = html.join('');
+
+						$e.add('TF.ASSETS.SRC.URL', 'change', function (e, l) {
+							var url = $('TF.ASSETS.SRC.URL').value;
+							l.getAssetsFromURL(url);
+							l.setDirty();
+						}, l);
+						$e.add('TF.ASSETS.SRC', 'click', function (e, l) {
+							var v = e.target.value;
+							if (l.source != v) {
+								l.source = v;
+								var iEle = $('TF.ASSETS.SRC.URL');
+								if (v == 'url') {
+									l._localData = [].concat(l._data);
+									l.populate([]);
+									iEle.style.visibility = '';
+									var url = $('TF.ASSETS.SRC.URL').value;
+									if (url != '') l.getAssetsFromURL(url);
+								} else {
+									l.populate(l._localData);
+									iEle.style.visibility = 'hidden';
+								}
+								l.setDirty();
+							}
+						}, l);
+						$e.add('TF.ASSETS.SELECTALL', 'click', function (e, l) {
+							if (l.selection.length != 0) l.setValue(false);
+							else l.setValue({ select: 'all' });
+						}, l);
+
+						$e.add('TF.ASSETS.ADD', 'click', function (e, l) {
+							$('TF.ASSETS.FORM').style.display = '';
+							tfc_TF.ui.dev.assets._.f.populate({
+								mode: 'add',
+								asset: {
+									type: 'file',
+									url: '',
+									version: 1,
+									targetFolder: ''
+								}
+							});
+						}, l);
+						$e.add('TF.ASSETS.EDIT', 'click', function (e, l) {
+							$('TF.ASSETS.FORM').style.display = '';
+							var d = l.selectionData[0];
+							tfc_TF.ui.dev.assets._.f.populate({
+								mode: 'edit',
+								asset: {
+									type: d.type,
+									url: d.url,
+									version: d.version,
+									targetFolder: (typeof d.targetFolder == 'string' ? d.targetFolder : '')
+								}
+							});
+						}, l);
+						$e.add('TF.ASSETS.REMOVE', 'click', function (e, l) {
+							l.removeAssets(true);
+						}, l);
+						$e.add('TF.ASSETS.RESTORE', 'click', function (e, l) {
+							l.removeAssets(false);
+						}, l);
+						$e.add('TF.ASSETS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.ASSETS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						$e.add('TF.ASSETS.SORT', 'click', function (e, l) { if (l.source == 'local') l.sortMenu.show('dropdown', this); }, l);
+						$e.add('TF.ASSETS.JSON.EDIT', 'click', function (e, l) {
+							if (l.source == 'local') {
+								var ld = l._data;
+								var d = [];
+								var di = null;
+								for (var i = 0; i < ld.length; i++) {
+									di = {};
+									A5.u.object.assign(di, ld[i], true, ['*key', '*renderIndex', '*value', '_']);
+									if (ld[i]._.deleted) di._ = { deleted: true, note: 'This asset has been marked for deletion. You can cancel this by setting the deleted property to false.' };
+									d.push(di);
+								}
+								tfc_TF.u.code.editors.json.edit(d, l);
+							}
+						}, l);
+						$e.add('TF.ASSETS.JSON.EDIT', 'mouseenter', function () { tfc_TF.u.flyout.show(this, 'Edit JSON...', {}) });
+						$e.add('TF.ASSETS.JSON.EDIT', 'mouseleave', function () { tfc_TF.u.flyout.hide() });
+
+
+						p.setDisplay('header', true);
+						l.refreshToolbar();
+
+						l.sortMenu = new A5.Menu([
+							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+							'-',
+							{ html: 'URL Ascending', value: 'url:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'URL Descending', value: 'url:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+							'-',
+							{ html: 'Type Ascending', value: 'type:1', icon: 'svgIcon=#alpha-icon-sortAmountAsc:icon' },
+							{ html: 'Type Descending', value: 'type:-1', icon: 'svgIcon=#alpha-icon-sortAmountDesc:icon' },
+							'-',
+							{ html: 'Version Ascending', value: 'version:1', icon: 'svgIcon=#alpha-icon-sortNumericAsc:icon' },
+							{ html: 'Version Descending', value: 'version:-1', icon: 'svgIcon=#alpha-icon-sortNumericDesc:icon' }
+						], {
+							theme: tfc_TF.theme,
+							style: 'white-space: nowrap;',
+							onClick: function (i) {
+								var v = i.value.split(':');
+								var l = tfc_TF.ui.dev.assets.list._.l;
+								if (v.length > 1) {
+									var dir = v[1].toNumber();
+									l.setOrder([[v[0], dir]]);
+								} else l.setOrder(false);
+							}
+						});
+
+						this._.l = l;
+					}
+				}
+			},
+			apps: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
+					this._.p = p;
+					tfc_TF.u.panels.lockable(p);
+					var pId = p.getPanelId();
+					var ele = $(pId);
+					var fEle = document.createElement('div');
+					fEle.id = 'TF.APPS.FORM';
+					fEle.style.display = 'none';
+					fEle.className = 'TFOverlayForm';
+					fEle.innerHTML = '<div id="TF.APPS.FORM.CONTENT" class="TFForm"></div>';
+					ele.appendChild(fEle);
+					this._.f = new A5.FormBox('TF.APPS.FORM.CONTENT', tfc_TF.forms.connectedApps, {}, {
+						theme: tfc_TF.theme
+					});
+				},
+				list: {
+					_: {},
+					init: function (ux, l) {
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push(A5.buttons.html('TF.APPS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+						html.push(A5.buttons.html('TF.APPS.ADD', { theme: tfc_TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.APPS.EDIT', { theme: tfc_TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
+						html.push(A5.buttons.html('TF.APPS.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Delete', icon: 'svgIcon=#alpha-icon-x:icon' }));
+
+						html.push('</div>');
+						html.push('<div style="width: 4px;"></div>');
+						html.push('<input id="TF.APPS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+						html.push('<div style="width: 4px;"></div>');
+						html.push(A5.buttons.html('TF.APPS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.APPS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+						html.push('</div>');
+
+						var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
+						var ele = $(p.getPanelId('header'));
+						ele.className = 'TFPanelHeader';
+						ele.innerHTML = html.join('');
+
+						$e.add('TF.APPS.SELECTALL', 'click', function (e, l) {
+							if (l.selection.length != 0) l.setValue(false);
+							else l.setValue({ select: 'all' });
+						}, l);
+						$e.add('TF.APPS.ADD', 'click', function (e, l) {
+							$('TF.APPS.FORM').style.display = '';
+							var f = tfc_TF.ui.dev.apps._.f;
+							f.editMode = 'create';
+							f.populate({
+								name: '',
+								type: 'amazon-s3',
+								def: {}
+							});
+						}, l);
+						$e.add('TF.APPS.EDIT', 'click', function (e, l) {
+							$('TF.APPS.FORM').style.display = '';
+							var d = l.selectionData[0];
+							var f = tfc_TF.ui.dev.apps._.f;
+							f.editMode = 'edit';
+							f.populate({
+								name: d.name,
+								rename: d.name,
+								type: d.type,
+								def: (d.def ? A5.u.object.clone(d.def) : {})
+							});
+						}, l);
+						$e.add('TF.APPS.REMOVE', 'click', function (e, l) {
+							tfc_TF.u.message.show('confirm-cancel', 'Delete Connection', 'Are you sure you want to delete the specified connection?', {
+								action: function (a) {
+									if (a == 'confirm') {
+										tfc_TF.ui.dev.apps._.p.lock('Removing connection...');
+										var n = [];
+										var d = tfc_TF.ui.dev.apps.list._.l.selectionData;
+										for (var i = 0; i < d.length; i++) {
+											n.push(d[i].name);
+										}
+										tfc_TF.request('remove-connections', { names: n }).then(function (d) {
+											tfc_TF.ui.dev.apps.list._.l.populate(d, false);
+											tfc_TF.ui.dev.apps._.p.unlock();
+										}).catch(function () {
+											tfc_TF.ui.dev.apps._.p.unlock();
+										});
+									}
+								}
+							})
+						}, l);
+						$e.add('TF.APPS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.APPS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						$e.add('TF.APPS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
+
+
+						p.setDisplay('header', true);
+						l.refreshToolbar();
+
+						l.sortMenu = new A5.Menu([
+							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+							'-',
+							{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+							'-',
+							{ html: 'Application Ascending', value: 'application:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'Application Descending', value: 'application:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+						], {
+							theme: tfc_TF.theme,
+							style: 'white-space: nowrap;',
+							onClick: function (i) {
+								var v = i.value.split(':');
+								var l = tfc_TF.ui.dev.apps.list._.l;
+								if (v.length > 1) {
+									var dir = v[1].toNumber();
+									l.setOrder([[v[0], dir]]);
+								} else l.setOrder(false);
+							}
+						});
+
+						this._.l = l;
+					}
+				}
+			},
+			actions: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_ACTIONS');
+					this._.p = p;
+					tfc_TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_ACTIONS_CODE');
+					tfc_TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.ACTIONS"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					tfc_TF.ui.dev.actions._.e = new tfc_TF.u.code.Editor('TF.DEV.ACTIONS', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								if (tfc_TF.ui.dev._.h) tfc_TF.ui.dev._.h.setTabDirty('onsubmit', v);
+							}
+						},
+						onChange: function () {
+							clearTimeout(this.pto);
+							this.pto = setTimeout(function () {
+								var json = $('TF.DEV.ACTIONS.CODE').value;
+								var d = null;
+								try {
+									d = JSON.parse(json);
+								} catch (err) {
+									tfc_TF.ui.dev.actions.list._.l.jsonError(err);
+									return false;
+								}
+								if (Array.isArray(d)) {
+									tfc_TF.ui.dev.actions.list._.l.updateData(d);
+								}
+							}, 400);
+						}
+					});
+					ele = $(p.getPanelId('header'));
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The onsubmit actions are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=json%20syntax%20for%20onsubmit" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.ACTIONS.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.ACTIONS.REFORMAT', 'click', function (e, c) {
+						var json = tfc_TF.ui.dev.actions._.e.value;
+						json = tfc_TF.u.code.lang.json.reformat(json);
+						tfc_TF.ui.dev.actions._.e.setValue(json);
+					}, ux);
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+				},
+				list: {
+					_: {},
+					icons: {
+						condition: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{fill: #2f83a8}')
+					},
+					init: function (ux, l) {
+						this._.l = l;
+						p = ux.panelGet('TRANSFORM_ACTIONS_LIST');
+						tfc_TF.u.panels.lockable(p);
+						ele = $(p.getPanelId('header'));
+						var html = [];
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.ADD', { theme: tfc_TF.theme, html: 'Add Action', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.REMOVE', { theme: tfc_TF.theme + ':deny', className: 'button buttonDeny buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.UP', { theme: tfc_TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowUp:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.DOWN', { theme: tfc_TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowDown:icon' }));
+
+						ele.innerHTML = html.join('');
+						$e.add('TF.DEV.ACTIONS.MOVE.ADD', 'click', function (e, c) {
+							var m = tfc_TF.ui.dev.actions.list._.m;
+							if (m._data.length == 0) {
+								var a = c.actions;
+								var items = [];
+								for (var i = 0; i < a.length; i++) items.push({ html: a[i][0], value: i });
+								m.populate(items);
+							}
+							m.show('dropdown', this);
+						}, ux);
+						$e.add('TF.DEV.ACTIONS.MOVE.REMOVE', 'click', function (e) {
+							tfc_TF.u.message.show('confirm-cancel', 'Delete Action', 'Are you sure you would like to delete the selected action?', {
+								action: function (a) {
+									if (a == 'confirm') {
+										var json = tfc_TF.ui.dev.actions._.e.value;
+										var d = JSON.parse(json);
+										var l = tfc_TF.ui.dev.actions.list._.l;
+										var indx = l.selection[0];
+										d.splice(indx, 1);
+										json = JSON.stringify(d, '', '\t');
+										tfc_TF.ui.dev.actions._.e.setValue(json);
+										tfc_TF.ui.dev.actions._.e.setDirty(true);
+										l.setValue(false);
+									}
+								}
+							});
+						});
+						$e.add('TF.DEV.ACTIONS.MOVE.UP', 'click', function (e) {
+							var json = tfc_TF.ui.dev.actions._.e.value;
+							var d = JSON.parse(json);
+							var l = tfc_TF.ui.dev.actions.list._.l;
+							var indx = l.selection[0];
+							A5.u.array.move(d, indx, 'up');
+							json = JSON.stringify(d, '', '\t');
+							tfc_TF.ui.dev.actions._.e.setValue(json);
+							tfc_TF.ui.dev.actions._.e.setDirty(true);
+							l.setValue(indx - 1);
+						});
+						$e.add('TF.DEV.ACTIONS.MOVE.DOWN', 'click', function (e) {
+							var json = tfc_TF.ui.dev.actions._.e.value;
+							var d = JSON.parse(json);
+							var l = tfc_TF.ui.dev.actions.list._.l;
+							var indx = l.selection[0];
+							A5.u.array.move(d, indx, 'down');
+							json = JSON.stringify(d, '', '\t');
+							tfc_TF.ui.dev.actions._.e.setValue(json);
+							tfc_TF.ui.dev.actions._.e.setDirty(true);
+							l.setValue(indx + 1);
+						});
+						ele.className = 'TFPanelHeader';
+						p.setDisplay('header', true);
+						this._.m = new A5.Menu([], {
+							theme: tfc_TF.theme,
+							style: 'white-space: nowrap;',
+							iconColumn: { show: false },
+							onClick: function (i) {
+								var nd = A5.u.object.clone(ux.actions[i.value][2]);
+								var l = tfc_TF.ui.dev.actions.list._.l;
+								var json = tfc_TF.ui.dev.actions._.e.value;
+								var d = JSON.parse(json);
+								if (l.selection.length == 1) d.splice(l.selection[0], 0, nd);
+								else d.push(nd);
+								json = JSON.stringify(d, '', '\t');
+								tfc_TF.ui.dev.actions._.e.setValue(json);
+								tfc_TF.ui.dev.actions._.e.setDirty(true);
+							}
+						})
+					},
+					html: function (d) {
+						var html = [];
+						html.push('<div>');
+						html.push(d.actionName);
+						html.push('</div>');
+
+						if (Array.isArray(d.formIds)) {
+							html.push('<div>');
+							for (var i = 0; i < d.formIds.length; i++) {
+								html.push('<div class="TFListDataBadge">' + d.formIds[i] + '</div>');
+							}
+							html.push('</div>');
+						}
+
+						html.push('<div style="position: absolute; top: 3px; right: 5px; display: flex; flex-direction row; align-items: center; gap: 4px; font: 12px monospace;" onmouseenter="TF.u.flyout.show(this,\'' + (d.condition == 'none' ? 'Action is not conditioned' : 'Action has conditional logic') + '\',{direction: \'horizontal\'});" onmouseleave="TF.u.flyout.hide();">');
+						if (d.condition == 'none') {
+							html.push('<div style="opacity: .15">' + this.icons.condition + '</div>');
+						} else {
+							html.push('<div>' + d.condition.toUpperCase() + '</div>');
+							html.push(this.icons.condition);
+						}
+						html.push('</div>');
+						var ik = Object.keys(d.info);
+						var iki = null;
+						if (ik.length > 0) {
+							html.push('<table>');
+							for (var i = 0; i < ik.length; i++) {
+								iki = ik[i];
+								html.push('<tr>');
+								html.push('<td class="TFFormItemLabel" style="text-align: right; white-space: nowrap;">' + iki + '</td>');
+								html.push('<td>');
+								if (Array.isArray(d.info[iki])) html.push(d.info[iki].join(', '))
+								else html.push(d.info[iki]);
+								html.push('</td>');
+								html.push('</tr>');
+							}
+							html.push('</table>');
+						}
+						return html.join('');
+					}
+				},
+				log: {
+					_: {},
+					init: function (ux, l) {
+						var p = ux.panelGet('TRANSFORM_ACTIONS_LOG');
+						tfc_TF.u.panels.lockable(p);
+						ele = $(p.getPanelId('header'));
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">');
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.REFRESH', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-refresh:icon', html: 'Refresh' }));
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.EXPORT', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-export:icon', html: 'Export' }));
+						html.push('<div class="TFFormItemLabel" style="padding-left: 4px;">Group by</div>');
+						html.push('<div id="TF.ACTIONS.LOG.GROUP"></div>');
+						html.push('<input id="TF.ACTIONS.LOG.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.GROUP.TOGGLE', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-chevronDown:icon' }, 'a5-state="expanded"', 'disabled'));
+						html.push('</div>');
+						ele.innerHTML = html.join('');
+						$e.add('TF.ACTIONS.LOG.REFRESH', 'click', function (e, c) {
+							c.getActionsLogData();
+						}, ux);
+						$e.add('TF.ACTIONS.LOG.EXPORT', 'click', function (e, c) {
+							var obj = {
+								data: 'listData',
+								exportType: 'excel',
+								action: 'download',
+								clientsidefilename: 'log',
+								maxRecords: -1,
+								decryptfields: false,
+								onlyexportvisibilecolumns: false
+							};
+							c.exportListData('log', obj);
+						}, ux);
+
+						$e.add('TF.ACTIONS.LOG.GROUP.TOGGLE', 'click', function (e) {
+							var l = tfc_TF.ui.dev.actions.log._.l;
+							if (this.getAttribute('a5-state') == 'collapsed') {
+								l.setGroupCollapse(['all'], false);
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
+								this.setAttribute('a5-state', 'expanded');
+							} else {
+								l.setGroupCollapse(['all'], true);
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = 'rotate(-90deg)';
+								this.setAttribute('a5-state', 'collapsed');
+							}
+						});
+						$e.add('TF.ACTIONS.LOG.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.ACTIONS.LOG.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						this._.gb = new A5.ButtonList('TF.ACTIONS.LOG.GROUP', [
+							{ html: 'None', value: 'none' },
+							{ html: 'Action', value: 'action' },
+							{ html: 'Errors', value: 'errors' },
+							{ html: 'Form Type', value: 'form' },
+							{ html: 'Form Instance', value: 'instance' },
+							{ html: 'Date', value: 'date' },
+						], {
+							theme: tfc_TF.theme,
+							onClick: function () {
+								var v = this.value[0];
+								var l = tfc_TF.ui.dev.actions.log._.l;
+								var gb = false;
+								var bEle = $('TF.ACTIONS.LOG.GROUP.TOGGLE');
+
+								if (v == 'action') gb = { order: { actionName: 1 }, group: function (d) { return d.actionName; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Action:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'errors') gb = { order: { flagError: -1 }, group: function (d) { return '' + d.flagError; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;">' + (g == 'true' ? 'Errors' : 'Successful') + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'form') gb = { order: { formId: 1 }, group: function (d) { return d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Type:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'instance') gb = { order: { formInstanceId: 1 }, group: function (d) { return d.formInstanceId + ' of ' + d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Instance:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'date') {
+									gb = {
+										order: { dateTime: -1 },
+										group: function (d) {
+											var dt = d.dateTime;
+											dt = dt.substr(0, 10);
+											return dt;
+										},
+										header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>On:</i> ' + g + '</div><div>{indicator}</div></div>'; } }
+									};
+								}
+								if (gb) {
+									l.layouts['Default'].group.auto = null;
+									gb.className = 'TFListGroup';
+									l.group.auto = [gb];
+									bEle.disabled = false;
+									A5.u.element.cls(bEle, '-=buttonDisabled');
+								} else {
+									l.group.auto = false;
+									bEle.disabled = true;
+									A5.u.element.cls(bEle, '+=buttonDisabled');
+								}
+
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
+								bEle.setAttribute('a5-state', 'expanded');
+								l.groupBy = v;
+								l.refresh();
+							}
+						});
+						this._.gb.setValue('none');
+						ele.className = 'TFPanelHeader';
+						p.setDisplay('header', true);
+
+						l.group.collapse.allow = 'title';
+						l.group.collapse.auto = false;
+						l.group.collapse.indicator.collapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
+						l.group.collapse.indicator.expand = A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon');
+						this._.l = l;
+					}
+				}
+			}
+		},
+
+		// home page UI
+		home: {
+			_: {},
+			init: function (vb, ux) {
+				var p = ux.panelGet('TRANSFORM_HOME');
+				tfc_TF.u.panels.lockable(p);
+				tfc_TF.ui.home._.vb = vb;
+				vb.getStructure();
+			},
+			html: function (vb, uxId) {
+				var html = [];
+				var sl = tfc_TF.state.login;
+				var bEle = $('TF.HOME.BLOCK');
+				if (sl.state != 'logged-in') {
+					bEle.setAttribute('login-state', (tfc_TF.state.login.state == 'logged-out' ? 'Login required...' : 'Login confirmation required...'));
+					bEle.style.display = '';
+				} else bEle.style.display = 'none';
+
+				var fd = vb.data.forms.types;
+				var dd = vb.data.dashboards.types;
+				var allow = tfc_TF.state.login.account.member.ui.allow;
+				var di = null;
+				var idp = vb.contId + '.';
+				// icons
+				var iconForm = A5.u.icon.html('svgIcon=#alpha-icon-doc:icon {width: 52px; height: 52px;}');
+				var iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon {width: 52px; height: 52px;}');
+				var iconFill = A5.u.icon.html('svgIcon=#alpha-icon-docEdit:icon');
+				var iconData = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
+				var iconFormStatus = A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon iconButton');
+				var iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon iconButton');
+				var iconX = A5.u.icon.html('svgIcon=#alpha-icon-xCircle:icon iconButton');
+				var iconGoto = A5.u.icon.html('svgIcon=#alpha-icon-chevronDblRight:icon');
+				var iconCollapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
+				var iconAdd = A5.u.icon.html('svgIcon=#alpha-icon-add:icon {width: 52px; height: 52px;}');
+
+				// flyout events
+				var getUX = uxId + '_DlgObj.getControl(\'' + vb.variableName + '\')';
+				var foEvnts = 'onmouseenter="' + getUX + '.showFlyout(this);" onmouseleave="' + getUX + '.hideFlyout();"';
+
+
+				// filter
+				var filter = function () { return true; };
+				if (!vb.filter) {
+					vb.filter = { text: '', state: 0 };
+					var iconFilter = A5.u.icon.html('svgIcon=#alpha-icon-x:icon iconButton', 'id="TF.HOME.FILTER.QSICON" a5-item="clearQuickSearch" flyout-type="tip:Clear quick search..." ' + foEvnts);
+					var iconCalendar = A5.u.icon.html('svgIcon=#alpha-icon-calendar:icon iconButton');
+
+					html.push('<div style="display: flex; align-items: center;">');
+					html.push('<div style="flex: 1 1 auto;">');
+					html.push('<input id="TF.HOME.FILTER.QS" placeholder="Quick search..." class="TFEdit edit" onkeyup="var vb = ' + getUX + '.quickSearch(this.value);" /> ');
+					html.push(iconFilter);
+					html.push('</div>');
+					html.push('<div>');
+					html.push(A5.buttons.html('TF.HOME.REFRESH', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-refresh:icon' }, 'a5-item="refresh" flyout-type="tip:Refresh account data..." ' + foEvnts));
+					html.push('</div>');
+					html.push('</div>');
+					//html.push(iconCalendar);
+					$('TF.HOME.FILTER').innerHTML = html.join('');
+					html = [];
+
+					$e.add('TF.HOME.ALLTILES', 'scroll', function (e, c) {
+						var cs = A5.u.element.getScroll(this);
+						var ps = c._ps || 0;
+						if (ps == 0 && cs.top != 0) {
+							A5.u.element.cls(this.parentNode, '+=TFTilesBodyScrolled');
+						} else if (cs.top == 0 && ps != 0) {
+							A5.u.element.cls(this.parentNode, '-=TFTilesBodyScrolled');
+						}
+						c._ps = cs.top;
+					}, vb);
+				} else {
+					if (vb.filter.text != '') {
+						filter = function (t, i) {
+							if (i.name.toLowerCase().indexOf(vb.filter.text) == -1) return false;
+							return true;
+						}.bind(this);
+						//if(vb.filter.state != 1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filterOff:icon iconButton');
+						vb.filter.state = 1;
+					} else {
+						//if(vb.filter.state != -1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filter:icon iconButton');
+						vb.filter.state = -1;
+					}
+				}
+
+				// header
+				var mrat = '<span class="TFTilesFormInstCallout">form submit</span>';
+				var mra = 0;
+				var dt = null;
+				for (var i = 0; i < fd.length; i++) {
+					dt = new Date(fd[i].times.instance);
+					if (dt > mra) mra = dt;
+				}
+
+				html.push('<div class="TFTilesMainHeaderWelcome">Hello, ' + sl.user.name + '. Welcome to TransForm Central.</div>');
+				html.push('<div>');
+				html.push('You have <span class="TFTilesFormCallout">' + (fd.length == 0 ? 'No' : fd.length) + ' Form Type' + (fd.length != 1 ? 's' : '') + '</span>');
+				if (allow.dashboard) html.push(' and <span class="TFTilesDashboardCallout">' + (dd.length == 0 ? 'No' : dd.length) + ' Dashboard' + (dd.length != 1 ? 's' : '') + '</span>');
+				html.push('.');
+				if (Number(mra) > 0) html.push(' Last activity was a ' + mrat + ' on <span style="font-weight: bold;">' + (mra.same('year', new Date()) ? mra.toFormat('Month x') : mra.toFormat('Month x yyyy')) + '</span> at <span style="font-weight: bold;">' + mra.toFormat('0h:0m') + '</span>.');
+
+				// back to old
+				html.push('<div style="position: absolute; top: 10px; right: 10px; font-size: 12px;">');
+				html.push('<a href="#" onclick="localStorage.removeItem(\'A5.transform\'); if(event.ctrlKey || event.shiftKey) window.open(\'transFormCentralNew_FAST.a5w\'); else location.href = \'transFormCentralNew_FAST.a5w\';" oncontextmenu="$e.stopEvent(event);" class="link" flyout-type="tip:Revert to old TransForm Central..." ' + foEvnts + '>Revert</a>');
+				html.push('</div>');
+				html.push('</div>');
+
+				$('TF.HOME.HEADING').innerHTML = html.join('');
+				html = [];
+
+				// start form tiles
+				var canFill = tfc_TF.state.login.account.member.ui.allow.filler.web;
+				html.push('<div class="TFTileGroup"><div id="' + idp + 'FORMS" a5-item="groupToggle:forms" class="TFTileGroupTitle">Forms<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (tfc_TF.state.ui.home.forms.collapsed ? ' style="display: none;"' : '') + '><div>');
+				for (var i = 0; i < fd.length; i++) {
+					di = fd[i];
+					if (filter('form', di)) {
+						html.push('<div id="' + idp + 'FORM.' + i + '" class="TFTileFlip">');
+						html.push('<div class="TFTile TFTileForm TFTileFront">');
+						html.push('<div class="TFTileMain">');
+						html.push('<div><div class="TFTileIcon">' + (di.icon != '' ? di.icon : iconForm) + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px;"><span id="' + idp + 'FORM.' + i + '.TITLE" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div>');
+						html.push('<div class="TFTileToolbarTR">');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" flyout-type="form:status" flyout-tile="' + i + '" ' + foEvnts + ' a5-item="formStatus:' + i + '">' + iconFormStatus + '</div>');
+						html.push('</div>');
+						html.push('<div id="' + idp + 'FORM.' + i + '.DESIGN" class="TFTileToolbarBR" flyout-type="form:design" flyout-tile="' + i + '" ' + foEvnts + '>');
+						if (allow.design) html.push('<div id="' + idp + 'FORMS.' + i + '.DESIGN" a5-item="formDesign:' + di.id + '">' + iconFormDesign + '</div>');
+						html.push('</div>');
+						if (di.color) html.push('<div class="TFTileFormColor"><div style="background: ' + di.color + ';"></div></div>');
+						html.push('</div>');
+
+						if (di.allow.manage) html.push('<div id="' + idp + 'FORMS.' + i + '.VIEW" a5-item="formView:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">View Instances</div><div id="' + idp + 'FORMS.' + i + '.COUNT" class="TFTileBadge">' + (di.count > 99 ? '99+' : di.count) + '</div></div>');
+						if (canFill && di.allow.fill) html.push('<div id="' + idp + 'FORMS.' + i + '.FILL" a5-item="formFill:' + di.id + '" class="TFTileButton TFTileFormCreate">' + iconFill + '<div class="TFTileButtonText">Fill New Instance</div></div>');
+						html.push('</div>');
+						html.push('<div class="TFTileBack">');
+						html.push('<div class="TFTileFormBack">');
+						html.push('<div>');
+						html.push('<div class="TFTileToolbarTR">');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" a5-item="formStatus:' + i + '">' + iconX + '</div>');
+						html.push('</div>');
+						html.push('<div a5-item="formStatus:' + i + '" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px; text-align: center;"><span id="' + idp + 'FORM.' + i + '.TITLE.BACK" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div>');
+						html.push('</div>');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS.LIST" style="display: flex; flex-direction: column; min-height: 100%; flex: 1 1 auto;"></div>');
+						html.push('</div>');
+						html.push('</div>');
+						html.push('</div>');
+					}
+				}
+				if (allow.design) {
+					html.push('<div id="' + idp + 'FORMS.CREATE" a5-item="formCreate" class="TFTileAdd TFTileForm"><div>' + iconAdd + '</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Form<br/>Type</div></div>');
+				}
+
+				html.push('</div></div></div>');
+				// end form tiles
+
+				// start dashboard tiles
+				if (A5.u.typeOf(dd) == 'array' && allow.dashboard) {
+					html.push('<div class="TFTileGroup"><div id="' + idp + 'DASHBORADS" a5-item="groupToggle:dashboards" class="TFTileGroupTitle">Dashboards<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (tfc_TF.state.ui.home.dashboards.collapsed ? ' style="display: none;"' : '') + '><div>');
+					for (var i = 0; i < dd.length; i++) {
+						di = dd[i];
+						if (filter('dashboard', di)) {
+							html.push('<div class="TFTile TFTileDash">');
+							html.push('<div class="TFTileMain"><div><div class="TFTileIcon">' + iconDashboard + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 20px;"><span id="' + idp + 'DASH.' + i + '.TITLE" flyout-type="dashboard:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div></div>');
+							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.VIEW" a5-item="dashboardView:' + di.id + '" class="TFTileButton TFTileDashGoto">' + iconGoto + '<div class="TFTileButtonText">Goto Dashboard</div></div>');
+							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.MANAGE" a5-item="dashboardManage:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">Linked Data</div></div>');
+							html.push('</div>');
+						}
+					}
+					//html.push('<div id="'+idp+'DASHBORADS.CREATE" a5-item="dashboardCreate" class="TFTileAdd TFTileDash"><div>'+iconAdd+'</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Dashboard</div></div>');
+					html.push('</div></div></div>');
+				}
+				// end dashboard tiles
+
+				// output HTML
+				html = html.join('');
+				return html;
+			},
+			forms: {
+				info: {
+					html: function (d) {
+						var info = d.info;
+						var html = [];
+						html.push('<div style="flex: 1 1 auto;">');
+						if (info.errors.count > 0) {
+							html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.count + '</div> Errors<br/>');
+							if (info.errors.missingRequired > 0) html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.missingRequired + '</div> Missing required values<br/>');
+						}
+						var sl = tfc_TF.state.login.account.permissions.statusesList;
+						var sli = null;
+						for (var i = 0; i < sl.length; i++) {
+							sli = sl[i];
+							if (typeof info.status[sli.statusID] == 'number' && info.status[sli.statusID] > 0) {
+								html.push('<div class="TFTileBadge TFTileBadgeStatus">' + (info.status[sli.statusID] > 99 ? '99+' : info.status[sli.statusID]) + '</div> ' + sli.display + '<br/>');
+							}
+						}
+						if (html.length == 0) html.push('<div>No statuses</div>');
+						html.push('</div>');
+						html.push('<div class="TFTileActivity"><div>Last activity:</div><div>' + info.times.instance + '</div></div>');
+						return html.join('');
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+
+;// ./src/style.ts
+/* harmony default export */ const style = (`
+    body {
+        --json-punctuation:rgb(196, 26, 97);
+        --json-value:rgb(18, 119, 214);
+    }
+
+    .TFCodeJSONBrackets, .TFCodeJSONSep, .TFCodeJSONBool {
+        color: var(--json-punctuation);
+    }
+    
+    .TFCodeJSONStr, .TFCodeJSONNum {
+        color: var(--json-value);
+    }
+`);
+
 ;// ./src/index.ts
+
+
 
 
 window.initialize = initialize;
 window.initTFSelector = initTFSelector;
+window.TF = tfc_TF;
+window.addEventListener('load', () => {
+    let styleNode = document.createElement('style');
+    styleNode.innerHTML = style;
+    document.body.appendChild(styleNode);
+});
 
 /******/ })()
 ;

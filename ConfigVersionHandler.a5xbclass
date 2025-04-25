@@ -1,0 +1,85 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+
+'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
+'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
+
+define class ConfigVersionHandler
+	dim read static VERSIONS[0] as c = ["0.8.0"]
+	dim read protected write static CURRENT_VERSION
+	dim read protected write MADE_CHANGES as l
+	
+	function ConfigVersionHandler()
+		CURRENT_VERSION = VERSIONS[VERSIONS.size()]
+		MADE_CHANGES = .f.
+	end function
+	
+	function handleConversion as extension::json (config as extension::json)
+		MADE_CHANGES = .f.
+		' No short circuiting operators, so we have to evaluate in the loop
+		while .t.
+			dim version as c
+			if config.hasProperty("version") then 
+				version = config.getProperty("version")
+			else
+				version = "unversioned"
+			end if
+			
+			if version = CURRENT_VERSION then 
+				exit while 
+			end if
+			
+			select 
+				case version = "unversioned"
+					config = convertUnversioned(config)
+			end select
+
+		end while
+		
+		handleConversion = config
+	end function
+	
+	function private convertUnversioned as extension::json (config as extension::json)
+		config.setProperty("version", "0.8.0")
+		MADE_CHANGES = .t.
+		
+		' Change: The 'jsonConfig' property on DataMappings went from JsonFieldTypeSchema to {editorType: string, definition: JsonFieldTypeSchema }
+		dim newMappings as extension::json 
+		newMappings.setJson("[]")
+		
+		for i = 0 to config.getProperty("mappings").getLength() - 1
+			dim mapping as extension::json = config.getProperty("mappings").getIndexed(i)
+			newMappings.push(convertUnversionedMapping(mapping))
+		next
+		
+		config.setProperty("mappings", newMappings)
+		
+		convertUnversioned = config
+	end function
+	
+	function private convertUnversionedMapping as extension::json (mapping as extension::json)
+		dim tag as c = mapping.getProperty("tag")
+		if tag = "data" then 
+			if mapping.hasProperty("jsonConfig") then
+				MADE_CHANGES = .t.
+				
+				dim oldConfig as extension::json = mapping.getProperty("jsonConfig")
+				dim newConfig as extension::json 
+				newConfig.setJson("{}")
+				
+				newConfig.setProperty("editorType", "form")
+				newConfig.setProperty("definition", oldConfig)
+				mapping.setProperty("jsonConfig", newConfig)
+			end if
+		else if tag = "nested"
+			mapping.setProperty("mapping", convertUnversionedMapping(mapping.getProperty("mapping")))
+		else if tag = "object" .or. tag = "array"
+			mapping.setProperty("item", convertUnversionedMapping(mapping.getProperty("item")))
+		end if
+		
+		convertUnversionedMapping = mapping
+	end function
+	
+end class
+
