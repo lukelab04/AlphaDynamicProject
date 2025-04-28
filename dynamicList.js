@@ -12348,7 +12348,7 @@ function buildConfigForm(obj, adminConfig, config) {
                     definition: {
                         type: 'simple',
                         options: {
-                            label: "Allow Multiple Column Selection",
+                            label: "Allow Multiple Row Selection",
                             type: 'boolean'
                         }
                     },
