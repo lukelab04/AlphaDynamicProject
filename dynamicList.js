@@ -7994,6 +7994,14 @@ class ConfigSupplierForm {
     getId() {
         return this.id;
     }
+    rebuild(value) {
+        let newDefn = this.options.supply(this.parent, null);
+        this.options.default = newDefn;
+        this.generatedForm = constructForm(newDefn, this, this.dynForm);
+        let d = this.generatedForm.getPopulateData(value);
+        Object.assign(this.dynForm.formBox.data, d);
+        this.dynForm.formBox.refresh();
+    }
     getOptions() {
         return { type: 'supplier', options: this.options };
     }
@@ -10452,7 +10460,7 @@ class DynamicList {
         }
     }
     refreshSelectionChecks() {
-        this.data.forEach(d => {
+        this.listBox._data.forEach(d => {
             d['__selected'] = this.selectedRows.has(d['*key']);
         });
         this.listBox.refresh();
@@ -10633,10 +10641,11 @@ class DataScopeManager {
             let toExpand = [];
             for (const mapping of config.mappings) {
                 let key = (mapping.tag == 'nested') ? mapping.key : mapping.flattenedName;
+                let flatName = (mapping.tag == 'nested') ? this.flatName(mapping.mapping) : mapping.flattenedName;
                 if (key in dataPoint) {
                     let items = this._flattenPoint(dataPoint, mapping);
-                    dataPoint[key] = items;
-                    toExpand.push(key);
+                    dataPoint[flatName] = items;
+                    toExpand.push(flatName);
                 }
             }
             result.push(...this.explodeObject(dataPoint, toExpand));
@@ -12283,6 +12292,7 @@ function manageConfigForm(ops) {
                     dynamicItems.list = newList;
                     dynamicItems.search = newSearch;
                     dynamicItems.list.reRender(false);
+                    config.populate(newConfig);
                 }).catch(showError);
             };
         }
@@ -12362,14 +12372,21 @@ function buildConfigForm(obj, adminConfig, config) {
 function buildMappingForm(configName, isAdmin, schema) {
     var _a;
     let cols = [];
-    if (schema.tag == 'object')
-        cols = Object.keys(schema.keys);
+    let nestedCols = [];
+    if (schema.tag == 'object') {
+        for (const key in schema.keys) {
+            cols.push(key);
+            let tag = schema.keys[key].tag;
+            if (tag == 'array' || tag == 'object')
+                nestedCols.push(key);
+        }
+    }
     let { dataMappingForm, dataMappingDefault } = dataMapping(configName, cols, isAdmin);
-    let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [cols[0]], schema.tag == 'object' ? schema.keys[cols[0]] : undefined);
+    let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [nestedCols[0]], schema.tag == 'object' ? schema.keys[nestedCols[0]] : undefined);
     let nestedOps = {
         nestedDefault,
         nestedMappingForm,
-        key: (_a = cols[0]) !== null && _a !== void 0 ? _a : ''
+        key: (_a = nestedCols[0]) !== null && _a !== void 0 ? _a : ''
     };
     let tryGetFullPath = (n) => {
         if (n.tag == 'object')
@@ -12423,7 +12440,7 @@ function buildMappingForm(configName, isAdmin, schema) {
                                             type: 'dropdown',
                                             options: {
                                                 label: 'From Column',
-                                                dropdownItems: cols.map(x => ({ text: x, value: x })),
+                                                dropdownItems: nestedCols.map(x => ({ text: x, value: x })),
                                                 allowCustomValue: true,
                                                 onSelect: (val, form) => {
                                                     if (val) {
@@ -12463,9 +12480,6 @@ function buildMappingForm(configName, isAdmin, schema) {
 }
 function nestedMapping(configName, isAdmin, fullPath, schema) {
     var _a;
-    let keys = [];
-    if (schema && schema.tag == 'object')
-        keys = Object.keys(schema.keys);
     let dataDefault = {
         tag: 'data',
         flattenedName: 
@@ -12484,12 +12498,13 @@ function nestedMapping(configName, isAdmin, fullPath, schema) {
         item: dataDefault
     };
     let setDefault = dataDefault;
-    let defaultKey = (_a = keys[0]) !== null && _a !== void 0 ? _a : '';
     if (schema && schema.tag == 'object') {
+        let keys = Object.keys(schema.keys);
+        let defaultKey = (_a = keys[0]) !== null && _a !== void 0 ? _a : '';
         let { nestedDefault } = nestedMapping(configName, isAdmin, [...fullPath, defaultKey], schema.keys[defaultKey]);
         objDefault = {
             tag: 'object',
-            key: keys[0],
+            key: defaultKey,
             item: nestedDefault
         };
         setDefault = objDefault;
@@ -12519,8 +12534,18 @@ function nestedMapping(configName, isAdmin, fullPath, schema) {
                                     type: 'dropdown',
                                     options: {
                                         label: 'Object Key',
-                                        dropdownItems: keys.map(x => ({ text: x, value: x })),
-                                        allowCustomValue: true
+                                        dropdownItems: ((schema === null || schema === void 0 ? void 0 : schema.tag) == 'object') ? Object.keys(schema.keys).map(x => ({ value: x, text: x })) : [],
+                                        allowCustomValue: true,
+                                        onSelect: (newKey, d) => {
+                                            let parent = d.parent;
+                                            let item = parent.getChild('item');
+                                            let populateWith = objDefault;
+                                            if (schema && schema.tag == 'object' && newKey in schema.keys) {
+                                                populateWith = nestedMapping(configName, isAdmin, [...fullPath, newKey], schema.keys[newKey]).nestedDefault;
+                                            }
+                                            item.rebuild(populateWith);
+                                            d.dynForm.refresh();
+                                        }
                                     }
                                 },
                                 item: {
