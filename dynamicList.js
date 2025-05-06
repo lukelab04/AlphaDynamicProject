@@ -13994,40 +13994,45 @@ class MappingFormNestedObject extends ReactiveForm {
                 };
             }
         }
-        const observer = new Observer();
-        this.form = new reactiveForm_ObjectForm(this.mapping, {
-            "tag": () => new reactiveForm_ConstForm("nested"),
-            "key": (key, i) => new ItemLabel(i, {
-                label: "Key",
-                item: new reactiveForm_DropdownForm({
-                    options: Object.keys(this.schema?.keys ?? {}).map(x => ({ text: x, value: x })),
-                    defaultValue: key,
-                    allowAny: true,
-                    onChange: newKey => {
-                        this.mapping.key = newKey;
-                        this.mapping.mapping = makeMappingDefaults(this.schema?.tag == 'object' ? this.schema.keys[newKey] : undefined, newKey);
-                        observer.notify(newKey);
-                        let nested = getMappingFullPath(this.mapping.mapping);
-                        let newName = [newKey];
-                        if (nested.length > 0)
-                            newName.push(...nested);
-                        this.pathChange.notify(newName);
-                    }
-                })
-            }),
-            "mapping": () => new ObserverForm(observer, this.mapping.key, newKey => {
-                if (newKey in this.cache)
-                    return this.cache[newKey];
-                let form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
-                this.cache[newKey] = form;
-                return form;
-            })
-        });
     }
     render(m) {
+        if (this.form === undefined) {
+            const observer = new Observer();
+            const ctx = m.getContext(ConfigContext.id);
+            this.form = new reactiveForm_ObjectForm(this.mapping, {
+                "tag": () => new reactiveForm_ConstForm("nested"),
+                "key": (key, i) => new ItemLabel(i, {
+                    label: "Key",
+                    item: new reactiveForm_DropdownForm({
+                        options: ctx.config.mappings.filter(m => m.tag == 'nested').map(x => ({ text: x.key, value: x.key })),
+                        defaultValue: key,
+                        allowAny: true,
+                        onChange: newKey => {
+                            this.mapping.key = newKey;
+                            this.mapping.mapping = makeMappingDefaults(this.schema?.tag == 'object' ? this.schema.keys[newKey] : undefined, newKey);
+                            observer.notify(newKey);
+                            let nested = getMappingFullPath(this.mapping.mapping);
+                            let newName = [newKey];
+                            if (nested.length > 0)
+                                newName.push(...nested);
+                            this.pathChange.notify(newName);
+                        }
+                    })
+                }),
+                "mapping": () => new ObserverForm(observer, this.mapping.key, newKey => {
+                    if (newKey in this.cache)
+                        return this.cache[newKey];
+                    let form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
+                    this.cache[newKey] = form;
+                    return form;
+                })
+            });
+        }
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
+        if (this.form === undefined)
+            return { changed: false, raw: this.mapping };
         return this.form.serialize(formData);
     }
 }
