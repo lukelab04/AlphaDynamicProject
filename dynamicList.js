@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, DataSourceTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -176,46 +176,47 @@ const ServerSortTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     order: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('asc'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('desc')])
 }));
+const DataSourceTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
+        jsonData: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
+        table: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
+        serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
+        paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
+        sql: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
+        serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
+        paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+    }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
+        endpoints: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            fetch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
+            search: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
+            add: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
+            update: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
+            delete: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
+        }),
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+    }),
+]);
 const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     version: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     onInitialize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-    dataSource: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-            type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
-            jsonData: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-            preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
-        }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-            type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
-            table: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-            connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-            filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
-            serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
-            paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
-            preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
-        }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-            type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
-            sql: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-            connectionString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-            filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
-            serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
-            paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
-            preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
-        }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-            type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
-            endpoints: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-                fetch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
-                search: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
-                add: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
-                update: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
-                delete: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EndpointTypeSchema),
-            }),
-            preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
-        }),
-    ]),
+    dataSource: DataSourceTypeSchema,
     mappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(MappingTypeSchema),
     searchOptions: SearchOptionsTypeSchema,
     multiSelect: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
@@ -6516,6 +6517,249 @@ function Errors(...args) {
     return new ValueErrorIterator(iterator);
 }
 
+;// ./src/formBuilder.ts
+
+// https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
+function uuidv4() {
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+}
+class FormBuilder {
+    constructor(obj, formName) {
+        this.obj = obj;
+        this.formName = formName;
+        this.root = new FormGroup();
+    }
+    withElement(element) {
+        this.root.withChild(element);
+        return this;
+    }
+    render() {
+        let items = [this.root.getJSON()];
+        A5.u.json.postparse(items);
+        this.obj.setJSONFormItems(this.formName, items);
+        this.obj.getControl(this.formName)._formBoxSize = "";
+        this.obj.resizeFormBoxes();
+    }
+}
+class FormGroup {
+    constructor() {
+        this.children = [];
+        this.style = 'display: flex; flex-direction: row; flex-flow: wrap;';
+        this.layout = '';
+        this.id = uuidv4() + '_GROUP';
+    }
+    withStyle(style) {
+        this.style = style;
+        return this;
+    }
+    withLayout(layout) {
+        this.layout = layout;
+        return this;
+    }
+    withChildren(children) {
+        this.children.push(...children);
+        return this;
+    }
+    withChild(child) {
+        this.children.push(child);
+        return this;
+    }
+    getJSON() {
+        return {
+            type: 'group',
+            id: this.id,
+            container: {
+                style: this.style,
+            },
+            layout: this.layout,
+            items: this.children.map(c => c.getJSON()),
+        };
+    }
+}
+class FormInput {
+    constructor() {
+        this.type = 'edit';
+        this.control = {
+            placeholder: '',
+            width: '100%',
+        };
+        this.id = uuidv4() + '_INPUT';
+        this.style = ';flex: 1 1;';
+        this.layout = '';
+        this.label = '';
+        this.variable = undefined;
+        this.format = undefined;
+    }
+    withStyle(style) {
+        this.style = style;
+        return this;
+    }
+    withLabel(label) {
+        this.label = label;
+        return this;
+    }
+    withVariable(variable) {
+        this.variable = variable;
+        return this;
+    }
+    withLayout(layout) {
+        this.layout = layout;
+        return this;
+    }
+    asDateTime(format) {
+        this.type = 'picker';
+        this.control.picker = {
+            type: 'date-time',
+            format: DEFAULT_DATETIME_FMT,
+        };
+        this.control.behavior = {
+            show: { mode: '' }
+        };
+        this.format = function (v, dObj) {
+            if (v) {
+                var fmtIn = DEFAULT_DATETIME_FMT;
+                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
+                var d = new Date();
+                d.fromFormat(v, fmtIn);
+                return d.toFormat(fmtOut);
+            }
+        };
+        return this;
+    }
+    asTime(format) {
+        this.type = 'picker';
+        this.control.picker = {
+            type: 'date-time',
+            format: DEFAULT_DATETIME_FMT,
+        };
+        this.control.behavior = {
+            show: { mode: '' }
+        };
+        this.format = function (v, dObj) {
+            if (v) {
+                var fmtIn = DEFAULT_DATETIME_FMT;
+                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
+                var d = new Date();
+                d.fromFormat(v, fmtIn);
+                return d.toFormat(fmtOut);
+            }
+        };
+        return this;
+    }
+    asBool() {
+        this.type = 'checkbox';
+        this.control.icons = {
+            on: "svgIcon=#alpha-icon-checkRounded:icon,24{}",
+            off: "svgIcon=#alpha-icon-squareRounded:iconSizeable,24{stroke:black; }"
+        };
+        this.control.values = {
+            on: true,
+            off: false,
+        };
+        return this;
+    }
+    asDropdown(items, onChange) {
+        this.type = 'picker';
+        if (onChange)
+            this.control.onChange = onChange;
+        this.control.width = '100%';
+        this.control.data = {
+            src: items.map(x => { return { text: x, value: x }; }),
+            map: ['value', 'text']
+        };
+        return this;
+    }
+    getJSON() {
+        let output = {
+            sectionLayout: '',
+            type: this.type,
+            id: this.id,
+            show: () => true,
+            data: {
+                from: this.variable ? this.variable : this.id,
+                defaultValue: '',
+                ensure: this.variable ? true : false,
+                validate: () => true,
+            },
+            label: {
+                text: this.label,
+                icon: '',
+                style: '',
+                className: '',
+            },
+            layout: this.layout,
+            control: this.control,
+            container: {
+                style: this.style,
+                className: '',
+            }
+        };
+        if (this.format != undefined) {
+            output.data.format = this.format;
+        }
+        return output;
+    }
+}
+class FormButton {
+    constructor() {
+        this.type = 'button';
+        this.disabled = () => false;
+        this.layout = 'text';
+        this.html = 'Button';
+        this.btnStyle = '';
+        this.containerStyle = '';
+        this.icon = '';
+        this.onClick = () => { };
+        this._listName = '';
+    }
+    withCheckDisabled(disabled) {
+        this.disabled = disabled;
+        return this;
+    }
+    withLayout(layout) {
+        this.layout = layout;
+        return this;
+    }
+    withHtml(html) {
+        this.html = html;
+        return this;
+    }
+    withBtnStyle(style) {
+        this.btnStyle = style;
+        return this;
+    }
+    withContainerStyle(style) {
+        this.containerStyle = style;
+        return this;
+    }
+    withIcon(icon) {
+        this.icon = icon;
+        return this;
+    }
+    withClickHandler(onClick) {
+        this.onClick = onClick;
+        return this;
+    }
+    getJSON() {
+        return {
+            type: this.type,
+            disabled: this.disabled,
+            control: {
+                layout: this.layout,
+                html: this.html,
+                style: this.btnStyle,
+                icon: this.icon,
+                listName: this._listName,
+                onClick: this.onClick,
+            },
+            container: {
+                style: this.containerStyle,
+                className: '',
+            }
+        };
+    }
+}
+
 ;// ./src/util.ts
 function displayErrorMessage(msg) {
     let errContainer;
@@ -6617,7 +6861,6 @@ class SimpleForm {
         return this.parent;
     }
     serialize(jsonFormData) {
-        var _a;
         let val = jsonFormData[this.id];
         let jsonVal;
         if (val === undefined && this.options.default === undefined) {
@@ -6643,7 +6886,7 @@ class SimpleForm {
                 }
                 else {
                     let d = new Date();
-                    d.fromFormat(val, (_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : listBuilder_DEFAULT_DATETIME_FMT);
+                    d.fromFormat(val, this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
                     jsonVal = d;
                 }
                 break;
@@ -6658,7 +6901,6 @@ class SimpleForm {
         };
     }
     buildJsonForm() {
-        var _a;
         if (this.options.display && !this.options.display(this, this.parent)) {
             return {};
         }
@@ -6719,7 +6961,7 @@ class SimpleForm {
         if (editType == 'picker') {
             control['picker'] = {
                 type: 'date',
-                format: (_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : listBuilder_DEFAULT_DATETIME_FMT
+                format: this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT
             };
             control['behavior'] = {
                 show: {
@@ -6742,7 +6984,7 @@ class SimpleForm {
                 style: style,
                 className: "dynamic-form-simple-item"
             },
-            readonly: () => { var _a; return (_a = this.options.readonly) !== null && _a !== void 0 ? _a : false; },
+            readonly: () => this.options.readonly ?? false,
         };
         if (this.options.postInputItems) {
             let others;
@@ -6764,7 +7006,6 @@ class SimpleForm {
         return input;
     }
     getPopulateData(data) {
-        var _a;
         this.changed = false;
         if (data === undefined && this.options.default === undefined) {
             throw new PopulateError("Data is empty and no default value is specified for this field.");
@@ -6779,7 +7020,7 @@ class SimpleForm {
             return d;
         }
         if (this.options.type == 'datetime' && data instanceof Date) {
-            d[this.id] = data.toFormat((_a = this.options.dateFmt) !== null && _a !== void 0 ? _a : listBuilder_DEFAULT_DATETIME_FMT);
+            d[this.id] = data.toFormat(this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
             return d;
         }
         if (this.options.type == 'datetime' && typeof data == 'string') {
@@ -6855,13 +7096,12 @@ class ObjectForm {
         };
     }
     buildJsonForm() {
-        var _a, _b, _c, _d;
         if (this.options.display && !this.options.display(this, this.parent))
             return {};
         let children = [];
         let i = 0;
         let allKeys = new Set(Object.keys(this.options.requiredKeys));
-        (Object.keys((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {})).forEach(k => allKeys.add(k));
+        (Object.keys(this.options.optionalKeys ?? {})).forEach(k => allKeys.add(k));
         Object.keys(this.entries).forEach(k => allKeys.add(k));
         let allKeyList = Array.from(allKeys);
         for (const key of allKeyList) {
@@ -6887,7 +7127,7 @@ class ObjectForm {
             }
             let headerItems = { label: this.makeLabelText(formDef, key) };
             let formEnabled = key in this.entries;
-            let formOptional = key in ((_b = this.options.optionalKeys) !== null && _b !== void 0 ? _b : {});
+            let formOptional = key in (this.options.optionalKeys ?? {});
             let formDynamic = !formOptional && !(key in this.options.requiredKeys);
             let formIsBool = formDef.type == 'simple' && formDef.options.type == 'boolean';
             if (formDynamic) {
@@ -6944,8 +7184,8 @@ class ObjectForm {
             // and shouldn't render their contents if they are collapsed.
             // This can be overriden by the 'force launch in tab' option or the 'no collapse' option
             let isMultiOrObj = formDef.type == 'multi' || formDef.type == 'object';
-            let noLaunch = ((_c = formDef.options.forceLaunchInTab) !== null && _c !== void 0 ? _c : false) == false;
-            let allowCollapse = ((_d = formDef.options.forceNoCollapse) !== null && _d !== void 0 ? _d : false) == false;
+            let noLaunch = (formDef.options.forceLaunchInTab ?? false) == false;
+            let allowCollapse = (formDef.options.forceNoCollapse ?? false) == false;
             let shouldCollapse = isMultiOrObj && noLaunch && allowCollapse;
             if (shouldCollapse) {
                 headerItems.collapseBtn = this.makeCollapseBtn(key);
@@ -7120,7 +7360,7 @@ class ObjectForm {
     }
     makeEnableCheck(key, onChange, initValue) {
         let id = this.id + '_ENABLE_' + key;
-        let val = initValue !== null && initValue !== void 0 ? initValue : (key in this.entries);
+        let val = initValue ?? (key in this.entries);
         this.dynForm.formBox.data[id] = val;
         return {
             id: id,
@@ -7130,8 +7370,7 @@ class ObjectForm {
                 blank: val,
             },
             control: {
-                onChange: onChange !== null && onChange !== void 0 ? onChange : (() => {
-                    var _a;
+                onChange: onChange ?? (() => {
                     if (key in this.entries) {
                         delete this.entries[key];
                         delete this.data[key];
@@ -7144,7 +7383,7 @@ class ObjectForm {
                             };
                         }
                         else {
-                            let f = ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {})[key];
+                            let f = (this.options.optionalKeys ?? {})[key];
                             let form = constructForm(f.definition, this, this.dynForm);
                             let d = form.getPopulateData(f.defaultValue);
                             Object.assign(this.dynForm.formBox.data, d);
@@ -7193,11 +7432,10 @@ class ObjectForm {
                     control: {
                         html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
                         onClick: () => {
-                            var _a;
                             let entries = Object.keys(this.entries);
                             let idx = entries.findIndex(s => s == key);
                             if (idx >= 1) {
-                                let optional = entries[idx - 1] in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
+                                let optional = entries[idx - 1] in (this.options.optionalKeys ?? {});
                                 let required = entries[idx - 1] in this.options.requiredKeys;
                                 if (optional || required)
                                     return;
@@ -7217,11 +7455,10 @@ class ObjectForm {
                     control: {
                         html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
                         onClick: () => {
-                            var _a;
                             let entries = Object.keys(this.entries);
                             let idx = entries.findIndex(s => s == key);
                             if (idx < entries.length - 1) {
-                                let optional = entries[idx + 1] in ((_a = this.options.optionalKeys) !== null && _a !== void 0 ? _a : {});
+                                let optional = entries[idx + 1] in (this.options.optionalKeys ?? {});
                                 let required = entries[idx + 1] in this.options.requiredKeys;
                                 if (optional || required)
                                     return;
@@ -7646,7 +7883,6 @@ class DropdownForm {
         };
     }
     buildJsonForm() {
-        var _a;
         if (this.options.display && !this.options.display(this, this.parent))
             return {};
         let dropdown = {
@@ -7665,7 +7901,7 @@ class DropdownForm {
                 picker: {
                     data: {
                         empty: {
-                            message: (_a = this.options.emptyMsg) !== null && _a !== void 0 ? _a : ""
+                            message: this.options.emptyMsg ?? ""
                         }
                     }
                 },
@@ -8006,8 +8242,7 @@ class ConfigSupplierForm {
         return { type: 'supplier', options: this.options };
     }
     getGeneratedOptions() {
-        var _a;
-        let genForm = (_a = this.generatedForm) !== null && _a !== void 0 ? _a : null;
+        let genForm = this.generatedForm ?? null;
         if (!genForm)
             throw new Error("Form was not generated!");
         let ops = genForm.getOptions();
@@ -8192,7 +8427,6 @@ class DynamicForm {
         Object.values(this.callbacks.afterRender).forEach(f => f());
     }
     refresh() {
-        var _a;
         // Only want to display the last (active) tab
         let defn = this.tabs[this.tabs.length - 1].form.buildJsonForm();
         let tabGroup = {
@@ -8210,7 +8444,7 @@ class DynamicForm {
             }
         };
         Object.values(this.callbacks.beforeRender).forEach(f => f());
-        this.formBox.load({ form: { items: [tabGroup, ...((_a = this.otherItems) !== null && _a !== void 0 ? _a : [])] }, guides: DynamicForm.guides }, this.formBox.data);
+        this.formBox.load({ form: { items: [tabGroup, ...(this.otherItems ?? [])] }, guides: DynamicForm.guides }, this.formBox.data);
         Object.values(this.callbacks.afterRender).forEach(f => f());
     }
     serializeWithChanges() {
@@ -8278,254 +8512,7 @@ function changeDetectionToRaw(c) {
 
 // EXTERNAL MODULE: ./src/types.ts
 var types = __webpack_require__(397);
-;// ./src/listAction.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-// let t = A5.u.template.parse("{x}");
-// A5.u.template.expand({x: 5}, {template: t});
-function fetchConfigNames(obj) {
-    return new Promise((resolve, reject) => {
-        obj.ajaxCallback("", "", "fetch_config_names", "", "", {
-            onComplete: () => {
-                let result = obj.stateInfo.apiResult;
-                if (result.ok) {
-                    resolve(result.ok.map(x => x.config_name));
-                }
-                else {
-                    reject(result.err);
-                }
-            }
-        });
-    });
-}
-function executeListAction(list, action, rowData, row) {
-    if (action.actionName == 'openDetailView') {
-        list.newDetailViewRecord(row);
-    }
-    else if (action.actionName == 'openLinkedList') {
-        let tabTemplate = A5.u.template.parse(action.tabName);
-        let templateData = {
-            list: list,
-            row: rowData
-        };
-        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        list.linkNewPanel(action.configurationName, filled, action.linkedColumns, action.makeFilter);
-    }
-    else if (action.actionName == 'openJSONSublist') {
-        let selected;
-        if (row !== undefined) {
-            selected = list.data[row];
-        }
-        else {
-            selected = list.data[list.getSelectedRows()[0]];
-        }
-        let tabTemplate = A5.u.template.parse(action.tabName);
-        let templateData = {
-            list: list,
-            row: rowData
-        };
-        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        list.linkSublistToField(action.configurationName, filled, action.fromColumn, selected[action.fromColumn], list.getSelectedRows()[0], selected);
-    }
-}
-function listActionEditor(obj, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let formConfigOptions = {
-            linkableCols: DataScopeManager.getDataMappings(config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); }),
-            foreignCols: [],
-            availableConfigs: yield fetchConfigNames(obj)
-        };
-        let getForeignColsFor = (config) => {
-            return requestListConfig(obj, config).then(() => {
-                let c = obj.stateInfo.apiResult;
-                if ('ok' in c) {
-                    return c.ok.mappings.filter(x => x.tag == 'data').map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
-                }
-                return [];
-            });
-        };
-        let jsonCols = [];
-        for (const key in config.mappings.keys) {
-            let m = config.mappings.keys[key];
-            if (m.tag == 'array') {
-                jsonCols.push({ text: key, value: key });
-            }
-        }
-        let f = {
-            type: 'multi',
-            options: {
-                displayInline: true,
-                label: 'List Action Editor',
-                definitions: {
-                    'Open Detail View': {
-                        defaultValue: {
-                            actionName: 'openDetailView'
-                        },
-                        definition: {
-                            type: 'object',
-                            options: {
-                                label: 'Arguments for Open Detail View',
-                                requiredKeys: {
-                                    actionName: {
-                                        type: 'const',
-                                        options: { label: '', value: 'openDetailView' }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    'Launch New List with Linked Field(s)': {
-                        defaultValue: {
-                            actionName: 'openLinkedList',
-                            configurationName: '',
-                            tabName: 'New List',
-                            linkedColumns: [],
-                            makeFilter: true
-                        },
-                        definition: {
-                            type: 'supplier',
-                            options: {
-                                default: { type: 'const', options: { value: 0 } },
-                                supply: (parent, _) => {
-                                    return {
-                                        type: 'object',
-                                        options: {
-                                            label: 'Arguments for Linked List',
-                                            requiredKeys: {
-                                                actionName: {
-                                                    type: 'const',
-                                                    options: { label: '', value: 'openLinkedList' }
-                                                },
-                                                configurationName: {
-                                                    type: 'dropdown',
-                                                    options: {
-                                                        label: 'Linked Configuration',
-                                                        dropdownItems: formConfigOptions.availableConfigs.map(x => { return { text: x, value: x }; }),
-                                                        allowCustomValue: true,
-                                                        onSelect: (e, f) => {
-                                                            getForeignColsFor(e).then(cols => {
-                                                                formConfigOptions.foreignCols.length = 0;
-                                                                formConfigOptions.foreignCols.push(...cols);
-                                                                f.dynForm.refresh();
-                                                            });
-                                                        },
-                                                    }
-                                                },
-                                                tabName: templateHelper(formConfigOptions.linkableCols.map(x => x.value), 'New Tab Title'),
-                                                linkedColumns: {
-                                                    type: 'array',
-                                                    options: {
-                                                        label: 'Columns to Link',
-                                                        defaultValue: { columnName: '', foreignName: '' },
-                                                        itemTemplate: {
-                                                            type: 'object',
-                                                            options: {
-                                                                label: 'Column Name',
-                                                                requiredKeys: {
-                                                                    columnName: {
-                                                                        type: 'dropdown',
-                                                                        options: {
-                                                                            allowCustomValue: true,
-                                                                            label: 'Column Name',
-                                                                            dropdownItems: formConfigOptions.linkableCols,
-                                                                        }
-                                                                    },
-                                                                    foreignName: {
-                                                                        type: 'dropdown',
-                                                                        options: {
-                                                                            label: 'Foreign Name',
-                                                                            dropdownItems: formConfigOptions.foreignCols,
-                                                                            default: '',
-                                                                            allowCustomValue: true
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        },
-                                                    },
-                                                    allowEmpty: false
-                                                },
-                                                makeFilter: {
-                                                    type: 'simple',
-                                                    options: {
-                                                        type: 'boolean',
-                                                        label: 'Filter Linked List to Current Selection'
-                                                    }
-                                                }
-                                            },
-                                        }
-                                    };
-                                }
-                            }
-                        }
-                    },
-                    'Launch New List from Nested JSON Field': {
-                        defaultValue: {
-                            actionName: 'openJSONSublist',
-                            configurationName: "",
-                            tabName: "",
-                            fromColumn: ""
-                        },
-                        definition: {
-                            type: 'object',
-                            options: {
-                                label: 'Arguments for Nested JSON List',
-                                requiredKeys: {
-                                    actionName: {
-                                        type: 'const',
-                                        options: {
-                                            label: '',
-                                            value: 'openJSONSublist'
-                                        }
-                                    },
-                                    configurationName: {
-                                        type: 'dropdown',
-                                        options: {
-                                            label: 'Configuration Name',
-                                            allowCustomValue: true,
-                                            dropdownItems: formConfigOptions.availableConfigs.map(x => { return { text: x, value: x }; })
-                                        }
-                                    },
-                                    tabName: templateHelper(DataScopeManager.getDataMappings(config).map(x => x.flattenedName), 'Tab Name'),
-                                    fromColumn: {
-                                        type: 'dropdown',
-                                        options: {
-                                            label: 'Column with JSON Data',
-                                            allowCustomValue: true,
-                                            dropdownItems: jsonCols
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        return f;
-    });
-}
-
 ;// ./src/listBuilder.ts
-var listBuilder_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -8610,16 +8597,14 @@ function getSchemaCustomSql(obj, sql) {
         });
     });
 }
-function listBuilder_fetch(obj, configName, endpoint) {
-    return listBuilder_awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => {
-            obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
-                + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
-                onComplete: () => {
-                    let result = obj.stateInfo.fetchResult;
-                    resolve(result);
-                }
-            });
+async function listBuilder_fetch(obj, configName, endpoint) {
+    return new Promise((resolve, reject) => {
+        obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
+            + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
+            onComplete: () => {
+                let result = obj.stateInfo.fetchResult;
+                resolve(result);
+            }
         });
     });
 }
@@ -8652,9 +8637,8 @@ class DynamicList {
     }
     static makeDynamicList(ops) {
         return new Promise((resolve) => {
-            var _a, _b, _c;
             let list = new DynamicList();
-            list.permanentFilters = (_a = ops.filters) !== null && _a !== void 0 ? _a : [];
+            list.permanentFilters = ops.filters ?? [];
             list.searchFilters = [];
             list.buttonFns = {};
             list.onRender = [];
@@ -8672,12 +8656,12 @@ class DynamicList {
             if (ops.otherProperties) {
                 list.onSaveOverride = ops.otherProperties.onSaveOverride;
                 list.staticDataOverride = ops.otherProperties.dataOverride;
-                list.foreignKeys = (_b = ops.otherProperties.foreignKeys) !== null && _b !== void 0 ? _b : [];
+                list.foreignKeys = ops.otherProperties.foreignKeys ?? [];
             }
             validateConfig(list.config);
             if (list.config.onInitialize) {
                 try {
-                    (0,types.stringReprToFn)(list.config.onInitialize)(list, (_c = ops.args) !== null && _c !== void 0 ? _c : []);
+                    (0,types.stringReprToFn)(list.config.onInitialize)(list, ops.args ?? []);
                 }
                 catch (e) {
                     console.error("Initialize function failed.");
@@ -8762,7 +8746,6 @@ class DynamicList {
         A5.executeThisThenThat(makeForm, openForm, makeNew);
     }
     saveDynamicListEdits() {
-        var _a;
         let harvest = this.listBox.harvestList();
         harvest.forEach(elem => {
             this.foreignKeys.forEach(fk => {
@@ -8801,7 +8784,7 @@ class DynamicList {
             let result = this.obj.stateInfo.apiResult;
             if (result.err) {
                 let errMsgTxt = "<p>There were errors while syncing data.</p> <ol>";
-                result.err.forEach((e) => errMsgTxt += `<li>${e === null || e === void 0 ? void 0 : e.toString()}</li>`);
+                result.err.forEach((e) => errMsgTxt += `<li>${e?.toString()}</li>`);
                 errMsgTxt += "</ol>";
                 displayErrorMessage(errMsgTxt);
             }
@@ -8816,7 +8799,7 @@ class DynamicList {
         if (this.config.dataSource.type == 'sql') {
             this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURI(this.config.name)
                 + "&dirty=" + encodeURI(JSON.stringify(harvest))
-                + "&connectionName=" + encodeURIComponent((_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn'), {
+                + "&connectionName=" + encodeURIComponent(this.config.dataSource.connectionString ?? 'conn'), {
                 onComplete: onComplete,
             });
         }
@@ -8839,14 +8822,13 @@ class DynamicList {
             let queryPopulateErrors = [];
             let populateQueries = (list, endpoint) => {
                 list.forEach(_ => {
-                    var _a;
                     if (!('endpoints' in this.config.dataSource))
                         return;
                     if (endpoint in this.config.dataSource.endpoints) {
                         let ep = this.config.dataSource.endpoints[endpoint];
                         allQueries.push({
                             endpoint: endpoint,
-                            callback: (0,types.stringReprToFn)((_a = ep.callback) !== null && _a !== void 0 ? _a : "() => { }"),
+                            callback: (0,types.stringReprToFn)(ep.callback ?? "() => { }"),
                         });
                     }
                     else {
@@ -9223,7 +9205,7 @@ class DynamicList {
                     if (typeof route == 'undefined')
                         return false;
                 }
-                let mode = _mode !== null && _mode !== void 0 ? _mode : 'rowNumber';
+                let mode = _mode ?? 'rowNumber';
                 if (mode == 'primaryKey') {
                     let _d = this.listBox._data;
                     if (typeof _d[0] != 'undefined') {
@@ -9511,9 +9493,8 @@ class DynamicList {
             },
             _match: (data, field, compareWith, obj) => {
                 let matches = (data, field) => {
-                    var _a;
                     let rowValue = data[field];
-                    let op = (_a = obj.op) !== null && _a !== void 0 ? _a : '=';
+                    let op = obj.op ?? '=';
                     let rowValDateStr = '';
                     let rowValDate = new Date();
                     let compareWithDate = new Date();
@@ -9879,23 +9860,22 @@ class DynamicList {
         };
     }
     buildColumnDefinition(mapping, key) {
-        var _a, _b, _c, _e, _f;
-        let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
+        let name = mapping.flattenedName ?? key;
         let template = '{' + name + '}';
         if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            template = `{${name}:date("${(_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT}")}`;
+            template = `{${name}:date("${mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT}")}`;
         }
         if (mapping.template)
             template = mapping.template;
         return {
-            show: (_c = mapping.inList) !== null && _c !== void 0 ? _c : false,
+            show: mapping.inList ?? false,
             header: {
-                html: (_e = mapping.displayName) !== null && _e !== void 0 ? _e : name
+                html: mapping.displayName ?? name
             },
             data: {
                 template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${name}.I.{*dataRow}"> ${template} </span>`
             },
-            width: (_f = mapping.width) !== null && _f !== void 0 ? _f : 'flex(1)',
+            width: mapping.width ?? 'flex(1)',
             resize: true,
             order: name,
         };
@@ -9970,13 +9950,12 @@ class DynamicList {
         if (!button.children)
             return;
         let makeMenuData = (button) => {
-            var _a;
             let children = [];
             if (button.children) {
                 button.children.forEach(c => children.push(makeMenuData(c)));
             }
             return {
-                html: (_a = button.title) !== null && _a !== void 0 ? _a : null,
+                html: button.title ?? null,
                 icon: '',
                 onClick: () => {
                     if ('function' in button.onClick) {
@@ -10071,10 +10050,9 @@ class DynamicList {
             // If it is, leave it alone
             // Otherwise, replace with empty string
             DataScopeManager.getDetailViewMappings(this.config).forEach(mapping => {
-                var _a;
                 let name = mapping.key;
                 if ('flattenedName' in mapping.mapping)
-                    name = (_a = mapping.mapping.flattenedName) !== null && _a !== void 0 ? _a : mapping.key;
+                    name = mapping.mapping.flattenedName ?? mapping.key;
                 let allSame = true;
                 for (let i = 1; i < selectedData.length; i++) {
                     if (selectedData[i][name] !== selectedData[i - 1][name]) {
@@ -10154,13 +10132,12 @@ class DynamicList {
             this.obj.refreshClientSideComputations(true);
         };
         let doSave = () => {
-            var _a, _b, _c;
             let d = {};
             if (rowsToChange.length <= 1) {
-                d = (_a = this.detailView) === null || _a === void 0 ? void 0 : _a.serialize();
+                d = this.detailView?.serialize();
             }
             else {
-                let changes = (_c = (_b = this.detailView) === null || _b === void 0 ? void 0 : _b.serializeWithChanges()) !== null && _c !== void 0 ? _c : { changed: false, raw: null };
+                let changes = this.detailView?.serializeWithChanges() ?? { changed: false, raw: null };
                 if ('keys' in changes) {
                     for (const key in changes.keys) {
                         let item = changes.keys[key];
@@ -10579,10 +10556,9 @@ class DynamicList {
         s.jsonOutput.column.forEach((item) => this.schema[item.name] = { alphaType: item.alphaType });
     }
     fetchSchema() {
-        var _a;
         this.schema = { tag: 'none' };
         if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            return getSchema(this.obj, this.config.dataSource.table, (_a = this.config.dataSource.connectionString) !== null && _a !== void 0 ? _a : 'conn').then(() => {
+            return getSchema(this.obj, this.config.dataSource.table, this.config.dataSource.connectionString ?? 'conn').then(() => {
                 let response = this.obj.stateInfo.apiResult;
                 if ('err' in response) {
                     throw new Error(response.err);
@@ -10730,16 +10706,14 @@ class DataScopeManager {
         }
     }
     getSearchableColumns(config) {
-        var _a, _b;
         let traverse = (m, quantifiable, key) => {
-            var _a, _b, _c;
             if (m.tag == 'data' && m.editType != 'json') {
-                let name = (_a = m.flattenedName) !== null && _a !== void 0 ? _a : key;
+                let name = m.flattenedName ?? key;
                 return {
-                    displayName: (_b = m.displayName) !== null && _b !== void 0 ? _b : name,
+                    displayName: m.displayName ?? name,
                     columnName: name,
                     quantifiable: quantifiable,
-                    editType: (_c = m.editType) !== null && _c !== void 0 ? _c : 'text',
+                    editType: m.editType ?? 'text',
                     mapping: m
                 };
             }
@@ -10755,10 +10729,10 @@ class DataScopeManager {
         for (const mapping of config.mappings) {
             if (mapping.tag == 'data' && mapping.editType != 'json') {
                 arr.push({
-                    displayName: (_a = mapping.displayName) !== null && _a !== void 0 ? _a : mapping.flattenedName,
+                    displayName: mapping.displayName ?? mapping.flattenedName,
                     columnName: mapping.flattenedName,
                     quantifiable: false,
-                    editType: (_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text',
+                    editType: mapping.editType ?? 'text',
                     mapping: mapping
                 });
             }
@@ -10772,7 +10746,6 @@ class DataScopeManager {
     }
 }
 function mappingToInput(list, m, key) {
-    var _a, _b, _c, _e, _f, _g;
     let mapping;
     if (m.tag == 'data')
         mapping = m;
@@ -10789,10 +10762,10 @@ function mappingToInput(list, m, key) {
         options: {
             type: 'string',
             label: '',
-            readonly: (_a = mapping.readOnly) !== null && _a !== void 0 ? _a : false,
+            readonly: mapping.readOnly ?? false,
         }
     };
-    switch ((_b = mapping.editType) !== null && _b !== void 0 ? _b : 'text') {
+    switch (mapping.editType ?? 'text') {
         case 'number':
             value.options.type = 'number';
             value.options.default = 0;
@@ -10833,7 +10806,7 @@ function mappingToInput(list, m, key) {
         case 'time':
         case 'datetime':
             value.options.type = 'datetime';
-            value.options.dateFmt = (_c = mapping.serverDateFormat) !== null && _c !== void 0 ? _c : listBuilder_DEFAULT_DATETIME_FMT;
+            value.options.dateFmt = mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT;
             value.options.default = new Date();
             break;
         case 'text':
@@ -10875,7 +10848,7 @@ function mappingToInput(list, m, key) {
                     return f;
                 }
             };
-            let jConfig = (_e = mapping.jsonConfig) !== null && _e !== void 0 ? _e : { editorType: 'form', definition: { tag: 'data', dataType: 'string' } };
+            let jConfig = mapping.jsonConfig ?? { editorType: 'form', definition: { tag: 'data', dataType: 'string' } };
             if (jConfig.editorType == 'form') {
                 value = makeForm(jConfig.definition, [mapping.flattenedName || key]);
             }
@@ -10886,12 +10859,11 @@ function mappingToInput(list, m, key) {
             }
         }
     }
-    let name = (_f = mapping.flattenedName) !== null && _f !== void 0 ? _f : key;
-    value.options.label = (_g = mapping.displayName) !== null && _g !== void 0 ? _g : name;
+    let name = mapping.flattenedName ?? key;
+    value.options.label = mapping.displayName ?? name;
     return value;
 }
 function makeObviousDefault(m) {
-    var _a, _b, _c;
     let mapping;
     if (m.tag == 'data')
         mapping = m;
@@ -10903,7 +10875,7 @@ function makeObviousDefault(m) {
         };
         mapping = traverse(m.mapping);
     }
-    switch ((_a = mapping.editType) !== null && _a !== void 0 ? _a : 'text') {
+    switch (mapping.editType ?? 'text') {
         case "number":
             return 0;
         case "bool":
@@ -10915,7 +10887,7 @@ function makeObviousDefault(m) {
         case "dropdown":
             return '';
         case 'json': {
-            return makeObviousJsonDefault((_c = (_b = mapping.jsonConfig) === null || _b === void 0 ? void 0 : _b.definition) !== null && _c !== void 0 ? _c : { tag: 'data', dataType: 'string' }, false);
+            return makeObviousJsonDefault(mapping.jsonConfig?.definition ?? { tag: 'data', dataType: 'string' }, false);
         }
     }
 }
@@ -11062,10 +11034,9 @@ class DataBridge {
         return data;
     }
     _processPoint(point, mapping, key) {
-        var _a, _b;
-        let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
+        let name = mapping.flattenedName ?? key;
         if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            return this.processDate(name, point, (_b = mapping.serverDateFormat) !== null && _b !== void 0 ? _b : listBuilder_DEFAULT_DATETIME_FMT);
+            return this.processDate(name, point, mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT);
         }
         else if (mapping.editType == 'bool' && typeof point == 'string') {
             return this.processBool(name, point);
@@ -11097,8 +11068,7 @@ class DataBridge {
         }
     }
     _unprocessPoint(point, mapping, key) {
-        var _a;
-        let name = (_a = mapping.flattenedName) !== null && _a !== void 0 ? _a : key;
+        let name = mapping.flattenedName ?? key;
         if (mapping.editType == 'datetime' || mapping.editType == 'time') {
             return this.unprocessDate(name, point);
         }
@@ -11285,9 +11255,8 @@ class DynamicListSearch {
                                     { text: 'Or', value: 'OR' }
                                 ],
                                 display: (form) => {
-                                    var _a;
                                     let d = form;
-                                    let multi = (_a = d.parent) === null || _a === void 0 ? void 0 : _a.parent;
+                                    let multi = d.parent?.parent;
                                     let arr = multi.parent;
                                     return arr.entries[0].form !== multi;
                                 }
@@ -11430,8 +11399,7 @@ class DynamicListSearch {
         if (this.list.listBox.searchList)
             return;
         this.list.listBox.searchList = (x) => {
-            var _a;
-            ((_a = this.obj.stateInfo.onSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach((f) => f(this));
+            (this.obj.stateInfo.onSearchCallbacks ?? []).forEach((f) => f(this));
             let obj = typeof x != 'undefined' ? x : {};
             let mode = this.serverOrClientSearch(x);
             let flagDirty = false;
@@ -11545,9 +11513,8 @@ class DynamicListSearch {
             this.list.setFilterAndFetch(filters);
         };
         this.list.listBox.clearSearchList = (_obj) => {
-            var _a;
             this.resetForm();
-            ((_a = this.obj.stateInfo.onClearSearchCallbacks) !== null && _a !== void 0 ? _a : []).forEach((f) => f(this));
+            (this.obj.stateInfo.onClearSearchCallbacks ?? []).forEach((f) => f(this));
             let mode = this.serverOrClientSearch(_obj);
             let flagResult = this.obj._list_executeEvent(this.list.listBox.listVariableName, 'beforeSearch', { searchMode: 'clear', searchWhere: mode });
             if (!flagResult)
@@ -11596,265 +11563,1199 @@ class DynamicListSearch {
     }
 }
 
-;// ./src/formBuilder.ts
+;// ./src/reactiveForm.ts
 
-// https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
-function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
-}
-class FormBuilder {
-    constructor(obj, formName) {
-        this.obj = obj;
-        this.formName = formName;
-        this.root = new FormGroup();
-    }
-    withElement(element) {
-        this.root.withChild(element);
-        return this;
-    }
-    render() {
-        let items = [this.root.getJSON()];
-        A5.u.json.postparse(items);
-        this.obj.setJSONFormItems(this.formName, items);
-        this.obj.getControl(this.formName)._formBoxSize = "";
-        this.obj.resizeFormBoxes();
-    }
-}
-class FormGroup {
+
+
+class ReactiveForm {
     constructor() {
-        this.children = [];
-        this.style = 'display: flex; flex-direction: row; flex-flow: wrap;';
-        this.layout = '';
-        this.id = uuidv4() + '_GROUP';
+        this.symbol = Symbol();
     }
-    withStyle(style) {
-        this.style = style;
-        return this;
+    render(m) { return undefined; }
+}
+class ReactiveFormManager {
+    constructor(root, containerId) {
+        this.root = root;
+        this.fragments = {};
+        this.containerId = containerId;
+        this.afterRender = [];
+        this.formDataUpdateRequests = {};
+        this.context = {};
+        this.createFormBox();
+        this.render(this.root);
     }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
+    afterRenderCallback(callback) {
+        this.afterRender.push(callback);
     }
-    withChildren(children) {
-        this.children.push(...children);
-        return this;
+    setContext(form, name, context) {
+        let existing = this.context[name];
+        if (existing !== undefined && existing.setBy == form.symbol) {
+            existing.context = context;
+        }
+        else {
+            this.context[name] = { setBy: form.symbol, context };
+        }
     }
-    withChild(child) {
-        this.children.push(child);
-        return this;
+    getContext(name) {
+        return this.context[name]?.context;
     }
-    getJSON() {
+    setFormData(name, value) {
+        this.formDataUpdateRequests[name] = value;
+    }
+    getFormData(name) {
+        if (this.formBox && this.formBox.data)
+            return this.formBox.data[name];
+        return undefined;
+    }
+    render(form) {
+        this.afterRender = [];
+        let _render = (form) => {
+            const jsonForm = form.render(this);
+            if (!jsonForm)
+                return undefined;
+            let raw = resolve(jsonForm);
+            let fragment = this.fragments[form.symbol];
+            if (fragment) {
+                for (const key in fragment)
+                    delete fragment[key];
+                Object.assign(fragment, raw);
+            }
+            else {
+                this.fragments[form.symbol] = raw;
+            }
+            return this.fragments[form.symbol];
+        };
+        let resolve = (j) => {
+            if (j.type == 'group') {
+                return {
+                    type: 'group',
+                    container: j.container,
+                    items: j.items.map(x => {
+                        if (x === undefined)
+                            return undefined;
+                        if (x instanceof ReactiveForm)
+                            return _render(x);
+                        return resolve(x);
+                    })
+                };
+            }
+            else if (j.type == 'html')
+                return j;
+            else
+                return j;
+        };
+        _render(form);
+        this.refresh();
+    }
+    createFormBox() {
+        if (this.formBox?.ctrls?.picker) {
+            this.formBox?.ctrls?.picker.destroy();
+        }
+        let activePickers = A5.transients._.tci;
+        for (const key in activePickers) {
+            if (activePickers[key] == null)
+                delete activePickers[key];
+        }
+        A5.transients._.t = A5.transients._.t.filter(x => x in activePickers);
+        if (this.formBox)
+            this.formBox.destroy();
+        this.formBox = new A5.FormBox(this.containerId, [], null, {
+            theme: 'Alpha',
+            item: {
+                label: { style: '' },
+                description: { style: '' }
+            },
+            onChange: () => { }
+        });
+        A5.formBox.guides.controls['html'].handle = null;
+    }
+    refresh() {
+        // Alpha pickers (dropdowns, date pickers, etc) do not immediately update upon selection. 
+        // Instead, they set a timeout and refresh after that. 
+        // If we rebuild the form immediately, then the definition will be replaced, *then* the old callback for the (deleted) picker 
+        // will be called, resulting in an error.
+        setTimeout(() => {
+            let form = this.fragments[this.root.symbol];
+            let oldFormData = Object.assign(this.formBox.data ?? {}, this.formDataUpdateRequests);
+            this.formDataUpdateRequests = {};
+            this.createFormBox();
+            if (!form)
+                return;
+            this.formBox.load({ form: { items: [form] }, guides: ReactiveFormManager.guides }, oldFormData);
+            while (this.afterRender.length > 0) {
+                let f = this.afterRender.pop();
+                if (f)
+                    f();
+            }
+        }, 1);
+    }
+    serialize() {
+        return reactiveForm_changeDetectionToRaw(this.root.serialize(this.formBox.data));
+    }
+}
+ReactiveFormManager.guides = {
+    "layouts": {
+        "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
+        "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
+                return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
+            else
+                return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                    e = e[0].children[0].children[0];
+                    if (e && e.getAttribute('float-state') == '1') {
+                        var l = dObj.item.def.sys.item.layout.settings;
+                        e.setAttribute('float-state', '2');
+                        if (dObj.item.isNull) {
+                            if (l.style != '')
+                                A5.u.element.style(e, '+=' + l.style);
+                            A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
+                        }
+                    }
+                } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                    e = e[0].children[0].children[0];
+                    if (e && e.getAttribute('float-state') == '2') {
+                        var l = dObj.item.def.sys.item.layout.settings;
+                        e.setAttribute('float-state', '1');
+                        if (dObj.item.isNull) {
+                            if (l.style != '')
+                                A5.u.element.style(e, '-=' + l.style);
+                            A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
+                        }
+                    }
+                } } } },
+    }
+};
+function reactiveForm_changeDetectionToRaw(c) {
+    if ('raw' in c)
+        return c.raw;
+    else if ('keys' in c) {
+        let out = {};
+        for (const key in c.keys) {
+            out[key] = reactiveForm_changeDetectionToRaw(c.keys[key]);
+        }
+        return out;
+    }
+    else {
+        return c.elements.map(x => reactiveForm_changeDetectionToRaw(x));
+    }
+}
+class reactiveForm_ObjectForm extends ReactiveForm {
+    constructor(data, keymap, newKey) {
+        super();
+        this.data = data;
+        this.initialized = false;
+        this.id = uuidv4();
+        this.keyMap = keymap;
+        this.formMap = {};
+        this.changed = false;
+        this.newKey = newKey;
+    }
+    makeInteractor(key, m) {
+        const keyDynamic = (k) => !(k in this.keyMap);
+        const keyMaps = () => {
+            let idxToKey = {};
+            let keyToIdx = {};
+            Object.keys(this.formMap).forEach((k, i) => {
+                idxToKey[i] = k;
+                keyToIdx[k] = i;
+            });
+            return [idxToKey, keyToIdx];
+        };
+        const swapKeys = (idx1, idx2) => {
+            let ordering = Object.keys(this.formMap).map((k, idx) => ({
+                k,
+                i: idx == idx1 ? idx2 : (idx == idx2 ? idx1 : idx)
+            }));
+            ordering.sort((a, b) => a.i - b.i);
+            let newFormMap = {};
+            ordering.forEach(item => newFormMap[item.k] = this.formMap[item.k]);
+            this.formMap = newFormMap;
+            m.render(this);
+        };
+        return {
+            canDelete: () => keyDynamic(key),
+            delete: () => {
+                delete this.formMap[key];
+                m.render(this);
+            },
+            canMoveDown: () => {
+                let [, keyToIdx] = keyMaps();
+                let idx = keyToIdx[key];
+                if (idx >= Object.keys(this.formMap).length - 1)
+                    return false;
+                return true;
+            },
+            moveDown: () => {
+                let [, keyToIdx] = keyMaps();
+                let idx = keyToIdx[key];
+                swapKeys(idx, idx + 1);
+            },
+            canMoveUp: () => {
+                let [idxToKey, keyToIdx] = keyMaps();
+                let idx = keyToIdx[key];
+                if (idx <= 0)
+                    return false;
+                if (!keyDynamic(idxToKey[idx - 1]))
+                    return false;
+                return true;
+            },
+            moveUp: () => {
+                let [, keyToIdx] = keyMaps();
+                let idx = keyToIdx[key];
+                swapKeys(idx, idx - 1);
+            }
+        };
+    }
+    initialize(m) {
+        this.initialized = true;
+        let seen = new Set();
+        for (const key in this.keyMap) {
+            seen.add(key);
+            this.formMap[key] = this.keyMap[key](this.data[key], this.makeInteractor(key, m));
+        }
+        if (this.newKey) {
+            for (const key in this.data) {
+                if (seen.has(key))
+                    continue;
+                this.formMap[key] = this.newKey.onAdd(key, this.data[key], this.makeInteractor(key, m));
+            }
+        }
+    }
+    render(m) {
+        if (!this.initialized) {
+            this.initialize(m);
+        }
+        let newKeyBtn = undefined;
+        if (this.newKey) {
+            let keyInput;
+            const inputId = this.id + '_newKeyInput';
+            if (this.newKey.dropdownOptions) {
+                keyInput = {
+                    type: this.newKey.dropdownOptions.allowAny ? 'edit-picker' : 'picker',
+                    id: inputId,
+                    data: {
+                        from: inputId,
+                        ensure: true,
+                        blank: this.newKey.dropdownOptions.defaultOption,
+                        defaultValue: this.newKey.dropdownOptions.defaultOption
+                    },
+                    control: {
+                        data: {
+                            src: this.newKey.dropdownOptions.options,
+                            map: ['value', 'text']
+                        }
+                    }
+                };
+            }
+            else {
+                keyInput = {
+                    type: 'edit',
+                    id: inputId,
+                    data: {
+                        from: inputId,
+                        ensure: true
+                    }
+                };
+            }
+            newKeyBtn = {
+                type: 'group',
+                container: {
+                    className: 'dynamic-form-add-new-key',
+                    style: `;
+                        display: flex;
+                        flex-direction: row;
+                        gap: 1rem;
+                        padding: 0.5rem;
+                    `
+                },
+                items: [
+                    keyInput,
+                    {
+                        type: 'button',
+                        control: {
+                            html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                            onClick: () => {
+                                let newName = m.getFormData(inputId);
+                                if (typeof newName == 'string' && newName !== '') {
+                                    if (newName in this.formMap) {
+                                        displayErrorMessage("Key " + newName + " was already added.");
+                                    }
+                                    else {
+                                        let newForm = this.newKey.onAdd(newName, undefined, this.makeInteractor(newName, m));
+                                        this.formMap[newName] = newForm;
+                                    }
+                                }
+                                m.setFormData(inputId, '');
+                                m.render(this);
+                            }
+                        },
+                        sys: { isEmbedded: false }
+                    }
+                ]
+            };
+        }
         return {
             type: 'group',
-            id: this.id,
             container: {
-                style: this.style,
+                className: 'dynamic-form-object-group',
+                style: `; 
+                    display: flex; 
+                    flex-direction: column;
+                    gap: 1rem;
+                `
             },
-            layout: this.layout,
-            items: this.children.map(c => c.getJSON()),
+            items: [...Object.values(this.formMap), newKeyBtn]
         };
     }
-}
-class FormInput {
-    constructor() {
-        this.type = 'edit';
-        this.control = {
-            placeholder: '',
-            width: '100%',
-        };
-        this.id = uuidv4() + '_INPUT';
-        this.style = ';flex: 1 1;';
-        this.layout = '';
-        this.label = '';
-        this.variable = undefined;
-        this.format = undefined;
-    }
-    withStyle(style) {
-        this.style = style;
-        return this;
-    }
-    withLabel(label) {
-        this.label = label;
-        return this;
-    }
-    withVariable(variable) {
-        this.variable = variable;
-        return this;
-    }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
-    }
-    asDateTime(format) {
-        this.type = 'picker';
-        this.control.picker = {
-            type: 'date-time',
-            format: DEFAULT_DATETIME_FMT,
-        };
-        this.control.behavior = {
-            show: { mode: '' }
-        };
-        this.format = function (v, dObj) {
-            if (v) {
-                var fmtIn = DEFAULT_DATETIME_FMT;
-                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
-                var d = new Date();
-                d.fromFormat(v, fmtIn);
-                return d.toFormat(fmtOut);
-            }
-        };
-        return this;
-    }
-    asTime(format) {
-        this.type = 'picker';
-        this.control.picker = {
-            type: 'date-time',
-            format: DEFAULT_DATETIME_FMT,
-        };
-        this.control.behavior = {
-            show: { mode: '' }
-        };
-        this.format = function (v, dObj) {
-            if (v) {
-                var fmtIn = DEFAULT_DATETIME_FMT;
-                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
-                var d = new Date();
-                d.fromFormat(v, fmtIn);
-                return d.toFormat(fmtOut);
-            }
-        };
-        return this;
-    }
-    asBool() {
-        this.type = 'checkbox';
-        this.control.icons = {
-            on: "svgIcon=#alpha-icon-checkRounded:icon,24{}",
-            off: "svgIcon=#alpha-icon-squareRounded:iconSizeable,24{stroke:black; }"
-        };
-        this.control.values = {
-            on: true,
-            off: false,
-        };
-        return this;
-    }
-    asDropdown(items, onChange) {
-        this.type = 'picker';
-        if (onChange)
-            this.control.onChange = onChange;
-        this.control.width = '100%';
-        this.control.data = {
-            src: items.map(x => { return { text: x, value: x }; }),
-            map: ['value', 'text']
-        };
-        return this;
-    }
-    getJSON() {
-        let output = {
-            sectionLayout: '',
-            type: this.type,
-            id: this.id,
-            show: () => true,
-            data: {
-                from: this.variable ? this.variable : this.id,
-                defaultValue: '',
-                ensure: this.variable ? true : false,
-                validate: () => true,
-            },
-            label: {
-                text: this.label,
-                icon: '',
-                style: '',
-                className: '',
-            },
-            layout: this.layout,
-            control: this.control,
-            container: {
-                style: this.style,
-                className: '',
-            }
-        };
-        if (this.format != undefined) {
-            output.data.format = this.format;
-        }
-        return output;
-    }
-}
-class FormButton {
-    constructor() {
-        this.type = 'button';
-        this.disabled = () => false;
-        this.layout = 'text';
-        this.html = 'Button';
-        this.btnStyle = '';
-        this.containerStyle = '';
-        this.icon = '';
-        this.onClick = () => { };
-        this._listName = '';
-    }
-    withCheckDisabled(disabled) {
-        this.disabled = disabled;
-        return this;
-    }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
-    }
-    withHtml(html) {
-        this.html = html;
-        return this;
-    }
-    withBtnStyle(style) {
-        this.btnStyle = style;
-        return this;
-    }
-    withContainerStyle(style) {
-        this.containerStyle = style;
-        return this;
-    }
-    withIcon(icon) {
-        this.icon = icon;
-        return this;
-    }
-    withClickHandler(onClick) {
-        this.onClick = onClick;
-        return this;
-    }
-    getJSON() {
+    serialize(formData) {
+        if (this.initialized == false)
+            return { changed: false, raw: this.data };
+        let keys = {};
+        Object.entries(this.formMap).forEach(([k, v]) => keys[k] = v.serialize(formData));
         return {
-            type: this.type,
-            disabled: this.disabled,
-            control: {
-                layout: this.layout,
-                html: this.html,
-                style: this.btnStyle,
-                icon: this.icon,
-                listName: this._listName,
-                onClick: this.onClick,
+            keys,
+            changed: this.changed
+        };
+    }
+}
+class reactiveForm_ArrayForm extends ReactiveForm {
+    constructor(data, item, onAdd) {
+        super();
+        this.item = item;
+        this.onAdd = onAdd;
+        this.initialized = false;
+        this.entries = [];
+        this.data = data;
+    }
+    makeEntry(elem, idx, m) {
+        const swap = (i1, i2) => {
+            if (i1 < 0 || i1 >= this.entries.length)
+                return;
+            if (i2 < 0 || i2 >= this.entries.length)
+                return;
+            let e1 = this.entries[i1];
+            let e2 = this.entries[i2];
+            e1.interactorCtx.index = i2;
+            e2.interactorCtx.index = i1;
+            this.entries[i2] = e1;
+            this.entries[i1] = e2;
+            m.render(this);
+        };
+        let ctx = {
+            index: idx
+        };
+        let interactor = {
+            canDelete: () => true,
+            delete: () => {
+                this.entries = this.entries.filter(e => e.interactorCtx.index != ctx.index);
+                for (const entry of this.entries) {
+                    if (entry.interactorCtx.index > ctx.index)
+                        entry.interactorCtx.index -= 1;
+                }
+                m.render(this);
             },
+            canMoveUp: () => ctx.index > 0,
+            moveUp: () => swap(ctx.index, ctx.index - 1),
+            canMoveDown: () => ctx.index < this.entries.length - 1,
+            moveDown: () => swap(ctx.index, ctx.index + 1)
+        };
+        return {
+            form: this.item(elem, interactor),
+            interactorCtx: ctx
+        };
+    }
+    render(m) {
+        if (!this.initialized) {
+            this.entries = this.data.map((elem, idx) => this.makeEntry(elem, idx, m));
+            this.initialized = true;
+        }
+        return {
+            type: 'group',
             container: {
-                style: this.containerStyle,
-                className: '',
+                style: `
+                    display: flex; 
+                    flex-direction: column;
+                    padding: 0.5rem;
+                    gap: 0.5rem;
+                `
+            },
+            items: [
+                ...this.entries.map(e => e.form),
+                {
+                    type: 'group',
+                    items: [{
+                            type: 'button',
+                            control: {
+                                html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                                onClick: () => {
+                                    let newItem = this.onAdd();
+                                    this.entries.push(this.makeEntry(newItem, this.entries.length, m));
+                                    m.render(this);
+                                }
+                            },
+                            sys: { isEmbedded: false }
+                        }],
+                    container: {
+                        className: 'dynamic-form-array-add-item-group'
+                    }
+                }
+            ]
+        };
+    }
+    serialize(formData) {
+        if (this.initialized == false)
+            return { changed: false, raw: this.data };
+        let items = this.entries.map(e => e.form.serialize(formData));
+        return {
+            elements: items,
+            changed: items.reduce((a, b) => a || b.changed, false)
+        };
+    }
+}
+class ItemLabel extends ReactiveForm {
+    constructor(interactor, options) {
+        super();
+        this.options = options;
+        this.id = uuidv4();
+        this.interactor = interactor;
+    }
+    setLabel(l) {
+        this.options.label = l;
+    }
+    enabledCheck(m) {
+        if (this.options.enabled === undefined)
+            return undefined;
+        let enabled = {
+            id: this.id + '_enabled',
+            type: 'checkbox',
+            data: {
+                from: this.id + '_enabled',
+                blank: this.options.enabled
+            },
+            control: {
+                onChange: () => {
+                    this.options.enabled = !this.options.enabled;
+                    m.render(this);
+                }
             }
         };
+        m.setFormData(this.id + '_enabled', this.options.enabled);
+        return enabled;
+    }
+    collapseBtn(m) {
+        if (this.options.collapsed === undefined)
+            return undefined;
+        let icon = this.options.collapsed ? 'chevronRight' : 'chevronDown';
+        return {
+            type: 'button',
+            disabled: () => !(this.options.enabled ?? true),
+            control: {
+                html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
+                onClick: () => {
+                    this.options.collapsed = !this.options.collapsed;
+                    m.render(this);
+                }
+            },
+            sys: { isEmbedded: false }
+        };
+    }
+    moveBtns(m) {
+        if ((this.options.showMove ?? false) == false)
+            return undefined;
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    disabled: () => this.interactor.canMoveUp() == false,
+                    control: {
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
+                        onClick: () => {
+                            this.interactor.moveUp();
+                            m.render(this);
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                },
+                {
+                    type: 'button',
+                    disabled: () => this.interactor.canMoveDown() == false,
+                    control: {
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
+                        onClick: () => {
+                            this.interactor.moveDown();
+                            m.render(this);
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                }
+            ]
+        };
+    }
+    deleteBtn(m) {
+        if ((this.options.showDelete ?? false) == false)
+            return undefined;
+        return {
+            type: 'button',
+            disabled: () => this.interactor.canDelete() == false,
+            control: {
+                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                onClick: () => {
+                    this.interactor.delete();
+                    m.render(this);
+                }
+            },
+            sys: { isEmbedded: false }
+        };
+    }
+    render(m) {
+        let label = {
+            type: 'html',
+            control: {
+                html: `<p class="dynamic-form-simple-label">${this.options.label}</p>`
+            },
+            container: {
+                style: `;
+                    font-variant: all-petite-caps;
+                    font-weight: bold;
+                    color: #434343;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.5rem;
+                `
+            },
+            layout: '{content}'
+        };
+        let shouldDisplay = true;
+        if (this.options.collapsed ?? false)
+            shouldDisplay = false;
+        if (!(this.options.enabled ?? true))
+            shouldDisplay = false;
+        let labelGroup = {
+            type: 'group',
+            container: {
+                className: 'dynamic-form-item-group',
+                style: `;
+                            display: flex;
+                            flex-direction: row;
+                            gap: 0.5rem;
+                            align-items: center;
+                        `
+            },
+            items: [
+                this.enabledCheck(m),
+                this.collapseBtn(m),
+                label,
+                this.deleteBtn(m),
+                this.moveBtns(m)
+            ]
+        };
+        let tabCtx = m.getContext(this.options.launchInTab ?? '');
+        let newTabLaunch = {
+            type: 'button',
+            control: {
+                html: `
+                    <div class="dynamic-form-open-nested" style="
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        gap: 0.5rem;
+                        cursor: pointer;
+                    >
+                        <p style="font-variant: all-petite-caps: font-weight: bold;"> Edit ${this.options.label} </p>
+                        ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')}
+                    </div>
+                `,
+                onClick: () => {
+                    if (tabCtx)
+                        tabCtx.tabForm.pushTab(m, this.options.label, this.options.item);
+                },
+                style: 'color: black !important;'
+            },
+            sys: { isEmbedded: false }
+        };
+        let itemGroup = {
+            type: 'group',
+            items: [this.options.launchInTab
+                    ? newTabLaunch
+                    : this.options.item
+            ]
+        };
+        if (this.options.enclosed) {
+            labelGroup.container.style += `
+                padding: 0.5rem;
+                border: 1px solid black;
+                background-color: lightgray;
+            `;
+            itemGroup.container = {
+                className: 'dynamic-form-label-item-group',
+                style: `
+                    padding: 0.5rem;
+                    border: 1px solid black;
+                `,
+            };
+        }
+        return {
+            type: 'group',
+            container: {
+                style: `; display: flex; flex-direction: column;`,
+                className: 'dynamic-form-item-group'
+            },
+            items: [
+                labelGroup,
+                shouldDisplay ? itemGroup : undefined
+            ]
+        };
+    }
+    serialize(formData) {
+        if (this.options.enabled ?? true) {
+            return this.options.item.serialize(formData);
+        }
+        return { changed: false, raw: undefined };
+    }
+}
+class LabelBool extends ReactiveForm {
+    constructor(label, value) {
+        super();
+        this.id = uuidv4();
+        this.label = label;
+        this.value = value ?? false;
+        this.changed = false;
+    }
+    render(m) {
+        return {
+            type: 'group',
+            container: {
+                style: `; display: flex; flex-direction: column;`,
+                className: 'dynamic-form-item-group'
+            },
+            items: [{
+                    type: 'group',
+                    container: {
+                        className: 'dynamic-form-item-group',
+                        style: `;
+                                display: flex;
+                                flex-direction: row;
+                                gap: 0.5rem;
+                                align-items: center;
+                            `
+                    },
+                    items: [
+                        {
+                            type: 'checkbox',
+                            id: this.id,
+                            data: {
+                                from: this.id,
+                                blank: this.value,
+                            },
+                            control: {
+                                onChange: () => {
+                                    this.value = !this.value;
+                                    this.changed = true;
+                                }
+                            }
+                        },
+                        {
+                            type: 'html',
+                            control: {
+                                html: `<p class="dynamic-form-simple-label">${this.label}</p>`
+                            },
+                            container: {
+                                style: `;
+                                font-variant: all-petite-caps;
+                                font-weight: bold;
+                                color: #434343;
+                                display: flex;
+                                flex-direction: row;
+                                align-items: center;
+                                gap: 0.5rem;
+                            `
+                            },
+                            layout: '{content}'
+                        }
+                    ]
+                }]
+        };
+    }
+    serialize(formData) {
+        return { changed: this.changed, raw: this.value };
+    }
+}
+class Input extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.id = uuidv4();
+        this.options = options;
+        this.changed = false;
+    }
+    render(m) {
+        if (this.options.type == 'json') {
+            let container = {
+                type: 'html',
+                control: {
+                    html: `<div class="dynamic-form-json-editor" id="${this.id}" style="width: 80%"></div>`
+                }
+            };
+            // this.jsonEditorRenderCallbackId = this.dynForm.addCallback('afterRender', () => {
+            //     if (($(this.id) as HTMLElement).children.length > 0) return;
+            //     let editor = new TF.u.code.Editor(this.id, {
+            //         lang: 'json'
+            //     });
+            //     editor.setValue(this.dynForm.formBox.data[this.id]);
+            //     let simpleForm = this;
+            //     editor.onChange = function () {
+            //         simpleForm.dynForm.formBox.data[simpleForm.id] = this.value;
+            //     }
+            // });
+            // return container;
+            throw new Error('undefined');
+        }
+        let editType;
+        switch (this.options.type) {
+            case "function":
+            case "string":
+            case "number":
+                editType = 'edit';
+                break;
+            case "boolean":
+                editType = 'checkbox';
+                break;
+            case 'datetime':
+                editType = 'picker';
+                break;
+        }
+        let input = {
+            control: {
+                multiLine: this.options.textarea,
+                width: '100%',
+                style: '',
+                picker: (editType == 'picker') ? {
+                    type: 'date',
+                    format: this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT
+                } : undefined,
+                behavior: (editType == 'picker') ? {
+                    show: {
+                        mode: ''
+                    }
+                } : undefined,
+                onChange: () => {
+                    this.changed = true;
+                },
+                onKeyDown: (_1, _2, e) => {
+                    this.changed = true;
+                    e.stopPropagation();
+                }
+            },
+            id: this.id,
+            type: editType,
+            data: {
+                from: this.id,
+                ensure: true,
+                blank: this.options.data
+            },
+            container: {
+                style: '; flex: 1 1;',
+                className: "dynamic-form-simple-item"
+            },
+            readonly: () => this.options.readonly ?? false,
+        };
+        return input;
+    }
+    getValue(m) {
+        return m.getFormData(this.id);
+    }
+    setValue(m, data) {
+        m.setFormData(this.id, data);
+        m.render(this);
+    }
+    serialize(formData) {
+        let val = formData[this.id];
+        let jsonVal;
+        if (val === undefined) {
+            return { changed: false, raw: this.options.data };
+        }
+        switch (this.options.type) {
+            case "function":
+            case "string":
+                jsonVal = val;
+                break;
+            case "number":
+                jsonVal = parseFloat(val);
+                break;
+            case "boolean":
+                jsonVal = Boolean(val);
+                break;
+            case "datetime": {
+                if (val instanceof Date) {
+                    jsonVal = val;
+                }
+                else {
+                    let d = new Date();
+                    d.fromFormat(val, this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
+                    jsonVal = d;
+                }
+                break;
+            }
+            case "json":
+                jsonVal = JSON.parse(val);
+                break;
+        }
+        return {
+            changed: this.changed,
+            raw: jsonVal
+        };
+    }
+}
+class reactiveForm_MultiForm extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.cache = {};
+        this.activeOption = options.defaultOption;
+        this.allowCollapse = options.allowCollapse ?? true;
+        this.collapsed = this.allowCollapse ? true : false;
+        this.id = uuidv4();
+        this.dropdownOptions = options.options;
+        this.chooseForm = options.chooseForm;
+        this.onSelect = options.onSelect;
+        this.activeForm = this.chooseForm(this.activeOption, this);
+    }
+    current() {
+        return this.activeForm;
+    }
+    render(m) {
+        const icon = this.collapsed ? 'chevronRight' : 'chevronDown';
+        let header = {
+            type: 'group',
+            items: [
+                this.allowCollapse ? {
+                    type: 'button',
+                    control: {
+                        html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
+                        onClick: () => {
+                            this.collapsed = !this.collapsed;
+                            m.render(this);
+                        },
+                    },
+                    sys: { isEmbedded: false }
+                } : undefined,
+                {
+                    type: 'picker',
+                    id: this.id,
+                    data: {
+                        from: this.id,
+                        ensure: true,
+                        blank: this.activeOption
+                    },
+                    control: {
+                        data: {
+                            src: this.dropdownOptions.map(x => ({ text: x, value: x })),
+                            map: ['value', 'text']
+                        },
+                        onChange: (change) => {
+                            if (change.item.data !== null && change.item.data !== undefined) {
+                                this.activeOption = change.item.data;
+                                if (this.onSelect)
+                                    this.onSelect(this.activeOption, this);
+                                if (this.activeOption in this.cache) {
+                                    this.activeForm = this.cache[this.activeOption];
+                                }
+                                else {
+                                    this.activeForm = this.chooseForm(this.activeOption, this);
+                                    this.cache[this.activeOption] = this.activeForm;
+                                }
+                                m.render(this);
+                            }
+                        }
+                    }
+                }
+            ],
+            container: {
+                style: `;
+                    background-color: lightgray; 
+                    padding: 0.5rem; 
+                    border: 1px solid black;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.5rem;
+                `
+            }
+        };
+        return {
+            type: 'group',
+            items: [
+                header,
+                this.collapsed ? undefined : {
+                    type: 'group',
+                    items: [this.activeForm],
+                    container: {
+                        style: '; padding: .5rem; border: 1px solid black; '
+                    }
+                }
+            ],
+            container: {
+                className: 'dynamic-form-multiform-group'
+            }
+        };
+    }
+    serialize(formData) {
+        return this.activeForm.serialize(formData);
+    }
+}
+class reactiveForm_DropdownForm extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.id = uuidv4();
+        this.changed = false;
+        this.options = options;
+        this.currentOption = this.options.defaultValue;
+    }
+    render(m) {
+        return {
+            type: this.options.allowAny ? 'edit-picker' : 'picker',
+            id: this.id,
+            data: {
+                from: this.id,
+                ensure: true,
+                blank: this.currentOption,
+                defaultValue: this.currentOption
+            },
+            control: {
+                data: {
+                    src: this.options.options,
+                    map: ['value', 'text']
+                },
+                picker: {
+                    data: {
+                        empty: {
+                            message: "No Items"
+                        }
+                    }
+                },
+                onChange: (change) => {
+                    if (change.item.data != undefined) {
+                        this.changed = true;
+                        this.currentOption = change.item.data;
+                        if (this.options.onChange)
+                            this.options.onChange(this.currentOption);
+                    }
+                    if (change.item.data == undefined) {
+                        m.setFormData(this.id, this.currentOption);
+                    }
+                }
+            },
+            container: {
+                style: '; flex: 1 1;'
+            }
+        };
+    }
+    serialize(formData) {
+        return { changed: true, raw: this.currentOption };
+    }
+}
+class reactiveForm_ConstForm extends ReactiveForm {
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+    render(m) {
+        return undefined;
+    }
+    serialize(formData) {
+        return { changed: false, raw: this.value };
+    }
+}
+class Observer {
+    constructor() {
+        this.watching = {};
+    }
+    onNotify(f) {
+        let id = uuidv4();
+        this.watching[id] = f;
+        return id;
+    }
+    removeOnNotify(id) {
+        delete this.watching[id];
+    }
+    notify(t) {
+        Object.values(this.watching).forEach(f => f(t));
+    }
+}
+class ObserverForm extends ReactiveForm {
+    constructor(o, initial, makeForm) {
+        super();
+        this.observer = o;
+        this.form = makeForm(initial);
+        this.makeForm = makeForm;
+    }
+    render(m) {
+        if (this.fId === undefined) {
+            this.fId = this.observer.onNotify(t => {
+                this.form = this.makeForm(t);
+                m.render(this);
+            });
+        }
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class AsyncForm extends ReactiveForm {
+    constructor(form, defaultValue, loadText) {
+        super();
+        this.needInitialize = true;
+        this.defaultValue = defaultValue;
+        this.loader = form;
+    }
+    render(m) {
+        if (this.needInitialize) {
+            this.needInitialize = false;
+            this.loader().then(f => {
+                this.form = f;
+                m.render(this);
+            });
+        }
+        if (this.form == undefined) {
+            return {
+                type: 'html',
+                control: {
+                    html: "<p>Loading...</p>"
+                },
+                layout: '{content}'
+            };
+        }
+        else {
+            return { type: 'group', items: [this.form] };
+        }
+    }
+    serialize(formData) {
+        if (this.form === undefined) {
+            return { changed: false, raw: this.defaultValue };
+        }
+        return this.form.serialize(formData);
+    }
+}
+class TabContext {
+    constructor(t) {
+        this.tabForm = t;
+    }
+}
+class TabForm extends ReactiveForm {
+    constructor(baseTabName, baseTab, name) {
+        super();
+        this.tabs = [{ name: baseTabName, tab: baseTab }];
+        this.name = name;
+    }
+    render(m) {
+        m.setContext(this, this.name, new TabContext(this));
+        let tabs = this.tabs.map((tab, index) => {
+            let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
+            if (index == this.tabs.length - 1) {
+                style += 'color: black; text-decoration: underline;';
+            }
+            else {
+                style += 'color: #4d4d4d !important;';
+            }
+            let t = {
+                type: 'button',
+                control: {
+                    html: `<p style="${style}">${tab.name}</p>`,
+                    onClick: () => this.navigateToTab(m, index),
+                    style: `display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;`
+                },
+                container: {
+                    className: 'dynamic-form-top-tab',
+                },
+                sys: { isEmbedded: false }
+            };
+            if (index < this.tabs.length - 1) {
+                t.control.html += A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24');
+            }
+            return t;
+        });
+        let header = {
+            type: 'group',
+            items: tabs,
+            container: {
+                style: `
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-direction: row;
+                    justify-content: center;
+                    background-color: lightgray;
+                    padding: .3rem;
+                `
+            }
+        };
+        return {
+            type: 'group',
+            items: [
+                header,
+                { type: 'group', items: [this.tabs[this.tabs.length - 1].tab], container: { style: 'padding: 0.5rem' } }
+            ],
+            container: {
+                style: `;
+                    display: flex;
+                    flex-direction: column;
+                    outline: 1px solid black;
+                `
+            }
+        };
+    }
+    navigateToTab(m, index) {
+        if (index < 0 || index > this.tabs.length - 1)
+            return;
+        this.tabs = this.tabs.filter((_, i) => i <= index);
+        m.render(this);
+    }
+    pushTab(m, name, tab) {
+        this.tabs.push({ name, tab });
+        m.render(this);
+    }
+    serialize(formData) {
+        return this.tabs[0].tab.serialize(formData);
+    }
+}
+class Show extends ReactiveForm {
+    constructor(form, show) {
+        super();
+        this.form = form;
+        this.show = show;
+    }
+    render(m) {
+        if (this.show(m))
+            return { type: 'group', items: [this.form] };
+        return undefined;
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
     }
 }
 
 ;// ./src/formComponents.ts
 
-function templateHelper(colNames, label) {
-    return {
-        type: 'simple',
-        options: {
-            label: label,
-            type: 'string',
-            textarea: true,
-            postInputItems: (form) => [
+
+
+
+class TemplateHelper extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.inputForm = new Input({ data, type: 'string', textarea: true });
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        const colNames = DataScopeManager.getDataMappings(ctx.config).map(x => x.flattenedName);
+        return {
+            type: 'group',
+            items: [
+                this.inputForm,
                 {
                     type: 'button',
                     control: {
                         html: `<p>Add Template Item</p>`,
                         onClick: (_, btn) => {
-                            let popup = templateHelperHTML(form, colNames);
+                            let popup = templateHelperHTML(this.inputForm, colNames, m);
                             popup.style.position = 'absolute';
                             let rect = btn.getBoundingClientRect();
                             popup.style.left = `${rect.width + 20}px`;
@@ -11868,13 +12769,17 @@ function templateHelper(colNames, label) {
                                 }, 200);
                             });
                         }
-                    }
+                    },
+                    sys: { isEmbedded: false },
                 }
             ]
-        }
-    };
+        };
+    }
+    serialize(formData) {
+        return this.inputForm.serialize(formData);
+    }
 }
-function templateHelperHTML(form, colNames) {
+function templateHelperHTML(form, colNames, m) {
     let id = uuidv4();
     let templateHelper = document.createElement('div');
     templateHelper.id = id;
@@ -11900,23 +12805,221 @@ function templateHelperHTML(form, colNames) {
     templateHelper.style.width = "200px";
     colNames.forEach(name => {
         templateHelper.appendChild(makeItem('Add field ' + name, () => {
-            let curr = form.getValue();
-            form.setValue(curr + `{row["${name}"]}`);
+            let curr = form.getValue(m);
+            form.setValue(m, curr + `{row["${name}"]}`);
         }));
     });
     return templateHelper;
 }
 
-;// ./src/listConfiguration.ts
-var listConfiguration_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+;// ./src/listAction.ts
+
+
+
+
+function fetchConfigNames(obj) {
+    return new Promise((resolve, reject) => {
+        obj.ajaxCallback("", "", "fetch_config_names", "", "", {
+            onComplete: () => {
+                let result = obj.stateInfo.apiResult;
+                if (result.ok) {
+                    resolve(result.ok.map(x => x.config_name));
+                }
+                else {
+                    reject(result.err);
+                }
+            }
+        });
     });
-};
+}
+function executeListAction(list, action, rowData, row) {
+    if (action.actionName == 'openDetailView') {
+        list.newDetailViewRecord(row);
+    }
+    else if (action.actionName == 'openLinkedList') {
+        let tabTemplate = A5.u.template.parse(action.tabName);
+        let templateData = {
+            list: list,
+            row: rowData
+        };
+        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
+        list.linkNewPanel(action.configurationName, filled, action.linkedColumns, action.makeFilter);
+    }
+    else if (action.actionName == 'openJSONSublist') {
+        let selected;
+        if (row !== undefined) {
+            selected = list.data[row];
+        }
+        else {
+            selected = list.data[list.getSelectedRows()[0]];
+        }
+        let tabTemplate = A5.u.template.parse(action.tabName);
+        let templateData = {
+            list: list,
+            row: rowData
+        };
+        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
+        list.linkSublistToField(action.configurationName, filled, action.fromColumn, selected[action.fromColumn], list.getSelectedRows()[0], selected);
+    }
+}
+class ListActionEditor extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.data = data ?? { actionName: 'openDetailView' };
+    }
+    buildForm(m) {
+        if (this.data === undefined)
+            this.data = { actionName: 'openDetailView' };
+        let defaultSelected;
+        switch (this.data.actionName) {
+            case "openDetailView":
+                defaultSelected = 'Open Detail View';
+                break;
+            case "openLinkedList":
+                defaultSelected = 'Open Linked List';
+                break;
+            case "openJSONSublist":
+                defaultSelected = 'Open JSON Sub-list';
+                break;
+        }
+        this.form = new reactiveForm_MultiForm({
+            options: ['Open Detail View', 'Open Linked List', 'Open JSON Sub-list'],
+            defaultOption: defaultSelected,
+            chooseForm: selected => {
+                if (selected == 'Open Detail View') {
+                    let d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
+                    return new reactiveForm_ObjectForm(d, {
+                        "actionName": () => new reactiveForm_ConstForm("openDetailView")
+                    });
+                }
+                if (selected == 'Open Json Sub-list')
+                    return this.jsonSublistForm(m, this.data);
+                return this.linkedListForm(m, this.data);
+            },
+            allowCollapse: false
+        });
+    }
+    jsonSublistForm(m, initialData) {
+        const ctx = m.getContext(ConfigContext.id);
+        return new AsyncForm(async () => {
+            let names = await fetchConfigNames(ctx.obj);
+            let data = (initialData && initialData.actionName == 'openJSONSublist') ? initialData : {
+                actionName: 'openJSONSublist',
+                configurationName: names[0] ?? '',
+                tabName: '',
+                fromColumn: ''
+            };
+            return new reactiveForm_ObjectForm(data, {
+                "actionName": () => new reactiveForm_ConstForm("openJSONSublist"),
+                "configurationName": (data, i) => new ItemLabel(i, {
+                    label: "Configuration",
+                    item: new reactiveForm_DropdownForm({
+                        options: names.map(n => ({ text: n, value: n })),
+                        defaultValue: data,
+                        allowAny: true,
+                    })
+                }),
+                "tabName": (data, i) => new ItemLabel(i, {
+                    label: "Tab Name",
+                    item: new TemplateHelper(data)
+                }),
+                "fromColumn": (data, i) => new ItemLabel(i, {
+                    label: "From Column",
+                    item: new reactiveForm_DropdownForm({
+                        options: DataScopeManager.getDataMappings(ctx.config).map(x => ({ text: x.flattenedName, value: x.flattenedName })),
+                        defaultValue: data,
+                        allowAny: true
+                    })
+                })
+            });
+        }, initialData);
+    }
+    linkedListForm(m, initialData) {
+        const ctx = m.getContext(ConfigContext.id);
+        const o = new Observer();
+        const availableLocalCols = DataScopeManager.getDataMappings(ctx.config).map(x => x.flattenedName);
+        return new AsyncForm(async () => {
+            let names = await fetchConfigNames(ctx.obj);
+            let data = (initialData && initialData.actionName == 'openLinkedList') ? initialData : {
+                actionName: 'openLinkedList',
+                configurationName: names[0] ?? '',
+                tabName: '',
+                linkedColumns: [],
+                makeFilter: true
+            };
+            return new reactiveForm_ObjectForm(data, {
+                "actionName": () => new reactiveForm_ConstForm("openLinkedList"),
+                "configurationName": (data, i) => new ItemLabel(i, {
+                    label: "Configuration",
+                    item: new reactiveForm_DropdownForm({
+                        options: names.map(n => ({ text: n, value: n })),
+                        defaultValue: data,
+                        allowAny: true,
+                        onChange: t => o.notify(t)
+                    }),
+                }),
+                "tabName": (data, i) => new ItemLabel(i, {
+                    label: "Tab Name",
+                    item: new TemplateHelper(data)
+                }),
+                "linkedColumns": (columns, i) => new ItemLabel(i, {
+                    label: "Linked Columns",
+                    collapsed: true,
+                    enclosed: true,
+                    item: new ObserverForm(o, data.configurationName, configName => new AsyncForm(async () => {
+                        let foreignConfig = await requestListConfig(ctx.obj, configName);
+                        let foreignCols = [];
+                        if ('ok' in foreignConfig) {
+                            foreignCols = DataScopeManager.getDataMappings(foreignConfig.ok).map(x => x.flattenedName);
+                        }
+                        return new reactiveForm_ArrayForm(columns, (item, i) => new ItemLabel(i, {
+                            label: "Linked Column",
+                            collapsed: true,
+                            enclosed: true,
+                            showDelete: true,
+                            item: new reactiveForm_ObjectForm(item, {
+                                "columnName": (name, i) => new ItemLabel(i, {
+                                    label: "Column Name",
+                                    item: new reactiveForm_DropdownForm({
+                                        options: availableLocalCols.map(x => ({ text: x, value: x })),
+                                        defaultValue: name,
+                                        allowAny: true
+                                    })
+                                }),
+                                "foreignName": (name, i) => new ItemLabel(i, {
+                                    label: "Foreign Column Name",
+                                    item: new reactiveForm_DropdownForm({
+                                        options: foreignCols.map(x => ({ text: x, value: x })),
+                                        defaultValue: name,
+                                        allowAny: true
+                                    })
+                                })
+                            })
+                        }), () => ({
+                            columnName: availableLocalCols[0] ?? '',
+                            foreignName: foreignCols[0] ?? ''
+                        }));
+                    }, columns))
+                }),
+                "makeFilter": (data, i) => new ItemLabel(i, {
+                    label: "Filter launched list on selected",
+                    item: new Input({ data, type: "boolean" })
+                })
+            });
+        }, initialData);
+    }
+    render(m) {
+        if (this.form === undefined) {
+            this.buildForm(m);
+        }
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+
+;// ./src/listConfiguration.ts
 
 
 
@@ -11987,7 +13090,7 @@ class FlatNameSuggestor {
         curr[last] = value;
     }
     suggestName(starter) {
-        let s = starter !== null && starter !== void 0 ? starter : "property";
+        let s = starter ?? "property";
         if (!this.reservedNames.has(s))
             return s;
         let idx = 1;
@@ -12014,7 +13117,10 @@ function requestListConfig(obj, configName) {
     configName = encodeURIComponent(configName);
     return new Promise((resolve, reject) => {
         obj.ajaxCallback('', '', 'request_list_config', '', `configName=${configName}`, {
-            onComplete: resolve
+            onComplete: () => {
+                let response = obj.stateInfo.apiResult;
+                resolve(response);
+            }
         });
     });
 }
@@ -12025,15 +13131,14 @@ function checkIfAdmin(obj) {
         });
     });
 }
-function tryRecoverConfig(obj, admin, configName) {
-    let response = obj.stateInfo.apiResult;
-    if (response.err && !admin) {
+function tryRecoverConfig(config, obj, admin, configName) {
+    if ('err' in config && !admin) {
         alert('The configuration does not exist or has an error. Log in as an administrator to fix.');
         throw new Error('The configuration does not exist or has an error. Log in as an administrator to fix.');
     }
-    else if (response.err) {
+    else if ('err' in config) {
         return {
-            version: response.err.configVersion,
+            version: config.err.configVersion,
             name: configName,
             dataSource: {
                 type: 'json',
@@ -12044,13 +13149,9 @@ function tryRecoverConfig(obj, admin, configName) {
             buttons: []
         };
     }
-    let ok = response.ok;
-    if ('config' in ok)
-        return ok.config;
-    return ok;
+    return config.ok;
 }
 function initialize(ops) {
-    var _a;
     if (ops.embeddedList === undefined) {
         ops.embeddedList = ops.obj;
     }
@@ -12066,13 +13167,11 @@ function initialize(ops) {
         }
     };
     let isAdmin = false;
-    return batchFetch(ops.embeddedList, ops.configName, (_a = ops.filters) !== null && _a !== void 0 ? _a : []).then(() => {
-        var _a;
-        if ((_a = ops.embeddedList.stateInfo.apiResult) === null || _a === void 0 ? void 0 : _a.err) {
+    return batchFetch(ops.embeddedList, ops.configName, ops.filters ?? []).then(() => {
+        if (ops.embeddedList.stateInfo.apiResult?.err) {
             return checkIfAdmin(ops.obj)
                 .then(() => {
-                var _a;
-                if (((_a = ops.obj.stateInfo.apiResult) === null || _a === void 0 ? void 0 : _a.ok) == true) {
+                if (ops.obj.stateInfo.apiResult?.ok == true) {
                     isAdmin = true;
                 }
                 else {
@@ -12089,8 +13188,8 @@ function initialize(ops) {
                 else {
                     console.warn("Config prefetch failed -- reverting to slow fetch.");
                     return requestListConfig(ops.obj, ops.configName)
-                        .then(() => {
-                        let config = tryRecoverConfig(ops.obj, isAdmin, ops.configName);
+                        .then((c) => {
+                        let config = tryRecoverConfig(c, ops.obj, isAdmin, ops.configName);
                         ops.prefetch = {
                             isAdmin: isAdmin,
                             config: config
@@ -12195,9 +13294,9 @@ function manageConfigForm(ops) {
         // Otherwise, the config is already just the mapping
         return config;
     };
-    let saveGlobal = () => listConfiguration_awaiter(this, void 0, void 0, function* () {
+    let saveGlobal = async () => {
         try {
-            let maybeConfig = (yield configForm).serialize();
+            let maybeConfig = (await configForm).serialize();
             runValidation(maybeConfig);
             maybeConfig = extractRelevantConfig(maybeConfig, true);
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
@@ -12219,10 +13318,10 @@ function manageConfigForm(ops) {
             displayErrorMessage(e.toString());
             console.error(e);
         }
-    });
-    let saveUser = () => listConfiguration_awaiter(this, void 0, void 0, function* () {
+    };
+    let saveUser = async () => {
         try {
-            let maybeConfig = (yield configForm).serialize();
+            let maybeConfig = (await configForm).serialize();
             runValidation(maybeConfig);
             maybeConfig = extractRelevantConfig(maybeConfig, false);
             let data = encodeURIComponent(JSON.stringify(maybeConfig));
@@ -12244,23 +13343,22 @@ function manageConfigForm(ops) {
             displayErrorMessage(e.toString());
             console.error(e);
         }
-    });
-    configForm = buildConfigForm(ops.obj, ops.preFetch.isAdmin, ops.preFetch.config);
-    let populateWith = ops.preFetch.isAdmin ? ops.preFetch.config : ops.preFetch.config.mappings;
+    };
+    const containerId = ops.obj.getPointer(CONFIG_CONTAINER_NAME).id;
+    const schema = ops.list?.schema ?? undefined;
+    configForm = new ReactiveFormManager(new ConfigForm(ops.preFetch.config, ops.preFetch.isAdmin, ops.obj, schema), containerId);
     const showError = (e) => {
         console.error(e);
         displayErrorMessage(e.toString());
     };
-    show = (configData) => listConfiguration_awaiter(this, void 0, void 0, function* () {
-        let config = yield configForm;
+    show = async () => {
         try {
-            config.populate(configData);
+            //config.populate(configData);
             let obj = ops.obj;
             obj.saveConfigGlobally = saveGlobal;
             obj.saveConfigUser = saveUser;
             obj.applyConfigChanges = () => {
-                var _a;
-                let newConfig = config.serialize();
+                let newConfig = configForm.serialize();
                 if (ops.preFetch.isAdmin) {
                     ops.preFetch.config = newConfig;
                 }
@@ -12274,7 +13372,7 @@ function manageConfigForm(ops) {
                     showError(e);
                     return;
                 }
-                let dynamicItems = (_a = DYNAMIC_LIST_LOOKUP[ops.preFetch.config.name]) !== null && _a !== void 0 ? _a : undefined;
+                let dynamicItems = DYNAMIC_LIST_LOOKUP[ops.preFetch.config.name] ?? undefined;
                 if (dynamicItems === undefined)
                     return;
                 dynamicItems.list.destructor();
@@ -12292,1378 +13390,1023 @@ function manageConfigForm(ops) {
                     dynamicItems.list = newList;
                     dynamicItems.search = newSearch;
                     dynamicItems.list.reRender(false);
-                    config.populate(newConfig);
+                    //config.populate(newConfig);
                 }).catch(showError);
             };
         }
         catch (e) {
             showError(e);
         }
-    });
-    show(populateWith);
+    };
+    show();
 }
-function buildConfigForm(obj, adminConfig, config) {
-    return listConfiguration_awaiter(this, void 0, void 0, function* () {
-        let schema = { tag: 'none' };
-        if (config.name in DYNAMIC_LIST_LOOKUP && DYNAMIC_LIST_LOOKUP[config.name].list !== undefined) {
-            schema = DYNAMIC_LIST_LOOKUP[config.name].list.schema;
-        }
-        let mappings = buildMappingForm(config.name, adminConfig, schema);
-        if (!adminConfig) {
-            return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, mappings);
-        }
-        let form = {
-            label: 'List Configuration',
-            requiredKeys: {
-                version: {
-                    type: 'const', options: { value: config.version }
-                },
-                name: {
-                    type: 'simple',
-                    options: {
-                        type: 'string',
-                        label: 'List Name'
-                    }
-                },
-                dataSource: {
-                    type: 'supplier',
-                    options: {
-                        default: { type: 'const', options: { value: '' } },
-                        supply(_parent, _data) {
-                            let cols = [];
-                            if (config.name in DYNAMIC_LIST_LOOKUP) {
-                                cols = DataScopeManager.getDataMappings(config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
-                            }
-                            return buildDatasourceForm(cols);
-                        },
-                    }
-                },
-                mappings: mappings,
-                buttons: yield buildButtonsForm(obj, config),
-                searchOptions: buildSearchOptionsForm()
-            },
-            optionalKeys: {
-                multiSelect: {
-                    defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: "Allow Multiple Row Selection",
-                            type: 'boolean'
-                        }
-                    },
-                    inline: true,
-                },
-                onInitialize: {
-                    defaultValue: () => { },
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: 'On Initialize Callback',
-                            type: 'function'
-                        }
-                    }
-                }
-            }
-        };
-        return new DynamicForm(obj, obj.getPointer(CONFIG_CONTAINER_NAME).id, { type: 'object', options: form });
-    });
-}
-function buildMappingForm(configName, isAdmin, schema) {
-    var _a;
-    let cols = [];
-    let nestedCols = [];
-    if (schema.tag == 'object') {
-        for (const key in schema.keys) {
-            cols.push(key);
-            let tag = schema.keys[key].tag;
-            if (tag == 'array' || tag == 'object')
-                nestedCols.push(key);
-        }
+class ConfigContext {
+    constructor(isAdmin, config, obj) {
+        this.isAdmin = isAdmin;
+        this.config = config;
+        this.obj = obj;
     }
-    let { dataMappingForm, dataMappingDefault } = dataMapping(configName, cols, isAdmin);
-    let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [nestedCols[0]], schema.tag == 'object' ? schema.keys[nestedCols[0]] : undefined);
-    let nestedOps = {
-        nestedDefault,
-        nestedMappingForm,
-        key: (_a = nestedCols[0]) !== null && _a !== void 0 ? _a : ''
-    };
-    let tryGetFullPath = (n) => {
-        if (n.tag == 'object')
-            return [n.key, ...tryGetFullPath(n.item)];
-        if (n.tag == 'nested')
-            return [n.key, ...tryGetFullPath(n.mapping)];
-        if (n.tag == 'array')
-            return tryGetFullPath(n.item);
-        return [];
-    };
-    return {
-        type: 'array',
-        options: {
-            label: 'List Mappings',
-            defaultValue: dataMappingDefault,
-            itemTemplate: {
-                type: 'multi',
-                options: {
-                    label: (_, b) => {
-                        if (!b)
-                            return '';
-                        if ('tag' in b && b.tag == "nested") {
-                            return tryGetFullPath(b).join('.');
-                        }
-                        else if ('tag' in b && b.tag == 'data') {
-                            return b.flattenedName;
-                        }
-                        return '';
-                    },
-                    definitions: {
-                        'Data Mapping': {
-                            defaultValue: dataMappingDefault,
-                            definition: dataMappingForm
-                        },
-                        'Nested Mapping': {
-                            defaultValue: () => ({
-                                tag: 'nested',
-                                key: nestedOps.key,
-                                mapping: nestedOps.nestedDefault
-                            }),
-                            definition: () => ({
-                                type: 'object',
-                                options: {
-                                    label: 'Nested Mapping',
-                                    requiredKeys: {
-                                        tag: {
-                                            type: 'const',
-                                            options: { value: 'nested' }
-                                        },
-                                        key: {
-                                            type: 'dropdown',
-                                            options: {
-                                                label: 'From Column',
-                                                dropdownItems: nestedCols.map(x => ({ text: x, value: x })),
-                                                allowCustomValue: true,
-                                                onSelect: (val, form) => {
-                                                    if (val) {
-                                                        let { nestedMappingForm, nestedDefault } = nestedMapping(configName, isAdmin, [val], schema.tag == 'object' ? schema.keys[val] : undefined);
-                                                        nestedOps.nestedMappingForm = nestedMappingForm;
-                                                        nestedOps.nestedDefault = nestedDefault;
-                                                        nestedOps.key = val;
-                                                        let objForm = form.parent;
-                                                        let multiForm = objForm.parent;
-                                                        multiForm.clearCache();
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        mapping: () => nestedOps.nestedMappingForm
-                                    },
-                                    optionalKeys: {
-                                        inDetailView: {
-                                            defaultValue: false,
-                                            definition: {
-                                                type: 'simple',
-                                                options: {
-                                                    label: "In Detail View",
-                                                    type: 'boolean'
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                    }
-                }
-            }
-        }
-    };
 }
-function nestedMapping(configName, isAdmin, fullPath, schema) {
-    var _a;
-    let dataDefault = {
-        tag: 'data',
-        flattenedName: 
-        // If the schema exists, then we must have been able to pass a key in, so fullPath is good
-        schema
-            ? DYNAMIC_LIST_LOOKUP[configName].nameSuggestor.suggestName(fullPath[fullPath.length - 1])
-            : ''
-    };
-    let objDefault = {
-        tag: 'object',
-        key: '',
-        item: dataDefault
-    };
-    let arrDefault = {
-        tag: 'array',
-        item: dataDefault
-    };
-    let setDefault = dataDefault;
-    if (schema && schema.tag == 'object') {
-        let keys = Object.keys(schema.keys);
-        let defaultKey = (_a = keys[0]) !== null && _a !== void 0 ? _a : '';
-        let { nestedDefault } = nestedMapping(configName, isAdmin, [...fullPath, defaultKey], schema.keys[defaultKey]);
-        objDefault = {
-            tag: 'object',
-            key: defaultKey,
-            item: nestedDefault
-        };
-        setDefault = objDefault;
+ConfigContext.id = "ConfigContext";
+class ConfigForm extends ReactiveForm {
+    constructor(config, admin, obj, schema) {
+        super();
+        this.admin = admin;
+        this.obj = obj;
+        this.config = config;
+        let subForm;
+        if (this.admin) {
+            subForm = new reactiveForm_ObjectForm(config, {
+                "name": (data, i) => new ItemLabel(i, { label: "Name", item: new Input({ type: 'string', data }) }),
+                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', data }) }),
+                "dataSource": (dataSource, i) => new ItemLabel(i, {
+                    label: "Data Source",
+                    enclosed: true,
+                    collapsed: true,
+                    launchInTab: "tabs",
+                    item: new ConfigDataSource(dataSource)
+                }),
+                "mappings": (mappings, i) => new ItemLabel(i, {
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    label: "Mappings",
+                    item: new MappingsForm(schema && schema.tag == 'object' ? schema : undefined, mappings)
+                }),
+                "searchOptions": (ops, i) => new ItemLabel(i, {
+                    label: "Search Options",
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    item: new SearchOptionsForm(ops),
+                }),
+                "multiSelect": data => new LabelBool("Multiple Row Selection", data),
+                "buttons": (data, i) => new ItemLabel(i, {
+                    label: "List Buttons",
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    item: new ListButtonsForm(data)
+                })
+            });
+        }
+        else {
+            subForm = new MappingsForm(schema && schema.tag == 'object' ? schema : undefined, config.mappings);
+        }
+        this.form = new TabForm("List Configuration", subForm, "tabs");
     }
-    else if (schema && schema.tag == 'array') {
-        let { nestedDefault } = nestedMapping(configName, isAdmin, fullPath, schema.elem);
-        arrDefault.item = nestedDefault;
-        setDefault = arrDefault;
-    }
-    let f = {
-        type: 'multi',
-        options: {
-            label: 'Nested Item Definition',
-            definitions: {
-                'Object Mapping': {
-                    defaultValue: objDefault,
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: 'Object Mapping',
-                            requiredKeys: {
-                                tag: {
-                                    type: 'const',
-                                    options: { value: 'object' }
-                                },
-                                key: {
-                                    type: 'dropdown',
-                                    options: {
-                                        label: 'Object Key',
-                                        dropdownItems: ((schema === null || schema === void 0 ? void 0 : schema.tag) == 'object') ? Object.keys(schema.keys).map(x => ({ value: x, text: x })) : [],
-                                        allowCustomValue: true,
-                                        onSelect: (newKey, d) => {
-                                            let parent = d.parent;
-                                            let item = parent.getChild('item');
-                                            let populateWith = objDefault;
-                                            if (schema && schema.tag == 'object' && newKey in schema.keys) {
-                                                populateWith = nestedMapping(configName, isAdmin, [...fullPath, newKey], schema.keys[newKey]).nestedDefault;
-                                            }
-                                            item.rebuild(populateWith);
-                                            d.dynForm.refresh();
-                                        }
-                                    }
-                                },
-                                item: {
-                                    type: "supplier",
-                                    options: {
-                                        label: 'Key Definition',
-                                        default: { type: 'const', options: { value: 0 } },
-                                        supply: (parent) => {
-                                            let keyForm = parent.getChild('key');
-                                            let key = undefined;
-                                            if (keyForm) {
-                                                key = keyForm.selected;
-                                            }
-                                            let s = undefined;
-                                            if (schema && schema.tag == 'object')
-                                                s = schema.keys[key];
-                                            if (schema && schema.tag == 'array')
-                                                s = schema.elem;
-                                            return nestedMapping(configName, isAdmin, [...fullPath, key]).nestedMappingForm;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                'Array Mapping': {
-                    defaultValue: arrDefault,
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: "Array Mapping",
-                            requiredKeys: {
-                                tag: { type: 'const', options: { value: 'array' } },
-                                item: {
-                                    type: 'supplier',
-                                    options: {
-                                        default: { type: 'const', options: { value: '' } },
-                                        supply: () => nestedMapping(configName, isAdmin, fullPath, (schema && schema.tag == 'array') ? schema.elem : undefined).nestedMappingForm
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                'Data Mapping': {
-                    defaultValue: dataDefault,
-                    definition: dataMapping(configName, null, isAdmin).dataMappingForm
-                }
-            }
-        }
-    };
-    return {
-        nestedDefault: setDefault,
-        nestedMappingForm: f
-    };
-}
-function dataMapping(configName, column, isAdmin) {
-    let flatName;
-    if (column) {
-        flatName = {
-            type: 'dropdown',
-            options: {
-                label: 'Column Name',
-                dropdownItems: column.map(x => ({ text: x, value: x })),
-                allowCustomValue: true
-            }
-        };
-    }
-    else {
-        flatName = {
-            type: 'simple',
-            options: {
-                label: "Flattened Column Name",
-                type: 'string',
-            }
-        };
-    }
-    let f = {
-        type: 'object',
-        options: {
-            label: 'Data Mapping',
-            requiredKeys: {
-                tag: { type: 'const', options: { value: 'data' } },
-                flattenedName: flatName,
-            },
-            optionalKeys: {
-                displayName: {
-                    defaultValue: '',
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'string',
-                            label: 'Display Name'
-                        }
-                    }
-                },
-                readOnly: {
-                    defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: "Read Only",
-                            type: 'boolean',
-                            display: () => isAdmin
-                        }
-                    }
-                },
-                inList: {
-                    defaultValue: false,
-                    definition: { type: 'simple', options: { type: 'boolean', label: 'Display In List' } },
-                },
-                inDetailView: {
-                    defaultValue: false,
-                    definition: { type: 'simple', options: { type: 'boolean', label: 'Display In Detail View' } },
-                },
-                editType: {
-                    defaultValue: 'text',
-                    definition: editTypeDropdown()
-                },
-                serverDateFormat: {
-                    defaultValue: '',
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            type: 'string',
-                            label: 'Server Date Format',
-                            display: (_, parent) => {
-                                var _a;
-                                let val = (_a = parent.getChild('editType')) === null || _a === void 0 ? void 0 : _a.selected;
-                                if (val === 'datetime')
-                                    return true;
-                                return false;
-                            }
-                        },
-                    },
-                },
-                jsonConfig: {
-                    defaultValue: { editorType: 'form', definition: { tag: 'object', keys: {} } },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            display: (_, parent) => {
-                                var _a;
-                                if (!parent || !parent.getChild)
-                                    return true;
-                                let val = (_a = parent.getChild('editType')) === null || _a === void 0 ? void 0 : _a.selected;
-                                if (val === 'json')
-                                    return true;
-                                return false;
-                            },
-                            label: 'JSON Options',
-                            requiredKeys: {
-                                definition: {
-                                    type: "multi",
-                                    options: {
-                                        name: "JsonField",
-                                        label: "JSON Field Schema",
-                                        definitions: {
-                                            "Object": {
-                                                defaultValue: { tag: 'object', keys: {} },
-                                                definition: {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: 'JSON Object Definition',
-                                                        requiredKeys: {
-                                                            tag: {
-                                                                type: 'const', options: { value: 'object' }
-                                                            },
-                                                            keys: {
-                                                                type: 'object',
-                                                                options: {
-                                                                    label: 'Object Keys',
-                                                                    requiredKeys: {},
-                                                                    newKeyTemplate: {
-                                                                        defaultValue: { tag: 'data', dataType: 'string' },
-                                                                        definition: {
-                                                                            type: 'recursive',
-                                                                            options: { label: (_1, _2, k) => "Key Definition for " + k, recurseOn: 'JsonField' }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        },
-                                                    }
-                                                }
-                                            },
-                                            "Array": {
-                                                defaultValue: { tag: 'array', item: { tag: 'data', dataType: 'string' } },
-                                                definition: {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: "Array Definition",
-                                                        requiredKeys: {
-                                                            tag: { type: 'const', options: { value: 'array' } },
-                                                            item: {
-                                                                type: 'recursive',
-                                                                options: { label: "Item Definition", recurseOn: 'JsonField' }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            "Data": {
-                                                defaultValue: { tag: 'data', dataType: 'string' },
-                                                definition: {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: "Data Definition",
-                                                        requiredKeys: {
-                                                            tag: { type: 'const', options: { value: 'data' } },
-                                                            dataType: {
-                                                                type: 'dropdown',
-                                                                options: {
-                                                                    label: 'Data Type',
-                                                                    dropdownItems: [
-                                                                        { text: 'String', value: 'string' },
-                                                                        { text: 'Number', value: 'number' },
-                                                                        { text: 'Boolean', value: 'boolean' },
-                                                                    ]
-                                                                }
-                                                            }
-                                                        },
-                                                        optionalKeys: {
-                                                            defaultValue: {
-                                                                defaultValue: '',
-                                                                definition: {
-                                                                    type: 'simple',
-                                                                    options: {
-                                                                        label: "Default Value",
-                                                                        type: 'string'
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                editorType: {
-                                    type: 'dropdown',
-                                    options: {
-                                        label: 'Editor Type',
-                                        dropdownItems: [{ text: 'Text Window', value: 'text' }, { text: 'Form', value: 'form' }]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                dropdownConfig: {
-                    defaultValue: { choices: [] },
-                    definition: {
-                        type: 'multi',
-                        options: {
-                            label: "Dropdown Config",
-                            display: (_, p) => {
-                                let edit = p.getChild("editType");
-                                if (edit) {
-                                    return edit.selected == "dropdown";
-                                }
-                                return true;
-                            },
-                            definitions: {
-                                'Static Choices': {
-                                    defaultValue: { choices: [] },
-                                    definition: {
-                                        type: 'object',
-                                        options: {
-                                            label: 'Static Choices',
-                                            requiredKeys: {
-                                                choices: {
-                                                    type: 'array',
-                                                    options: {
-                                                        label: 'Choices',
-                                                        defaultValue: '',
-                                                        itemTemplate: {
-                                                            type: 'simple',
-                                                            options: {
-                                                                label: "Choice",
-                                                                type: 'string'
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            optionalKeys: {
-                                                allowCustom: {
-                                                    defaultValue: false,
-                                                    definition: {
-                                                        type: 'simple',
-                                                        options: {
-                                                            label: "Allow Custom Value",
-                                                            type: 'boolean'
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                'From Column': {
-                                    defaultValue: { fromColumn: '' },
-                                    definition: {
-                                        type: 'supplier',
-                                        options: {
-                                            default: { type: 'const', options: { value: 0 } },
-                                            supply: () => {
-                                                var _a;
-                                                let l = (_a = DYNAMIC_LIST_LOOKUP[configName]) === null || _a === void 0 ? void 0 : _a.list;
-                                                let topLvlCols = [];
-                                                if (l && l.config) {
-                                                    topLvlCols = DataScopeManager.getDataMappings(l.config).map(x => { var _a; return ({ text: (_a = x.displayName) !== null && _a !== void 0 ? _a : x.flattenedName, value: x.flattenedName }); });
-                                                }
-                                                return {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: 'Choose From Column',
-                                                        requiredKeys: {
-                                                            fromColumn: {
-                                                                type: 'dropdown',
-                                                                options: {
-                                                                    label: "Column Name",
-                                                                    dropdownItems: topLvlCols,
-                                                                    allowCustomValue: true
-                                                                }
-                                                            }
-                                                        },
-                                                        optionalKeys: {
-                                                            allowCustom: {
-                                                                defaultValue: false,
-                                                                definition: {
-                                                                    type: 'simple',
-                                                                    options: {
-                                                                        label: "Allow Custom Value",
-                                                                        type: 'boolean'
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                };
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                tempalte: {
-                    defaultValue: '',
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: "Template",
-                            type: 'string'
-                        }
-                    }
-                },
-                width: {
-                    defaultValue: '',
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: "Width",
-                            type: 'string'
-                        }
-                    }
-                },
-            }
-        }
-    };
-    let defaultValue = { tag: 'data', flattenedName: (column && column[0]) ? column[0] : '' };
-    return { dataMappingDefault: defaultValue, dataMappingForm: f };
-}
-function buildSearchOptionsForm() {
-    return {
-        type: 'object',
-        options: {
-            label: 'Search Options',
-            requiredKeys: {},
-            optionalKeys: {
-                advancedSearch: {
-                    defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: 'Do Advanced Search?',
-                            type: 'boolean'
-                        },
-                    },
-                    inline: true,
-                },
-                serverSearch: {
-                    defaultValue: false,
-                    definition: {
-                        type: 'simple',
-                        options: {
-                            label: "Do Server-side Search?",
-                            type: 'boolean'
-                        }
-                    },
-                    inline: true,
-                },
-                onlyInclude: {
-                    defaultValue: [],
-                    definition: {
-                        type: 'array',
-                        options: {
-                            defaultValue: '',
-                            label: 'Only include these columns in search',
-                            itemTemplate: {
-                                type: 'simple',
-                                options: {
-                                    label: 'Column Name',
-                                    type: 'string'
-                                }
-                            }
-                        }
-                    }
-                },
-                onlyExclude: {
-                    defaultValue: [],
-                    definition: {
-                        type: 'array',
-                        options: {
-                            defaultValue: '',
-                            label: 'Only exclude these columns in search',
-                            itemTemplate: {
-                                type: 'simple',
-                                options: {
-                                    label: 'Column Name',
-                                    type: 'string'
-                                }
-                            }
-                        }
-                    }
-                },
-            }
-        }
-    };
-}
-function buildDatasourceForm(allColumns) {
-    let paginate = {
-        type: 'object',
-        options: {
-            label: 'Pagination Options',
-            requiredKeys: {
-                pageSize: {
-                    type: 'simple',
-                    options: {
-                        label: 'Page Size',
-                        type: 'number'
-                    }
-                }
-            }
-        }
-    };
-    let epDefault = {
-        method: 'GET',
-        endpoint: {
-            tag: 'template',
-            value: ''
-        }
-    };
-    let endpoint = buildEndpointForm(allColumns.map(x => x.value));
-    let endpoints = {
-        label: 'Endpoints',
-        requiredKeys: {},
-        optionalKeys: {
-            fetch: {
-                defaultValue: epDefault,
-                definition: endpoint
-            },
-            search: {
-                defaultValue: epDefault,
-                definition: endpoint
-            },
-            add: {
-                defaultValue: epDefault,
-                definition: endpoint
-            },
-            update: {
-                defaultValue: epDefault,
-                definition: endpoint
-            },
-            delete: {
-                defaultValue: epDefault,
-                definition: endpoint
-            },
-        }
-    };
-    let filters = buildFiltersForm();
-    let serverSort = buildServerSortForm(allColumns);
-    return {
-        type: 'multi',
-        options: {
-            label: 'Data Source',
-            definitions: {
-                'Fetch From API': {
-                    defaultValue: { type: 'json', endpoints: {} },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: "Fetch from API",
-                            requiredKeys: {
-                                type: {
-                                    type: 'const',
-                                    options: {
-                                        label: '',
-                                        value: 'json'
-                                    }
-                                },
-                                endpoints: {
-                                    type: 'object',
-                                    options: endpoints,
-                                }
-                            },
-                            optionalKeys: {
-                                preprocess: {
-                                    defaultValue: () => { },
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'function',
-                                            label: 'Preprocess Function'
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                'Fetch From SQL': {
-                    defaultValue: { type: 'sql', table: '' },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: "Fetch from API",
-                            requiredKeys: {
-                                type: {
-                                    type: 'const',
-                                    options: {
-                                        label: '',
-                                        value: 'sql'
-                                    }
-                                },
-                                table: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Table Name',
-                                        type: 'string'
-                                    }
-                                },
-                            },
-                            optionalKeys: {
-                                filters: {
-                                    defaultValue: [],
-                                    definition: filters
-                                },
-                                serverSort: {
-                                    defaultValue: [],
-                                    definition: serverSort
-                                },
-                                preprocess: {
-                                    defaultValue: () => { },
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'function',
-                                            label: 'Preprocess Function'
-                                        }
-                                    }
-                                },
-                                paginate: {
-                                    defaultValue: { pageSize: 10 },
-                                    definition: paginate,
-                                },
-                                connectionString: {
-                                    defaultValue: 'conn',
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'string',
-                                            label: "Connection String"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                'Supply Custom SQL': {
-                    defaultValue: { type: 'sql', sql: '' },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: "Fetch from API",
-                            requiredKeys: {
-                                type: {
-                                    type: 'const',
-                                    options: {
-                                        label: '',
-                                        value: 'sql'
-                                    }
-                                },
-                                sql: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'SQL Query',
-                                        textarea: true,
-                                        type: 'string',
-                                    }
-                                },
-                            },
-                            optionalKeys: {
-                                filters: {
-                                    defaultValue: {
-                                        columnName: '',
-                                        columnVal: {
-                                            tag: 'value',
-                                            value: ''
-                                        },
-                                        connector: 'AND',
-                                        op: '=',
-                                    },
-                                    definition: filters
-                                },
-                                preprocess: {
-                                    defaultValue: () => { },
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'function',
-                                            label: 'Preprocess Function'
-                                        }
-                                    }
-                                },
-                                serverSort: {
-                                    defaultValue: [],
-                                    definition: serverSort
-                                },
-                                paginate: {
-                                    defaultValue: { pageSize: 10 },
-                                    definition: paginate,
-                                },
-                                connectionString: {
-                                    defaultValue: 'conn',
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'string',
-                                            label: "Connection String"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                'Static JSON': {
-                    defaultValue: { type: 'json', static: [] },
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: "Fetch from API",
-                            requiredKeys: {
-                                type: {
-                                    type: 'const',
-                                    options: {
-                                        label: '',
-                                        value: 'json'
-                                    }
-                                },
-                                jsonData: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'JSON Data',
-                                        type: 'string'
-                                    }
-                                }
-                            },
-                            optionalKeys: {
-                                preprocess: {
-                                    defaultValue: () => { },
-                                    definition: {
-                                        type: 'simple',
-                                        options: {
-                                            type: 'function',
-                                            label: 'Preprocess Function'
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-}
-function buildServerSortForm(columns) {
-    return {
-        type: 'array',
-        options: {
-            label: "Server-side Sorting",
-            defaultValue: { columnName: '', order: 'asc' },
-            itemTemplate: {
-                type: 'object',
-                options: {
-                    label: "Column Sorting Option",
-                    requiredKeys: {
-                        columnName: {
-                            type: 'dropdown',
-                            options: {
-                                label: 'Column to Sort On',
-                                dropdownItems: columns,
-                            }
-                        },
-                        order: {
-                            type: 'dropdown',
-                            options: {
-                                label: 'Order',
-                                dropdownItems: [
-                                    { text: 'Ascending', value: 'asc' },
-                                    { text: 'Descending', value: 'desc' }
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-}
-function buildFiltersForm() {
-    return {
-        type: 'array',
-        options: {
-            label: 'List Filters',
-            defaultValue: {
-                columnName: '',
-                op: '=',
-                columnVal: {
-                    tag: 'value',
-                    val: '',
-                },
-                connector: 'AND',
-            },
-            itemTemplate: {
-                type: 'object',
-                options: {
-                    label: 'Filter',
-                    requiredKeys: {
-                        columnName: {
-                            type: 'simple',
-                            options: {
-                                type: 'string',
-                                label: 'Column Name'
-                            }
-                        },
-                        op: {
-                            type: 'dropdown',
-                            options: {
-                                label: 'Operator',
-                                dropdownItems: [
-                                    { text: "Equals", value: "=" },
-                                    { text: "Not Equals", value: "<>" },
-                                    { text: "Less Than", value: "<" },
-                                    { text: "Less Than or Equal To", value: "<=" },
-                                    { text: "Greater Than", value: ">" },
-                                    { text: "Greater Than or Equal To", value: ">=" },
-                                    { text: "Pattern", value: "LIKE" },
-                                ]
-                            },
-                        },
-                        columnVal: {
-                            type: 'object',
-                            options: {
-                                label: 'Column Value',
-                                requiredKeys: {
-                                    tag: {
-                                        type: 'dropdown',
-                                        options: {
-                                            label: 'Value Type',
-                                            dropdownItems: [
-                                                { text: "Argument", value: "arg" },
-                                                { text: "Static Value", value: "value" }
-                                            ]
-                                        }
-                                    },
-                                    value: {
-                                        type: 'simple',
-                                        options: {
-                                            label: 'Value',
-                                            type: 'string'
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        connector: {
-                            type: 'dropdown',
-                            options: {
-                                default: 'AND',
-                                label: 'Logical Connector',
-                                dropdownItems: [
-                                    { text: "And", value: "AND" },
-                                    { text: "Or", value: "OR" }
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-}
-function buildButtonsForm(obj, config) {
-    return listConfiguration_awaiter(this, void 0, void 0, function* () {
+    render(m) {
+        m.setContext(this, ConfigContext.id, new ConfigContext(this.admin, this.config, this.obj));
         return {
-            type: 'array',
-            options: {
-                label: 'List Buttons',
-                itemTemplate: {
-                    type: 'object',
-                    options: {
-                        label: 'List Button',
-                        requiredKeys: {
-                            columnTitle: {
-                                type: 'simple',
-                                options: {
-                                    label: 'Column Title',
-                                    type: 'string'
-                                }
-                            },
-                            onClick: {
-                                type: 'multi',
-                                options: {
-                                    label: 'Click Action',
-                                    definitions: {
-                                        'Custom Javascript Function': {
-                                            defaultValue: { function: "" },
-                                            definition: {
-                                                type: 'object',
-                                                options: {
-                                                    label: 'Custom Javascript Function',
-                                                    requiredKeys: {
-                                                        function: {
-                                                            type: 'simple',
-                                                            options: {
-                                                                label: 'Javascript Code',
-                                                                type: 'function'
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        'Javascript Action': {
-                                            defaultValue: { action: '' },
-                                            definition: {
-                                                type: 'object',
-                                                options: {
-                                                    label: 'Javascript Action',
-                                                    requiredKeys: {
-                                                        action: {
-                                                            type: 'simple',
-                                                            options: {
-                                                                label: 'Javascript Action Name',
-                                                                type: 'function'
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        'List Action Builder': {
-                                            defaultValue: {
-                                                listAction: {
-                                                    actionName: 'openDetailView'
-                                                }
-                                            },
-                                            definition: {
-                                                type: 'object',
-                                                options: {
-                                                    label: 'List Action',
-                                                    requiredKeys: {
-                                                        listAction: yield listActionEditor(obj, config)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        optionalKeys: {
-                            title: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Button Text',
-                                        type: 'string'
-                                    }
-                                }
-                            },
-                            icon: {
-                                defaultValue: "",
-                                definition: {
-                                    type: 'simple',
-                                    options: {
-                                        label: 'Button Icon',
-                                        type: 'string'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                defaultValue: {
-                    columnTitle: '',
-                    onClick: {
-                        function: () => { },
-                    }
-                }
-            }
+            type: 'group',
+            id: 'dynamic-form-config-form',
+            items: [this.form]
         };
-    });
+    }
+    serialize(formData) {
+        let s = this.form.serialize(formData);
+        if ('keys' in s)
+            s.keys['version'] = { changed: false, raw: this.config.version };
+        return s;
+    }
 }
-function buildEndpointForm(allColumns) {
-    return {
-        type: 'object',
-        options: {
-            label: (_1, _2, key) => "Endpoint Settings for " + key,
-            requiredKeys: {
-                method: {
-                    type: 'dropdown',
-                    options: {
-                        label: 'HTTP Verb',
-                        dropdownItems: ['GET', 'POST', 'DELETE', 'PUT', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'].map(x => { return { text: x, value: x }; })
-                    },
+class ConfigDataSource extends ReactiveForm {
+    constructor(dataSource) {
+        super();
+        this.cached = {};
+        let defaultItem;
+        if (dataSource.type == 'json') {
+            if ('endpoints' in dataSource)
+                defaultItem = 'API';
+            else
+                defaultItem = "Static JSON";
+        }
+        else {
+            if ('table' in dataSource)
+                defaultItem = 'SQL Table';
+            else
+                defaultItem = 'Custom SQL';
+        }
+        let onSelect = (option) => {
+            if (option in this.cached)
+                return this.cached[option];
+            const getInitValue = () => {
+                if (option == 'SQL Table') {
+                    if (dataSource.type == 'sql' && 'table' in dataSource)
+                        return dataSource;
+                    return { type: 'sql', table: '' };
+                }
+                if (option == 'Custom SQL') {
+                    if (dataSource.type == 'sql' && 'sql' in dataSource)
+                        return dataSource;
+                    return { type: 'sql', sql: '' };
+                }
+                if (option == 'API') {
+                    if (dataSource.type == 'json' && 'endpoints' in dataSource)
+                        return dataSource;
+                    return { type: 'json', endpoints: {} };
+                }
+                if (dataSource.type == 'json' && 'jsonData' in dataSource)
+                    return dataSource;
+                return { type: 'json', jsonData: '' };
+            };
+            const initValue = getInitValue();
+            let preprocess = {
+                'preprocess': (p, i) => new ItemLabel(i, {
+                    enabled: p !== undefined,
+                    label: 'Preprocess Function',
+                    item: new Input({ data: p, type: 'function', textarea: true })
+                })
+            };
+            let commonSqlOptions = {
+                'connectionString': (conn, i) => new ItemLabel(i, {
+                    enabled: conn !== undefined,
+                    label: 'Connection String',
+                    item: new Input({ data: conn, type: 'string' })
+                }),
+                "filters": (f, i) => new ItemLabel(i, {
+                    label: 'List Filters',
+                    enabled: f !== undefined,
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ListFiltersForm(f ?? [])
+                }),
+                "serverSort": (f, i) => new ItemLabel(i, {
+                    label: 'Server-side Sorting Options',
+                    enabled: f !== undefined,
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ServerSortForm(f)
+                }),
+                'paginate': (p, i) => new ItemLabel(i, {
+                    enabled: p !== undefined,
+                    label: "Pagination Options",
+                    enclosed: true,
+                    collapsed: true,
+                    item: new reactiveForm_ObjectForm(p ?? { pageSize: 20 }, {
+                        'pageSize': (size, i) => new ItemLabel(i, {
+                            label: 'Page Size',
+                            item: new Input({ data: size, type: 'number' })
+                        })
+                    })
+                }),
+                ...preprocess
+            };
+            let form;
+            switch (option) {
+                case 'SQL Table': {
+                    form = new reactiveForm_ObjectForm(initValue, {
+                        'type': () => new reactiveForm_ConstForm('sql'),
+                        'table': (name, i) => new ItemLabel(i, { label: 'Table Name', item: new Input({ data: name, type: 'string' }) }),
+                        ...commonSqlOptions
+                    });
+                    break;
+                }
+                case 'Custom SQL':
+                    {
+                        form = new reactiveForm_ObjectForm(initValue, {
+                            "type": () => new reactiveForm_ConstForm('sql'),
+                            "sql": (data, i) => new ItemLabel(i, {
+                                label: 'SQL',
+                                item: new Input({ data, type: 'string', textarea: true })
+                            }),
+                            ...commonSqlOptions
+                        });
+                        break;
+                    }
+                    ;
+                case 'API':
+                    {
+                        let endpointNames = ['fetch', 'search', 'add', 'update', 'delete'];
+                        let endpoints = {};
+                        endpointNames.forEach(name => endpoints[name] = (data, i) => new ItemLabel(i, {
+                            label: "Endpoint for " + name,
+                            enclosed: true,
+                            enabled: data !== undefined,
+                            collapsed: true,
+                            item: new EndpointForm(data)
+                        }));
+                        form = new reactiveForm_ObjectForm(initValue, {
+                            'type': () => new reactiveForm_ConstForm('json'),
+                            'endpoints': (data, i) => new ItemLabel(i, {
+                                label: "Endpoints",
+                                enclosed: true,
+                                collapsed: true,
+                                item: new reactiveForm_ObjectForm(data, endpoints)
+                            }),
+                            ...preprocess
+                        });
+                        break;
+                    }
+                    ;
+                case 'Static JSON':
+                    {
+                        form = new reactiveForm_ObjectForm(initValue, {
+                            'type': () => new reactiveForm_ConstForm('json'),
+                            'jsonData': (data, i) => new ItemLabel(i, {
+                                label: 'JSON Data',
+                                item: new Input({ data, type: 'string', textarea: true })
+                            }),
+                            ...preprocess
+                        });
+                        break;
+                    }
+                    ;
+            }
+            this.cached[option] = form;
+            return form;
+        };
+        this.form = new reactiveForm_MultiForm({
+            options: ['SQL Table', 'Custom SQL', 'API', 'Static JSON'],
+            defaultOption: defaultItem,
+            chooseForm: onSelect
+        });
+    }
+    render(m) {
+        return {
+            type: 'group',
+            id: 'dynamic-form-data-source',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ListFiltersForm extends ReactiveForm {
+    constructor(filters) {
+        super();
+        this.form = new reactiveForm_ArrayForm(filters, (filter, i) => new ItemLabel(i, {
+            label: "List Filter",
+            showDelete: true,
+            showMove: true,
+            enclosed: true,
+            item: new reactiveForm_ObjectForm(filter, {
+                "columnName": (name, i) => new ItemLabel(i, { label: "Column Name", item: new ColumnSelector(name, true) }),
+                "columnVal": (val, i) => new reactiveForm_MultiForm({
+                    options: ['Filter on Value', 'Filter on XBasic Argument'],
+                    defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
+                    chooseForm: selected => selected == 'Filter on Value'
+                        ? new reactiveForm_ObjectForm(val, {
+                            "tag": () => new reactiveForm_ConstForm("value"),
+                            "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ data: val, type: 'string' }) })
+                        })
+                        : new reactiveForm_ObjectForm(val, {
+                            "tag": () => new reactiveForm_ConstForm("arg"),
+                            "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ data: val, type: 'string' }) })
+                        })
+                }),
+                "connector": (c, i) => new ItemLabel(i, {
+                    label: "Connector",
+                    item: new reactiveForm_DropdownForm({
+                        options: [{ text: 'And', value: 'AND' }, { text: 'Or', value: 'OR' }],
+                        defaultValue: c ?? 'AND',
+                    })
+                }),
+                "op": (op, i) => new ItemLabel(i, {
+                    label: "Operator", item: new reactiveForm_DropdownForm({
+                        options: [{ text: "Equals", value: "=" },
+                            { text: "Not Equals", value: "<>" },
+                            { text: "Less Than", value: "<" },
+                            { text: "Less Than or Equal To", value: "<=" },
+                            { text: "Greater Than", value: ">" },
+                            { text: "Greater Than or Equal To", value: ">=" },
+                            { text: "Pattern", value: "LIKE" }],
+                        defaultValue: op
+                    })
+                }),
+                "quantifier": (q, i) => new ItemLabel(i, {
+                    label: "Quantifier",
+                    enabled: q !== undefined,
+                    item: new reactiveForm_DropdownForm({
+                        options: [{ text: 'All', value: 'ALL' }, { text: 'Some', value: 'SOME' }],
+                        defaultValue: q ?? 'ALL',
+                    })
+                })
+            })
+        }), () => ({ columnName: '', columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
+    }
+    render(m) {
+        return {
+            type: 'group',
+            id: 'dynamic-form-list-filters',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ServerSortForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        data = data ?? [];
+        this.form = new reactiveForm_ArrayForm(data, (item, i) => new ItemLabel(i, {
+            label: "Sort Parameter",
+            enclosed: true,
+            showMove: true,
+            showDelete: true,
+            collapsed: true,
+            item: new reactiveForm_ObjectForm(item, {
+                "columnName": (name, i) => new ItemLabel(i, { label: 'Column to Sort By', item: new ColumnSelector(name, true) }),
+                "order": (name, i) => new ItemLabel(i, {
+                    label: 'Ordering', item: new reactiveForm_DropdownForm({
+                        options: [{ text: 'Ascending', value: 'asc' }, { text: 'Descending', value: 'desc' }],
+                        defaultValue: name,
+                    })
+                })
+            })
+        }), () => ({ columnName: '', order: 'asc' }));
+    }
+    render(m) {
+        return {
+            type: 'group',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class EndpointForm extends ReactiveForm {
+    constructor(e) {
+        super();
+        e = e ?? { method: 'GET', endpoint: { tag: 'template', value: '' } };
+        const templateOrArgSelector = data => new reactiveForm_MultiForm({
+            options: ['Template', 'XBasic Argument'],
+            defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
+            chooseForm: selected => selected == 'Template'
+                ? new reactiveForm_ObjectForm(data, {
+                    "tag": () => new reactiveForm_ConstForm("template"),
+                    "value": (data, i) => new ItemLabel(i, {
+                        label: "Template",
+                        item: new TemplateHelper(data)
+                    })
+                })
+                : new reactiveForm_ObjectForm(data, {
+                    "tag": () => new reactiveForm_ConstForm("argument"),
+                    "value": (data, i) => new ItemLabel(i, {
+                        label: "Argument",
+                        item: new Input({ data, type: 'string' })
+                    })
+                })
+        });
+        this.form = new reactiveForm_ObjectForm(e, {
+            "method": (m, i) => new ItemLabel(i, {
+                label: "HTTP Verb",
+                item: new reactiveForm_DropdownForm({
+                    options: ['GET', 'POST', 'DELETE', 'PUT', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'].map(x => ({ text: x, value: x })),
+                    defaultValue: m,
+                })
+            }),
+            "endpoint": (ep, i) => new ItemLabel(i, {
+                label: "Endpoint",
+                collapsed: true,
+                enclosed: true,
+                item: templateOrArgSelector(ep)
+            }),
+            "headers": (headers, i) => new ItemLabel(i, {
+                label: "Headers",
+                enabled: headers !== undefined,
+                enclosed: true,
+                collapsed: true,
+                item: new reactiveForm_ObjectForm(headers ?? {}, {}, {
+                    onAdd: (headerName, data, i) => new ItemLabel(i, {
+                        label: "Header " + headerName,
+                        enclosed: true,
+                        showMove: true,
+                        showDelete: true,
+                        item: templateOrArgSelector(data ?? { tag: 'template', value: '' })
+                    })
+                })
+            }),
+            "body": (b, i) => new ItemLabel(i, { label: 'Body', enabled: b !== undefined, item: new Input({ data: b, type: 'string', textarea: true }) })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+const getMappingFullPath = (m) => {
+    let rec = (m) => {
+        if (m.tag == 'data')
+            return [];
+        if (m.tag == 'array')
+            return ['[...]', ...rec(m.item)];
+        if (m.tag == 'object')
+            return [m.key, ...rec(m.item)];
+        if (m.tag == 'nested')
+            return [m.key, ...rec(m.mapping)];
+    };
+    let path = rec(m);
+    if (path.length == 0)
+        return [m.flattenedName];
+    return path;
+};
+class MappingsForm extends ReactiveForm {
+    constructor(schema, mappings) {
+        super();
+        this.schema = schema;
+        const defaultDataMapping = {
+            tag: 'data',
+            flattenedName: schema && Object.keys(schema).length > 0 ? Object.keys(schema.keys)[0] : ''
+        };
+        this.form = new reactiveForm_ArrayForm(mappings, (mapping, i) => {
+            const nameChangeObserver = new Observer();
+            const makeDataMappingForm = (m) => {
+                if (m.tag != 'data')
+                    m = defaultDataMapping;
+                return new DataMappingForm({
+                    fullPath: [],
+                    onChangePath: nameChangeObserver,
+                    isTopLevel: true,
+                    schema: schema?.keys[m.flattenedName],
+                    flatNameOptions: Object.keys(schema?.keys ?? []),
+                    mapping: m
+                });
+            };
+            let item = new reactiveForm_MultiForm({
+                options: ['Nested Mapping', 'Data Mapping'],
+                defaultOption: mapping ? (mapping.tag == 'nested' ? 'Nested Mapping' : 'Data Mapping') : 'Data Mapping',
+                chooseForm: (selected, multiForm) => {
+                    if (selected == 'Data Mapping')
+                        return makeDataMappingForm(mapping);
+                    return new MappingFormNestedObject(mapping, nameChangeObserver, this.schema);
                 },
-                endpoint: {
-                    type: 'multi',
-                    options: {
-                        label: 'Endpoint Value',
-                        definitions: {
-                            'Template String': {
-                                defaultValue: {
-                                    tag: 'template',
-                                    value: ''
-                                },
-                                definition: {
-                                    type: 'object',
-                                    options: {
-                                        label: 'Endpoint',
-                                        requiredKeys: {
-                                            tag: {
-                                                type: 'const',
-                                                options: {
-                                                    label: '',
-                                                    value: 'template'
-                                                }
-                                            },
-                                            value: templateHelper(allColumns, 'Template')
-                                        },
-                                    }
-                                }
-                            },
-                            'Argument': {
-                                defaultValue: {
-                                    tag: 'argument',
-                                    value: ''
-                                },
-                                definition: {
-                                    type: 'object',
-                                    options: {
-                                        label: 'Endpoint',
-                                        requiredKeys: {
-                                            tag: {
-                                                type: 'const',
-                                                options: {
-                                                    label: '',
-                                                    value: 'argument'
-                                                }
-                                            },
-                                            value: {
-                                                type: 'simple',
-                                                options: {
-                                                    label: 'Argument',
-                                                    type: 'string'
-                                                }
-                                            }
-                                        },
-                                    }
-                                }
+                onSelect: (selected, multiForm) => {
+                    setTimeout(() => {
+                        let item = multiForm.current();
+                        if (item instanceof MappingFormNestedObject) {
+                            nameChangeObserver.notify(getMappingFullPath(item.mapping));
+                        }
+                        else if (item instanceof DataMappingForm) {
+                            nameChangeObserver.notify([item.options.mapping.flattenedName]);
+                        }
+                    }, 10);
+                },
+                allowCollapse: false
+            });
+            let itemLabel = new ItemLabel(i, {
+                label: 'New Mapping',
+                collapsed: true,
+                enclosed: true,
+                showDelete: true,
+                showMove: true,
+                item
+            });
+            return new ObserverForm(nameChangeObserver, mapping ? getMappingFullPath(mapping) : [], newFullPath => {
+                itemLabel.setLabel(newFullPath.length > 0 ? ('Mappings for ' + newFullPath.join('.')) : 'New Mapping');
+                return itemLabel;
+            });
+        }, () => defaultDataMapping);
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+function makeMappingDefaults(schema, key) {
+    if (!schema || schema.tag == 'rawData' || schema.tag == 'none')
+        return ({ tag: 'data', flattenedName: key });
+    if (schema.tag == 'array')
+        return ({ tag: 'array', item: makeMappingDefaults(schema.elem, key) });
+    else {
+        let key = Object.keys(schema.keys)[0] ?? '';
+        return ({
+            tag: 'object',
+            key,
+            item: makeMappingDefaults(schema.keys[key], key)
+        });
+    }
+}
+class ListButtonsForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.form = new reactiveForm_ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+            label: "Button",
+            enclosed: true,
+            collapsed: true,
+            showMove: true,
+            showDelete: true,
+            item: new reactiveForm_ObjectForm(item, {
+                "columnTitle": (data, i) => new StringInput(i, "Column Title", data),
+                "title": (data, i) => new StringInput(i, "Title", data, true),
+                "icon": (data, i) => new StringInput(i, "Icon", data, true),
+                "onClick": (data, i) => new ItemLabel(i, {
+                    label: "Click Action",
+                    collapsed: true,
+                    enclosed: true,
+                    item: new reactiveForm_MultiForm({
+                        options: ["Javascript Function", "Javascript Action", "List Action"],
+                        defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
+                        chooseForm: selected => {
+                            if (selected == 'Javascript Function') {
+                                let d = ('function' in data) ? data : { function: '() => {}' };
+                                return new reactiveForm_ObjectForm(d, {
+                                    "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
+                                });
+                            }
+                            else if (selected == 'Javascript Action') {
+                                let d = ('action' in data) ? data : { action: '' };
+                                return new reactiveForm_ObjectForm(d, {
+                                    "action": (data, i) => new StringInput(i, "Action Name", data)
+                                });
+                            }
+                            else {
+                                let d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
+                                return new reactiveForm_ObjectForm(d, {
+                                    "listAction": d => new ListActionEditor(d)
+                                });
                             }
                         }
-                    }
-                },
-            },
-            optionalKeys: {
-                body: {
-                    defaultValue: '',
-                    definition: templateHelper(allColumns, 'Body Value'),
-                },
-                headers: {
-                    defaultValue: {},
-                    definition: {
-                        type: 'object',
-                        options: {
-                            label: 'Headers',
-                            requiredKeys: {},
-                            newKeyTemplate: {
-                                defaultValue: {
-                                    tag: 'template',
-                                    value: ''
-                                },
-                                definition: {
-                                    type: 'multi',
-                                    options: {
-                                        label: (_1, _2, k) => 'Header ' + k,
-                                        definitions: {
-                                            'Template String': {
-                                                defaultValue: {
-                                                    tag: 'template',
-                                                    value: ''
-                                                },
-                                                definition: {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: 'Header',
-                                                        requiredKeys: {
-                                                            tag: {
-                                                                type: 'const',
-                                                                options: {
-                                                                    label: '',
-                                                                    value: 'template'
-                                                                }
-                                                            },
-                                                            value: templateHelper(allColumns, 'Template')
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            'Argument': {
-                                                defaultValue: {
-                                                    tag: 'argument',
-                                                    value: ''
-                                                },
-                                                definition: {
-                                                    type: 'object',
-                                                    options: {
-                                                        label: 'Header',
-                                                        requiredKeys: {
-                                                            tag: {
-                                                                type: 'const',
-                                                                options: {
-                                                                    label: '',
-                                                                    value: 'argument'
-                                                                }
-                                                            },
-                                                            value: {
-                                                                type: 'simple',
-                                                                options: {
-                                                                    type: 'string',
-                                                                    label: 'Argument'
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
+                    })
+                })
+            })
+        }), () => ({ columnTitle: '', onClick: { function: '() => {}' } }));
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class SearchOptionsForm extends ReactiveForm {
+    constructor(ops) {
+        super();
+        if (ops == undefined)
+            ops = {};
+        this.form = new reactiveForm_ObjectForm(ops, {
+            "advancedSearch": data => new LabelBool("Advanced Search", data),
+            "serverSearch": data => new LabelBool("Server-side Search", data),
+            "onlyInclude": (data, i) => new ItemLabel(i, {
+                label: "Include columns in search",
+                enclosed: true,
+                collapsed: true,
+                enabled: data !== undefined,
+                item: new reactiveForm_ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
+            }),
+            "onlyExclude": (data, i) => new ItemLabel(i, {
+                label: "Exclude columns in search",
+                enabled: data !== undefined,
+                enclosed: true,
+                collapsed: true,
+                item: new reactiveForm_ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
+            })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class MappingFormNestedObject extends ReactiveForm {
+    constructor(mapping, pathChange, schema) {
+        super();
+        this.cache = {};
+        this.schema = schema;
+        this.pathChange = pathChange;
+        let selectedKey;
+        if (mapping.tag == 'nested')
+            this.mapping = mapping;
+        else {
+            if (schema) {
+                selectedKey = Object.keys(schema.keys)[0];
+                this.mapping = {
+                    tag: 'nested',
+                    key: selectedKey,
+                    mapping: makeMappingDefaults(schema.keys[selectedKey], selectedKey)
+                };
+            }
+            else {
+                selectedKey = '';
+                this.mapping = {
+                    tag: 'nested',
+                    key: selectedKey,
+                    mapping: { tag: 'data', flattenedName: '' }
+                };
             }
         }
-    };
+        const observer = new Observer();
+        this.form = new reactiveForm_ObjectForm(this.mapping, {
+            "tag": () => new reactiveForm_ConstForm("nested"),
+            "key": (key, i) => new ItemLabel(i, {
+                label: "Key",
+                item: new reactiveForm_DropdownForm({
+                    options: Object.keys(this.schema?.keys ?? {}).map(x => ({ text: x, value: x })),
+                    defaultValue: key,
+                    allowAny: true,
+                    onChange: newKey => {
+                        this.mapping.key = newKey;
+                        this.mapping.mapping = makeMappingDefaults(this.schema?.tag == 'object' ? this.schema.keys[newKey] : undefined, newKey);
+                        observer.notify(newKey);
+                        let nested = getMappingFullPath(this.mapping.mapping);
+                        let newName = [newKey];
+                        if (nested.length > 0)
+                            newName.push(...nested);
+                        this.pathChange.notify(newName);
+                    }
+                })
+            }),
+            "mapping": () => new ObserverForm(observer, this.mapping.key, newKey => {
+                if (newKey in this.cache)
+                    return this.cache[newKey];
+                let form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
+                this.cache[newKey] = form;
+                return form;
+            })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
 }
-function editTypeDropdown() {
-    return {
-        type: 'dropdown',
-        options: {
-            label: 'Data Type',
-            dropdownItems: [
+class DataMappingForm extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.options = options;
+        this.availableDropdownColumns = [];
+        this.form = null;
+    }
+    render(m) {
+        const context = m.getContext(ConfigContext.id);
+        this.availableDropdownColumns.length = 0;
+        DataScopeManager.getDataMappings(context.config).forEach(m => this.availableDropdownColumns.push({ text: m.displayName ?? m.flattenedName, value: m.flattenedName }));
+        if (this.form == null) {
+            let flatName = (data, i) => {
+                let item;
+                if (this.options.flatNameOptions) {
+                    item = new reactiveForm_DropdownForm({
+                        options: this.options.flatNameOptions.map(x => ({ text: x, value: x })),
+                        defaultValue: data,
+                        onChange: (newKey) => {
+                            this.options.onChangePath.notify([...this.options.fullPath]);
+                        }
+                    });
+                }
+                else {
+                    item = new Input({ data, type: 'string', readonly: this.options.readonlyFlatName });
+                }
+                return new ItemLabel(i, {
+                    label: this.options.flatNameOptions ? 'Column Name' : 'Flattened Column Name',
+                    item
+                });
+            };
+            let editTypeObserver = new Observer();
+            let dropdownConfig = (data, i) => new ItemLabel(i, {
+                label: "Dropdown Config",
+                collapsed: true,
+                enabled: data !== undefined,
+                enclosed: true,
+                item: new reactiveForm_MultiForm({
+                    options: ['Static Choices', 'Select From Column'],
+                    defaultOption: data === undefined ? 'Static Choices' : ('choices' in data ? 'Static Choices' : 'Select From Column'),
+                    chooseForm: selected => selected == 'Static Choices'
+                        ? new reactiveForm_ObjectForm(data ?? { choices: [] }, {
+                            "choices": data => new reactiveForm_ArrayForm(data, (item, i) => new StringInput(i, "Dropdown Choice", item, false), () => ""),
+                            "allowCustom": data => new LabelBool("Allow Custom Value", data)
+                        })
+                        : new reactiveForm_ObjectForm(data ?? { fromColumn: this.availableDropdownColumns[0]?.value ?? '' }, {
+                            "fromColumn": (data, i) => new ItemLabel(i, {
+                                label: "From Column",
+                                item: new reactiveForm_DropdownForm({
+                                    options: this.availableDropdownColumns,
+                                    defaultValue: data,
+                                    allowAny: true
+                                })
+                            })
+                        })
+                })
+            });
+            let dropdownConfigObserver = (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                if (type == 'dropdown')
+                    return dropdownConfig(data, i);
+                return new reactiveForm_ConstForm(undefined);
+            });
+            let keyMap = {
+                "tag": () => new reactiveForm_ConstForm("data"),
+                "displayName": (data, i) => new StringInput(i, "Display Name", data, true),
+                "readOnly": (data, i) => new Show(new LabelBool("Read-Only", data), () => context?.isAdmin ?? false),
+                "flattenedName": flatName,
+                "inList": d => new LabelBool("In List", d),
+                "inDetailView": d => new LabelBool("In Detail View", d),
+                "editType": (data, i) => new ItemLabel(i, {
+                    label: "Edit Type",
+                    enabled: data !== undefined,
+                    item: new EditTypeDropdown(data, newItem => editTypeObserver.notify(newItem)),
+                }),
+                "serverDateFormat": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                    if (type == 'datetime' || type == 'time')
+                        return new StringInput(i, "Server Date Format", data, true);
+                    return new reactiveForm_ConstForm(undefined);
+                }),
+                "template": (data, i) => new StringInput(i, "Template", data, true),
+                "width": (data, i) => new StringInput(i, "Width", data, true),
+                "jsonConfig": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                    if (type !== 'json')
+                        return new reactiveForm_ConstForm(undefined);
+                    return new ItemLabel(i, {
+                        label: "JSON Config",
+                        collapsed: true,
+                        enabled: data !== undefined,
+                        enclosed: true,
+                        item: new reactiveForm_ObjectForm(data, {
+                            "editorType": (data, i) => new ItemLabel(i, {
+                                label: "Editor Type",
+                                item: new reactiveForm_DropdownForm({
+                                    options: [{ text: 'Text Editor', value: 'text' }, { text: 'Form', value: 'form' }],
+                                    defaultValue: data,
+                                })
+                            }),
+                            "definition": (data, i) => new ItemLabel(i, {
+                                item: new JSONFieldForm(data),
+                                label: "JSON Definition"
+                            })
+                        })
+                    });
+                }),
+                "dropdownConfig": (data, i) => dropdownConfigObserver(data, i)
+            };
+            this.form = new reactiveForm_ObjectForm(this.options.mapping, keyMap);
+        }
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        if (this.form == null)
+            return { changed: false, raw: this.options.mapping };
+        return this.form.serialize(formData);
+    }
+}
+class JSONFieldForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        if (data === undefined)
+            data = { tag: 'data', dataType: 'string' };
+        const defaultOption = (data.tag == 'array') ? 'JSON Array' : (data.tag == 'data' ? 'JSON Value' : 'JSON Object');
+        this.form = new reactiveForm_MultiForm({
+            options: ['JSON Object', 'JSON Array', 'JSON Value'],
+            defaultOption,
+            chooseForm: select => {
+                if (select == 'JSON Object') {
+                    let defaultData = (data.tag == 'object') ? data : { tag: 'object', keys: {} };
+                    return new reactiveForm_ObjectForm(defaultData, {
+                        "tag": () => new reactiveForm_ConstForm("object"),
+                        "keys": (keys) => new reactiveForm_ObjectForm(keys, {}, {
+                            onAdd: (name, data, i) => {
+                                data = data ?? { tag: 'data', dataType: 'string' };
+                                return new ItemLabel(i, {
+                                    label: `Key "${name}"`,
+                                    showDelete: true,
+                                    showMove: true,
+                                    item: new JSONFieldForm(data)
+                                });
+                            }
+                        })
+                    });
+                }
+                else if (select == 'JSON Array') {
+                    let defaultData = (data.tag == 'array') ? data : { tag: 'array', item: { tag: 'data', dataType: 'string' } };
+                    return new reactiveForm_ObjectForm(defaultData, {
+                        "tag": () => new reactiveForm_ConstForm("array"),
+                        "item": (item, i) => new ItemLabel(i, {
+                            label: "Item Definition",
+                            item: new JSONFieldForm(item)
+                        })
+                    });
+                }
+                else {
+                    let defaultData = (data.tag == 'object') ? data : { tag: 'data', dataType: 'string' };
+                    return new reactiveForm_ObjectForm(defaultData, {
+                        "tag": () => new reactiveForm_ConstForm("data"),
+                        "dataType": (data, i) => new ItemLabel(i, {
+                            label: 'Data Type',
+                            item: new reactiveForm_DropdownForm({
+                                options: [
+                                    { text: 'String', value: 'string' }, { text: 'Number', value: 'number' }, { text: 'True/False', value: 'boolean' }
+                                ],
+                                defaultValue: data,
+                            })
+                        })
+                    });
+                }
+            }
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class NestedMappingForm extends ReactiveForm {
+    constructor(n, key, fullPath, pathChange, schema) {
+        super();
+        this.objectKeyCache = {};
+        this.mapping = n;
+        this.schema = schema;
+        this.key = key;
+        this.fullPath = fullPath;
+        this.pathChange = pathChange;
+        let defaultOption;
+        switch (n.tag) {
+            case "object":
+                defaultOption = 'Object Mapping';
+                break;
+            case "array":
+                defaultOption = 'Array Mapping';
+                break;
+            case "data":
+                defaultOption = 'Data Mapping';
+                break;
+        }
+        this.form = new reactiveForm_MultiForm({
+            options: ['Array Mapping', 'Object Mapping', 'Data Mapping'],
+            defaultOption,
+            chooseForm: select => {
+                if (select == 'Data Mapping')
+                    return this.dataNested();
+                else if (select == 'Array Mapping')
+                    return this.arrayNested();
+                return this.objectNested();
+            },
+            allowCollapse: false
+        });
+    }
+    objectNested() {
+        let defaultMapping;
+        let availableKeys = [];
+        if (this.mapping.tag == 'object') {
+            defaultMapping = this.mapping;
+        }
+        else {
+            if (this.schema?.tag == 'object') {
+                let k = Object.keys(this.schema.keys)[0] ?? '';
+                defaultMapping = {
+                    tag: 'object',
+                    key: k,
+                    item: makeMappingDefaults(this.schema.keys[k], k)
+                };
+            }
+            else {
+                defaultMapping = {
+                    tag: 'object',
+                    key: '',
+                    item: makeMappingDefaults(undefined, '')
+                };
+            }
+        }
+        if (this.schema?.tag == 'object') {
+            availableKeys = Object.keys(this.schema.keys).map(x => ({ text: x, value: x }));
+        }
+        else {
+            availableKeys = [];
+        }
+        const observer = new Observer();
+        return new reactiveForm_ObjectForm(defaultMapping, {
+            "tag": () => new reactiveForm_ConstForm("object"),
+            "key": (k, i) => new ItemLabel(i, {
+                label: "Key",
+                item: new reactiveForm_DropdownForm({
+                    options: availableKeys,
+                    defaultValue: k,
+                    allowAny: true,
+                    onChange: newKey => {
+                        observer.notify(newKey);
+                        let schema = (this.schema?.tag == 'object') ? this.schema.keys[newKey] : undefined;
+                        let nested = makeMappingDefaults(schema, newKey);
+                        let rest = getMappingFullPath(nested);
+                        this.pathChange.notify([...this.fullPath, newKey, ...(rest.length > 1 ? rest : [])]);
+                    }
+                })
+            }),
+            "item": (_, i) => new ObserverForm(observer, defaultMapping.key, key => {
+                let schema = (this.schema?.tag == 'object') ? this.schema.keys[key] : undefined;
+                let nested = makeMappingDefaults(schema, key);
+                if (key in this.objectKeyCache)
+                    return this.objectKeyCache[key];
+                let form = new ItemLabel(i, {
+                    label: "Definition for" + [...this.fullPath, key].join('.'),
+                    item: new NestedMappingForm(nested, key, [...this.fullPath, key], this.pathChange, schema)
+                });
+                this.objectKeyCache[key] = form;
+                return form;
+            })
+        });
+    }
+    dataNested() {
+        let mapping = (this.mapping.tag == 'data') ? this.mapping : { tag: 'data', flattenedName: this.key };
+        return new DataMappingForm({
+            fullPath: this.fullPath,
+            onChangePath: this.pathChange,
+            mapping,
+            schema: this.schema,
+            readonlyFlatName: true
+        });
+    }
+    arrayNested() {
+        let nested = (this.schema?.tag == 'array') ? makeMappingDefaults(this.schema.elem, this.key) : { tag: 'data', flattenedName: '' };
+        let mapping = (this.mapping.tag == 'array') ? this.mapping : { tag: 'array', item: nested };
+        return new reactiveForm_ObjectForm(mapping, {
+            "tag": () => new reactiveForm_ConstForm("array"),
+            "item": (item, i) => new ItemLabel(i, {
+                label: "Definition for " + [...this.fullPath, '[...]'].join('.'),
+                item: new NestedMappingForm(item, this.key, [...this.fullPath, '[...]'], this.pathChange, this.schema?.tag == 'array' ? this.schema.elem : undefined)
+            })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class EditTypeDropdown extends ReactiveForm {
+    constructor(data, onChange) {
+        super();
+        this.form = new reactiveForm_DropdownForm({
+            options: [
                 { text: 'Text', value: 'text' },
                 { text: 'Dropdown', value: 'dropdown' },
                 { text: 'Time', value: 'time' },
-                { text: 'Date & Time', value: 'datetime' },
+                { text: 'Datetime', value: 'datetime' },
                 { text: 'True/False', value: 'bool' },
                 { text: 'Number', value: 'number' },
-                { text: 'JSON Data', value: 'json' },
+                { text: 'JSON', value: 'json' },
             ],
-            default: 'text',
+            defaultValue: data ?? 'text',
+            onChange
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class StringInput extends ReactiveForm {
+    constructor(i, label, data, optional, multiLine) {
+        super();
+        this.form = new ItemLabel(i, {
+            label,
+            enabled: optional ? (data !== undefined) : undefined,
+            item: new Input({ data, type: 'string', textarea: multiLine })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ColumnSelector extends ReactiveForm {
+    constructor(data, onlyTopLevel) {
+        super();
+        this.data = data;
+        this.onlyTopLevel = onlyTopLevel;
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        if (this.dropdown == undefined) {
+            let options = [];
+            if (this.onlyTopLevel) {
+                options = ctx.config.mappings
+                    .filter(x => x.tag == 'data')
+                    .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
+            }
+            else {
+                options = DataScopeManager.getDataMappings(ctx.config)
+                    .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
+            }
+            this.dropdown = new reactiveForm_DropdownForm({
+                options,
+                defaultValue: this.data,
+                allowAny: true
+            });
         }
-    };
+        return { type: 'group', items: [this.dropdown] };
+    }
+    serialize(formData) {
+        if (this.dropdown === undefined)
+            return { changed: false, raw: this.data };
+        return this.dropdown.serialize(formData);
+    }
 }
 
 ;// ./src/transformInterface.ts
-var transformInterface_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 function transformAPI(path) {
     return fetch('https://transform.alphasoftware.com/transformAPIVersion1.a5svc/' + path, {
@@ -13682,90 +14425,86 @@ function prepareTFList(obj, formId) {
         });
     });
 }
-function initTFSelector(containerId, obj) {
-    return transformInterface_awaiter(this, void 0, void 0, function* () {
-        let cId = obj.getPointer(containerId).id;
-        let loading = {
-            type: 'html',
-            control: {
-                html: '<p> Loading Form Definitions... </p>'
-            }
-        };
-        let formObj = DynamicForm.makeFromRaw(loading, {}, cId);
-        let dropdownItems = yield transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
-            .then(json => {
-            if (json.error) {
-                console.error(json.errorText);
-                return [];
-            }
-            return json.result.map(row => {
-                return {
-                    text: `${row.formname} (${row.formid})`,
-                    value: row.formid
-                };
-            });
+async function initTFSelector(containerId, obj) {
+    let cId = obj.getPointer(containerId).id;
+    let loading = {
+        type: 'html',
+        control: {
+            html: '<p> Loading Form Definitions... </p>'
+        }
+    };
+    let formObj = DynamicForm.makeFromRaw(loading, {}, cId);
+    let dropdownItems = await transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
+        .then(json => {
+        if (json.error) {
+            console.error(json.errorText);
+            return [];
+        }
+        return json.result.map(row => {
+            return {
+                text: `${row.formname} (${row.formid})`,
+                value: row.formid
+            };
         });
-        let formJson = {
-            type: 'group',
-            items: [
-                {
-                    type: 'picker',
-                    id: 'form-picker',
+    });
+    let formJson = {
+        type: 'group',
+        items: [
+            {
+                type: 'picker',
+                id: 'form-picker',
+                data: {
+                    from: 'form-picker',
+                    ensure: true
+                },
+                control: {
                     data: {
-                        from: 'form-picker',
-                        ensure: true
+                        src: dropdownItems,
+                        map: ['value', 'text']
                     },
-                    control: {
+                    picker: {
                         data: {
-                            src: dropdownItems,
-                            map: ['value', 'text']
-                        },
-                        picker: {
-                            data: {
-                                empty: {
-                                    message: "No Forms Loaded"
-                                }
+                            empty: {
+                                message: "No Forms Loaded"
                             }
                         }
                     }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span> Load Form into List </span> `,
-                        onClick: () => {
-                            launch(formObj.data['form-picker'], obj);
-                        },
-                    }
                 }
-            ],
-            container: {
-                style: `;
+            },
+            {
+                type: 'button',
+                control: {
+                    html: `<span> Load Form into List </span> `,
+                    onClick: () => {
+                        launch(formObj.data['form-picker'], obj);
+                    },
+                }
+            }
+        ],
+        container: {
+            style: `;
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;
             `
-            }
-        };
-        formObj = DynamicForm.makeFromRaw(formJson, {}, obj.getPointer(containerId).id);
-        formObj.data['form-picker'] = dropdownItems[0].value;
-        formObj.refresh();
-    });
-}
-function launch(formId, obj) {
-    return transformInterface_awaiter(this, void 0, void 0, function* () {
-        let prepareResult = yield prepareTFList(obj, formId);
-        if ('err' in prepareResult) {
-            console.error(prepareResult.err);
-            return;
         }
-        openNewPanel({
-            obj: obj,
-            configName: formId,
-            listContainerId: 'LIST_CONTAINER',
-            searchContainerId: 'SEARCH_CONTAINER',
-            titleName: 'Form ' + formId,
-        });
+    };
+    formObj = DynamicForm.makeFromRaw(formJson, {}, obj.getPointer(containerId).id);
+    formObj.data['form-picker'] = dropdownItems[0].value;
+    formObj.refresh();
+}
+async function launch(formId, obj) {
+    let prepareResult = await prepareTFList(obj, formId);
+    if ('err' in prepareResult) {
+        console.error(prepareResult.err);
+        return;
+    }
+    openNewPanel({
+        obj: obj,
+        configName: formId,
+        listContainerId: 'LIST_CONTAINER',
+        searchContainerId: 'SEARCH_CONTAINER',
+        titleName: 'Form ' + formId,
     });
 }
 
