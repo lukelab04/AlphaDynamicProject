@@ -11574,13 +11574,14 @@ class ReactiveForm {
     render(m) { return undefined; }
 }
 class ReactiveFormManager {
-    constructor(root, containerId) {
+    constructor(root, containerId, obj) {
         this.root = root;
         this.fragments = {};
         this.containerId = containerId;
         this.afterRender = [];
         this.formDataUpdateRequests = {};
         this.context = {};
+        this.obj = obj;
         this.createFormBox();
         this.render(this.root);
     }
@@ -11657,8 +11658,11 @@ class ReactiveFormManager {
                 delete activePickers[key];
         }
         A5.transients._.t = A5.transients._.t.filter(x => x in activePickers);
-        if (this.formBox)
+        if (this.formBox) {
+            let container = $(this.formBox.contId);
+            ReactiveFormManager.removeOldEventHandlers(container);
             this.formBox.destroy();
+        }
         this.formBox = new A5.FormBox(this.containerId, [], null, {
             theme: 'Alpha',
             item: {
@@ -11688,6 +11692,26 @@ class ReactiveFormManager {
                     f();
             }
         }, 1);
+    }
+    static removeOldEventHandlers(elem) {
+        // Alpha hooks its own event handlers into objects. 
+        // They are not all removed when the old form is destroyed. 
+        // If the old handlers are not removed, then (e.g.) clicking a button will 
+        // call the current onClick along with every single previous existing version of 
+        // that onclick function (which is not, I imagine, what you want to do.)
+        // Alpha also doesn't seem to have a way to remove all the event handlers. 
+        // We have to do them individually, and we need a handle to the function being called..
+        let allEvents = $e._e;
+        let toRemove = [];
+        allEvents.forEach(e => {
+            if (e[0] == elem) {
+                toRemove.push({ event: e[1], fn: e[2] });
+            }
+        });
+        toRemove.forEach(r => $e.remove(elem, r.event, r.fn));
+        for (let i = 0; i < elem.childElementCount; i++) {
+            this.removeOldEventHandlers(elem.children[i]);
+        }
     }
     serialize() {
         return reactiveForm_changeDetectionToRaw(this.root.serialize(this.formBox.data));
@@ -13346,7 +13370,7 @@ function manageConfigForm(ops) {
     };
     const containerId = ops.obj.getPointer(CONFIG_CONTAINER_NAME).id;
     const schema = ops.list?.schema ?? undefined;
-    configForm = new ReactiveFormManager(new ConfigForm(ops.preFetch.config, ops.preFetch.isAdmin, ops.obj, schema), containerId);
+    configForm = new ReactiveFormManager(new ConfigForm(ops.preFetch.config, ops.preFetch.isAdmin, ops.obj, schema), containerId, ops.obj);
     const showError = (e) => {
         console.error(e);
         displayErrorMessage(e.toString());
@@ -13832,9 +13856,12 @@ class MappingsForm extends ReactiveForm {
                 options: ['Nested Mapping', 'Data Mapping'],
                 defaultOption: mapping ? (mapping.tag == 'nested' ? 'Nested Mapping' : 'Data Mapping') : 'Data Mapping',
                 chooseForm: (selected, multiForm) => {
-                    if (selected == 'Data Mapping')
+                    if (selected == 'Data Mapping') {
                         return makeDataMappingForm(mapping);
-                    return new MappingFormNestedObject(mapping, nameChangeObserver, this.schema);
+                    }
+                    else {
+                        return new MappingFormNestedObject(mapping, nameChangeObserver, this.schema);
+                    }
                 },
                 onSelect: (selected, multiForm) => {
                     setTimeout(() => {
@@ -13978,7 +14005,9 @@ class MappingFormNestedObject extends ReactiveForm {
             this.mapping = mapping;
         else {
             if (schema) {
-                selectedKey = Object.keys(schema.keys)[0];
+                selectedKey = Object.entries(schema.keys)
+                    .filter(([k, v]) => v.tag == 'object' || v.tag == 'array')
+                    .map(([k, v]) => k)[0] ?? '';
                 this.mapping = {
                     tag: 'nested',
                     key: selectedKey,
@@ -13998,13 +14027,15 @@ class MappingFormNestedObject extends ReactiveForm {
     render(m) {
         if (this.form === undefined) {
             const observer = new Observer();
-            const ctx = m.getContext(ConfigContext.id);
+            let availableKeys = Object.entries(this.schema?.keys ?? {})
+                .filter(([k, v]) => v.tag == 'object' || v.tag == 'array')
+                .map(([k, v]) => ({ text: k, value: k }));
             this.form = new reactiveForm_ObjectForm(this.mapping, {
                 "tag": () => new reactiveForm_ConstForm("nested"),
                 "key": (key, i) => new ItemLabel(i, {
                     label: "Key",
                     item: new reactiveForm_DropdownForm({
-                        options: ctx.config.mappings.filter(m => m.tag == 'nested').map(x => ({ text: x.key, value: x.key })),
+                        options: availableKeys,
                         defaultValue: key,
                         allowAny: true,
                         onChange: newKey => {
@@ -14295,14 +14326,14 @@ class NestedMappingForm extends ReactiveForm {
                     }
                 })
             }),
-            "item": (_, i) => new ObserverForm(observer, defaultMapping.key, key => {
+            "item": (itemMapping, i) => new ObserverForm(observer, defaultMapping.key, key => {
                 let schema = (this.schema?.tag == 'object') ? this.schema.keys[key] : undefined;
                 let nested = makeMappingDefaults(schema, key);
                 if (key in this.objectKeyCache)
                     return this.objectKeyCache[key];
                 let form = new ItemLabel(i, {
                     label: "Definition for" + [...this.fullPath, key].join('.'),
-                    item: new NestedMappingForm(nested, key, [...this.fullPath, key], this.pathChange, schema)
+                    item: new NestedMappingForm(key == defaultMapping.key ? itemMapping : nested, key, [...this.fullPath, key], this.pathChange, schema)
                 });
                 this.objectKeyCache[key] = form;
                 return form;
