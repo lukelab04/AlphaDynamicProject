@@ -86,16 +86,16 @@ function querySqlWithFilters as Result (e as p, returnResultSet as l = .f.)
 				columns[index] = colName
 			end if
 		next
-		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, returnResultSet)
+		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString, returnResultSet)
+		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
 	end if
 	
 end function
 
-function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, returnResultSet as l = .f.)
+function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -105,7 +105,7 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 	
 	dim filterStr as c
 	dim filterStrRes as Result
-	filterStrRes = buildConstraint(filters, args, cn, e)
+	filterStrRes = buildConstraint(filters, args, cn, e, dataSource)
 	
 	if .not. filterStrRes.isSuccessful() then 
 		getTableDataFromSql = filterStrRes 
@@ -140,7 +140,7 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 	cn.close()
 end function
 
-function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, returnResultSet as l = .f.)
+function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -157,7 +157,7 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	dim args as sql::arguments
 	dim filterStrRes as Result
 	dim filterStr as c
-	filterStrRes = buildConstraint(filters, args, cn, e)
+	filterStrRes = buildConstraint(filters, args, cn, e, dataSource)
 	if .not. filterStrRes.isSuccessful() then 
 		getTableData = filterStrRes 
 		end 
@@ -277,16 +277,16 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	end if
 end function
 
-function buildConstraint as Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p)
+function buildConstraint as Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p, dataSource as extension::json)
 	dim args as sql::arguments
 	dim filterStr as c
+	dim argCounter as n
+	argCounter = 0
 	filterStr = ""
 	if filters.getLength() == 0 then 
 		filterStr = ""
 	else
-		dim argCounter as n
 		dim filter as p
-		argCounter = 0
 		for i = 0 to filters.getLength() - 1
 			filter = filters.getIndexed(i)
 			if .not. (filter.hasProperty("op")) .or. (.not. isSafeOp(filter.getProperty("op"))) then
@@ -349,6 +349,40 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 			argCounter = argCounter + 1
 		next
 	end if
+
+	
+	if dataSource.hasProperty("forcedValues") then 
+		dim forcedValues as extension::json 
+		forcedValues = dataSource.getProperty("forcedValues")
+		
+		for i = 0 to forcedValues.getLength() - 1
+			argCounter = argCounter + 1
+			if filterStr <> "" then 
+				filterStr = "(" + filterStr + ") AND "
+			end if 
+			
+			dim forcedValue as extension::json 
+			forcedValue = forcedValues.getIndexed(i)
+			
+			filterStr = filterStr + "[" + forcedValue.getProperty("column") + "] = "
+			
+			if forcedValue.getProperty("value").getProperty("tag") = "value" then 
+				filterStr = filterStr + ":argNum" + argCounter 
+				args.add("argNum" + argCounter, forcedValue.getProperty("value").getProperty("value"))
+			else 
+				dim argName as c = forcedValue.getProperty("value").getProperty("value")
+				if e.arguments.argumentNumber(argName) == -1 then 
+					buildConstraint = Result.fail("Argument " + argName + " does not exist")
+					end 
+				end if 
+				dim argVal as c
+				argVal = e.arguments.find(argName).data
+				filterStr = filterStr + ":argNum" + argCounter 
+				args.add("argNum" + argCounter, argVal)
+			end if
+		next
+	end if
+	
 	buildConstraint = Result.success(filterStr)
 end function
 
@@ -397,6 +431,7 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	dim configInterface as p
 	dim config as Result
 	dim configJson as extension::Json
+	dim dataSource as extension::json
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
 	
@@ -405,6 +440,7 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 		end
 	else 
 		configJson = config.getInner()
+		dataSource = configJson.getProperty("dataSource")
 	end if
 	
 	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
@@ -414,6 +450,11 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	
 	dim isCustomSql as l
 	isCustomSql = configJson.getProperty("dataSource").hasProperty("sql")
+	
+	if isCustomSql then 
+		resultsOut[] = Result.fail("Custom SQL Lists are Read Only")
+		end 
+	end if
 	
 	dim schemaInfo as p
 	dim info as c
@@ -458,7 +499,34 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 			shouldDelete = item.value._isDeleted
 		else if prop_valid(item.value, "_isNewRow") then 
 			shouldInsert = item.value._isNewRow
-		end if 
+		end if
+		debug(1)
+		if dataSource.hasProperty("forcedValues") then 
+			dim forcedValues as extension::json 
+			forcedValues = dataSource.getProperty("forcedValues")
+			
+			for i = 0 to forcedValues.getLength() - 1
+				dim forcedVal as extension::json 
+				forcedVal = forcedValues.getIndexed(i)
+				
+				dim val as c
+				if forcedVal.getProperty("value").getProperty("tag") = "value" then 
+					val = forcedVal.getProperty("value")
+				else 
+					dim argName as c = forcedVal.getProperty("value").getProperty("value")
+					if e.arguments.argumentNumber(argName) == -1 then 
+						updateTableData = Result.fail("Argument " + argName + " does not exist")
+						end 
+					end if 
+					dim argVal as c
+					val = e.arguments.find(argName).data
+				end if
+				
+				if prop_valid(item.value, forcedVal.getProperty("column")) then 
+					item.value = val
+				end if
+			next
+		end if
 		
 		if shouldDelete == .f. .and. shouldInsert == .f. then 
 			shouldUpdate = .t.

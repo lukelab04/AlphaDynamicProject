@@ -11,7 +11,7 @@
 /* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, DataSourceTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, ForcedValueTypeSchema, DataSourceTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 function stringReprToFn(s) {
@@ -176,6 +176,13 @@ const ServerSortTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     order: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('asc'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('desc')])
 }));
+const ForcedValueTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    column: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('value'), value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('argument'), value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
+    ])
+});
 const DataSourceTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
@@ -189,7 +196,8 @@ const DataSourceTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
         serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
         paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
-        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        forcedValues: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ForcedValueTypeSchema))
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('sql'),
@@ -198,7 +206,8 @@ const DataSourceTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         filters: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListFilterTypeSchema)),
         serverSort: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(ServerSortTypeSchema),
         paginate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ pageSize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number() })),
-        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        forcedValues: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ForcedValueTypeSchema))
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
@@ -12092,7 +12101,7 @@ class ItemLabel extends ReactiveForm {
                     type: 'button',
                     disabled: () => this.interactor.canMoveUp() == false,
                     control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-arrowUp:icon,24'),
                         onClick: () => {
                             this.interactor.moveUp();
                             m.render(this);
@@ -12104,7 +12113,7 @@ class ItemLabel extends ReactiveForm {
                     type: 'button',
                     disabled: () => this.interactor.canMoveDown() == false,
                     control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
+                        html: A5.u.icon.html('svgIcon=#alpha-icon-arrowDown:icon,24'),
                         onClick: () => {
                             this.interactor.moveDown();
                             m.render(this);
@@ -12169,9 +12178,14 @@ class ItemLabel extends ReactiveForm {
             items: [
                 this.enabledCheck(m),
                 this.collapseBtn(m),
-                label,
+                (this.options.labelRight ?? false) == false ? label : undefined,
                 this.deleteBtn(m),
-                this.moveBtns(m)
+                this.moveBtns(m),
+                this.options.labelRight ? {
+                    type: 'group',
+                    items: [label],
+                    container: { style: 'margin-left: 1rem;' },
+                } : undefined
             ]
         };
         let tabCtx = m.getContext(this.options.launchInTab ?? '');
@@ -12490,7 +12504,7 @@ class reactiveForm_MultiForm extends ReactiveForm {
                                 m.render(this);
                             }
                         }
-                    }
+                    },
                 }
             ],
             container: {
@@ -13162,7 +13176,7 @@ function tryRecoverConfig(config, obj, admin, configName) {
     }
     else if ('err' in config) {
         return {
-            version: config.err.configVersion,
+            version: config.err.version,
             name: configName,
             dataSource: {
                 type: 'json',
@@ -13494,6 +13508,47 @@ class ConfigForm extends ReactiveForm {
         return s;
     }
 }
+class ForcedValueForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        data = data ?? { column: '', value: { tag: 'value', value: '' } };
+        this.form = new reactiveForm_ObjectForm(data, {
+            "column": (d, i) => new ItemLabel(i, {
+                label: "Column",
+                item: new ColumnSelector(d, true)
+            }),
+            "value": (data) => new reactiveForm_MultiForm({
+                options: ['Value', 'XBasic Argument'],
+                defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
+                chooseForm: selected => {
+                    if (selected == 'Value') {
+                        if (data.tag == 'argument')
+                            data = { tag: 'value', value: '' };
+                        return new reactiveForm_ObjectForm(data, {
+                            "tag": () => new reactiveForm_ConstForm("value"),
+                            "value": (v, i) => new StringInput(i, "Value", v)
+                        });
+                    }
+                    else {
+                        if (data.tag == 'value')
+                            data = { tag: 'argument', value: '' };
+                        return new reactiveForm_ObjectForm(data, {
+                            "tag": () => new reactiveForm_ConstForm("argument"),
+                            "value": (v, i) => new StringInput(i, "Value", v)
+                        });
+                    }
+                },
+                allowCollapse: false,
+            })
+        });
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
 class ConfigDataSource extends ReactiveForm {
     constructor(dataSource) {
         super();
@@ -13573,6 +13628,18 @@ class ConfigDataSource extends ReactiveForm {
                             item: new Input({ data: size, type: 'number' })
                         })
                     })
+                }),
+                'forcedValues': (data, i) => new ItemLabel(i, {
+                    enabled: data !== undefined,
+                    label: "Forced Values",
+                    enclosed: true,
+                    collapsed: true,
+                    item: new reactiveForm_ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+                        label: "Forced Value",
+                        enclosed: true,
+                        collapsed: true,
+                        item: new ForcedValueForm(item)
+                    }), () => ({ column: '', value: { tag: 'value', value: '' } }))
                 }),
                 ...preprocess
             };
@@ -13882,6 +13949,7 @@ class MappingsForm extends ReactiveForm {
                 enclosed: true,
                 showDelete: true,
                 showMove: true,
+                labelRight: true,
                 item
             });
             return new ObserverForm(nameChangeObserver, mapping ? getMappingFullPath(mapping) : [], newFullPath => {
