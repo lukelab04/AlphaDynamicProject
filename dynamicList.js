@@ -7,15 +7,60 @@
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ConfigTypeSchema: () => (/* binding */ ConfigTypeSchema),
+/* harmony export */   Err: () => (/* binding */ Err),
+/* harmony export */   ErrMsg: () => (/* binding */ ErrMsg),
 /* harmony export */   MappingTypeSchema: () => (/* binding */ MappingTypeSchema),
-/* harmony export */   SchemaTypeSchema: () => (/* binding */ SchemaTypeSchema),
+/* harmony export */   MsgWithCtx: () => (/* binding */ MsgWithCtx),
+/* harmony export */   Ok: () => (/* binding */ Ok),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, ForcedValueTypeSchema, DataSourceTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, SchemaTypeSchema, ServerSortTypeSchema, ForcedValueTypeSchema, DataSourceTypeSchema, RawSchemaTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function stringReprToFn(s) {
     return eval(s);
+}
+const Ok = (value) => ({
+    map: f => Ok(f(value)),
+    mapErr: () => Ok(value),
+    flatMap: f => f(value),
+    match: x => x.ok(value),
+    asErr: () => undefined,
+    asOk: () => value,
+    isOk: () => true
+});
+const Err = (err) => ({
+    map: () => Err(err),
+    mapErr: f => Err(f(err)),
+    flatMap: () => Err(err),
+    match: x => x.err(err),
+    asErr: () => err,
+    asOk: () => undefined,
+    isOk: () => false
+});
+class MsgWithCtx {
+    constructor(msg, ctx) {
+        this.msg = msg;
+        this.ctx = ctx;
+    }
+    log() {
+        console.error(this.ctx);
+    }
+    show() {
+        return this.msg;
+    }
+}
+class ErrMsg {
+    constructor(msg) {
+        this.msg = msg;
+    }
+    log() {
+        console.error(this.msg);
+    }
+    show() {
+        return this.msg;
+    }
 }
 const EditTypeTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('text'),
@@ -52,7 +97,7 @@ const ListFilterTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     ]),
     connector: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('AND'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('OR')]),
     op: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-    type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
     quantifier: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('ALL'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('SOME')]))
 });
 const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
@@ -64,10 +109,9 @@ const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         configurationName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
         tabName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
         linkedColumns: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-            columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-            foreignName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            foreignCol: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
         })),
-        makeFilter: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openJSONSublist'),
@@ -88,6 +132,7 @@ const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Re
     children: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(Self)),
 }));
 const JsonFieldTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('any') }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("object"),
         keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self)
@@ -116,7 +161,15 @@ const DataMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Typ
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
     readOnly: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
-    serverDateFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    dateSettings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        // Function (date: unknown, serverTimeOffset: number) => Date
+        // Date is unchanged from the server
+        // serverTimeOffset is the timezone offset from GMT
+        fromServer: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        toServer: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        // Format as specified by Alpha date templating
+        clientFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+    })),
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     // Required iff edit type is json
@@ -157,11 +210,17 @@ const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.T
 });
 const SchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('none')
+        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('unknown')
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('rawData'),
-        jsType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()
+        jsType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('null'),
+            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('any'),
+        ])
     }),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
         tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
@@ -221,6 +280,38 @@ const DataSourceTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
     }),
 ]);
+const RawSchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    primaryKey: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    jsonOutput: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        nativeAPI: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        tableName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        index: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            deleteRule: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            indexMethod: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            primaryKey: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            reference: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            unique: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            updateRule: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            referenceTable: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            column: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+                ascending: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+                name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+                nullAllowed: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+                referenceName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()
+            }))
+        })),
+        column: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            alphaType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            autoGenerate: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            autoIncrement: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+            nullable: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+            sourceTableName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        }))
+    })
+});
 const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     version: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
@@ -233,8 +324,10 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
 });
 const PrefetchedDataTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     data: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Any())),
-    schema: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(SchemaTypeSchema),
-    isAdmin: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+    schema: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(RawSchemaTypeSchema),
+    editFullConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+    serverTimeOffset: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Number(),
+    editConfigMappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
     config: ConfigTypeSchema,
 });
 
@@ -6526,251 +6619,31 @@ function Errors(...args) {
     return new ValueErrorIterator(iterator);
 }
 
-;// ./src/formBuilder.ts
+// EXTERNAL MODULE: ./src/types.ts
+var types = __webpack_require__(397);
+;// ./src/util.ts
 
-// https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
 function uuidv4() {
     return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
 }
-class FormBuilder {
-    constructor(obj, formName) {
-        this.obj = obj;
-        this.formName = formName;
-        this.root = new FormGroup();
+function safeJsonParse(s) {
+    try {
+        const json = JSON.parse(s);
+        return (0,types.Ok)(json);
     }
-    withElement(element) {
-        this.root.withChild(element);
-        return this;
-    }
-    render() {
-        let items = [this.root.getJSON()];
-        A5.u.json.postparse(items);
-        this.obj.setJSONFormItems(this.formName, items);
-        this.obj.getControl(this.formName)._formBoxSize = "";
-        this.obj.resizeFormBoxes();
-    }
-}
-class FormGroup {
-    constructor() {
-        this.children = [];
-        this.style = 'display: flex; flex-direction: row; flex-flow: wrap;';
-        this.layout = '';
-        this.id = uuidv4() + '_GROUP';
-    }
-    withStyle(style) {
-        this.style = style;
-        return this;
-    }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
-    }
-    withChildren(children) {
-        this.children.push(...children);
-        return this;
-    }
-    withChild(child) {
-        this.children.push(child);
-        return this;
-    }
-    getJSON() {
-        return {
-            type: 'group',
-            id: this.id,
-            container: {
-                style: this.style,
-            },
-            layout: this.layout,
-            items: this.children.map(c => c.getJSON()),
-        };
-    }
-}
-class FormInput {
-    constructor() {
-        this.type = 'edit';
-        this.control = {
-            placeholder: '',
-            width: '100%',
-        };
-        this.id = uuidv4() + '_INPUT';
-        this.style = ';flex: 1 1;';
-        this.layout = '';
-        this.label = '';
-        this.variable = undefined;
-        this.format = undefined;
-    }
-    withStyle(style) {
-        this.style = style;
-        return this;
-    }
-    withLabel(label) {
-        this.label = label;
-        return this;
-    }
-    withVariable(variable) {
-        this.variable = variable;
-        return this;
-    }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
-    }
-    asDateTime(format) {
-        this.type = 'picker';
-        this.control.picker = {
-            type: 'date-time',
-            format: DEFAULT_DATETIME_FMT,
-        };
-        this.control.behavior = {
-            show: { mode: '' }
-        };
-        this.format = function (v, dObj) {
-            if (v) {
-                var fmtIn = DEFAULT_DATETIME_FMT;
-                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
-                var d = new Date();
-                d.fromFormat(v, fmtIn);
-                return d.toFormat(fmtOut);
-            }
-        };
-        return this;
-    }
-    asTime(format) {
-        this.type = 'picker';
-        this.control.picker = {
-            type: 'date-time',
-            format: DEFAULT_DATETIME_FMT,
-        };
-        this.control.behavior = {
-            show: { mode: '' }
-        };
-        this.format = function (v, dObj) {
-            if (v) {
-                var fmtIn = DEFAULT_DATETIME_FMT;
-                var fmtOut = format ? format : DEFAULT_DATETIME_FMT;
-                var d = new Date();
-                d.fromFormat(v, fmtIn);
-                return d.toFormat(fmtOut);
-            }
-        };
-        return this;
-    }
-    asBool() {
-        this.type = 'checkbox';
-        this.control.icons = {
-            on: "svgIcon=#alpha-icon-checkRounded:icon,24{}",
-            off: "svgIcon=#alpha-icon-squareRounded:iconSizeable,24{stroke:black; }"
-        };
-        this.control.values = {
-            on: true,
-            off: false,
-        };
-        return this;
-    }
-    asDropdown(items, onChange) {
-        this.type = 'picker';
-        if (onChange)
-            this.control.onChange = onChange;
-        this.control.width = '100%';
-        this.control.data = {
-            src: items.map(x => { return { text: x, value: x }; }),
-            map: ['value', 'text']
-        };
-        return this;
-    }
-    getJSON() {
-        let output = {
-            sectionLayout: '',
-            type: this.type,
-            id: this.id,
-            show: () => true,
-            data: {
-                from: this.variable ? this.variable : this.id,
-                defaultValue: '',
-                ensure: this.variable ? true : false,
-                validate: () => true,
-            },
-            label: {
-                text: this.label,
-                icon: '',
-                style: '',
-                className: '',
-            },
-            layout: this.layout,
-            control: this.control,
-            container: {
-                style: this.style,
-                className: '',
-            }
-        };
-        if (this.format != undefined) {
-            output.data.format = this.format;
+    catch (e) {
+        if (e instanceof SyntaxError) {
+            return (0,types.Err)(e);
         }
-        return output;
+        return (0,types.Err)(new SyntaxError("There was an unknown error parsing the json."));
     }
 }
-class FormButton {
-    constructor() {
-        this.type = 'button';
-        this.disabled = () => false;
-        this.layout = 'text';
-        this.html = 'Button';
-        this.btnStyle = '';
-        this.containerStyle = '';
-        this.icon = '';
-        this.onClick = () => { };
-        this._listName = '';
-    }
-    withCheckDisabled(disabled) {
-        this.disabled = disabled;
-        return this;
-    }
-    withLayout(layout) {
-        this.layout = layout;
-        return this;
-    }
-    withHtml(html) {
-        this.html = html;
-        return this;
-    }
-    withBtnStyle(style) {
-        this.btnStyle = style;
-        return this;
-    }
-    withContainerStyle(style) {
-        this.containerStyle = style;
-        return this;
-    }
-    withIcon(icon) {
-        this.icon = icon;
-        return this;
-    }
-    withClickHandler(onClick) {
-        this.onClick = onClick;
-        return this;
-    }
-    getJSON() {
-        return {
-            type: this.type,
-            disabled: this.disabled,
-            control: {
-                layout: this.layout,
-                html: this.html,
-                style: this.btnStyle,
-                icon: this.icon,
-                listName: this._listName,
-                onClick: this.onClick,
-            },
-            container: {
-                style: this.containerStyle,
-                className: '',
-            }
-        };
-    }
+function okOrLog(p) {
+    p.catch(e => displayErrorMessage(new types.MsgWithCtx("There was an unexpected error.", e)));
 }
-
-;// ./src/util.ts
-function displayErrorMessage(msg) {
+function displayErrorMessage(e) {
+    e.log();
+    /* eslint-disable */
     let errContainer;
     let existing = document.getElementById("list-config-error-container");
     if (existing) {
@@ -6788,7 +6661,7 @@ function displayErrorMessage(msg) {
     ok.onclick = () => {
         errContainer.style.display = "none";
     };
-    msgContainer.innerHTML = msg;
+    msgContainer.innerHTML = e.show();
     msgContainer.classList.add("error-message-content");
     errContainer.append(msgContainer, ok);
     errContainer.style.position = "absolute";
@@ -6803,4773 +6676,7 @@ function displayErrorMessage(msg) {
     errContainer.style.alignItems = "center";
     errContainer.style.border = "2px solid red";
     errContainer.style.fontSize = "1.3rem";
-}
-
-;// ./src/jsonForms.ts
-
-
-
-function safe(text) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    return text.replace(/[&<>"']/g, c => map[c]);
-}
-class SerializeError extends Error {
-    constructor(message) {
-        super(message);
-        this.message = message;
-    }
-}
-class JsonBuildError extends Error {
-    constructor(message) {
-        super(message);
-        this.message = message;
-    }
-}
-class PopulateError extends Error {
-    constructor(message) {
-        super(message);
-        this.message = message;
-    }
-}
-function constructForm(options, parent, dynForm) {
-    switch (options.type) {
-        case "object": return new ObjectForm(options.options, dynForm, parent);
-        case "simple": return new SimpleForm(options.options, dynForm, parent);
-        case "array": return new ArrayForm(options.options, dynForm, parent);
-        case "recursive": return new RecursiveForm(options.options, dynForm, parent);
-        case "dropdown": return new DropdownForm(options.options, parent, dynForm);
-        case "multi": return new MultiForm(options.options, dynForm, parent);
-        case "const": return new ConstForm(options.options, parent);
-        case "button": return new ButtonForm(options.options, parent);
-        case 'supplier': return new ConfigSupplierForm(options.options, parent, dynForm);
-    }
-}
-class SimpleForm {
-    constructor(options, dynForm, parent) {
-        this.jsonEditorRenderCallbackId = null;
-        this.options = options;
-        this.dynForm = dynForm;
-        this.changed = false;
-        this.id = uuidv4();
-        this.parent = parent;
-    }
-    getId() {
-        return this.id;
-    }
-    setValue(v) {
-        this.dynForm.formBox.data[this.id] = v;
-        this.dynForm.formBox.refresh();
-    }
-    getValue() {
-        return this.dynForm.formBox.data[this.id];
-    }
-    getOptions() {
-        return { type: 'simple', options: this.options };
-    }
-    getParent() {
-        return this.parent;
-    }
-    serialize(jsonFormData) {
-        let val = jsonFormData[this.id];
-        let jsonVal;
-        if (val === undefined && this.options.default === undefined) {
-            throw new SerializeError("No value was supplied and field does not have a default value.");
-        }
-        else if (val === undefined) {
-            jsonVal = this.options.default;
-        }
-        switch (this.options.type) {
-            case "function":
-            case "string":
-                jsonVal = val;
-                break;
-            case "number":
-                jsonVal = parseFloat(val);
-                break;
-            case "boolean":
-                jsonVal = Boolean(val);
-                break;
-            case "datetime": {
-                if (val instanceof Date) {
-                    jsonVal = val;
-                }
-                else {
-                    let d = new Date();
-                    d.fromFormat(val, this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
-                    jsonVal = d;
-                }
-                break;
-            }
-            case "json":
-                jsonVal = JSON.parse(val);
-                break;
-        }
-        return {
-            changed: this.changed,
-            raw: jsonVal
-        };
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent)) {
-            return {};
-        }
-        if (this.options.type == 'json') {
-            let container = {
-                type: 'html',
-                control: {
-                    html: `<div class="dynamic-form-json-editor" id="${this.id}" style="width: 80%"></div>`
-                }
-            };
-            if (this.jsonEditorRenderCallbackId)
-                this.dynForm.removeCallback(this.jsonEditorRenderCallbackId);
-            this.jsonEditorRenderCallbackId = this.dynForm.addCallback('afterRender', () => {
-                if ($(this.id).children.length > 0)
-                    return;
-                let editor = new TF.u.code.Editor(this.id, {
-                    lang: 'json'
-                });
-                editor.setValue(this.dynForm.formBox.data[this.id]);
-                let simpleForm = this;
-                editor.onChange = function () {
-                    simpleForm.dynForm.formBox.data[simpleForm.id] = this.value;
-                };
-            });
-            return container;
-        }
-        let editType;
-        switch (this.options.type) {
-            case "function":
-            case "string":
-            case "number":
-                editType = 'edit';
-                break;
-            case "boolean":
-                editType = 'checkbox';
-                break;
-            case 'datetime':
-                editType = 'picker';
-                break;
-        }
-        let style = '';
-        let control = {
-            width: '85%',
-            onChange: () => {
-                if (!this.dynForm.formBox.isDirtyImmediate) {
-                    this.dynForm.setDirty(true);
-                    this.changed = true;
-                    this.dynForm.refresh();
-                }
-            },
-            onKeyDown: () => {
-                if (!this.dynForm.formBox.isDirtyImmediate) {
-                    this.dynForm.setDirty(true);
-                    this.changed = true;
-                }
-            }
-        };
-        if (editType == 'picker') {
-            control['picker'] = {
-                type: 'date',
-                format: this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT
-            };
-            control['behavior'] = {
-                show: {
-                    mode: ""
-                }
-            };
-        }
-        else if (editType == 'edit' && this.options.textarea) {
-            control['multiLine'] = true;
-        }
-        let input = {
-            type: editType,
-            id: this.id,
-            data: {
-                from: this.id,
-                ensure: true
-            },
-            control: control,
-            container: {
-                style: style,
-                className: "dynamic-form-simple-item"
-            },
-            readonly: () => this.options.readonly ?? false,
-        };
-        if (this.options.postInputItems) {
-            let others;
-            if (this.options.postInputItems instanceof Array) {
-                others = this.options.postInputItems;
-            }
-            else {
-                others = this.options.postInputItems(this);
-            }
-            let g = {
-                type: 'group',
-                items: [
-                    input,
-                    ...others
-                ]
-            };
-            return g;
-        }
-        return input;
-    }
-    getPopulateData(data) {
-        this.changed = false;
-        if (data === undefined && this.options.default === undefined) {
-            throw new PopulateError("Data is empty and no default value is specified for this field.");
-        }
-        let d = {};
-        if (this.options.type == 'function' && typeof data == 'function') {
-            d[this.id] = data.toString();
-            return d;
-        }
-        if (this.options.type == 'function' && typeof data == 'string') {
-            d[this.id] = data;
-            return d;
-        }
-        if (this.options.type == 'datetime' && data instanceof Date) {
-            d[this.id] = data.toFormat(this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
-            return d;
-        }
-        if (this.options.type == 'datetime' && typeof data == 'string') {
-            d[this.id] = data;
-            return d;
-        }
-        if (this.options.type == 'json' && data instanceof Object) {
-            d[this.id] = JSON.stringify(data, undefined, '\t');
-            return d;
-        }
-        if (typeof data != this.options.type && this.options.default == undefined) {
-            throw new PopulateError("Data type does not match declared type.");
-        }
-        d[this.id] = data;
-        if (this.options.onPopulate) {
-            this.options.onPopulate(this, d[this.id]);
-        }
-        return d;
-    }
-}
-class ObjectForm {
-    constructor(options, dynForm, parent) {
-        this.cachedOptionals = {};
-        this.data = {};
-        this.dynForm = dynForm;
-        this.options = options;
-        this.entries = {};
-        this.changed = false;
-        this.parent = parent;
-        this.id = uuidv4();
-    }
-    getRequiredDefn(k) {
-        let d = this.options.requiredKeys[k];
-        if (typeof d == 'function')
-            return d(this);
-        return d;
-    }
-    evalKeyDependentFn(f, key) {
-        if (typeof f == 'function') {
-            return f(key);
-        }
-        return f;
-    }
-    getId() {
-        return this.id;
-    }
-    getChild(name) {
-        let f = this.entries[name];
-        if (f === undefined)
-            return f;
-        return f.form;
-    }
-    numChildren() {
-        return Object.keys(this.entries).length;
-    }
-    getOptions() {
-        return { type: 'object', options: this.options };
-    }
-    serialize(jsonFormData) {
-        let result = {};
-        for (const key in this.entries) {
-            let entry = this.entries[key];
-            let serialized = entry.form.serialize(jsonFormData);
-            result[key] = serialized;
-        }
-        if (this.options.mapSerialized) {
-            result = this.options.mapSerialized(result);
-        }
-        let keyChanged = Object.values(result).reduce((a, b) => a || b.changed, false);
-        return {
-            changed: keyChanged || this.changed,
-            keys: result
-        };
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        let children = [];
-        let i = 0;
-        let allKeys = new Set(Object.keys(this.options.requiredKeys));
-        (Object.keys(this.options.optionalKeys ?? {})).forEach(k => allKeys.add(k));
-        Object.keys(this.entries).forEach(k => allKeys.add(k));
-        let allKeyList = Array.from(allKeys);
-        for (const key of allKeyList) {
-            i += 1;
-            let formDef;
-            if (key in this.options.requiredKeys) {
-                formDef = this.getRequiredDefn(key);
-            }
-            else if (this.options.optionalKeys && key in this.options.optionalKeys) {
-                formDef = this.options.optionalKeys[key].definition;
-            }
-            else if (this.options.newKeyTemplate) {
-                formDef = this.evalKeyDependentFn(this.options.newKeyTemplate.definition, key);
-            }
-            else {
-                continue;
-            }
-            if (formDef.type == 'const')
-                continue;
-            if (formDef.options.display) {
-                if (formDef.options.display(key in this.entries ? this.entries[key].form : null, this) == false)
-                    continue;
-            }
-            let headerItems = { label: this.makeLabelText(formDef, key) };
-            let formEnabled = key in this.entries;
-            let formOptional = key in (this.options.optionalKeys ?? {});
-            let formDynamic = !formOptional && !(key in this.options.requiredKeys);
-            let formIsBool = formDef.type == 'simple' && formDef.options.type == 'boolean';
-            if (formDynamic) {
-                headerItems.deleteBtns = this.makeDeleteButtons(key);
-                headerItems.moveBtns = this.makeMoveButtons(key);
-            }
-            if (!formEnabled || formIsBool) {
-                let check;
-                let initValue = formEnabled;
-                if (initValue) {
-                    initValue = this.entries[key].form.getValue();
-                }
-                if (formIsBool) {
-                    check = this.makeEnableCheck(key, () => {
-                        // If the form doesn't exist yet, create it and set it to true
-                        if (!(key in this.entries)) {
-                            let form = constructForm(formDef, this, this.dynForm);
-                            let d = form.getPopulateData(true);
-                            Object.assign(this.dynForm.formBox.data, d);
-                            this.data[key] = true;
-                            this.entries[key] = {
-                                form: form,
-                                collapsed: false
-                            };
-                        }
-                        // If the form does exist, then reverse its value.
-                        else {
-                            let form = this.entries[key].form;
-                            let currVal = form.getValue();
-                            form.setValue(!currVal);
-                            this.data[key] = !currVal;
-                        }
-                        this.dynForm.refresh();
-                    }, initValue);
-                }
-                else {
-                    check = this.makeEnableCheck(key);
-                }
-                headerItems.enableCheck = check;
-                children.push(this.makeHeader(headerItems));
-                // Don't want to draw any of the form contents.
-                continue;
-            }
-            // From this point, the form is enabled, so it exists in entries
-            let entry = this.entries[key];
-            if (formOptional) {
-                headerItems.enableCheck = this.makeEnableCheck(key);
-            }
-            if (formDef.type == 'supplier') {
-                formDef = entry.form.getGeneratedOptions();
-                headerItems.label = this.makeLabelText(formDef, key);
-            }
-            // Multis and Objects should display with a collapse icon,
-            // and shouldn't render their contents if they are collapsed.
-            // This can be overriden by the 'force launch in tab' option or the 'no collapse' option
-            let isMultiOrObj = formDef.type == 'multi' || formDef.type == 'object';
-            let noLaunch = (formDef.options.forceLaunchInTab ?? false) == false;
-            let allowCollapse = (formDef.options.forceNoCollapse ?? false) == false;
-            let shouldCollapse = isMultiOrObj && noLaunch && allowCollapse;
-            if (shouldCollapse) {
-                headerItems.collapseBtn = this.makeCollapseBtn(key);
-                if (entry.collapsed) {
-                    children.push(this.makeHeader(headerItems));
-                    continue;
-                }
-                else {
-                    let header = this.makeHeader(headerItems);
-                    let body = entry.form.buildJsonForm();
-                    children.push(this.makeInputGroup(header, body));
-                    continue;
-                }
-            }
-            // Arrays should have a button to expand the entry.
-            // The user can  manually override this as well
-            if (formDef.type == 'array' || formDef.options.forceLaunchInTab) {
-                let fnId = this.id + "_OPEN_" + i.toString();
-                let label = this.getLabel(formDef, key);
-                this.dynForm.obj._functions.dynamicForm[fnId] = () => {
-                    this.dynForm.launchNewTab(label, entry.form);
-                };
-                headerItems.label = {
-                    type: 'html',
-                    control: {
-                        html: `
-                            <div class="dynamic-form-open-nested" style="
-                                display: flex;
-                                flex-direction: row;
-                                align-items: center;
-                                gap: 0.5rem;
-                                cursor: pointer;
-                            " onclick="${this.dynForm.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">
-                                <p style="font-variant: all-petite-caps: font-weight: bold;"> Edit ${label} </p>
-                                ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')}
-                            </div>
-                        `
-                    }
-                };
-                children.push(this.makeHeader(headerItems));
-                continue;
-            }
-            // Otherwise, we can just display the form as usual.
-            let body = entry.form.buildJsonForm();
-            children.push(this.makeInputGroup(this.makeHeader(headerItems), body));
-        }
-        let newKey = this.options.newKeyTemplate;
-        if (newKey) {
-            let newKeyNameId = this.id + '_newKeyEntry';
-            let addNewBtn = {
-                type: 'button',
-                control: {
-                    html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
-                    onClick: () => {
-                        let name = this.dynForm.formBox.data[newKeyNameId];
-                        if (name && name != '') {
-                            if (name in this.entries) {
-                                displayErrorMessage("The key " + name + " was already added.");
-                                this.dynForm.formBox.data[newKeyNameId] = '';
-                                this.dynForm.refresh();
-                                return;
-                            }
-                            let definition = this.evalKeyDependentFn(newKey.definition, name);
-                            let newForm = constructForm(definition, this, this.dynForm);
-                            let defaultVal = this.evalKeyDependentFn(newKey.defaultValue, name);
-                            Object.assign(this.dynForm.formBox.data, newForm.getPopulateData(defaultVal));
-                            this.data[name] = defaultVal;
-                            this.entries[name] = {
-                                form: newForm,
-                                collapsed: false
-                            };
-                            this.dynForm.formBox.data[newKeyNameId] = '';
-                            this.dynForm.refresh();
-                        }
-                    }
-                }
-            };
-            let rowGroup = {
-                type: 'group',
-                container: {
-                    className: 'dynamic-form-add-new-key',
-                    style: `;
-                        display: flex;
-                        flex-direction: row;
-                        gap: 1rem;
-                        padding: 0.5rem;
-                    `
-                },
-                items: [
-                    addNewBtn,
-                ]
-            };
-            if (newKey.keyOptions) {
-                rowGroup.items.push({
-                    type: 'edit-picker',
-                    id: newKeyNameId,
-                    data: {
-                        from: newKeyNameId,
-                        ensure: true
-                    },
-                    control: {
-                        data: {
-                            src: newKey.keyOptions,
-                            map: ['value', 'text']
-                        },
-                    }
-                });
-            }
-            else {
-                rowGroup.items.push({
-                    type: 'edit',
-                    id: newKeyNameId,
-                    data: {
-                        from: newKeyNameId,
-                        ensure: true
-                    },
-                });
-            }
-            children.push(rowGroup);
-        }
-        return {
-            type: 'group',
-            container: {
-                className: 'dynamic-form-object-group',
-                style: `; 
-                    display: flex; 
-                    flex-direction: column;
-                    gap: 1rem;
-                    padding: 0.5rem;
-                    border: 1px solid gray;
-                    padding-left: 1rem;
-                `
-            },
-            items: children,
-        };
-    }
-    makeInputGroup(header, body) {
-        return {
-            type: 'group',
-            items: [header, body],
-            container: {
-                style: `; display: flex; flex-direction: column;`,
-                className: `dynamic-form-item-group`
-            }
-        };
-    }
-    makeHeader(items) {
-        let i = [];
-        if (items.enableCheck)
-            i.push(items.enableCheck);
-        if (items.collapseBtn)
-            i.push(items.collapseBtn);
-        if (items.label)
-            i.push(items.label);
-        if (items.deleteBtns)
-            i.push(items.deleteBtns);
-        if (items.moveBtns)
-            i.push(items.moveBtns);
-        return {
-            type: 'group',
-            items: i,
-            container: {
-                className: 'dynamic-form-item-group',
-                style: `;
-                    display: flex;
-                    flex-direction: row;
-                    gap: 0.5rem;
-                    align-items: center;
-                `
-            }
-        };
-    }
-    makeEnableCheck(key, onChange, initValue) {
-        let id = this.id + '_ENABLE_' + key;
-        let val = initValue ?? (key in this.entries);
-        this.dynForm.formBox.data[id] = val;
-        return {
-            id: id,
-            type: 'checkbox',
-            data: {
-                from: id,
-                blank: val,
-            },
-            control: {
-                onChange: onChange ?? (() => {
-                    if (key in this.entries) {
-                        delete this.entries[key];
-                        delete this.data[key];
-                    }
-                    else {
-                        if (key in this.cachedOptionals) {
-                            this.entries[key] = {
-                                form: this.cachedOptionals[key],
-                                collapsed: false
-                            };
-                        }
-                        else {
-                            let f = (this.options.optionalKeys ?? {})[key];
-                            let form = constructForm(f.definition, this, this.dynForm);
-                            let d = form.getPopulateData(f.defaultValue);
-                            Object.assign(this.dynForm.formBox.data, d);
-                            this.cachedOptionals[key] = form;
-                            this.entries[key] = {
-                                form: form,
-                                collapsed: false
-                            };
-                        }
-                        this.data[key] = changeDetectionToRaw(this.cachedOptionals[key].serialize(this.dynForm.formBox.data));
-                    }
-                    this.dynForm.refresh();
-                })
-            }
-        };
-    }
-    makeDeleteButtons(key) {
-        return {
-            type: 'button',
-            control: {
-                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
-                onClick: () => {
-                    delete this.entries[key];
-                    this.dynForm.refresh();
-                }
-            }
-        };
-    }
-    makeMoveButtons(key) {
-        let swap = (arr, i1, i2) => {
-            let tmp = arr[i1];
-            arr[i1] = arr[i2];
-            arr[i2] = tmp;
-        };
-        let reorder = newKeys => {
-            let newEntries = {};
-            newKeys.forEach(k => newEntries[k] = this.entries[k]);
-            this.entries = newEntries;
-        };
-        return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    disabled: () => Object.keys(this.entries)[0] == key,
-                    control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
-                        onClick: () => {
-                            let entries = Object.keys(this.entries);
-                            let idx = entries.findIndex(s => s == key);
-                            if (idx >= 1) {
-                                let optional = entries[idx - 1] in (this.options.optionalKeys ?? {});
-                                let required = entries[idx - 1] in this.options.requiredKeys;
-                                if (optional || required)
-                                    return;
-                                swap(entries, idx, idx - 1);
-                                reorder(entries);
-                                this.dynForm.refresh();
-                            }
-                        }
-                    }
-                },
-                {
-                    type: 'button',
-                    disabled: () => {
-                        let entries = Object.keys(this.entries);
-                        return entries[entries.length - 1] == key;
-                    },
-                    control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
-                        onClick: () => {
-                            let entries = Object.keys(this.entries);
-                            let idx = entries.findIndex(s => s == key);
-                            if (idx < entries.length - 1) {
-                                let optional = entries[idx + 1] in (this.options.optionalKeys ?? {});
-                                let required = entries[idx + 1] in this.options.requiredKeys;
-                                if (optional || required)
-                                    return;
-                                swap(entries, idx, idx + 1);
-                                reorder(entries);
-                                this.dynForm.refresh();
-                            }
-                        }
-                    }
-                }
-            ]
-        };
-    }
-    makeCollapseBtn(key) {
-        let f;
-        let icon;
-        if (key in this.entries) {
-            f = this.entries[key];
-            icon = f.collapsed ? 'chevronRight' : 'chevronDown';
-        }
-        else {
-            f = null;
-            icon = 'chevronRight';
-        }
-        return {
-            type: 'button',
-            control: {
-                html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
-                onClick: () => {
-                    if (key in this.entries) {
-                        let entry = this.entries[key];
-                        entry.collapsed = !entry.collapsed;
-                        this.dynForm.refresh();
-                    }
-                },
-            },
-            disabled: () => f == null,
-        };
-    }
-    getLabel(def, key) {
-        if (typeof def.options.label === 'string') {
-            return def.options.label;
-        }
-        else if (typeof def.options.label === 'function') {
-            let form = null;
-            if (key in this.entries) {
-                form = this.entries[key].form;
-                return def.options.label(form, this.data[key], key);
-            }
-            return def.options.label(null, undefined, key);
-        }
-        return '';
-    }
-    makeLabelText(def, key) {
-        return {
-            type: 'html',
-            control: {
-                html: `<p class="dynamic-form-simple-label">${this.getLabel(def, key)}</p>` + this.makeHelpText(def)
-            },
-            container: {
-                style: `;
-                    font-variant: all-petite-caps;
-                    font-weight: bold;
-                    color: #434343;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 0.5rem;
-                `
-            },
-            layout: '{content}'
-        };
-    }
-    makeHelpText(formDef) {
-        if (formDef.options.help) {
-            return `<div title="${safe(formDef.options.help)}" style="display: flex; justify-content: center;">
-                ${A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon,16')}
-            </div>`;
-        }
-        return "";
-    }
-    getPopulateData(data) {
-        this.data = data;
-        this.changed = false;
-        if (typeof data != 'object' || data instanceof Array)
-            throw new PopulateError("Cannot populate object with non-object data.");
-        this.entries = {};
-        let populateData = {};
-        let viewedKeys = new Set();
-        for (const key in this.options.requiredKeys) {
-            viewedKeys.add(key);
-            let newEntry = constructForm(this.getRequiredDefn(key), this, this.dynForm);
-            this.entries[key] = {
-                form: newEntry,
-                collapsed: true
-            };
-            Object.assign(populateData, newEntry.getPopulateData(data[key]));
-        }
-        for (const key in this.options.optionalKeys) {
-            viewedKeys.add(key);
-            if (key in data) {
-                let d = data[key];
-                let newEntry = constructForm(this.options.optionalKeys[key].definition, this, this.dynForm);
-                this.entries[key] = {
-                    form: newEntry,
-                    collapsed: true
-                };
-                Object.assign(populateData, newEntry.getPopulateData(d));
-            }
-        }
-        for (const key in data) {
-            if (viewedKeys.has(key))
-                continue;
-            if (this.options.newKeyTemplate === undefined) {
-                if (this.options.skipUnknownKeys === true)
-                    continue;
-                throw new PopulateError("New key template is undefined.");
-            }
-            let def = this.evalKeyDependentFn(this.options.newKeyTemplate.definition, key);
-            let newEntry = constructForm(def, this, this.dynForm);
-            this.entries[key] = {
-                form: newEntry,
-                collapsed: true
-            };
-            Object.assign(populateData, newEntry.getPopulateData(data[key]));
-        }
-        if (this.options.onPopulate) {
-            this.options.onPopulate(this, this.data);
-        }
-        return populateData;
-    }
-}
-class RecursiveForm {
-    constructor(options, dynForm, parent) {
-        this.options = options;
-        this.dynForm = dynForm;
-        this.parent = parent;
-        this.id = uuidv4();
-    }
-    getId() {
-        return this.id;
-    }
-    getOptions() {
-        return { type: 'recursive', options: this.options };
-    }
-    serialize(formData) {
-        if (this.recursiveElement) {
-            return this.recursiveElement.serialize(formData);
-        }
-        else {
-            throw new Error("Tried to serialize a recursive element that hasn't been initialized.");
-        }
-    }
-    buildJsonForm() {
-        if (!this.recursiveElement)
-            throw new JsonBuildError("Cannot build JSON form from uninitialized Recursive form.");
-        return this.recursiveElement.buildJsonForm();
-    }
-    getPopulateData(data) {
-        let recElemOps = this.searchForRecOptions(this.parent);
-        if (recElemOps) {
-            this.recursiveElement = constructForm(recElemOps, this, this.dynForm);
-            if (this.options.onPopulate) {
-                this.options.onPopulate(this, data);
-            }
-            return this.recursiveElement.getPopulateData(data);
-        }
-        throw new PopulateError("Unable to find named item " + this.options.recurseOn);
-    }
-    searchForRecOptions(f) {
-        if (f === null)
-            return null;
-        if (f.getOptions().options.name === this.options.recurseOn)
-            return f.getOptions();
-        return this.searchForRecOptions(f.parent);
-    }
-}
-class ArrayForm {
-    constructor(options, dynForm, parent) {
-        this.data = [];
-        this.options = options;
-        this.entries = [];
-        this.dynForm = dynForm;
-        this.parent = parent;
-        this.changed = false;
-        this.id = uuidv4();
-    }
-    calcTempate() {
-        if (typeof this.options.itemTemplate == 'function')
-            return this.options.itemTemplate(this);
-        return this.options.itemTemplate;
-    }
-    getOptions() {
-        return { type: 'array', options: this.options };
-    }
-    getId() {
-        return this.id;
-    }
-    numChildren() {
-        return this.entries.length;
-    }
-    serialize(formData) {
-        let results = [];
-        this.entries.forEach(f => results.push(f.form.serialize(formData)));
-        if (results.length == 0 && this.options.allowEmpty === false) {
-            throw new SerializeError("Array is not allowed to be empty.");
-        }
-        let childChanged = results.reduce((a, b) => a || b.changed, false);
-        return {
-            changed: childChanged || this.changed,
-            elements: results
-        };
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        let arrayEntries = this.entries.map((f, i) => {
-            let ops = f.form.getOptions();
-            if (ops.options.display && !ops.options.display(f.form, this)) {
-                return {};
-            }
-            let collapseIcon = f.collapsed ? 'chevronRight' : 'chevronDown';
-            let label = f.form.getOptions().options.label;
-            let labelStr;
-            if (typeof label == 'function') {
-                labelStr = label(f.form, this.data[i], i.toString());
-            }
-            else {
-                labelStr = label;
-            }
-            let header = {
-                type: 'group',
-                container: {
-                    style: `;
-                        padding: 0.5rem;
-                        display: flex;
-                        flex-direction: row;
-                        gap: 0.5rem;
-                        border: 1px solid black;
-                        background-color: lightgray;
-                        align-items: center;
-                    `,
-                },
-                items: [
-                    {
-                        type: 'button',
-                        control: {
-                            html: A5.u.icon.html(`svgIcon=#alpha-icon-${collapseIcon}:icon,24`),
-                            onClick: () => {
-                                f.collapsed = !f.collapsed;
-                                this.dynForm.refresh();
-                            },
-                        },
-                    },
-                    {
-                        type: 'html',
-                        control: {
-                            html: `
-                                <p 
-                                    class="dynamic-form-array-item-label"
-                                    style="margin: 0px;"
-                                >
-                                    ${labelStr}
-                                </p>
-                            `
-                        },
-                        container: {
-                            style: '; height: fit-content;'
-                        }
-                    },
-                    {
-                        type: 'button',
-                        control: {
-                            html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
-                            onClick: () => {
-                                this.entries = [...this.entries.slice(0, i), ...this.entries.slice(i + 1, this.entries.length)];
-                                this.data = [...this.data.slice(0, i), ...this.data.slice(i + 1, this.data.length)];
-                                this.dynForm.refresh();
-                            },
-                        },
-                        container: {
-                            className: 'dynamic-form-array-delete'
-                        }
-                    },
-                    {
-                        type: 'button',
-                        control: {
-                            html: A5.u.icon.html('svgIcon=#alpha-icon-chevronUp:icon,24'),
-                            onClick: () => {
-                                if (i > 0 && this.entries.length > 1) {
-                                    let tmp = this.entries[i - 1];
-                                    this.entries[i - 1] = this.entries[i];
-                                    this.entries[i] = tmp;
-                                    tmp = this.data[i - 1];
-                                    this.data[i - 1] = this.data[i];
-                                    this.data[i] = tmp;
-                                    this.dynForm.refresh();
-                                }
-                            },
-                        },
-                    },
-                    {
-                        type: 'button',
-                        control: {
-                            html: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon,24'),
-                            onClick: () => {
-                                if (i < this.entries.length - 1 && this.entries.length > 1) {
-                                    let tmp = this.entries[i + 1];
-                                    this.entries[i + 1] = this.entries[i];
-                                    this.entries[i] = tmp;
-                                    tmp = this.data[i + 1];
-                                    this.data[i + 1] = this.data[i];
-                                    this.data[i] = tmp;
-                                    this.dynForm.refresh();
-                                }
-                            },
-                        },
-                    }
-                ]
-            };
-            let group = {
-                type: 'group',
-                items: [header],
-                container: {
-                    className: 'dynamic-form-array-item-group'
-                }
-            };
-            if (!f.collapsed) {
-                group.items.push({
-                    type: 'group',
-                    items: [f.form.buildJsonForm()],
-                    container: {
-                        style: `;
-                            border: 1px solid black;
-                            padding: 0.5rem; 
-                        `
-                    }
-                });
-            }
-            return group;
-        });
-        let addNewItem = {
-            type: 'group',
-            items: [{
-                    type: 'button',
-                    control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
-                        onClick: () => {
-                            let newForm = constructForm(this.calcTempate(), this, this.dynForm);
-                            Object.assign(this.dynForm.formBox.data, newForm.getPopulateData(this.options.defaultValue));
-                            this.entries.push({ collapsed: false, form: newForm });
-                            this.data.push(this.options.defaultValue);
-                            this.dynForm.refresh();
-                        }
-                    }
-                }],
-            container: {
-                className: 'dynamic-form-array-add-item-group'
-            }
-        };
-        arrayEntries.push(addNewItem);
-        return {
-            type: 'group',
-            container: {
-                style: `
-                    display: flex; 
-                    flex-direction: column;
-                    padding: 0.5rem;
-                    gap: 0.5rem;
-                `
-            },
-            items: arrayEntries
-        };
-    }
-    getPopulateData(data) {
-        this.data = data;
-        this.changed = false;
-        if (!(data instanceof Array))
-            throw new PopulateError("Data is not an array.");
-        this.entries = [];
-        let d = {};
-        for (const elem of data) {
-            let newForm = constructForm(this.calcTempate(), this, this.dynForm);
-            this.entries.push({ form: newForm, collapsed: true });
-            Object.assign(d, newForm.getPopulateData(elem));
-        }
-        if (this.options.onPopulate) {
-            this.options.onPopulate(this, data);
-        }
-        return d;
-    }
-}
-class DropdownForm {
-    constructor(options, parent, dynForm) {
-        this.options = options;
-        this.selected = '';
-        this.id = uuidv4();
-        this.changed = false;
-        this.parent = parent;
-        this.dynForm = dynForm;
-    }
-    getId() {
-        return this.id;
-    }
-    getOptions() {
-        return { type: 'dropdown', options: this.options };
-    }
-    serialize(formData) {
-        let val = formData[this.id];
-        if (val === undefined && this.options.default !== undefined) {
-            return {
-                changed: this.changed,
-                raw: this.options.default
-            };
-        }
-        else if (val === undefined) {
-            throw new SerializeError("No value was supplied and field does not specify a default value.");
-        }
-        return {
-            changed: this.changed,
-            raw: val
-        };
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        let dropdown = {
-            type: this.options.allowCustomValue ? "edit-picker" : 'picker',
-            id: this.id,
-            data: {
-                from: this.id,
-                ensure: true,
-            },
-            control: {
-                placeholder: "",
-                data: {
-                    src: this.options.dropdownItems,
-                    map: ["value", "text"],
-                },
-                picker: {
-                    data: {
-                        empty: {
-                            message: this.options.emptyMsg ?? ""
-                        }
-                    }
-                },
-                onChange: (change) => {
-                    if (change.item.data != undefined) {
-                        this.selected = change.item.data;
-                        if (this.options.onSelect) {
-                            this.options.onSelect(change.item.data, this);
-                        }
-                    }
-                    if (change.item.data == undefined) {
-                        this.dynForm.formBox.data[this.id] = this.selected;
-                        this.dynForm.formBox.refresh();
-                    }
-                    else {
-                        this.dynForm.setDirty(true);
-                        this.changed = true;
-                        this.dynForm.refresh();
-                    }
-                }
-            },
-            container: {
-                style: "; flex: 1 1;",
-            }
-        };
-        return dropdown;
-    }
-    getPopulateData(data) {
-        this.changed = false;
-        if (data === undefined && this.options.default === undefined)
-            throw new PopulateError("Data is not defined and no default is specified.");
-        if (typeof data != 'string' && this.options.default === undefined) {
-            throw new PopulateError("Cannot populate dropdown with non-string.");
-        }
-        let d = {};
-        let opt = this.options.dropdownItems.find(x => x.value == data);
-        if (opt) {
-            d[this.id] = data;
-        }
-        else if (this.options.default) {
-            d[this.id] = this.options.default;
-        }
-        else if (this.options.dropdownItems.length > 0) {
-            d[this.id] = this.options.dropdownItems[0].value;
-        }
-        else if (this.options.allowCustomValue) {
-            d[this.id] = data;
-        }
-        else {
-            throw new PopulateError("No dropdown items exist and no default was supplied.");
-        }
-        this.selected = d[this.id];
-        if (this.options.onPopulate) {
-            this.options.onPopulate(this, d[this.id]);
-        }
-        return d;
-    }
-}
-class MultiForm {
-    constructor(options, dynForm, parent) {
-        let keys = Object.keys(options.definitions);
-        if (keys.length == 0)
-            throw new Error("MultiForm must have at least one option.");
-        this.options = options;
-        this.elements = {};
-        this.currDropdownItem = '';
-        this.dynForm = dynForm;
-        this.parent = parent;
-        this.changed = false;
-        this.id = uuidv4();
-    }
-    clearCache() {
-        this.elements = {};
-    }
-    getId() {
-        return this.id;
-    }
-    getOptions() {
-        return { type: 'multi', options: this.options };
-    }
-    serialize(formData) {
-        let e = this.elements[this.currDropdownItem];
-        let d;
-        if (e !== undefined) {
-            d = e.serialize(formData);
-        }
-        else {
-            d = this.elements[Object.keys(this.elements)[0]].serialize(formData);
-        }
-        if (this.changed)
-            d.changed = true;
-        return d;
-    }
-    getDefaultValue() {
-        let val = this.options.definitions[this.currDropdownItem].defaultValue;
-        if (typeof val == 'function') {
-            return this.options.definitions[this.currDropdownItem].defaultValue(this);
-        }
-        return val;
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        if (this.elements[this.currDropdownItem] == undefined) {
-            let defn;
-            let currDef = this.options.definitions[this.currDropdownItem].definition;
-            if (typeof currDef == 'function') {
-                defn = currDef(this);
-            }
-            else {
-                defn = currDef;
-            }
-            let f = constructForm(defn, this, this.dynForm);
-            let newData = f.getPopulateData(this.getDefaultValue());
-            Object.assign(this.dynForm.formBox.data, newData);
-            this.elements[this.currDropdownItem] = f;
-        }
-        this.dynForm.formBox.data[this.id] = this.currDropdownItem;
-        let element = this.elements[this.currDropdownItem];
-        let dropdown = {
-            type: 'picker',
-            id: this.id,
-            data: {
-                from: this.id,
-                ensure: true
-            },
-            control: {
-                placeholder: "",
-                data: {
-                    src: Object.keys(this.options.definitions).map(x => {
-                        return {
-                            value: x,
-                            text: x
-                        };
-                    }),
-                    map: ['value', 'text'],
-                },
-                onChange: (change) => {
-                    if (change.item.data !== null && change.item.data !== undefined) {
-                        this.currDropdownItem = change.item.data;
-                        this.dynForm.refresh();
-                    }
-                    else {
-                        this.dynForm.formBox.data[this.id] = this.currDropdownItem;
-                        this.dynForm.formBox.refresh();
-                    }
-                }
-            }
-        };
-        let formOps = element.getOptions();
-        let help;
-        if (formOps.options.help) {
-            help = {
-                type: 'html',
-                control: {
-                    html: `
-                        <div title="${safe(formOps.options.help)}" style="display: flex; justify-content: center;">
-                            ${A5.u.icon.html("svgIcon=#alpha-icon-questionCircle:16")}
-                        </div>
-                    `
-                },
-            };
-        }
-        else {
-            help = {};
-        }
-        let header = {
-            type: 'group',
-            items: [dropdown, help],
-            container: {
-                style: `;
-                    background-color: lightgray; 
-                    padding: 0.5rem; 
-                    border: 1px solid black;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 0.5rem;
-                `
-            }
-        };
-        let body = {
-            type: 'group',
-            items: [element.buildJsonForm()],
-            container: {
-                style: '; padding: .5rem; border: 1px solid black; '
-            }
-        };
-        return {
-            type: 'group',
-            items: [header, body],
-            container: {
-                className: 'dynamic-form-multiform-group'
-            }
-        };
-    }
-    getPopulateData(data) {
-        this.changed = false;
-        let errs = {};
-        let correctKey = undefined;
-        this.elements = {};
-        for (const key in this.options.definitions) {
-            let currDefn = this.options.definitions[key].definition;
-            let defn;
-            if (typeof currDefn == 'function') {
-                defn = currDefn(this);
-            }
-            else {
-                defn = currDefn;
-            }
-            let elem = constructForm(defn, this, this.dynForm);
-            try {
-                elem.getPopulateData(data);
-                correctKey = key;
-                break;
-            }
-            catch (e) {
-                if (e instanceof PopulateError) {
-                    errs[key] = e;
-                }
-                else {
-                    throw e;
-                }
-            }
-        }
-        if (correctKey) {
-            this.currDropdownItem = correctKey;
-            let currDefn = this.options.definitions[correctKey].definition;
-            let defn;
-            if (typeof currDefn == 'function') {
-                defn = currDefn(this);
-            }
-            else {
-                defn = currDefn;
-            }
-            let elem = constructForm(defn, this, this.dynForm);
-            this.elements[correctKey] = elem;
-            let d = {};
-            Object.assign(d, elem.getPopulateData(data));
-            return d;
-        }
-        if (this.options.onPopulate) {
-            this.options.onPopulate(this, data);
-        }
-        throw new PopulateError(errs);
-    }
-}
-class ConstForm {
-    constructor(options, parent) {
-        this.options = options;
-        this.parent = parent;
-        this.id = uuidv4();
-    }
-    getId() {
-        return this.id;
-    }
-    serialize(formData) {
-        return { changed: false, raw: this.options.value };
-    }
-    buildJsonForm() {
-        return {};
-    }
-    getPopulateData(data) {
-        if (data !== this.options.value) {
-            throw new PopulateError(`Const value ${data} does not match ${this.options.value}`);
-        }
-        return {};
-    }
-    getOptions() {
-        return { type: 'const', options: this.options };
-    }
-}
-class ButtonForm {
-    constructor(options, parent) {
-        this.options = options;
-        this.parent = parent;
-        this.id = uuidv4();
-    }
-    getId() {
-        return this.id;
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        return {
-            type: 'button',
-            control: {
-                html: `<span class="" style="">${this.options.text}</span>`,
-                onClick: this.options.action,
-            },
-            container: {
-                style: "width: 100%;",
-                className: ""
-            },
-            layout: "{content}"
-        };
-    }
-    serialize(jsonFormData) {
-        return { changed: false, raw: this.options.onSerialize() };
-    }
-    getPopulateData(data) {
-        return {};
-    }
-    getOptions() {
-        return {
-            type: 'button',
-            options: this.options
-        };
-    }
-}
-class ConfigSupplierForm {
-    constructor(options, parent, dynForm) {
-        this.options = options;
-        this.id = uuidv4();
-        this.parent = parent;
-        this.generatedForm = null;
-        this.dynForm = dynForm;
-    }
-    buildJsonForm() {
-        if (this.options.display && !this.options.display(this, this.parent))
-            return {};
-        if (this.generatedForm)
-            return this.generatedForm.buildJsonForm();
-        return {};
-    }
-    getId() {
-        return this.id;
-    }
-    rebuild(value) {
-        let newDefn = this.options.supply(this.parent, null);
-        this.options.default = newDefn;
-        this.generatedForm = constructForm(newDefn, this, this.dynForm);
-        let d = this.generatedForm.getPopulateData(value);
-        Object.assign(this.dynForm.formBox.data, d);
-        this.dynForm.formBox.refresh();
-    }
-    getOptions() {
-        return { type: 'supplier', options: this.options };
-    }
-    getGeneratedOptions() {
-        let genForm = this.generatedForm ?? null;
-        if (!genForm)
-            throw new Error("Form was not generated!");
-        let ops = genForm.getOptions();
-        if (ops.type == 'supplier') {
-            return this.generatedForm.getGeneratedOptions();
-        }
-        return ops;
-    }
-    getPopulateData(inputData) {
-        let config = this.options.supply(this.parent, inputData);
-        this.options.default = config;
-        let form = constructForm(config, this, this.dynForm);
-        this.generatedForm = form;
-        return form.getPopulateData(inputData);
-    }
-    serialize(jsonFormData) {
-        if (this.generatedForm) {
-            return this.generatedForm.serialize(jsonFormData);
-        }
-        return { changed: false, raw: null };
-    }
-}
-class DynamicForm {
-    constructor(obj, containerId, formDefn, other) {
-        this.firstTabLabel = '';
-        this.otherItems = other;
-        this.obj = obj;
-        this.containerId = containerId;
-        this.callbacks = {
-            beforeRender: {},
-            afterRender: {}
-        };
-        let oldContainer = $(containerId);
-        DynamicForm.removeOldEventHandlers(oldContainer);
-        this.form = constructForm(formDefn, null, this);
-        this.formBox = new A5.FormBox(containerId, [], null, {
-            theme: 'Alpha',
-            item: {
-                label: {
-                    style: ''
-                },
-                description: {
-                    style: ''
-                },
-            },
-            onChange: () => { }
-        });
-        // This, apparently, needs to be defined.
-        // Otherwise Alpha will throw an error if an HTML button is clicked.
-        A5.formBox.guides.controls['html'].handle = null;
-        if (!this.obj._functions) {
-            this.obj._functions = {};
-        }
-        if (!this.obj._functions.dynamicForm) {
-            this.obj._functions.dynamicForm = {};
-        }
-        if (typeof formDefn.options.label == 'string') {
-            this.firstTabLabel = formDefn.options.label;
-        }
-        this.tabs = [{
-                title: this.firstTabLabel,
-                form: this.form
-            }];
-        let boxHtmlElem = $(containerId);
-        boxHtmlElem.childNodes.forEach(n => n.style.width = '100%');
-    }
-    /// Given a JSON Form Definition, return a FormBox
-    static makeFromRaw(defn, data, containerId) {
-        A5.formBox.guides.controls['html'].handle = null;
-        let oldContainer = $(containerId);
-        this.removeOldEventHandlers(oldContainer);
-        let fb = new A5.FormBox(containerId, [], null, {
-            theme: 'Alpha',
-            item: {
-                label: {
-                    style: ''
-                },
-                description: {
-                    style: ''
-                },
-            },
-            onChange: () => { }
-        });
-        fb.load({ form: { items: [defn] }, guides: DynamicForm.guides }, data);
-        return fb;
-    }
-    static removeOldEventHandlers(elem) {
-        // Alpha hooks its own event handlers into objects. 
-        // They are not all removed when the old form is destroyed. 
-        // If the old handlers are not removed, then (e.g.) clicking a button will 
-        // call the current onClick along with every single previous existing version of 
-        // that onclick function (which is not, I imagine, what you want to do.)
-        // Alpha also doesn't seem to have a way to remove all the event handlers. 
-        // We have to do them individually, and we need a handle to the function being called..
-        let allEvents = $e._e;
-        let toRemove = [];
-        allEvents.forEach(e => {
-            if (e[0] == elem) {
-                toRemove.push({ event: e[1], fn: e[2] });
-            }
-        });
-        toRemove.forEach(r => $e.remove(elem, r.event, r.fn));
-        for (let i = 0; i < elem.childElementCount; i++) {
-            this.removeOldEventHandlers(elem.children[i]);
-        }
-    }
-    launchNewTab(name, form) {
-        this.tabs.push({
-            title: name,
-            form: form
-        });
-        this.refresh();
-        return this.tabs.length - 1;
-    }
-    setActiveTab(tab) {
-        if (tab <= 0)
-            tab = 0;
-        while (tab < this.tabs.length - 1) {
-            this.tabs.pop();
-        }
-        this.refresh();
-    }
-    populate(d) {
-        let labelF = this.form.getOptions().options.label;
-        if (typeof labelF == 'function') {
-            this.firstTabLabel = labelF(this.form, d, '');
-        }
-        this.formBox.data = this.form.getPopulateData(d);
-        this.refresh();
-    }
-    makeTabs() {
-        let allTabs = [];
-        for (let i = 0; i < this.tabs.length; i++) {
-            let activeTab = i == this.tabs.length - 1;
-            let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
-            if (activeTab) {
-                style += 'color: black; text-decoration: underline;';
-            }
-            else {
-                style += 'color: #4d4d4d;';
-            }
-            let fnId = this.containerId + '_Tab' + i + "Click";
-            this.obj._functions.dynamicForm[fnId] = () => {
-                this.setActiveTab(i);
-            };
-            let tab = {
-                type: 'html',
-                control: {
-                    html: `
-                        <div class="dynamic-form-top-tab" style="display: flex; gap: 0.5rem; align-items: center;">
-                            <p style="${style}" onclick="${this.obj.dialogId}_DlgObj._functions.dynamicForm['${fnId}']()">${this.tabs[i].title}</p>
-                    `
-                }
-            };
-            if (i < this.tabs.length - 1) {
-                tab.control.html += A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24');
-            }
-            tab.control.html += "</div>";
-            allTabs.push(tab);
-        }
-        let containerStyle = `;
-                display: flex;
-                gap: 0.5rem;
-                flex-direction: row;
-                justify-content: center;
-                background-color: lightgray;
-                padding: .3rem;
-            `;
-        return {
-            type: 'group',
-            items: allTabs,
-            container: {
-                style: containerStyle
-            }
-        };
-    }
-    setDirty(dirty) {
-        this.formBox.isDirtyImmediate = dirty;
-        this.obj.refreshClientSideComputations(true);
-        Object.values(this.callbacks.beforeRender).forEach(f => f());
-        this.formBox.refresh();
-        Object.values(this.callbacks.afterRender).forEach(f => f());
-    }
-    refresh() {
-        // Only want to display the last (active) tab
-        let defn = this.tabs[this.tabs.length - 1].form.buildJsonForm();
-        let tabGroup = {
-            type: 'group',
-            items: [
-                this.makeTabs(),
-                defn
-            ],
-            container: {
-                style: `;
-                    display: flex;
-                    flex-direction: column;
-                    outline: 1px solid black;
-                `
-            }
-        };
-        Object.values(this.callbacks.beforeRender).forEach(f => f());
-        this.formBox.load({ form: { items: [tabGroup, ...(this.otherItems ?? [])] }, guides: DynamicForm.guides }, this.formBox.data);
-        Object.values(this.callbacks.afterRender).forEach(f => f());
-    }
-    serializeWithChanges() {
-        return this.form.serialize(this.formBox.data);
-    }
-    serialize() {
-        let withChanges = this.form.serialize(this.formBox.data);
-        return changeDetectionToRaw(withChanges);
-    }
-    addCallback(point, f) {
-        let id = uuidv4();
-        this.callbacks[point][id] = f;
-        return id;
-    }
-    removeCallback(id) {
-        delete this.callbacks.beforeRender[id];
-        delete this.callbacks.afterRender[id];
-    }
-}
-DynamicForm.guides = {
-    "layouts": {
-        "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
-        "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
-                return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
-            else
-                return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                    e = e[0].children[0].children[0];
-                    if (e && e.getAttribute('float-state') == '1') {
-                        var l = dObj.item.def.sys.item.layout.settings;
-                        e.setAttribute('float-state', '2');
-                        if (dObj.item.isNull) {
-                            if (l.style != '')
-                                A5.u.element.style(e, '+=' + l.style);
-                            A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
-                        }
-                    }
-                } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                    e = e[0].children[0].children[0];
-                    if (e && e.getAttribute('float-state') == '2') {
-                        var l = dObj.item.def.sys.item.layout.settings;
-                        e.setAttribute('float-state', '1');
-                        if (dObj.item.isNull) {
-                            if (l.style != '')
-                                A5.u.element.style(e, '-=' + l.style);
-                            A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
-                        }
-                    }
-                } } } },
-    }
-};
-function changeDetectionToRaw(c) {
-    if ('raw' in c)
-        return c.raw;
-    else if ('keys' in c) {
-        let out = {};
-        for (const key in c.keys) {
-            out[key] = changeDetectionToRaw(c.keys[key]);
-        }
-        return out;
-    }
-    else {
-        return c.elements.map(x => changeDetectionToRaw(x));
-    }
-}
-
-// EXTERNAL MODULE: ./src/types.ts
-var types = __webpack_require__(397);
-;// ./src/listBuilder.ts
-
-
-
-
-
-const DEFAULT_DATE_FMT = 'MM/dd/yyyy';
-const listBuilder_DEFAULT_DATETIME_FMT = "MM/dd/yyyy hh:mm:ss";
-const DETAIL_FORM_NAME = "DETAIL_VIEW";
-const LIST_NAME = 'DYNAMIC_LIST';
-const DETAIL_FORM_CONTAINER = 'EDITOR_CONTAINER';
-class ValidationError extends Error {
-    constructor(message, errors) {
-        let finalMsg = `<h4>${message}</h4>`;
-        errors.forEach(e => {
-            finalMsg += `<p>${e.message}</p>`;
-        });
-        super(finalMsg);
-        this.errors = errors;
-        this.message = finalMsg;
-    }
-}
-function validateConfig(config) {
-    const errors = [...Errors(types.ConfigTypeSchema, config)];
-    if (errors.length > 0)
-        throw new ValidationError("Could not validate config -- check logs.", errors);
-    return config;
-}
-function validateMapping(mapping) {
-    const errors = [...Errors(types.MappingTypeSchema, mapping)];
-    if (errors.length > 0)
-        throw new ValidationError("Could not validate config -- check logs.", errors);
-    return mapping;
-}
-function validateSchema(schema) {
-    const errors = [...Errors(types.SchemaTypeSchema, schema)];
-    if (errors.length > 0)
-        throw new ValidationError("Could not validate schema -- check logs.", errors);
-    return schema;
-}
-function alphaTypeToEditType(t) {
-    switch (t.toLowerCase()) {
-        case 'c': return 'text';
-        case 't':
-        case 'd': return 'datetime';
-        case 'l': return 'bool';
-        case 'n': return 'number';
-        case 'y': return 'time';
-        default: return 'text';
-    }
-}
-function editTypeToAlphaType(t) {
-    switch (t.toLowerCase()) {
-        case 'text':
-        case 'dropdown': return 'c';
-        case 'time': return 'y';
-        case 'datetime': return 't';
-        case 'bool': return 'l';
-        case 'number': return 'n';
-        default: return 'c';
-    }
-}
-function jsTypeToAlphaType(t) {
-    switch (t.toLowerCase()) {
-        case 'boolean': return 'l';
-        case 'number': return 'n';
-        case 'bigint': return 'n';
-        default: return 'c';
-    }
-}
-function getSchema(obj, table, connection) {
-    return new Promise((resolve) => {
-        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "tableName=" + encodeURIComponent(table)
-            + "&connectionName=" + encodeURIComponent(connection), {
-            onComplete: resolve
-        });
-    });
-}
-function getSchemaCustomSql(obj, sql) {
-    return new Promise((resolve) => {
-        obj.ajaxCallback("", "", "getSchemaAjaxCallback", "", "sql=" + encodeURIComponent(sql), {
-            onComplete: resolve
-        });
-    });
-}
-async function listBuilder_fetch(obj, configName, endpoint) {
-    return new Promise((resolve, reject) => {
-        obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
-            + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
-            onComplete: () => {
-                let result = obj.stateInfo.fetchResult;
-                resolve(result);
-            }
-        });
-    });
-}
-class DynamicList {
-    constructor() {
-        this.nestedPath = [];
-        this.selectedRows = new Set();
-        this.clickedRow = null;
-        this.dataScopeManager = new DataScopeManager();
-        this.foreignKeys = [];
-        // Used in _match
-        this.searchMemoizationNeedsRebuild = false;
-        this.searchMemoization = {};
-        this.initialLoadComplete = false;
-        this.permanentFilters = [];
-        this.searchFilters = [];
-        this.orderings = [];
-        this.buttonFns = {};
-        this.onRender = [];
-        this.config = undefined;
-        this.dataBridge = undefined;
-        this.data = [];
-        this.rawData = [];
-        this.schema = undefined;
-        this.containerId = '';
-    }
-    destructor() {
-        if (this.listBox.destroy)
-            this.listBox.destroy();
-    }
-    static makeDynamicList(ops) {
-        return new Promise((resolve) => {
-            let list = new DynamicList();
-            list.permanentFilters = ops.filters ?? [];
-            list.searchFilters = [];
-            list.buttonFns = {};
-            list.onRender = [];
-            list.obj = ops.obj;
-            list.config = jQuery.extend({}, ops.prefetch.config);
-            list.dataBridge = new DataBridge(list.config);
-            list.data = [];
-            list.rawData = [];
-            list.schema = { tag: 'none' };
-            ops.obj.stateInfo.configName = list.config.name;
-            if (ops.prefetch.schema) {
-                list.mapRawSchema(ops.prefetch.schema);
-            }
-            list.containerId = ops.obj.getPointer(ops.containerId).id;
-            if (ops.otherProperties) {
-                list.onSaveOverride = ops.otherProperties.onSaveOverride;
-                list.staticDataOverride = ops.otherProperties.dataOverride;
-                list.foreignKeys = ops.otherProperties.foreignKeys ?? [];
-            }
-            validateConfig(list.config);
-            if (list.config.onInitialize) {
-                try {
-                    (0,types.stringReprToFn)(list.config.onInitialize)(list, ops.args ?? []);
-                }
-                catch (e) {
-                    console.error("Initialize function failed.");
-                    console.error(e);
-                }
-            }
-            ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
-            list.settings = list.buildSettings();
-            list.buildList();
-            resolve(list);
-        })
-            .then((list) => {
-            if (ops.prefetch.data === undefined || ops.prefetch.data.length == 0) {
-                return list.fetchData().then(l => l.fetchSchema());
-            }
-            else {
-                list.setData(ops.prefetch.data, list.schema.tag == 'none');
-                return list;
-            }
-        })
-            .then((list) => {
-            list.initialLoadComplete = true;
-            return list.reRender(false);
-        }).then((list) => {
-            validateSchema(list.schema);
-            list.refreshMultiSelectButton();
-            return list;
-        });
-    }
-    reRender(refetch) {
-        if (refetch) {
-            return this.fetchData().then(list => {
-                list.populateListBox();
-                return list;
-            });
-        }
-        this.populateListBox();
-        return Promise.resolve(this);
-    }
-    setStaticData(data) {
-        this.config.dataSource = {
-            type: 'json',
-            jsonData: JSON.stringify(data),
-            preprocess: this.config.dataSource.preprocess,
-        };
-        this.settings = this.buildSettings();
-        this.buildList();
-        this.reRender(true);
-    }
-    selection() {
-        return this.data[this.listBox.selectionKey[0]];
-    }
-    openDetailView() {
-        this.obj.runAction('Navigate Detail View');
-    }
-    downloadExcelTemplate() {
-        this.obj.runAction('Download Excel Template');
-    }
-    uploadFileToList() {
-        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-        this.obj.stateInfo.currentFilters = filters;
-        this.obj.runAction('File Upload');
-    }
-    downloadDataToFile() {
-        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-        this.obj.stateInfo.currentFilters = filters;
-        this.obj.runAction('File Download');
-    }
-    newDetailViewRecord(row, allowMultipleEdit = false) {
-        let rowNum;
-        if (row !== undefined)
-            rowNum = row;
-        else if (this.selectedRows.size > 0) {
-            rowNum = this.getSelectedRows()[0];
-        }
-        else {
-            rowNum = null;
-        }
-        let makeForm = () => this.buildDetailViewForm(rowNum, allowMultipleEdit);
-        let openForm = () => this.obj.runAction('Navigate Detail View');
-        let makeNew = () => this.listBox.newDetailViewRecord();
-        A5.executeThisThenThat(makeForm, openForm, makeNew);
-    }
-    saveDynamicListEdits() {
-        let harvest = this.listBox.harvestList();
-        harvest.forEach(elem => {
-            this.foreignKeys.forEach(fk => {
-                elem[fk.columnName] = fk.value;
-            });
-        });
-        let removeMetadataFields = (x) => {
-            if (x instanceof Array) {
-                for (let i = 0; i < x.length; i++) {
-                    x[i] = removeMetadataFields(x[i]);
-                }
-            }
-            else if (typeof x == 'object') {
-                for (const key in x) {
-                    let alphaFields = ['__displayStyle', '_isDirty', '_isNewRow', '_oldData', '_hasServerSideErrors', '_hasWriteConflictErrors', '_isDeleted', '_serverWideErrors', '_writeConflictErrors'];
-                    if (key.startsWith("*") || alphaFields.includes(key)) {
-                        delete x[key];
-                        continue;
-                    }
-                    x[key] = removeMetadataFields(x[key]);
-                }
-            }
-            return x;
-        };
-        for (let i = 0; i < harvest.length; i++) {
-            harvest[i] = removeMetadataFields(harvest[i]);
-        }
-        harvest = this.dataBridge.processedToRaw(harvest);
-        if (this.onSaveOverride) {
-            this.onSaveOverride(this, harvest);
-            this.obj.refreshClientSideComputations(true);
-            this.reRender(true);
-            return;
-        }
-        let onComplete = () => {
-            let result = this.obj.stateInfo.apiResult;
-            if (result.err) {
-                let errMsgTxt = "<p>There were errors while syncing data.</p> <ol>";
-                result.err.forEach((e) => errMsgTxt += `<li>${e?.toString()}</li>`);
-                errMsgTxt += "</ol>";
-                displayErrorMessage(errMsgTxt);
-            }
-            this.listBox.__fixData(this.listBox);
-            for (let i = 0; i < this.listBox._data.length; i++) {
-                this.listBox._data[i]._isDirty = false;
-            }
-            this.listBox.populateUXControls();
-            this.obj.refreshClientSideComputations(true);
-            this.reRender(true);
-        };
-        if (this.config.dataSource.type == 'sql') {
-            this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURI(this.config.name)
-                + "&dirty=" + encodeURI(JSON.stringify(harvest))
-                + "&connectionName=" + encodeURIComponent(this.config.dataSource.connectionString ?? 'conn'), {
-                onComplete: onComplete,
-            });
-        }
-        else if (this.config.dataSource.type == 'json' && 'endpoints' in this.config.dataSource) {
-            let newRows = [];
-            let updatedRows = [];
-            let deletedRows = [];
-            harvest.forEach((r) => {
-                if ('_isNewRow' in r && r._isNewRow === true) {
-                    newRows.push(r);
-                }
-                else if ('_isDeleted' in r && r._isDeleted === true) {
-                    deletedRows.push(r);
-                }
-                else {
-                    updatedRows.push(r);
-                }
-            });
-            let allQueries = [];
-            let queryPopulateErrors = [];
-            let populateQueries = (list, endpoint) => {
-                list.forEach(_ => {
-                    if (!('endpoints' in this.config.dataSource))
-                        return;
-                    if (endpoint in this.config.dataSource.endpoints) {
-                        let ep = this.config.dataSource.endpoints[endpoint];
-                        allQueries.push({
-                            endpoint: endpoint,
-                            callback: (0,types.stringReprToFn)(ep.callback ?? "() => { }"),
-                        });
-                    }
-                    else {
-                        let errMsgTxt = `<p>The necessary endpoint (${endpoint}) is not defined for this list.</p>`;
-                        queryPopulateErrors.push(errMsgTxt);
-                    }
-                });
-            };
-            populateQueries(newRows, 'create');
-            populateQueries(updatedRows, 'update');
-            populateQueries(deletedRows, 'delete');
-            if (queryPopulateErrors.length > 0) {
-                let msg = "<p>There were errors while synchronizing the list.</p><ul>";
-                queryPopulateErrors.forEach(x => msg += x);
-                msg += "</ul>";
-                displayErrorMessage(msg);
-                return;
-            }
-            allQueries.forEach(q => {
-                listBuilder_fetch(this.obj, this.config.name, q.endpoint).then(q.callback);
-            });
-            onComplete();
-        }
-    }
-    refreshMultiSelectButton() {
-        let b = this.obj.getControl('MULTI_EDIT_BTN');
-        if (b) {
-            let selectedCount = this.getSelectedRows().length;
-            if (selectedCount > 1) {
-                b.setDisabled(false);
-            }
-            else {
-                b.setDisabled(true);
-            }
-            b.onClick = () => {
-                this.newDetailViewRecord(undefined, true);
-            };
-        }
-    }
-    buildSettings() {
-        let columns = [];
-        let listFields = [];
-        let menuSettings = {};
-        let items = {};
-        let listObj = this;
-        if (!this.config.buttons)
-            this.config.buttons = [];
-        if (this.config.multiSelect === true) {
-            columns.push(this.buildCheckboxColumn());
-        }
-        for (const mapping of DataScopeManager.getDataMappings(this.config)) {
-            if (mapping.tag == 'data') {
-                columns.push(this.buildColumnDefinition(mapping, mapping.flattenedName));
-                listFields.push(this.buildListFieldDefn(mapping.flattenedName));
-            }
-        }
-        for (let i = 0; i < this.config.buttons.length; i++) {
-            columns.push(this.buildColumnButton(this.config.buttons[i], i, items));
-            this.makeMenuSetting(this.config.buttons[i], i, menuSettings, items);
-        }
-        let dialogId = this.obj.dialogId;
-        items['__toggleCheck'] = {
-            "selectable": false,
-            "onClick": (index, v, args) => {
-                var data = this.listBox._data[this.listBox._dataMap[index]];
-                let selected = !this.isRowSelected(data['*key']);
-                this.setRowSelected(data['*key'], selected);
-                var src = this.listBox.__checkedImage;
-                if (!selected)
-                    src = this.listBox.__uncheckedImage;
-                let id = this.obj.dialogId + '.' + LIST_NAME;
-                var ele = $(`${id}.CHECKBOX` + data['*key']);
-                A5.u.icon.update(ele.children[0], src);
-                this.listBox._size();
-                if (this.listBox.onCheckRow) {
-                    var e = { data: data, renderIndex: data['*renderIndex'], rowNumber: data['*key'], value: data['*value'], checked: selected };
-                    this.listBox.onCheckRow(e);
-                }
-                this.refreshMultiSelectButton();
-            }
-        };
-        items['__toggleAll'] = {
-            "selectable": false,
-            "onClick": (index, v, args) => {
-                if (this.selectedRows.size == this.data.length) {
-                    this.setAllRowsSelected(false);
-                }
-                else {
-                    this.setAllRowsSelected(true);
-                }
-                this.listBox.refresh();
-                this.refreshMultiSelectButton();
-            }
-        };
-        return {
-            theme: this.obj.styleName,
-            layout: 'Default',
-            listVariableName: LIST_NAME,
-            listVariableNameTrueCase: LIST_NAME,
-            layouts: {
-                Default: {
-                    group: { auto: false },
-                    type: 'column',
-                    showColumnTitles: true,
-                    item: {},
-                    fixedFooterDefinition: '[]',
-                    columns: columns,
-                    _hasRCW: false,
-                    _horizontalScrolling: false,
-                    _hasColumnSeparators: false,
-                }
-            },
-            _listFields: listFields,
-            childLists: [],
-            allParentLists: [],
-            items: items,
-            _menuSettings: menuSettings,
-            onBeforeSelect: () => {
-                let c = this.listBox.childLists;
-                let lObj = '';
-                if (typeof c != 'undefined') {
-                    for (let i = 0; i < c.length; i++) {
-                        lObj = this.obj.getControl(c[i]);
-                        if (lObj) {
-                            let flat = lObj.onBeforeSelect();
-                        }
-                    }
-                }
-                if (this.listBox._dvmode == 'search')
-                    return true;
-                if (!this.listBox._autoCommitDetailView) {
-                    return this.listBox._showDirtyDetailViewWarning();
-                }
-                else {
-                    if (this.listBox.detailViewIsDirty && this.listBox.detailViewIsDirty(true)) {
-                        let result = this.listBox.updateListFromUXControls();
-                        return result;
-                    }
-                }
-            },
-            setOrder: (order) => {
-                if (this.listBox.onBeforeOrder.constructor == Function) {
-                    let res = this.listBox.onBeforeOrder.call(this.listBox, order);
-                    if (typeof res == 'boolean') {
-                        if (!res)
-                            return false;
-                    }
-                }
-                this.listBox.order = order;
-                if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
-                    let colName = Object.keys(order)[0];
-                    if (order[colName]) {
-                        // Remove from current sorting, if applicable
-                        this.orderings = this.orderings.filter(o => o.columnName != colName);
-                        let ordering = order[colName] > 0 ? 'asc' : 'desc';
-                        this.orderings.push({
-                            columnName: colName,
-                            order: ordering
-                        });
-                    }
-                    else {
-                        this.orderings = [];
-                    }
-                    this.reRender(true);
-                }
-                else {
-                    this.listBox.populate(this.listBox._data, true, false, false);
-                }
-            },
-            onSelect: (index) => {
-                let populateControls = this.listBox.populateUXControls.bind(this.listBox);
-                populateControls();
-                this.listBox._selectedRow = this.getSelectedRows()[0];
-                this.obj._listRowSelect(LIST_NAME, this.listBox);
-                this.listBox._selectedRow = this.getSelectedRows()[0];
-            },
-            onClick: () => {
-                this.obj._listSystemOnClick(LIST_NAME, this.getSelectedRows()[0]);
-            },
-            onBeforePopulate: (data) => {
-                if (this.listBox)
-                    this.listBox.__onPopulateHasFired = false;
-            },
-            onBeforeUpdateRow: (index, data) => {
-            },
-            getCheckedRows: () => {
-                return this.getSelectedRows();
-            },
-            unCheckAllRows: () => {
-                this.setAllRowsSelected(false);
-                this.refreshMultiSelectButton();
-                this.listBox.refresh();
-            },
-            checkAllRows: () => {
-                this.setAllRowsSelected(true);
-                this.refreshMultiSelectButton();
-                this.listBox.refresh();
-            },
-            _onSelect: (index) => this.listBox.onSelect(index),
-            _hasDetailView: true,
-            _JSONForm: true,
-            _JSONFormName: DETAIL_FORM_NAME,
-            _JSONFormDefinition: 'auto-generated-client-side',
-            _detailViewHas: true,
-            _detailView: {
-                method: 'JSONForm'
-            },
-            _inplaceEditing: { allow: false },
-            _dataSourceType: this.config.dataSource.type == 'sql' ? 'SQL' : 'Static',
-            _detailViewGlobalErrorStyle: 'font-family: Arial; font-size: 10pt; color: red; border: solid 1px red; width: 100%;',
-            _autoCommitDetailView: true,
-            customization: {
-                dv: {
-                    clientSideErrorWarning: 'Cannot save because there are validation errors.',
-                    dirtyDetailViewRecord: {
-                        title: 'Warning',
-                        icon: 'svgIcon=#alpha-icon-questionCircle:icon,24',
-                        message: 'You must first save or undo the changes you have made to the List\'s Detail View.'
-                    },
-                    confirmFormResetWarning: {
-                        title: 'Warning',
-                        icon: 'svgIcon=#alpha-icon-questionCircle:icon,24',
-                        message: 'Are you sure you want to undo changes made to the List\'s Detail View?'
-                    },
-                    confirmRowResetWarning: {
-                        title: 'Warning',
-                        icon: 'svgIcon=#alpha-icon-questionCircle:icon,24',
-                        message: 'Are you sure you want to undo changes made to this record?'
-                    },
-                    confirmDeleteWarning: {
-                        title: 'Warning',
-                        icon: 'svgIcon=#alpha-icon-questionCircle:icon,24',
-                        message: 'Are you sure you want to delete this record?'
-                    },
-                    writeConflict: {
-                        useMineMessage: 'Use mine (\'{myvalue}\')',
-                        useTheirsMessage: 'Use theirs (\'{theirvalue}\')',
-                        useMineAll: 'Use mine for all fields',
-                        useTheirsAll: 'Use theirs for all fields'
-                    },
-                    databaseError: {
-                        update: 'Record was not updated.|More...|Less',
-                        insert: 'Record was not inserted.|More...|Less',
-                        delete: 'Record was not deleted.|More...|Less'
-                    },
-                    useCustomClasses: false,
-                    setClassonEditedRows: true,
-                    css: {}
-                }
-            },
-            footer: {
-                show: 'paginate' in this.config.dataSource,
-                html: '<div id="DYNAMIC_LIST_NAVIGATOR" style="width: 100%; text-align: center;"></div>'
-            },
-            _mediaFields: [],
-            _getRoute: (_mode, _obj, _endPoint) => {
-                let mode = typeof _mode != 'undefined' ? _mode : 'rowNumber';
-                let obj = typeof _obj != 'undefined' ? _obj : [];
-                if (typeof this.listBox.selection == 'undefined')
-                    return false;
-                if (typeof this.listBox.selection[0] == 'undefined')
-                    return false;
-                if (typeof this.listBox.getData(this.listBox.selection[0]) == 'undefined')
-                    return false;
-                if (mode == '*key') {
-                }
-                else {
-                    if (mode != 'rowNumber') {
-                        let _d = this.listBox.getData(this.listBox.selection[0]);
-                        if (typeof _d.__primaryKey == 'undefined') {
-                            mode = 'rowNumber';
-                        }
-                    }
-                }
-                let endPoint = typeof _endPoint != 'undefined' ? _endPoint : '';
-                if (endPoint != '') {
-                    let ra2 = [];
-                    let lObj = this.obj.getControl(endPoint);
-                    let parentList = lObj.parentList;
-                    while (typeof parentList != 'undefined') {
-                        let l2 = this.obj.getControl(parentList);
-                        let row = '';
-                        if (mode == 'rowNumber')
-                            row = l2.selection[0];
-                        else
-                            row = l2.getData(l2.selection[0])['*key'];
-                        ra2.push({ list: parentList.toUpperCase(), row: row });
-                        parentList = l2.parentList;
-                    }
-                    return ra2.reverse();
-                }
-                if (mode == 'rowNumber' || mode == '*key') {
-                    obj.push({
-                        list: this.listBox.listVariableName.toUpperCase(),
-                        row: this.listBox.getData(this.listBox.selection[0])['*key'], mode: mode
-                    });
-                }
-                else {
-                    let _d = this.listBox.getData(this.listBox.selection[0]);
-                    let _pk = _d.__primaryKey;
-                    if (typeof _d.__primaryKey == 'undefined') {
-                        _pk = _d['*rowGUID'];
-                    }
-                    obj.push({
-                        list: this.listBox.listVariableName.toUpperCase(),
-                        row: _pk,
-                        mode: mode
-                    });
-                }
-                for (let i = 0; i < this.listBox.childLists.length; i++) {
-                    let lname = this.listBox.childLists[i];
-                    let lObj = this.obj.getControl(lname);
-                    if (lObj)
-                        lObj._getRoute(mode, obj);
-                }
-                return obj;
-            },
-            addTableRow: function (dataObj, options) {
-                var parentList = this.parentList;
-                if (typeof parentList != 'undefined' && parentList != '') {
-                    var _dlgObj = window[this._hostComponentId + '_DlgObj'];
-                    var lp = _dlgObj.getControl(parentList);
-                    var r = lp.selection[0];
-                    if (typeof r == 'undefined') {
-                        alert('Can not add row to list ' + this.listVariableName + ' as there is no row selected in this List\'s parent list (\'' + parentList + '\')');
-                        return false;
-                    }
-                }
-                if (typeof options == 'undefined') {
-                    options = {};
-                }
-                if (typeof options.setFocusToTargetRow == 'undefined')
-                    options.setFocusToTargetRow = false;
-                var obj = {};
-                obj.programmatic = true;
-                obj.data = {};
-                if (this.__pkisguid) {
-                    if (this.__assignPKGuidClientSide) {
-                        if (typeof dataObj[this.__pkfieldname] == 'undefined') {
-                            dataObj[this.__pkfieldname] = A5.UUID();
-                            if (!this.__stripcurlyfromguid) {
-                                dataObj[this.__pkfieldname] = '{' + dataObj[this.__pkfieldname] + '}';
-                            }
-                        }
-                    }
-                }
-                $u.o.assign(obj.data, dataObj);
-                obj.primaryKeyOrRowNumber = null;
-                obj.setFocusToTargetRow = options.setFocusToTargetRow;
-                if (typeof options.insertRow == 'undefined')
-                    options.insertRow = false;
-                obj.insertRow = options.insertRow;
-                obj.insertRowPosition = options.insertPosition;
-                var _dlg = window[this._hostComponentId + '_DlgObj'];
-                _dlg._updateListDataFromUXControls(this.listVariableName, null, obj);
-                var parentListName = this.parentList;
-                if (typeof parentListName != 'undefined' && parentListName != '') {
-                    var thisData = obj.data;
-                    var plObj = window[this._hostComponentId + '_DlgObj'].getControl(this.parentList);
-                    if (plObj._setDirtyByChild) {
-                        plObj._setDirtyByChild(true, thisData, this.listVariableName);
-                    }
-                }
-                if (!options.preventOnSelect)
-                    this._onSelect();
-                _dlg.refreshClientSideComputations();
-                return obj.data;
-            },
-            _setRoute: (route, _mode) => {
-                if (this.listBox.multiple)
-                    return;
-                if (typeof route == 'undefined') {
-                    route = this.listBox.__currentRoute;
-                    if (typeof route == 'undefined')
-                        return false;
-                }
-                let mode = _mode ?? 'rowNumber';
-                if (mode == 'primaryKey') {
-                    let _d = this.listBox._data;
-                    if (typeof _d[0] != 'undefined') {
-                        if (typeof _d[0].__primaryKey == 'undefined') {
-                            mode = 'rowNumber';
-                        }
-                    }
-                }
-                let lObj = '';
-                let row = '';
-                let _pk = '';
-                for (let i = 0; i < route.length; i++) {
-                    lObj = this.obj.getControl(route[i].list);
-                    row = route[i].row;
-                    if (typeof route[i].mode != 'undefined') {
-                        mode = route[i].mode;
-                    }
-                    if (mode == 'primaryKey')
-                        _pk = row;
-                    let flag = typeof this.listBox._restoringList != 'undefined' ? !this.listBox._restoringList : true;
-                    if (mode == 'rowNumber') {
-                        if (typeof row != 'undefined') {
-                            let rowFixed = '';
-                            if (typeof lObj._dataMap == 'undefined')
-                                return false;
-                            if (mode != 'rowNumber') {
-                                rowFixed = row;
-                            }
-                            else {
-                                rowFixed = lObj._dataMap.indexOf(route[i].row);
-                            }
-                            lObj.setValue(rowFixed, flag);
-                            if (this.listBox._clearServerSideErrors)
-                                this.listBox._clearServerSideErrors();
-                            if (this.listBox.showServerSideErrors)
-                                this.listBox.showServerSideErrors();
-                            if (this.listBox._showWriteConflictErrors)
-                                this.listBox._showWriteConflictErrors();
-                        }
-                    }
-                    else {
-                        lObj.setValue('' + _pk, flag);
-                        if (this.listBox._clearServerSideErrors)
-                            this.listBox._clearServerSideErrors();
-                        if (this.listBox.showServerSideErrors)
-                            this.listBox.showServerSideErrors();
-                        if (this.listBox._showWriteConflictErrors)
-                            this.listBox._showWriteConflictErrors();
-                    }
-                }
-            },
-            _executeEvent: (event, obj) => this.obj._list_executeEvent(LIST_NAME, event, obj),
-            _refreshDebugInfo: () => { },
-            _str: (txt) => {
-                txt = txt.replace("'", "\\'");
-                txt = '\'' + txt + '\'';
-                return txt;
-            },
-            onBeforeItemDraw: function () { },
-            onItemDraw: function (ele, data, index) {
-                if (!('_rData' in this))
-                    return;
-                let _dirtyRowClassName = `_${dialogId}_${LIST_NAME}_dirtyRow`;
-                let _dirtyRowClassNameInherited = `_${dialogId}_${LIST_NAME}_dirtyRowInherited`;
-                let _dirtyRowStyle = `_${dialogId}_${LIST_NAME}_dirtyRowStyle`;
-                let _hasUnsyncedMediaFilesClassName = `_${dialogId}_${LIST_NAME}_hasUnsyncedMediaFiles`;
-                let _errorRowClassName = `_${dialogId}_${LIST_NAME}_hasError`;
-                let _errorRowClassNameInherited = `_${dialogId}_${LIST_NAME}_hasErrorInherited _${dialogId}_${LIST_NAME}_dirtyRowInherited`;
-                let _errorRowClassNameInherited_1 = `_${dialogId}_${LIST_NAME}_hasErrorInherited`;
-                let _errorRowClassNameInherited_2 = `_${dialogId}_${LIST_NAME}_dirtyRowInherited`;
-                let _errorRowStyle = `_${dialogId}_${LIST_NAME}_hasErrorStyle`;
-                let _newRowClassName = `_${dialogId}_${LIST_NAME}_newRow`;
-                let _newRowStyle = `_${dialogId}_${LIST_NAME}_newRowStyle`;
-                let _deletedRowClassName = `_${dialogId}_${LIST_NAME}_deletedRow`;
-                let _deletedRowStyle = `_${dialogId}_${LIST_NAME}_deletedRowStyle`;
-                let _deletedRowClassNameInherited = `_${dialogId}_${LIST_NAME}_deletedRowInherited`;
-                let __d = this._rData[index];
-                $rcn(ele, _dirtyRowClassName);
-                $rcn(ele, _dirtyRowClassNameInherited);
-                $rcn(ele, _dirtyRowStyle);
-                $rcn(ele, _errorRowClassName);
-                $rcn(ele, _errorRowClassNameInherited);
-                $rcn(ele, _errorRowClassNameInherited_1);
-                $rcn(ele, _errorRowClassNameInherited_2);
-                $rcn(ele, _errorRowStyle);
-                $rcn(ele, _newRowClassName);
-                $rcn(ele, _newRowStyle);
-                $rcn(ele, _deletedRowClassName);
-                $rcn(ele, _deletedRowStyle);
-                $rcn(ele, _hasUnsyncedMediaFilesClassName);
-                if (data._isDirty && typeof data._isDeleted != 'undefined' && data._isDeleted) {
-                    $acn(ele, _deletedRowClassName);
-                    $acn(ele, _deletedRowStyle);
-                    __d.__displayStyle = 'deletedRow';
-                }
-                else if ((data._isDirty && typeof data._oldData != 'undefined' && !data._isNewRow)) {
-                    $acn(ele, _dirtyRowClassName);
-                    $acn(ele, _dirtyRowStyle);
-                    __d.__displayStyle = 'dirtyRow';
-                }
-                if (data._isDirty && typeof data._oldData == 'undefined' && !(data._isNewRow || data._isDeleted)) {
-                    $acn(ele, _dirtyRowClassNameInherited);
-                    $acn(ele, _dirtyRowStyle);
-                    __d.__displayStyle = 'dirtyRowInherited';
-                }
-                if (data._isDeleted) {
-                    $acn(ele, _deletedRowClassName);
-                    $acn(ele, _deletedRowStyle);
-                    __d.__displayStyle = 'deletedRow';
-                }
-                if (data._isNewRow) {
-                    $acn(ele, _newRowClassName);
-                    $acn(ele, _newRowStyle);
-                    __d.__displayStyle = 'newRow';
-                }
-                let flagHasGlobalErrors = false;
-                if (typeof data._globalErrors != 'undefined') {
-                    if (data._globalErrors != '')
-                        flagHasGlobalErrors = true;
-                }
-                let flagHasWriteConflictErrors = false;
-                if (typeof data._hasWriteConflictErrors)
-                    flagHasWriteConflictErrors = data._hasWriteConflictErrors;
-                if (data._hasServerSideError || flagHasGlobalErrors || flagHasWriteConflictErrors) {
-                    $acn(ele, _errorRowClassName);
-                    $acn(ele, _errorRowStyle);
-                    __d.__displayStyle = 'errorRow';
-                }
-                else {
-                    if (data._flagServerSideErrorInChild || data._flagWriteConflictErrorInChild || data._flagGlobalErrorInChild) {
-                        if (!data._isNewRow) {
-                            $acn(ele, _errorRowClassNameInherited);
-                            __d.__displayStyle = 'errorRowInherited';
-                        }
-                        else {
-                            __d.__displayStyle = 'newRow errorRowInherited';
-                            $acn(ele, _errorRowClassNameInherited_1);
-                        }
-                    }
-                }
-                if (data._hasUnsyncedMediaFiles && data._isDirty) {
-                    $acn(ele, _hasUnsyncedMediaFilesClassName);
-                }
-                if (index == this._rData.length - 1) {
-                    let btns = document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
-                    for (let i = 0; i < btns.length; i++) {
-                        btns[i].parentElement.style.whiteSpace = 'normal';
-                    }
-                }
-            },
-            _navBarId: 'DYNAMIC_LIST_NAVIGATOR',
-            _refreshStateMessages: () => {
-                if (!('paginate' in this.config.dataSource))
-                    return;
-                if (this.obj._listStateChange)
-                    this.obj._listStateChange(this.listBox.listVariableName);
-                let ele = '';
-                ele = $(`_${this.obj.dialogId}.${LIST_NAME}.PAGENUMBER`);
-                if (ele)
-                    ele.innerHTML = this.listBox._state.page;
-                ele = $(`_${this.obj.dialogId}.${LIST_NAME}.PAGECOUNT`);
-                if (ele)
-                    ele.innerHTML = this.listBox._state.pageCount;
-                ele = $(`_${this.obj.dialogId}.${LIST_NAME}.PAGECOUNT.PAGESELECTOR`);
-                if (ele)
-                    ele.innerHTML = this.listBox._state.pageCount;
-                ele = $(`_${this.obj.dialogId}.${LIST_NAME}.LISTSTATE`);
-                if (ele) {
-                    let listState = $u.o.toJSON(this.listBox._state);
-                    ele.innerHTML = listState;
-                }
-                if (this.listBox._hasNavigationBar) {
-                    let nObj = this.listBox._listNavigator;
-                    if (!nObj) {
-                        this.listBox._listNavigator = this.obj._navigationBar(this.listBox._navBarId);
-                    }
-                    nObj = this.listBox._listNavigator;
-                    if (nObj) {
-                        let obj = nObj.data;
-                        obj.settings = this.listBox._navigationBar;
-                        obj.pageNumber = this.listBox._state.page;
-                        obj.totalPages = this.listBox._state.pageCount;
-                        obj.totalRecords = this.listBox._state.recordCount;
-                        nObj.items.clickNavigationLink.onClick = (v, ia, i, ele) => {
-                            ia = ia.split('|');
-                            let target = ia[1];
-                            if (target == 'first') {
-                                this.listBox._state.page = 1;
-                            }
-                            else if (target == 'prev') {
-                                if (this.listBox._state.page >= 1) {
-                                    this.listBox._state.page -= 1;
-                                }
-                            }
-                            else if (target == 'next') {
-                                if (this.listBox._state.page < this.listBox._state.pageCount) {
-                                    this.listBox._state.page += 1;
-                                }
-                            }
-                            else if (target == 'last') {
-                                this.listBox._state.page = this.listBox._state.pageCount;
-                            }
-                            else {
-                                this.listBox._state.page = Number(target);
-                            }
-                            this.reRender(true);
-                        };
-                        obj.listName = this.listBox.listVariableName;
-                        nObj.populate(obj);
-                        this.listBox.refresh();
-                        this.listBox.resize(); //needed if the list has a fixed size and the style is gr*
-                    }
-                }
-                ele = this.obj._buttons[`BUTTON_LISTNAV_NEXT.${LIST_NAME}`];
-                if (ele) {
-                    if (this.listBox._state.page == this.listBox._state.pageCount || this.listBox._state.pageCount == 0)
-                        ele.setDisabled(true);
-                    else
-                        ele.setDisabled(false);
-                }
-                ele = this.obj._buttons[`BUTTON_LISTNAV_LAST.${LIST_NAME}`];
-                if (ele) {
-                    if (this.listBox._state.page == this.listBox._state.pageCount || this.listBox._state.pageCount == 0)
-                        ele.setDisabled(true);
-                    else
-                        ele.setDisabled(false);
-                }
-                ele = this.obj._buttons[`BUTTON_LISTNAV_FIRST.${LIST_NAME}`];
-                if (ele) {
-                    if (this.listBox._state.page == 1 || this.listBox._state.pageCount == 0)
-                        ele.setDisabled(true);
-                    else
-                        ele.setDisabled(false);
-                }
-                ele = this.obj._buttons[`BUTTON_LISTNAV_PREV.${LIST_NAME}`];
-                if (ele) {
-                    if (this.listBox._state.page == 1 || this.listBox._state.pageCount == 0)
-                        ele.setDisabled(true);
-                    else
-                        ele.setDisabled(false);
-                }
-                ele = $(`${this.obj.dialogId}.V.R1.A5SYSTEM_LIST_PAGESELECTOR_${LIST_NAME}`);
-                if (ele) {
-                    let data = this.listBox._recordNavigatorLinks;
-                    if (data) {
-                        A5.form.populateSelect(ele, '' + this.listBox._state.page, data, true);
-                        //alert('page: ' + this._state.page);
-                        //ele.value = this._state.page;
-                    }
-                }
-            },
-            _populateAllChildLists: function () { },
-            _hasNavigationBar: true,
-            _navigationBar: {
-                style: 'dropdown',
-                firstIcon: 'svgIcon=#alpha-icon-chevronDblLeft:icon,24',
-                lastIcon: 'svgIcon=#alpha-icon-chevronDblRight:icon,24',
-                prevIcon: 'svgIcon=#alpha-icon-chevronLeft:icon,24',
-                nextIcon: 'svgIcon=#alpha-icon-chevronRight:icon,24',
-                numberOfLinks: 5,
-                justification: 'Center',
-                buttonSize: 'Normal',
-                buttonsubtheme: 'Circle',
-                showCurrentPageNumber: true,
-                currentPageNumberTemplate: '{pageNumber} of {pageCount}',
-                showCurrentPageNumberasInputControl: false,
-                currentPageNumberInputControlSize: '100px',
-                showPageSizeSelector: false,
-                pageSizeSelectorTemplate: 'Page size: {pageSizeSelector}',
-                pageSizes: '1,10,20,50,100',
-                navBarPlacement: 'ListFooter',
-                navBarFooterPlacement: 'BelowUserContent',
-                customization: {
-                    messages: {
-                        listDirty: 'List is dirty. Please save changes before navigating.'
-                    }
-                },
-                navBarPlacementDivId: ''
-            },
-            _state: {
-                pageSize: 20,
-                page: 1,
-                pageCount: 5,
-                recordCount: 100,
-            },
-            _match: (data, field, compareWith, obj) => {
-                let matches = (data, field) => {
-                    let rowValue = data[field];
-                    let op = obj.op ?? '=';
-                    let rowValDateStr = '';
-                    let rowValDate = new Date();
-                    let compareWithDate = new Date();
-                    if (obj.type == 'datetime' || obj.type == 'time') {
-                        if (rowValue instanceof Date) {
-                            rowValDate = rowValue;
-                            rowValDateStr = rowValue.toFormat(obj.dateFormat);
-                        }
-                        else {
-                            rowValDateStr = rowValue;
-                            rowValDate.fromFormat(rowValue, obj.dateFormat);
-                        }
-                        if (compareWith instanceof Date) {
-                            compareWithDate = compareWith;
-                        }
-                        else {
-                            compareWithDate.fromFormat(compareWith, obj.dateFormat);
-                        }
-                    }
-                    let cmpDate = obj.type == 'datetime' || obj.type == 'time';
-                    let cmpText = obj.type == 'dropdown' || obj.type == 'text';
-                    switch (op) {
-                        case '=': {
-                            if (cmpDate) {
-                                return compareWith == rowValDateStr;
-                            }
-                            return compareWith == rowValue;
-                        }
-                        case '<>': {
-                            if (cmpDate) {
-                                return compareWith != rowValDateStr;
-                            }
-                            return compareWith != rowValue;
-                        }
-                        case '<': {
-                            if (cmpDate) {
-                                return rowValDate < compareWithDate;
-                            }
-                            return rowValue < compareWith;
-                        }
-                        case '>': {
-                            if (cmpDate) {
-                                return rowValDate > compareWithDate;
-                            }
-                            return rowValue > compareWith;
-                        }
-                        case '<=': {
-                            if (cmpDate) {
-                                return rowValDate <= compareWithDate;
-                            }
-                            return rowValue <= compareWith;
-                        }
-                        case '>=': {
-                            if (cmpDate) {
-                                return rowValDate >= compareWithDate;
-                            }
-                            return rowValue >= compareWith;
-                        }
-                        case 'x..': {
-                            if (cmpText) {
-                                return (rowValue).startsWith(compareWith);
-                            }
-                            return false;
-                        }
-                        case '..x': {
-                            if (cmpText) {
-                                return (rowValue).endsWith(compareWith);
-                            }
-                            return false;
-                        }
-                        case '..x..': {
-                            if (cmpDate) {
-                                return (rowValue).includes(compareWith);
-                            }
-                            return false;
-                        }
-                        default: {
-                            return true;
-                        }
-                    }
-                };
-                if (this.searchMemoizationNeedsRebuild) {
-                    this.searchMemoization = {};
-                    this.data.forEach((data, index) => {
-                        this.searchMemoization[index] = matches(data, field);
-                    });
-                }
-                let topLevel = this.config.mappings.filter(x => x.tag == 'data').map(x => x.flattenedName);
-                let flag;
-                if (topLevel.includes(field)) {
-                    flag = matches(data, field);
-                }
-                else {
-                    let row = data['*key'];
-                    let unflattenedIndex = this.dataScopeManager.expandedIdxToRawIdx[row];
-                    if (obj.quantifier === 'ALL') {
-                        // If every row belonging to this parent index matches,
-                        // then we match.
-                        let allMatch = true;
-                        this.data.forEach((_, index) => {
-                            if (this.dataScopeManager.expandedIdxToRawIdx[index] != unflattenedIndex)
-                                return;
-                            allMatch = allMatch && this.searchMemoization[index];
-                        });
-                        flag = allMatch;
-                    }
-                    else {
-                        // If *some* row belonging to the parent index matches,
-                        // then we match
-                        let someMatch = false;
-                        this.data.forEach((_, index) => {
-                            if (this.dataScopeManager.expandedIdxToRawIdx[index] != unflattenedIndex)
-                                return;
-                            someMatch = someMatch || this.searchMemoization[index];
-                        });
-                        flag = someMatch;
-                    }
-                }
-                return flag;
-            },
-            clickButton: (btnNumber) => {
-                this.buttonFns[btnNumber](this);
-            },
-            __list_menu_show: (name, rowNumber) => {
-                let flag;
-                let lObj = this.listBox;
-                if (lObj.beforeMenuOpen)
-                    flag = lObj.beforeMenuOpen(name, rowNumber, lObj);
-                if (typeof flag == 'undefined')
-                    flag = true;
-                if (!flag)
-                    return;
-                let obj = lObj._menuSettings[name];
-                if (typeof obj == 'undefined')
-                    return;
-                let idIcon = this.obj.dialogId + '.' + lObj.listVariableName + '.MENU.' + name + '.' + rowNumber;
-                let ele = $(idIcon);
-                let menuData = obj.menuData;
-                let menuSettings = obj.menuSettings;
-                let objMenuObject = obj.menuObject;
-                if (typeof objMenuObject == 'undefined') {
-                    menuSettings.rowNumber = rowNumber;
-                    obj.menuObject = new A5.Menu(menuData, menuSettings);
-                    objMenuObject = obj.menuObject;
-                }
-                else {
-                    objMenuObject.rowNumber = rowNumber;
-                    objMenuObject.populate(menuData);
-                }
-                let flagIsOpen = obj.isOpen;
-                let existingRowNumber = obj.existingRowNumber;
-                if (typeof existingRowNumber == 'undefined')
-                    existingRowNumber = -1;
-                let closingRowNumber = obj.closingRowNumber;
-                if (typeof closingRowNumber == 'undefined')
-                    closingRowNumber = -1;
-                if (typeof flagIsOpen == 'undefined')
-                    flagIsOpen = false;
-                if (rowNumber == closingRowNumber)
-                    flagIsOpen = true;
-                let that = this.listBox;
-                setTimeout(function () {
-                    if (!flagIsOpen) {
-                        obj.isOpen = true;
-                        obj.existingRowNumber = rowNumber;
-                        lObj._menuName = name;
-                        let duration = obj.image_rotate_duration;
-                        if (typeof duration == 'undefined')
-                            duration = 600;
-                        if (obj.image_rotate)
-                            that.__list_menu_rotate(ele, 0, 90, obj.imageOpen, duration);
-                        objMenuObject.show('dropdown', ele);
-                        return false;
-                    }
-                }, 0);
-            },
-            __list_menu_rotate: (ele, from, to, terminalImage, duration) => {
-                if (typeof duration == 'undefined')
-                    duration = 300;
-                if (terminalImage == 'undefined')
-                    terminalImage = '';
-                let onComplete;
-                if (terminalImage != '') {
-                    onComplete = () => ele.innerHTML = A5.u.icon.html(terminalImage);
-                }
-                else {
-                    onComplete = () => { };
-                }
-                A5.u.element.transition(ele, {
-                    from: { transform: 'rotate(' + from + 'deg)' },
-                    to: { transform: 'rotate(' + to + 'deg)' },
-                    duration: duration
-                }, onComplete);
-            },
-            __list_menu_hide: (lObj) => {
-                let obj = lObj._menuSettings;
-                let ele;
-                let isOpen;
-                let menuObject;
-                let imageClosed;
-                for (const n in obj) {
-                    isOpen = obj[n].isOpen;
-                    if (isOpen) {
-                        imageClosed = obj[n].imageClosed;
-                        menuObject = obj[n].menuObject;
-                        if (menuObject)
-                            menuObject.hide(lObj);
-                        if (typeof imageClosed == 'undefined')
-                            imageClosed = '';
-                        if (lObj && lObj.__list_menu_rotate)
-                            lObj.__list_menu_rotate(ele, 90, 0, imageClosed, 600);
-                    }
-                }
-            },
-            __checkedImage: 'svgIcon=#alpha-icon-checkCircle:icon,24',
-            __uncheckedImage: 'svgIcon=#alpha-icon-circle:icon,24',
-            onListDraw: function (data, startIndex) {
-                if (data.length == 0) {
-                    let content = $(this.contId + '.CONTENT');
-                    let msg = !listObj.initialLoadComplete ? 'Fetching Data...' : 'No Records in List';
-                    content.innerHTML = `
-                        <div id="${this.contId + '.NORECORDSINLIST'}" style="text-align: center; padding: 1rem;">
-                            <span>${msg}</span>
-                        </div>
-                    `;
-                }
-                if (A5.flags.isMobile) {
-                    $e.add(this.contId + '.CONTENT', 'abstractdown', (e) => {
-                        let ele = e.target;
-                        let tag = '';
-                        if (ele && typeof ele.tagName == 'string')
-                            tag = ele.tagName.toLowerCase();
-                        if (tag != 'input' && tag != 'textarea')
-                            $e.preventDefault(e);
-                    });
-                }
-                if (listObj.config.multiSelect === true) {
-                    let allChecked = listObj.selectedRows.size == listObj.data.length;
-                    let h;
-                    if (allChecked) {
-                        h = A5.u.icon.html(this.__checkedImage);
-                    }
-                    else {
-                        h = A5.u.icon.html(this.__uncheckedImage);
-                    }
-                    let _id = listObj.obj.dialogId + '.' + this.listVariableName + '.CHECKBOXALL';
-                    let ele = $(_id);
-                    ele.innerHTML = h;
-                }
-            },
-            onChange: () => {
-                let btns = document.getElementsByClassName(`${LIST_NAME}_BUTTON`);
-                for (let i = 0; i < btns.length; i++) {
-                    btns[i].parentElement.style.whiteSpace = 'normal';
-                }
-            },
-            updateListFromUXControls: () => {
-                if (this.listBox._updatingListFromUXControls)
-                    return false;
-                this.listBox._updatingListFromUXControls = true;
-                this.listBox._updatingListFromUXControls = false;
-            },
-            _trimNonDirtyData: function (data) { return data; },
-            updateRow: function (indx, rowData) {
-                indx = this.getIndex(indx);
-                let dIndx = indx[0].renderIndex;
-                indx = indx[0].index;
-                if (indx == -1)
-                    return false;
-                if (this.onBeforeUpdateRow.constructor == Function) {
-                    var res = this.onBeforeUpdateRow.call(this, indx, rowData);
-                    if (typeof res == 'boolean') {
-                        if (!res)
-                            return false;
-                    }
-                }
-                if (typeof rowData == 'object')
-                    Object.assign(this._data[indx], rowData);
-                else
-                    this._data[indx] = rowData;
-                if (!this._brd) {
-                    let html;
-                    let value;
-                    if (this.filter || this.order || this.state.group.auto.active || this._curLObj.type == 'custom')
-                        this.populate(this._data, true, false, false);
-                    else {
-                        var tData = {};
-                        A5.u.object.assign(tData, this._data[indx]);
-                        if (this._template == '') {
-                            if (this._hasOBIDEvnt && dIndx != -1)
-                                this.onBeforeItemDraw.call(this, tData, dIndx);
-                            html = tData.toString();
-                            value = tData.toString();
-                        }
-                        else {
-                            var temp = this._template;
-                            if (this._tempIsDyn)
-                                var temp = A5.u.template.parse(temp(iData));
-                            if (this._hasOBIDEvnt && dIndx != -1)
-                                this.onBeforeItemDraw.call(this, tData, dIndx);
-                            html = this._fillTemplate(temp, tData, dIndx, indx, {
-                                info: {},
-                                state: this.state
-                            });
-                            html = html.split('{*row}').join(indx);
-                            html = html.split('{*dataRow}').join(dIndx);
-                            html = html.split('{*dataRowOneBased}').join(dIndx + 1);
-                            value = this.calculateValue(tData, indx);
-                        }
-                        this._data[indx]['*value'] = value;
-                        if (dIndx != -1)
-                            this._values[dIndx] = value;
-                        var ele = $(this.contId + '.' + dIndx);
-                        if (ele) {
-                            ele.innerHTML = html;
-                            if (this._hasOIDEvnt)
-                                this.onItemDraw.call(this, ele, tData, dIndx);
-                            if (this.onListDraw.constructor == Function)
-                                this.onListDraw.call(this, this._rData, -1);
-                        }
-                    }
-                }
-                if (this.onUpdateRow.constructor == Function)
-                    this.onUpdateRow.call(this, indx, this._data[indx]);
-                return true;
-            }
-        };
-    }
-    buildCheckboxColumn() {
-        let id = this.obj.dialogId + '.' + LIST_NAME;
-        let checked = A5.u.icon.html("svgIcon=#alpha-icon-checkCircle:icon,24");
-        let unchecked = A5.u.icon.html("svgIcon=#alpha-icon-circle:icon,24");
-        let template = `
-            <div 
-                style="display: inline-block;" 
-                id="${id + '.CHECKBOX{*key}'}" 
-                a5-item="__toggleCheck"
-            >
-                {*if <defined<__selected>>}
-                    {*if __selected}
-                        ${checked}
-                    {*else}
-                        ${unchecked}
-                    {*endif}
-                {*else}
-                    ${unchecked}
-                {*endif}
-            </div>`;
-        return {
-            header: {
-                html: `<span id="${id + '.CHECKBOXALL'}" a5-item="__toggleAll"></span>`
-            },
-            _name: '<CheckBoxSelect>',
-            _type: '',
-            resize: true,
-            rcw: 0,
-            data: {
-                template: template.replace(/(\r\n|\n|\r|\t)/gm, ""),
-                style: 'text-align: left; text-overflow: clip !important; white-space: normal !important;'
-            },
-            order: false,
-            width: '50px'
-        };
-    }
-    buildColumnDefinition(mapping, key) {
-        let name = mapping.flattenedName ?? key;
-        let template = '{' + name + '}';
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            template = `{${name}:date("${mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT}")}`;
-        }
-        if (mapping.template)
-            template = mapping.template;
-        return {
-            show: mapping.inList ?? false,
-            header: {
-                html: mapping.displayName ?? name
-            },
-            data: {
-                template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${name}.I.{*dataRow}"> ${template} </span>`
-            },
-            width: mapping.width ?? 'flex(1)',
-            resize: true,
-            order: name,
-        };
-    }
-    buildColumnButton(button, btnNumber, items) {
-        if (!button.title)
-            button.title = '';
-        let innerTemplate = button.title + '&nbsp';
-        if (button.icon && button.icon != '') {
-            innerTemplate += `{@A5.u.icon.html(<escape<'${button.icon}'>>)}`;
-        }
-        if (button.children != undefined) {
-            return {
-                header: {
-                    html: button.columnTitle
-                },
-                _name: button.columnTitle,
-                _type: 'Menu',
-                resize: true,
-                rcw: 0,
-                data: {
-                    template: `
-						<div style="display:inline-block" id="${this.obj.dialogId}.${LIST_NAME}.MENU.${btnNumber}.{*dataRow}" title="" a5-item="_MENU_onClick_${btnNumber}" class="${LIST_NAME}_BUTTON">
-							${innerTemplate}
-						</div>&nbsp;
-					`
-                }
-            };
-        }
-        let tmpThis = this;
-        items[`_systemButtononClick_${btnNumber}`] = {
-            'selectable': true,
-            onClick: (idx, v, args) => {
-                let data = this.listBox._data[this.listBox._dataMap[idx]];
-                if ('function' in button.onClick) {
-                    (function (rowNumber, value, ia, data, lObj, listObj) {
-                        (0,types.stringReprToFn)(button.onClick.function)(tmpThis, rowNumber, data);
-                    }(idx, v, args, data, this.listBox, this.listBox));
-                }
-                else if ('action' in button.onClick) {
-                    this.obj.runAction(button.onClick.action);
-                }
-                else {
-                    executeListAction(this, button.onClick.listAction, data, idx);
-                }
-            }
-        };
-        return {
-            header: { html: button.columnTitle },
-            _name: btnNumber.toString(),
-            _type: 'Button',
-            resize: true,
-            rcw: 0,
-            data: {
-                template: `
-					<span class = "${LIST_NAME}_BUTTON" id="${this.obj.dialogId}.${LIST_NAME}.${btnNumber}.I.{*dataRow}">
-						<button
-							a5-item = "_systemButtononClick_${btnNumber}"
-							class="button"
-							style="cursor:pointer;"
-							title="${button.title}"
-							id="${this.obj.dialogId}.${LIST_NAME}.BTN.{*dataRow}"
-						>${innerTemplate}</button>
-					</span>
-				`
-            },
-            order: false,
-            width: 'flex(1)',
-        };
-    }
-    makeMenuSetting(button, index, menuSettings, items) {
-        if (!button.children)
-            return;
-        let makeMenuData = (button) => {
-            let children = [];
-            if (button.children) {
-                button.children.forEach(c => children.push(makeMenuData(c)));
-            }
-            return {
-                html: button.title ?? null,
-                icon: '',
-                onClick: () => {
-                    if ('function' in button.onClick) {
-                        (0,types.stringReprToFn)(button.onClick.function)(this);
-                    }
-                    else if ('action' in button.onClick) {
-                        this.obj.runAction(button.onClick.action);
-                    }
-                    else {
-                        executeListAction(this, button.onClick.listAction, this.data[index]);
-                    }
-                },
-            };
-        };
-        let menuData = [];
-        button.children.forEach(c => menuData.push(makeMenuData(c)));
-        let type = (button.icon && button.icon != '') ? 'Image' : 'Text';
-        menuSettings[index] = {
-            type: type,
-            imageClosed: 'svgIcon=#alpha-icon-bars:icon,24',
-            image_rotate: type == 'Image',
-            image_rotate_duration: 300,
-            imageOpen: 'svgIcon=#alpha-icon-xLarge:icon,24',
-            menuType: 'Cascading',
-            menuData: menuData,
-            menuSettings: {
-                listName: `${LIST_NAME}`,
-                theme: this.obj.styleName,
-                style: '',
-                iconColumn: { width: '20px' },
-                animation: {
-                    show: {
-                        type: 'slide',
-                        duration: 'fast',
-                    },
-                    hide: {
-                        type: 'none',
-                    }
-                },
-                onHide: () => {
-                    let lObj = this.listBox;
-                    if (lObj._menuName != '') {
-                        let obj = lObj._menuSettings[lObj._menuName];
-                        let rowNumber = obj.existingRowNumber;
-                        if (lObj.onMenuClose)
-                            lObj.onMenuClose(lObj._menuName, rowNumber, lObj);
-                        let idIcon = this.obj.dialogId + '.' + lObj.listVariableName + '.MENU.' + lObj._menuName + '.' + rowNumber;
-                        let ele = $(idIcon);
-                        obj.isOpen = false;
-                        obj.closingRowNumber = rowNumber;
-                        setTimeout(() => { if (obj.closingRowNumber == rowNumber)
-                            obj.closingRowNumber = -1; }, 600);
-                        let duration = obj.image_rotate_duration;
-                        if (typeof duration == 'undefined')
-                            duration = 600;
-                        obj.existingRowNumber = -1;
-                        lObj._menuName = '';
-                        if (obj.image_rotate)
-                            lObj.__list_menu_rotate(ele, 90, 0, obj.imageClosed, duration);
-                    }
-                }
-            }
-        };
-        items[`_MENU_onClick_${index}`] = {
-            'selectable': true,
-            onClick: (idx, v, args) => {
-                let data = this.listBox._data[this.listBox._dataMap[idx]];
-                (function (rowNumber, value, ia, data, lObj, listObj) {
-                    lObj.__list_menu_show(index.toString(), rowNumber);
-                }(idx, v, args, data, this.listBox, this.listBox));
-            }
-        };
-    }
-    buildListFieldDefn(name) {
-        let defn = {
-            name: name,
-            defaultValue: `return this._controlDefaultValueForListField('${name}');`,
-            onDetailViewPopulate: '',
-            onListUpdate: '',
-        };
-        return defn;
-    }
-    buildDetailViewForm(rowNum = null, allowMultiSelect = false) {
-        if (rowNum !== null) {
-            this.clickedRow = rowNum;
-        }
-        let _d = {};
-        let allSelected = this.getSelectedRows();
-        if (allSelected.length > 1 && allowMultiSelect) {
-            let selectedData = allSelected.map(i => this.data[i]);
-            // For each mapping, check that every entry in selected is the same
-            // If it is, leave it alone
-            // Otherwise, replace with empty string
-            DataScopeManager.getDetailViewMappings(this.config).forEach(mapping => {
-                let name = mapping.key;
-                if ('flattenedName' in mapping.mapping)
-                    name = mapping.mapping.flattenedName ?? mapping.key;
-                let allSame = true;
-                for (let i = 1; i < selectedData.length; i++) {
-                    if (selectedData[i][name] !== selectedData[i - 1][name]) {
-                        allSame = false;
-                        break;
-                    }
-                }
-                if (allSame) {
-                    _d[name] = selectedData[0][name];
-                }
-                else {
-                    _d[name] = makeObviousDefault(mapping.mapping);
-                }
-            });
-        }
-        else if (rowNum != undefined) {
-            allSelected = [rowNum];
-            _d = jQuery.extend({}, this.listBox._data[this.listBox._dataMap[rowNum]]);
-        }
-        else {
-            DataScopeManager.getDetailViewMappings(this.config).forEach(mapping => {
-                let name = mapping.key;
-                if (mapping.mapping.tag == 'data' && mapping.mapping.flattenedName)
-                    name = mapping.mapping.flattenedName;
-                _d[name] = makeObviousDefault(mapping.mapping);
-            });
-        }
-        let d = JSON.parse(JSON.stringify(_d));
-        delete d['*key'];
-        delete d['*renderIndex'];
-        delete d['*value'];
-        let inputs = {
-            label: "Detail View",
-            inlineKeys: true,
-            requiredKeys: {}
-        };
-        let toInclude = new Set();
-        for (const mapping of DataScopeManager.getDetailViewMappings(this.config)) {
-            let name = mapping.key;
-            if (mapping.mapping.tag == 'data' && mapping.mapping.flattenedName)
-                name = mapping.mapping.flattenedName;
-            toInclude.add(name);
-            let value = mappingToInput(this, mapping.mapping, mapping.key);
-            inputs.requiredKeys[name] = value;
-        }
-        // If there are keys present in the data that aren't present 
-        // in the config, we'll get an error. So we need to remove those.
-        for (const key in d) {
-            if (!toInclude.has(key)) {
-                delete d[key];
-            }
-        }
-        let bottomButtons = this.makeDetailContextButtons(allSelected);
-        let detailViewForm = new DynamicForm(this.obj, this.obj.getPointer(DETAIL_FORM_CONTAINER).id, { type: 'object', options: inputs }, [bottomButtons]);
-        this.setFormDetailView(detailViewForm);
-        this.detailView = detailViewForm;
-        detailViewForm.populate(d);
-    }
-    makeDetailContextButtons(rowsToChange) {
-        let divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
-        // Alpha overrides all events on all elements with its own handlers. 
-        // Apparently, there is a bug where the old 'onclick' version of a button is kept 
-        // around. (No other properties of the old button are kept). 
-        // I cannot figure out how or why this is happening, and so the workaround 
-        // is to store the function in the dialog object, so that the 
-        // button onclick method doesn't carry any captured variables. 
-        // We can edit the dialog object properties to change the function.
-        let doDelete = () => {
-            rowsToChange.forEach(r => {
-                this.listBox.selection = [r];
-                this.listBox.deleteRow();
-            });
-            if (this.detailView) {
-                this.detailView.formBox.isDirtyImmediate = true;
-                this.detailView.formBox.refresh();
-            }
-            this.obj.refreshClientSideComputations(true);
-        };
-        let doSave = () => {
-            let d = {};
-            if (rowsToChange.length <= 1) {
-                d = this.detailView?.serialize();
-            }
-            else {
-                let changes = this.detailView?.serializeWithChanges() ?? { changed: false, raw: null };
-                if ('keys' in changes) {
-                    for (const key in changes.keys) {
-                        let item = changes.keys[key];
-                        if ('raw' in item && item.changed) {
-                            d[key] = item.raw;
-                        }
-                        else if ('keys' in item && item.changed) {
-                            d[key] = item.keys;
-                        }
-                        else if ('elements' in item && item.changed) {
-                            d[key] = item.elements;
-                        }
-                    }
-                }
-            }
-            if (rowsToChange.length == 0) {
-                this.listBox.addTableRow(d, { setFocusToTargetRow: true });
-            }
-            else {
-                rowsToChange.forEach(s => this.listBox.updateTableRow(s, d));
-            }
-            if (this.detailView) {
-                this.detailView.formBox.isDirtyImmediate = false;
-            }
-        };
-        this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doDelete;
-        this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doSave;
-        return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    control: {
-                        html: `
-                        <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
-                            <p>Save</p>
-                        </div>
-                        `,
-                        onClick: () => this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST()
-                    }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `
-                        <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
-                            <p>Delete</p>
-                        </div>
-                        `,
-                        onClick: () => this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST()
-                    }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `
-                        <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
-                            <p>New Record</p>
-                        </div>
-                        `,
-                        onClick: () => {
-                            if (!this.listBox.openingDetailView) {
-                                this.listBox.openingDetailView = true;
-                                this.setAllRowsSelected(false);
-                                this.refreshMultiSelectButton();
-                                this.newDetailViewRecord();
-                                this.listBox.openingDetailView = false;
-                            }
-                        }
-                    }
-                },
-            ],
-            container: {
-                style: '; display: flex; flex-direction: row; gap: 1rem;'
-            }
-        };
-    }
-    openSublistFromNested(name, label, data, onSave) {
-        let newSchema = {
-            version: this.config.version,
-            name: name,
-            dataSource: {
-                type: 'json',
-                jsonData: JSON.stringify(data)
-            },
-            mappings: [],
-            searchOptions: {},
-            buttons: [],
-        };
-        let ops = {
-            listContainerId: "LIST_CONTAINER",
-            searchContainerId: "SEARCH_CONTAINER",
-            configName: name,
-            titleName: label,
-            fallbackConfig: newSchema,
-            otherProps: {
-                onSaveOverride: (list, newData) => {
-                    Object.assign(data, newData);
-                    onSave(newData);
-                },
-                dataOverride: data,
-            }
-        };
-        openNewPanel(ops);
-    }
-    linkSublistToField(name, label, columnName, populateWith, currRow, currData) {
-        let onSave = (newData) => {
-            currData[columnName] = this.dataBridge.rawToProcessed(newData);
-            this.listBox.updateRow(currRow, currData);
-        };
-        this.openSublistFromNested(name, label, populateWith, onSave);
-    }
-    launchNewPanel(configName, titleName, filters = []) {
-        openNewPanel({
-            configName: configName,
-            titleName: titleName,
-            filters: filters,
-            listContainerId: 'LIST_CONTAINER',
-            searchContainerId: 'SEARCH_CONTAINER',
-        });
-    }
-    linkNewPanel(configName, titleName, columns, makeFilter = true) {
-        let allFilters = [];
-        columns.forEach(c => allFilters.push(...this.makeFilterFromSelected(c.columnName, c.foreignName)));
-        openNewPanel({
-            configName: configName,
-            listContainerId: 'LIST_CONTAINER',
-            searchContainerId: 'SEARCH_CONTAINER',
-            titleName: titleName,
-            filters: makeFilter ? allFilters : [],
-            otherProps: {
-                foreignKeys: allFilters.map(x => {
-                    if (x.columnVal.tag == 'arg') {
-                        throw new Error('Cannot link new panel on an argument');
-                    }
-                    let value = x.columnVal.value;
-                    return {
-                        columnName: x.columnName,
-                        value: value
-                    };
-                })
-            }
-        });
-    }
-    setFilterAndFetch(filters) {
-        this.searchFilters = filters;
-        this.reRender(true);
-    }
-    makeFilterFromSelected(colName, foreignColName) {
-        let thisVal = '';
-        if (this.listBox.selectionData.length > 0) {
-            thisVal = this.listBox.selectionData[0][colName];
-        }
-        return [{
-                columnName: foreignColName,
-                columnVal: { tag: "value", value: thisVal.toString() },
-                connector: 'AND',
-                op: '='
-            }];
-    }
-    setData(rawData, buildSchema) {
-        let rawDataRows;
-        if ('count' in rawData) {
-            let pageSize;
-            if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
-                pageSize = this.config.dataSource.paginate.pageSize;
-            }
-            else {
-                pageSize = rawData.count;
-            }
-            this.listBox._state = {
-                pageSize: pageSize,
-                page: this.listBox._state.page,
-                pageCount: Math.ceil(rawData.count / pageSize),
-                recordCount: rawData.count
-            };
-            rawDataRows = rawData.result;
-        }
-        else {
-            rawDataRows = rawData;
-            this.listBox._state.recordCount = undefined;
-        }
-        try {
-            if (this.config.dataSource.preprocess)
-                rawDataRows = (0,types.stringReprToFn)(this.config.dataSource.preprocess)(rawDataRows);
-        }
-        catch (e) {
-            console.log(e);
-            rawDataRows = undefined;
-        }
-        if (rawDataRows === undefined) {
-            rawDataRows = [];
-        }
-        this.rawData = rawDataRows;
-        if (buildSchema)
-            this.buildSchemaFromRawData();
-        this.dataScopeManager = new DataScopeManager();
-        this.data = this.dataBridge.rawToProcessed(this.rawData);
-        this.data = this.dataScopeManager.flattenData(this.data, this.config);
-        if (this.listBox._state.recordCount === undefined) {
-            this.listBox._state.recordCount = this.data.length;
-        }
-        this.refreshMultiSelectButton();
-    }
-    fetchData() {
-        // There is a bug where the parent somehow doesn't point to the most recent list object
-        // During a refresh, the message is something like "cannot set property whiteSpace of undefined"
-        // This is the fix
-        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
-        let filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-        let paginate = '';
-        if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
-            paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.dataSource.paginate.pageSize}, getPage: ${this.listBox._state.page}}`);
-        }
-        let sortOptions = '';
-        if (this.orderings.length > 0) {
-            sortOptions = '&sortOptions=' + encodeURIComponent(JSON.stringify(this.orderings));
-        }
-        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            return new Promise((resolve, reject) => {
-                this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
-                    + "&filters=" + encodeURIComponent(filters)
-                    + sortOptions
-                    + paginate, {
-                    onComplete: () => {
-                        let response = this.obj.stateInfo.apiResult;
-                        if ("err" in response) {
-                            reject(new Error(response.err));
-                            return;
-                        }
-                        this.setData(response.ok, false);
-                        if (this.data === undefined) {
-                            console.error("Error fetching data, defaulting to empty.");
-                            this.data = [];
-                            this.rawData = [];
-                        }
-                        resolve(this);
-                    }
-                });
-            });
-        }
-        else if (this.config.dataSource.type == 'sql') {
-            return new Promise((resolve, reject) => {
-                this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
-                    + "&filters=" + encodeURIComponent(filters)
-                    + sortOptions
-                    + paginate, {
-                    onComplete: () => {
-                        let response = this.obj.stateInfo.apiResult;
-                        if ("err" in response) {
-                            reject(new Error(response.err));
-                            return;
-                        }
-                        this.setData(response.ok, false);
-                        if (this.data === undefined) {
-                            console.error("Error fetching data, defaulting to empty.");
-                            this.data = [];
-                            this.rawData = [];
-                        }
-                        resolve(this);
-                    }
-                });
-            });
-        }
-        else if (this.config.dataSource.type == 'json' && 'jsonData' in this.config.dataSource) {
-            if (this.staticDataOverride) {
-                this.data = jQuery.extend(true, [], this.staticDataOverride);
-            }
-            else {
-                this.data = jQuery.extend(true, [], JSON.parse(this.config.dataSource.jsonData));
-            }
-            this.setData(this.data, false);
-            return Promise.resolve(this);
-        }
-        else if (this.config.dataSource.type == 'json' && this.config.dataSource.endpoints) {
-            let endpoint;
-            if (this.permanentFilters.length == 0 && this.searchFilters.length == 0) {
-                endpoint = "fetch";
-            }
-            else {
-                endpoint = "search";
-            }
-            return listBuilder_fetch(this.obj, this.config.name, endpoint)
-                .then((json) => {
-                if ('err' in json) {
-                    throw new Error(json.err);
-                }
-                this.setData(json.ok, false);
-                return this;
-            });
-        }
-        else {
-            throw new Error("Unhandled datasource " + JSON.stringify(this.config.dataSource));
-        }
-    }
-    refreshSelectionChecks() {
-        this.listBox._data.forEach(d => {
-            d['__selected'] = this.selectedRows.has(d['*key']);
-        });
-        this.listBox.refresh();
-    }
-    setRowSelected(rowNum, selected) {
-        if (selected) {
-            this.selectedRows.add(rowNum);
-        }
-        else {
-            this.selectedRows.delete(rowNum);
-        }
-        this.listBox.selection = this.getSelectedRows();
-        this.refreshSelectionChecks();
-    }
-    setAllRowsSelected(selected) {
-        if (selected) {
-            this.selectedRows = new Set(this.data.map((_, i) => i));
-        }
-        else {
-            this.selectedRows.clear();
-        }
-        this.listBox.selection = this.getSelectedRows();
-        this.refreshSelectionChecks();
-    }
-    getSelectedRows() {
-        return Array.from(this.selectedRows);
-    }
-    isRowSelected(rowNum) {
-        return this.selectedRows.has(rowNum);
-    }
-    filtersAsSimpleObj() {
-        let data = {};
-        for (const item of [...this.permanentFilters, ...this.searchFilters]) {
-            data[item.columnName] = item.columnVal;
-        }
-        return data;
-    }
-    addOnRenderCallback(f) {
-        if (this.listBox != null)
-            f();
-        this.onRender.push(f);
-    }
-    updateRecordCount() {
-        let count = document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
-        if (count) {
-            count.innerHTML = "Records: " + this.listBox._state.recordCount;
-        }
-    }
-    populateListBox() {
-        this.listBox.populate(jQuery.extend(true, [], this.data));
-        this.listBox._refreshStateMessages();
-        for (const f of this.onRender) {
-            f();
-        }
-        this.listBox.refresh();
-        this.listBox.resize();
-        this.updateRecordCount();
-    }
-    buildList() {
-        this.listBox = new A5.ListBox(this.containerId, [], this.settings);
-        this.listBox._hostComponentId = this.obj.dialogId;
-        //this.listBox._listSystemOnClickPopulateJSONForm = (rowNum: number) => this.buildDetailViewForm(rowNum);
-        this.listBox._listSystemOnClickPopulateJSONForm = (rowNum) => { };
-        window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
-        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
-    }
-    setFormDetailView(form) {
-        this.detailView = form;
-        this.detailView.formBox._listDetailView = (mode) => {
-        };
-    }
-    buildSchemaFromRawData() {
-        let deepAssign = (a, b) => {
-            for (const key in b) {
-                if (key in a) {
-                    if (typeof b[key] == 'object') {
-                        deepAssign(a[key], b[key]);
-                    }
-                    else {
-                        a[key] = b[key];
-                    }
-                }
-                else {
-                    a[key] = b[key];
-                }
-            }
-        };
-        let buildFromInstance = (instance) => {
-            if (typeof instance !== 'object') {
-                return { tag: 'rawData', jsType: typeof instance };
-            }
-            else if (instance instanceof Array) {
-                if (instance.length == 0) {
-                    return { tag: 'array', elem: { tag: 'none' } };
-                }
-                let s1 = buildFromInstance(instance[0]);
-                for (let i = 1; i < instance.length; i++) {
-                    deepAssign(s1, buildFromInstance(instance[i]));
-                }
-                return { tag: 'array', elem: s1 };
-            }
-            else {
-                let keys = {};
-                for (const key in instance) {
-                    keys[key] = buildFromInstance(instance[key]);
-                }
-                return { tag: 'object', keys: keys };
-            }
-        };
-        this.schema = buildFromInstance(this.rawData[0]);
-        for (let i = 0; i < this.rawData.length; i++) {
-            deepAssign(this.schema, buildFromInstance(this.rawData[i]));
-        }
-    }
-    mapRawSchema(s) {
-        s.jsonOutput.column.forEach((item) => this.schema[item.name] = { alphaType: item.alphaType });
-    }
-    fetchSchema() {
-        this.schema = { tag: 'none' };
-        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
-            return getSchema(this.obj, this.config.dataSource.table, this.config.dataSource.connectionString ?? 'conn').then(() => {
-                let response = this.obj.stateInfo.apiResult;
-                if ('err' in response) {
-                    throw new Error(response.err);
-                }
-                this.mapRawSchema(JSON.parse(response.ok));
-                return this;
-            });
-        }
-        this.buildSchemaFromRawData();
-        return Promise.resolve(this);
-    }
-}
-class DataScopeManager {
-    constructor() {
-        this.expandedIdxToRawIdx = {};
-    }
-    static lookupMapping(name, config) {
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data' && mapping.flattenedName == name)
-                return mapping;
-        }
-        throw new Error("No mapping " + name);
-    }
-    static getDetailViewMappings(config) {
-        let traverse = (s) => {
-            if (s.tag == 'data' && s.inDetailView)
-                return s;
-            else if (s.tag == 'array' || s.tag == 'object')
-                return traverse(s.item);
-            return null;
-        };
-        let out = [];
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data' && mapping.inDetailView)
-                out.push({ mapping, key: mapping.flattenedName });
-            else if (mapping.tag == 'nested') {
-                let x = traverse(mapping.mapping);
-                if (x)
-                    out.push({ mapping: x, key: mapping.key });
-            }
-        }
-        return out;
-    }
-    static getDataMappings(config) {
-        let traverse = (s) => {
-            if (s.tag == 'data')
-                return s;
-            return traverse(s.item);
-        };
-        return config.mappings.map(x => x.tag == 'nested' ? traverse(x.mapping) : x);
-    }
-    flattenData(data, config) {
-        let result = [];
-        data.forEach((dataPoint, originalIndex) => {
-            let n1 = result.length;
-            let toExpand = [];
-            for (const mapping of config.mappings) {
-                let key = (mapping.tag == 'nested') ? mapping.key : mapping.flattenedName;
-                let flatName = (mapping.tag == 'nested') ? this.flatName(mapping.mapping) : mapping.flattenedName;
-                if (key in dataPoint) {
-                    let items = this._flattenPoint(dataPoint, mapping);
-                    dataPoint[flatName] = items;
-                    toExpand.push(flatName);
-                }
-            }
-            result.push(...this.explodeObject(dataPoint, toExpand));
-            let n2 = result.length;
-            for (let i = n1; i < n2; i++) {
-                this.expandedIdxToRawIdx[i] = originalIndex;
-            }
-        });
-        return result;
-    }
-    explodeObject(obj, keys) {
-        if (keys.length == 0)
-            return [obj];
-        let toExplode = {};
-        for (const key in obj) {
-            if (keys.includes(key)) {
-                toExplode[key] = obj[key];
-                delete obj[key];
-            }
-        }
-        let out = [];
-        for (const key in toExplode) {
-            let points = toExplode[key];
-            if (out.length == 0) {
-                out = points;
-                continue;
-            }
-            let newOut = [];
-            for (const point of points) {
-                for (const elem of out) {
-                    let eCpy = jQuery.extend(true, {}, elem);
-                    Object.assign(eCpy, point);
-                    newOut.push(eCpy);
-                }
-            }
-            out = newOut;
-        }
-        for (let elem of out) {
-            let pCpy = jQuery.extend(true, {}, obj);
-            Object.assign(elem, pCpy);
-        }
-        return out;
-    }
-    _flattenPoint(point, mapping) {
-        if (mapping.tag == 'data') {
-            let p = {};
-            p[mapping.flattenedName] = point[mapping.flattenedName];
-            return [p];
-        }
-        else {
-            return this.flattenSubPoint(point[mapping.key], mapping.mapping);
-        }
-    }
-    flatName(s) {
-        if (s.tag == 'data')
-            return s.flattenedName;
-        if (s.tag == 'array')
-            return this.flatName(s.item);
-        return this.flatName(s.item);
-    }
-    flattenSubPoint(point, sub) {
-        if (sub.tag == 'data')
-            return [point];
-        else if (sub.tag == 'array') {
-            let out = [];
-            for (const elem of point) {
-                out.push(...this.flattenSubPoint(elem, sub.item));
-            }
-            return out;
-        }
-        else {
-            let expandedSub = this.flattenSubPoint(point[sub.key], sub.item);
-            let out = [];
-            let newKey = this.flatName(sub);
-            for (const elem of expandedSub) {
-                let pointCpy = jQuery.extend(true, {}, point);
-                delete pointCpy[sub.key];
-                pointCpy[newKey] = elem;
-                out.push(pointCpy);
-            }
-            return out;
-        }
-    }
-    getSearchableColumns(config) {
-        let traverse = (m, quantifiable, key) => {
-            if (m.tag == 'data' && m.editType != 'json') {
-                let name = m.flattenedName ?? key;
-                return {
-                    displayName: m.displayName ?? name,
-                    columnName: name,
-                    quantifiable: quantifiable,
-                    editType: m.editType ?? 'text',
-                    mapping: m
-                };
-            }
-            else if (m.tag == 'array') {
-                return traverse(m.item, true, key);
-            }
-            else if (m.tag == 'object') {
-                return traverse(m.item, quantifiable, m.key);
-            }
-            return undefined;
-        };
-        let arr = [];
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data' && mapping.editType != 'json') {
-                arr.push({
-                    displayName: mapping.displayName ?? mapping.flattenedName,
-                    columnName: mapping.flattenedName,
-                    quantifiable: false,
-                    editType: mapping.editType ?? 'text',
-                    mapping: mapping
-                });
-            }
-            else if (mapping.tag == 'nested') {
-                let x = traverse(mapping.mapping, false, mapping.key);
-                if (x)
-                    arr.push(x);
-            }
-        }
-        return arr;
-    }
-}
-function mappingToInput(list, m, key) {
-    let mapping;
-    if (m.tag == 'data')
-        mapping = m;
-    else {
-        let traverse = (s) => {
-            if (s.tag == 'data')
-                return s;
-            return traverse(s.item);
-        };
-        mapping = traverse(m.mapping);
-    }
-    let value = {
-        type: 'simple',
-        options: {
-            type: 'string',
-            label: '',
-            readonly: mapping.readOnly ?? false,
-        }
-    };
-    switch (mapping.editType ?? 'text') {
-        case 'number':
-            value.options.type = 'number';
-            value.options.default = 0;
-            break;
-        case 'dropdown':
-            if (mapping.dropdownConfig === undefined)
-                break;
-            // Static dropdown list
-            let choices = [];
-            if ('choices' in mapping.dropdownConfig) {
-                choices = mapping.dropdownConfig.choices;
-            }
-            else if ('fromColumn' in mapping.dropdownConfig) {
-                let set = new Set();
-                list.listBox._data.forEach((d) => {
-                    if (mapping.dropdownConfig === undefined)
-                        return;
-                    if (!('fromColumn' in mapping.dropdownConfig))
-                        return;
-                    set.add(d[mapping.dropdownConfig.fromColumn].toString());
-                });
-                choices = Array.from(set);
-            }
-            value = {
-                type: 'dropdown',
-                options: {
-                    label: '',
-                    default: '',
-                    dropdownItems: choices.map(c => { return { value: c, text: c }; }),
-                    allowCustomValue: mapping.dropdownConfig.allowCustom
-                }
-            };
-            break;
-        case 'bool':
-            value.options.type = 'boolean';
-            value.options.default = false;
-            break;
-        case 'time':
-        case 'datetime':
-            value.options.type = 'datetime';
-            value.options.dateFmt = mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT;
-            value.options.default = new Date();
-            break;
-        case 'text':
-            value.options.default = '';
-            break;
-        case 'json': {
-            let makeForm = (j, fullPath) => {
-                if (j.tag == 'data') {
-                    return {
-                        type: 'simple',
-                        options: {
-                            label: fullPath.join('.'),
-                            type: j.dataType,
-                            default: makeObviousJsonDefault(j, false)
-                        }
-                    };
-                }
-                else if (j.tag == 'array') {
-                    return {
-                        type: 'array',
-                        options: {
-                            label: fullPath.join('.'),
-                            defaultValue: makeObviousJsonDefault(j.item, false),
-                            itemTemplate: makeForm(j.item, [...fullPath, '[...]']),
-                        }
-                    };
-                }
-                else {
-                    let f = {
-                        type: 'object',
-                        options: {
-                            requiredKeys: {},
-                            label: fullPath.join('.'),
-                        }
-                    };
-                    for (const key in j.keys) {
-                        f.options.requiredKeys[key] = makeForm(j.keys[key], [...fullPath, key]);
-                    }
-                    return f;
-                }
-            };
-            let jConfig = mapping.jsonConfig ?? { editorType: 'form', definition: { tag: 'data', dataType: 'string' } };
-            if (jConfig.editorType == 'form') {
-                value = makeForm(jConfig.definition, [mapping.flattenedName || key]);
-            }
-            else {
-                value.options.textarea = true;
-                value.options.default = JSON.stringify(makeObviousJsonDefault(jConfig.definition, true), undefined, '\t');
-                value.options.type = 'json';
-            }
-        }
-    }
-    let name = mapping.flattenedName ?? key;
-    value.options.label = mapping.displayName ?? name;
-    return value;
-}
-function makeObviousDefault(m) {
-    let mapping;
-    if (m.tag == 'data')
-        mapping = m;
-    else {
-        let traverse = (s) => {
-            if (s.tag == 'data')
-                return s;
-            return traverse(s.item);
-        };
-        mapping = traverse(m.mapping);
-    }
-    switch (mapping.editType ?? 'text') {
-        case "number":
-            return 0;
-        case "bool":
-            return false;
-        case "time":
-        case "datetime":
-            return new Date();
-        case "text":
-        case "dropdown":
-            return '';
-        case 'json': {
-            return makeObviousJsonDefault(mapping.jsonConfig?.definition ?? { tag: 'data', dataType: 'string' }, false);
-        }
-    }
-}
-function makeObviousJsonDefault(j, fillArray) {
-    if (j.tag == 'data') {
-        switch (j.dataType) {
-            case 'string': return '';
-            case 'number': return 0;
-            case 'boolean': return false;
-        }
-    }
-    else if (j.tag == 'array') {
-        if (fillArray)
-            return [makeObviousJsonDefault(j.item, fillArray)];
-        return [];
-    }
-    else {
-        let defaultVal = {};
-        for (const key in j.keys) {
-            defaultVal[key] = makeObviousJsonDefault(j.keys[key], fillArray);
-        }
-        return defaultVal;
-    }
-}
-// Convert raw data -> usable data
-// Usable data -> raw data
-class DataBridge {
-    constructor(config) {
-        this.config = config;
-        this.dateConverters = {};
-        this.numConverters = {};
-        this.boolConverters = {};
-        this.jsonConverters = {};
-    }
-    processDate(key, date, format) {
-        if (key in this.dateConverters) {
-            return this.dateConverters[key].process(date);
-        }
-        if (date instanceof Date) {
-            let converter = {
-                process: (d) => d,
-                unprocess: (d) => d,
-            };
-            this.dateConverters[key] = converter;
-            return converter.process(date);
-        }
-        else {
-            let converter = {
-                process: (d) => {
-                    let date = new Date();
-                    date.fromFormat(d.toString(), format);
-                    return date;
-                },
-                unprocess: (d) => {
-                    return d.toFormat(format);
-                }
-            };
-            this.dateConverters[key] = converter;
-            return converter.process(date);
-        }
-    }
-    unprocessDate(key, date) {
-        if (key in this.dateConverters)
-            return this.dateConverters[key].unprocess(date);
-        return date;
-    }
-    processBool(key, b) {
-        if (key in this.boolConverters)
-            return this.boolConverters[key].process(b);
-        if (typeof b == 'string') {
-            this.boolConverters[key] = {
-                process: n => $u.s.toBool(n),
-                unprocess: n => n.toString()
-            };
-            return $u.s.toBool(b);
-        }
-        return b;
-    }
-    unprocessBool(key, b) {
-        if (key in this.boolConverters)
-            return this.boolConverters[key].unprocess(b);
-        return b;
-    }
-    processNum(key, n) {
-        if (key in this.numConverters)
-            return this.numConverters[key].process(n);
-        if (typeof n == 'string') {
-            this.numConverters[key] = {
-                process: n => $u.s.toNum(n),
-                unprocess: n => n.toString()
-            };
-            return $u.s.toNum(n);
-        }
-        return n;
-    }
-    unprocessNum(key, n) {
-        if (key in this.numConverters)
-            return this.numConverters[key].unprocess(n);
-        return n;
-    }
-    processJSON(key, data) {
-        if (key in this.jsonConverters)
-            return this.jsonConverters[key].process(data);
-        if (typeof data == 'string') {
-            this.jsonConverters[key] = {
-                process: d => JSON.parse(d),
-                unprocess: d => JSON.stringify(d)
-            };
-            return JSON.parse(data);
-        }
-        return data;
-    }
-    unprocessJSON(key, data) {
-        if (key in this.jsonConverters)
-            return this.jsonConverters[key].unprocess(data);
-        return data;
-    }
-    rawToProcessed(d) {
-        let data = jQuery.extend(true, [], d);
-        data.forEach(x => {
-            for (const mapping of this.config.mappings) {
-                if (mapping.tag == 'data' && mapping.flattenedName in x) {
-                    x[mapping.flattenedName] = this._processPoint(x[mapping.flattenedName], mapping, mapping.flattenedName);
-                }
-                else if (mapping.tag == 'nested' && mapping.key in x) {
-                    x[mapping.key] = this._processSubMapping(x[mapping.key], mapping.mapping, mapping.key);
-                }
-            }
-        });
-        return data;
-    }
-    processedToRaw(d) {
-        let data = jQuery.extend(true, [], d);
-        data.forEach(x => {
-            for (const mapping of this.config.mappings) {
-                if (mapping.tag == 'data' && mapping.flattenedName in x) {
-                    x[mapping.flattenedName] = this._unprocessPoint(x[mapping.flattenedName], mapping, mapping.flattenedName);
-                }
-                else if (mapping.tag == 'nested' && mapping.key in x) {
-                    x[mapping.key] = this._unprocessSubmapping(x[mapping.key], mapping.mapping, mapping.key);
-                }
-            }
-        });
-        return data;
-    }
-    _processPoint(point, mapping, key) {
-        let name = mapping.flattenedName ?? key;
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            return this.processDate(name, point, mapping.serverDateFormat ?? listBuilder_DEFAULT_DATETIME_FMT);
-        }
-        else if (mapping.editType == 'bool' && typeof point == 'string') {
-            return this.processBool(name, point);
-        }
-        else if (mapping.editType == 'number' && typeof point == 'string') {
-            return this.processNum(name, point);
-        }
-        else if (mapping.editType == 'json' && typeof point == 'string') {
-            return this.processJSON(name, point);
-        }
-        return point;
-    }
-    _processSubMapping(point, mapping, key) {
-        if (mapping.tag == 'data')
-            return this._processPoint(point, mapping, mapping.flattenedName);
-        else if (mapping.tag == 'array') {
-            point = this.processJSON(key, point);
-            for (let i = 0; i < point.length; i++) {
-                point[i] = this._processSubMapping(point[i], mapping.item, key + '_ARRAY_ITEM_');
-            }
-            return point;
-        }
-        else {
-            point = this.processJSON(key, point);
-            if (mapping.key in point) {
-                point[mapping.key] = this._processSubMapping(point[mapping.key], mapping.item, key + '.' + mapping.key);
-            }
-            return point;
-        }
-    }
-    _unprocessPoint(point, mapping, key) {
-        let name = mapping.flattenedName ?? key;
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            return this.unprocessDate(name, point);
-        }
-        else if (mapping.editType == 'bool') {
-            return this.unprocessBool(name, point);
-        }
-        else if (mapping.editType == 'number') {
-            return this.unprocessNum(name, point);
-        }
-        else if (mapping.editType == 'json') {
-            return this.unprocessJSON(name, point);
-        }
-        return point;
-    }
-    _unprocessSubmapping(point, sub, key) {
-        if (sub.tag == 'data')
-            return this._unprocessPoint(point, sub, key);
-        else if (sub.tag == 'array') {
-            for (let i = 0; i < point.length; i++) {
-                point[i] = this._unprocessSubmapping(point[i], sub.item, key + '_ARRAY_ITEM_');
-            }
-            return this.unprocessJSON(key, point);
-        }
-        else {
-            if (sub.key in point) {
-                point[sub.key] = this._unprocessSubmapping(point[sub.key], sub.item, key + '.' + sub.key);
-            }
-            return this.unprocessJSON(key, point);
-        }
-    }
-}
-class DynamicListSearch {
-    constructor(dynamicList, obj, contId) {
-        this.guides = {
-            "layouts": {
-                "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
-                "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
-                        return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
-                    else
-                        return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                            e = e[0].children[0].children[0];
-                            if (e && e.getAttribute('float-state') == '1') {
-                                var l = dObj.item.def.sys.item.layout.settings;
-                                e.setAttribute('float-state', '2');
-                                if (dObj.item.isNull) {
-                                    if (l.style != '')
-                                        A5.u.element.style(e, '+=' + l.style);
-                                    A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
-                                }
-                            }
-                        } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                            e = e[0].children[0].children[0];
-                            if (e && e.getAttribute('float-state') == '2') {
-                                var l = dObj.item.def.sys.item.layout.settings;
-                                e.setAttribute('float-state', '1');
-                                if (dObj.item.isNull) {
-                                    if (l.style != '')
-                                        A5.u.element.style(e, '-=' + l.style);
-                                    A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
-                                }
-                            }
-                        } } } },
-            }
-        };
-        this.list = dynamicList;
-        this.obj = obj;
-        this.dynamicDropdowns = [];
-        this.formContainerId = obj.getPointer(contId).id;
-        this.form = new DynamicForm(this.obj, this.formContainerId, this.buildForm(), [this.makeButtons()]);
-        this.resetForm();
-    }
-    resetForm() {
-        this.form.populate(this.list.config.searchOptions.advancedSearch ? [] : {});
-    }
-    findInSchema(path, schema) {
-        let result = schema;
-        for (const item of path) {
-            let part = result[item];
-            if (part === undefined)
-                return undefined;
-            if ('array' in part)
-                result = part.array;
-            else if ('nested' in part)
-                result = part.nested;
-            else
-                result = part;
-        }
-        return result;
-    }
-    buildForm() {
-        this.setListSearchFns();
-        if (this.list.config.searchOptions.advancedSearch) {
-            return this.buildAdvancedSearch();
-        }
-        else {
-            return this.buildSimpleSearch();
-        }
-    }
-    makeSearchFilters() {
-        if (this.list.config.searchOptions.advancedSearch) {
-            let d = this.form.serialize();
-            return d.map(x => {
-                x.columnVal = {
-                    tag: 'value',
-                    value: x.columnVal
-                };
-                return x;
-            });
-        }
-        let d = this.form.serialize();
-        let filters = [];
-        Object.entries(d).forEach(([colName, v]) => {
-            if (v && v != "") {
-                let f = {
-                    columnVal: {
-                        tag: 'value',
-                        value: v
-                    },
-                    columnName: colName,
-                    connector: "OR",
-                    op: '=',
-                };
-                filters.push(f);
-            }
-        });
-        return filters;
-    }
-    buildSimpleSearch() {
-        let cols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
-        let form = {
-            type: 'object',
-            options: {
-                label: 'Search List',
-                requiredKeys: {}
-            },
-        };
-        for (const col of cols) {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (!this.list.config.searchOptions.onlyInclude.includes(col.columnName))
-                    continue;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.includes(col.columnName))
-                    continue;
-            }
-            form.options.requiredKeys[col.displayName] = mappingToInput(this.list, col.mapping, col.columnName);
-        }
-        return form;
-    }
-    buildAdvancedSearch() {
-        let cols = this.list.dataScopeManager.getSearchableColumns(this.list.config).filter(x => {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (!this.list.config.searchOptions.onlyInclude.includes(x.columnName))
-                    return false;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.includes(x.columnName))
-                    return false;
-            }
-            return true;
-        });
-        let definitions = {};
-        let defaults = [];
-        for (const col of cols) {
-            let defaultVal = makeObviousDefault(col.mapping);
-            let def = {
-                type: 'object',
-                options: {
-                    label: col.displayName,
-                    requiredKeys: {
-                        columnName: {
-                            type: 'const',
-                            options: {
-                                label: '',
-                                value: col.columnName
-                            }
-                        },
-                        connector: {
-                            type: 'dropdown',
-                            options: {
-                                label: 'Connector',
-                                dropdownItems: [
-                                    { text: 'And', value: 'AND' },
-                                    { text: 'Or', value: 'OR' }
-                                ],
-                                display: (form) => {
-                                    let d = form;
-                                    let multi = d.parent?.parent;
-                                    let arr = multi.parent;
-                                    return arr.entries[0].form !== multi;
-                                }
-                            }
-                        },
-                        op: {
-                            type: 'dropdown',
-                            options: {
-                                dropdownItems: [
-                                    {
-                                        text: 'Equal To',
-                                        value: '='
-                                    },
-                                    {
-                                        text: 'Not Equal To',
-                                        value: '<>'
-                                    },
-                                ],
-                                label: 'Operator'
-                            }
-                        },
-                        columnVal: mappingToInput(this.list, col.mapping, col.columnName)
-                    }
-                }
-            };
-            if (col.editType == 'text') {
-                def.options.requiredKeys.op.options.dropdownItems.push({
-                    text: 'Starts With',
-                    value: "x.."
-                }, {
-                    text: 'Ends With',
-                    value: "..x"
-                }, {
-                    text: 'Includes',
-                    value: '..x..'
-                });
-            }
-            else {
-                def.options.requiredKeys.op.options.dropdownItems.push({
-                    text: 'Less Than',
-                    value: '<'
-                }, {
-                    text: 'Greater Than',
-                    value: '>'
-                }, {
-                    text: 'Less Than or Equal To',
-                    value: '<='
-                }, {
-                    text: 'Greater Than or Equal To',
-                    value: '>='
-                });
-            }
-            if (col.quantifiable) {
-                def.options.requiredKeys['quantifier'] = {
-                    type: 'dropdown',
-                    options: {
-                        label: 'Nested Datagroup Satisfies',
-                        dropdownItems: [
-                            { text: 'All', value: 'ALL' },
-                            { text: 'Some', value: 'SOME' }
-                        ]
-                    }
-                };
-            }
-            let defaultObj = {
-                columnVal: defaultVal,
-                connector: 'AND',
-                op: '=',
-                columnName: col.columnName
-            };
-            if (col.quantifiable) {
-                defaultObj['quantifier'] = 'SOME';
-            }
-            defaults.push(defaultObj);
-            definitions[col.columnName] = {
-                defaultValue: defaultObj,
-                definition: def
-            };
-        }
-        let form = {
-            type: 'array',
-            options: {
-                label: 'Advanced List Search',
-                defaultValue: defaults[0],
-                itemTemplate: {
-                    type: 'multi',
-                    options: {
-                        label: 'Search Parameter',
-                        definitions: definitions
-                    }
-                }
-            }
-        };
-        return form;
-    }
-    makeButtons() {
-        return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span class="dynamic-form-search-btn">Search</span>`,
-                        onClick: () => {
-                            this.list.listBox.searchList({ searchMode: 'auto', queryData: this.makeSearchFilters() });
-                            this.obj._functions.search.onSearch();
-                        },
-                    }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span class="dynamic-form-clear-btn">Clear</span>`,
-                        onClick: () => {
-                            this.list.listBox.clearSearchList({ searchMode: 'auto' });
-                            this.obj._functions.search.onClear();
-                        }
-                    }
-                },
-            ],
-            container: {
-                className: 'dynamic-search-buttons',
-                style: `
-                    display: flex;
-                    flex-direction: row;
-                    gap: 0.5rem;
-                `,
-            }
-        };
-    }
-    serverOrClientSearch(o) {
-        let obj = typeof o != 'undefined' ? o : {};
-        let mode = 'serverside';
-        if (!(this.list.config.searchOptions.serverSearch))
-            mode = 'clientside';
-        return mode;
-    }
-    setListSearchFns() {
-        let allSearchCols = this.list.dataScopeManager.getSearchableColumns(this.list.config);
-        if (this.list.listBox.searchList)
-            return;
-        this.list.listBox.searchList = (x) => {
-            (this.obj.stateInfo.onSearchCallbacks ?? []).forEach((f) => f(this));
-            let obj = typeof x != 'undefined' ? x : {};
-            let mode = this.serverOrClientSearch(x);
-            let flagDirty = false;
-            if (this.list.listBox.listIsDirty)
-                flagDirty = this.list.listBox.listIsDirty();
-            let flagResult = this.obj._list_executeEvent(this.list.listBox.listVariableName, 'beforeSearch', { searchMode: 'search', searchWhere: mode, listIsDirty: flagDirty });
-            if (!flagResult)
-                return false;
-            if (!obj.queryData)
-                obj = undefined;
-            if (mode == 'serverside') {
-                this.list.listBox._searchListServerSide(obj);
-            }
-            else if (mode == 'clientside') {
-                this.list.listBox._searchPartSubmit_clientSideFilter(obj);
-                let rowCount = this.list.listBox._rData.length;
-                this.obj._list_executeEvent(this.list.listBox.listVariableName, 'afterSearchComplete', { searchMode: 'search', searchWhere: mode, recordsInQuery: rowCount });
-            }
-            this.list.listBox._state.recordCount = this.list.listBox._rData.length;
-            this.list.updateRecordCount();
-        };
-        this.list.listBox._searchPartSubmit_clientSideFilter = (searchObj) => {
-            this.list.listBox._state.highlight = {};
-            let map = this.list.listBox._searchPart.fieldMap;
-            let val = '';
-            let expn = [];
-            let expn_i = '';
-            let obj = {};
-            let obj_i = {};
-            let ac = [];
-            let aco = {};
-            let _highlight = {};
-            let values = [];
-            allSearchCols.forEach((colDefn, i) => {
-                let val;
-                if (!searchObj) {
-                    val = this.obj.getValue(map[i].control);
-                    if (val != undefined && val != '')
-                        values.push({ index: i, item: val, name: colDefn.columnName });
-                }
-                else {
-                    for (const e of searchObj.queryData) {
-                        if (e.columnName == map[i].field)
-                            values.push({ index: i, item: e, name: colDefn.columnName });
-                    }
-                }
-            });
-            for (let i = 0; i < values.length; i++) {
-                let v = values[i];
-                let val;
-                if (v.item.columnVal)
-                    val = v.item.columnVal.value;
-                else
-                    val = v.item;
-                obj_i = this.list.listBox._searchFieldOptions[v.name];
-                this.list.listBox._setSearchOps(obj, obj_i);
-                let strVal = val.toString();
-                if (typeof val === 'string')
-                    strVal = this.list.listBox._str(val);
-                // We want to compare the string version of dates so we don't get mixed up with precision.
-                if (val instanceof Date)
-                    strVal = this.list.listBox._str(val.toFormat(listBuilder_DEFAULT_DATETIME_FMT));
-                if (v.item.op)
-                    obj['op'] = v.item.op;
-                if (v.item.quantifier)
-                    obj['quantifier'] = v.item.quantifier;
-                expn_i = 'this._match(data,' + this.list.listBox._str(v.name) + ',' + strVal + ',' + JSON.stringify(obj) + ')';
-                expn.push(expn_i);
-                if (i < values.length - 1) {
-                    let next = values[i + 1];
-                    if (next.item.connector == 'AND')
-                        expn.push('&&');
-                    else
-                        expn.push('||');
-                }
-                aco.control = map[v.index].control;
-                aco.value = val;
-                ac.push(aco);
-            }
-            if (expn.length == 0)
-                return true;
-            if (expn[expn.length - 1] == '||' || expn[expn.length - 1] == '&&')
-                expn.pop();
-            let expn_str = expn.join('');
-            let fnText = 'if (' + expn_str + ') { return true; } else { return false; }';
-            let searchFn = new Function('data', fnText);
-            this.list.searchMemoizationNeedsRebuild = true;
-            this.list.listBox.setFilter(searchFn);
-        };
-        this.list.listBox._setSearchOps = function (obj, obj_i) {
-            obj.mode = obj_i.option;
-            obj.qbf = obj_i.qbf;
-            obj.type = obj_i.type;
-            obj.dateFormat = obj_i.dateFormat;
-        };
-        this.list.listBox._searchListServerSide = (searchObj) => {
-            let flagDirty = false;
-            if (this.list.listBox.listIsDirty)
-                flagDirty = this.list.listBox.listIsDirty();
-            if (flagDirty) {
-                alert('Cannot search because List has edits that have not yet been synced');
-                return false;
-            }
-            let filters = searchObj.queryData;
-            filters.forEach(e => {
-                if (e.columnVal instanceof Date) {
-                    let m = DataScopeManager.lookupMapping(e.columnName, this.list.config);
-                    e.columnVal = e.columnVal.toFormat('serverDateFormat' in m ? m.serverDateFormat : listBuilder_DEFAULT_DATETIME_FMT);
-                }
-            });
-            this.list.setFilterAndFetch(filters);
-        };
-        this.list.listBox.clearSearchList = (_obj) => {
-            this.resetForm();
-            (this.obj.stateInfo.onClearSearchCallbacks ?? []).forEach((f) => f(this));
-            let mode = this.serverOrClientSearch(_obj);
-            let flagResult = this.obj._list_executeEvent(this.list.listBox.listVariableName, 'beforeSearch', { searchMode: 'clear', searchWhere: mode });
-            if (!flagResult)
-                return false;
-            this.list.listBox.setFilter(false);
-            if (mode == 'serverside') {
-                this.list.listBox._clearSearchListServerSide();
-            }
-            else if (mode == 'clientside') {
-                this.list.listBox._searchPartSubmit_clientSideFilterClear();
-                let rowCount = this.list.listBox._rData.length;
-                this.obj._list_executeEvent(this.list.listBox.listVariableName, 'afterSearchComplete', { searchMode: 'clear', searchWhere: mode, recordsInQuery: rowCount });
-            }
-        };
-        this.list.listBox._clearSearchListServerSide = () => {
-            this.list.setFilterAndFetch([]);
-            this.obj._setDVClean(this.list.listBox);
-        };
-        this.list.listBox._searchPartSubmit_clientSideFilterClear = () => {
-            if (!this.list.listBox._searchPartHas)
-                return true;
-            this.list.listBox._state.highlight = {};
-            this.list.listBox.setFilter(false);
-            this.list.listBox.setFilter(false);
-            delete this.list.listBox.__queryByFormValues;
-            this.obj._setDVClean(this.list.listBox);
-        };
-        this.list.listBox._searchPartHas = true;
-        this.list.listBox._searchPart = {};
-        this.list.listBox._searchFieldOptions = {};
-        this.list.listBox._searchPart.fieldMap = [];
-        for (const col of this.list.dataScopeManager.getSearchableColumns(this.list.config)) {
-            this.list.listBox._searchPart.fieldMap.push({
-                control: 'SearchForm::' + col.columnName,
-                field: col.columnName,
-                dateFormat: listBuilder_DEFAULT_DATETIME_FMT
-            });
-            this.list.listBox._searchFieldOptions[col.columnName] = {
-                option: 2,
-                qbs: true,
-                searchField: col.columnName,
-                type: col.editType,
-                dateFormat: listBuilder_DEFAULT_DATETIME_FMT
-            };
-        }
-    }
+    /* eslint-enable */
 }
 
 ;// ./src/reactiveForm.ts
@@ -11580,62 +6687,89 @@ class ReactiveForm {
     constructor() {
         this.symbol = Symbol();
     }
-    render(m) { return undefined; }
 }
 class ReactiveFormManager {
-    constructor(root, containerId, obj) {
+    constructor(root, containerId, obj, injectInto) {
+        this.inject = j => j;
         this.root = root;
-        this.fragments = {};
+        this.fragments = new Map();
         this.containerId = containerId;
         this.afterRender = [];
         this.formDataUpdateRequests = {};
-        this.context = {};
+        this.context = new Map();
         this.obj = obj;
-        this.createFormBox();
+        this.changed = false;
+        this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
+        if (injectInto)
+            this.inject = injectInto;
         this.render(this.root);
     }
-    afterRenderCallback(callback) {
+    static constructFormBox(cId) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const fb = new A5.FormBox(cId, [], null, {
+            theme: 'Alpha',
+            item: {
+                label: { style: '' },
+                description: { style: '' }
+            },
+            onChange: () => { }
+        });
+        A5.formBox.guides.controls['html'].handle = null;
+        return fb;
+    }
+    addRefreshCallback(callback) {
         this.afterRender.push(callback);
+        return callback;
+    }
+    removeRefreshCallback(callback) {
+        this.afterRender = this.afterRender.filter(x => x != callback);
     }
     setContext(form, name, context) {
-        let existing = this.context[name];
+        const existing = this.context.get(name);
         if (existing !== undefined && existing.setBy == form.symbol) {
             existing.context = context;
         }
         else {
-            this.context[name] = { setBy: form.symbol, context };
+            this.context.set(name, { setBy: form.symbol, context });
         }
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     getContext(name) {
-        return this.context[name]?.context;
+        return this.context.get(name)?.context;
     }
     setFormData(name, value) {
         this.formDataUpdateRequests[name] = value;
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        if (this.formBox.data)
+            this.formBox.data[name] = value?.toString() ?? '';
     }
     getFormData(name) {
-        if (this.formBox && this.formBox.data)
+        if (this.formBox.data)
             return this.formBox.data[name];
         return undefined;
     }
     render(form) {
-        this.afterRender = [];
-        let _render = (form) => {
+        const _render = (form) => {
             const jsonForm = form.render(this);
             if (!jsonForm)
                 return undefined;
-            let raw = resolve(jsonForm);
-            let fragment = this.fragments[form.symbol];
+            const raw = resolve(jsonForm);
+            const fragment = this.fragments.get(form.symbol);
             if (fragment) {
-                for (const key in fragment)
-                    delete fragment[key];
+                // We NEED fragment to point to the same obj in memory (i.e. can't just reassign to an empty object).
+                for (const key in fragment) {
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    if (Object.prototype.hasOwnProperty.call(fragment, key))
+                        delete fragment[key];
+                }
                 Object.assign(fragment, raw);
             }
             else {
-                this.fragments[form.symbol] = raw;
+                this.fragments.set(form.symbol, raw);
             }
-            return this.fragments[form.symbol];
+            return this.fragments.get(form.symbol);
         };
-        let resolve = (j) => {
+        const resolve = (j) => {
             if (j.type == 'group') {
                 return {
                     type: 'group',
@@ -11657,30 +6791,23 @@ class ReactiveFormManager {
         _render(form);
         this.refresh();
     }
-    createFormBox() {
-        if (this.formBox?.ctrls?.picker) {
-            this.formBox?.ctrls?.picker.destroy();
+    rebuildFormBox() {
+        if (this.formBox.ctrls?.picker) {
+            this.formBox.ctrls.picker.destroy();
         }
-        let activePickers = A5.transients._.tci;
+        const activePickers = A5.transients._.tci;
         for (const key in activePickers) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             if (activePickers[key] == null)
                 delete activePickers[key];
         }
         A5.transients._.t = A5.transients._.t.filter(x => x in activePickers);
-        if (this.formBox) {
-            let container = $(this.formBox.contId);
+        const container = $(this.formBox.contId);
+        if (container) {
             ReactiveFormManager.removeOldEventHandlers(container);
             this.formBox.destroy();
+            this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
         }
-        this.formBox = new A5.FormBox(this.containerId, [], null, {
-            theme: 'Alpha',
-            item: {
-                label: { style: '' },
-                description: { style: '' }
-            },
-            onChange: () => { }
-        });
-        A5.formBox.guides.controls['html'].handle = null;
     }
     refresh() {
         // Alpha pickers (dropdowns, date pickers, etc) do not immediately update upon selection. 
@@ -11688,19 +6815,39 @@ class ReactiveFormManager {
         // If we rebuild the form immediately, then the definition will be replaced, *then* the old callback for the (deleted) picker 
         // will be called, resulting in an error.
         setTimeout(() => {
-            let form = this.fragments[this.root.symbol];
-            let oldFormData = Object.assign(this.formBox.data ?? {}, this.formDataUpdateRequests);
-            this.formDataUpdateRequests = {};
-            this.createFormBox();
-            if (!form)
+            const frag = this.fragments.get(this.root.symbol);
+            if (!frag)
                 return;
+            const form = this.inject(frag);
+            this.hookIntoChangeEvents(form);
+            const oldFormData = Object.assign(this.formBox.data ?? {}, this.formDataUpdateRequests);
+            this.formDataUpdateRequests = {};
+            this.rebuildFormBox();
+            const oldRefresh = this.formBox.refresh.bind(this.formBox);
+            this.formBox.refresh = () => {
+                oldRefresh();
+                this.afterRender.forEach(f => { f(); });
+            };
             this.formBox.load({ form: { items: [form] }, guides: ReactiveFormManager.guides }, oldFormData);
-            while (this.afterRender.length > 0) {
-                let f = this.afterRender.pop();
-                if (f)
-                    f();
-            }
         }, 1);
+    }
+    hookIntoChangeEvents(f) {
+        if (f.type == 'group')
+            f.items.forEach(i => { if (i)
+                this.hookIntoChangeEvents(i); });
+        else if (f.type == 'edit' || f.type == 'edit-picker' || f.type == 'checkbox' || f.type == 'picker') {
+            const oldChange = f.control?.onChange;
+            if (f.control === undefined)
+                f.control = { onChange: () => { } };
+            f.control.onChange = (d) => {
+                if (!this.changed) {
+                    this.changed = true;
+                    this.formBox.refresh();
+                }
+                if (oldChange)
+                    oldChange(d);
+            };
+        }
     }
     static removeOldEventHandlers(elem) {
         // Alpha hooks its own event handlers into objects. 
@@ -11710,8 +6857,9 @@ class ReactiveFormManager {
         // that onclick function (which is not, I imagine, what you want to do.)
         // Alpha also doesn't seem to have a way to remove all the event handlers. 
         // We have to do them individually, and we need a handle to the function being called..
-        let allEvents = $e._e;
-        let toRemove = [];
+        /*eslint-disable*/
+        const allEvents = $e._e;
+        const toRemove = [];
         allEvents.forEach(e => {
             if (e[0] == elem) {
                 toRemove.push({ event: e[1], fn: e[2] });
@@ -11721,15 +6869,26 @@ class ReactiveFormManager {
         for (let i = 0; i < elem.childElementCount; i++) {
             this.removeOldEventHandlers(elem.children[i]);
         }
+        /*eslint-enable*/
+    }
+    isDirty() {
+        return this.changed;
+    }
+    setDirty(dirty) {
+        this.changed = dirty;
     }
     serialize() {
-        return reactiveForm_changeDetectionToRaw(this.root.serialize(this.formBox.data));
+        return this.root.serialize(this.formBox.data ?? {}).map(v => changeDetectionToRaw(v));
+    }
+    serializeWithChanges() {
+        return this.root.serialize(this.formBox.data ?? {});
     }
 }
 ReactiveFormManager.guides = {
     "layouts": {
         "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
-        "label-float-above": { draw: function (dObj) { var l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
+        /*eslint-disable*/
+        "label-float-above": { draw: function (dObj) { const l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
                 return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
             else
                 return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
@@ -11755,76 +6914,87 @@ ReactiveFormManager.guides = {
                         }
                     }
                 } } } },
+        /*eslint-enable*/
     }
 };
-function reactiveForm_changeDetectionToRaw(c) {
+function changeDetectionToRaw(c) {
     if ('raw' in c)
         return c.raw;
     else if ('keys' in c) {
-        let out = {};
+        const out = {};
         for (const key in c.keys) {
-            out[key] = reactiveForm_changeDetectionToRaw(c.keys[key]);
+            out[key] = changeDetectionToRaw(c.keys[key]);
         }
         return out;
     }
     else {
-        return c.elements.map(x => reactiveForm_changeDetectionToRaw(x));
+        return c.elements.map(x => changeDetectionToRaw(x));
     }
 }
-class reactiveForm_ObjectForm extends ReactiveForm {
+class ObjectForm extends ReactiveForm {
     constructor(data, keymap, newKey) {
         super();
         this.data = data;
         this.initialized = false;
         this.id = uuidv4();
         this.keyMap = keymap;
-        this.formMap = {};
+        this.formMap = new Map();
         this.changed = false;
         this.newKey = newKey;
     }
     makeInteractor(key, m) {
         const keyDynamic = (k) => !(k in this.keyMap);
         const keyMaps = () => {
-            let idxToKey = {};
-            let keyToIdx = {};
-            Object.keys(this.formMap).forEach((k, i) => {
-                idxToKey[i] = k;
-                keyToIdx[k] = i;
-            });
+            const idxToKey = {};
+            const keyToIdx = {};
+            let idx = 0;
+            for (const k of this.formMap.keys()) {
+                idxToKey[idx] = k;
+                keyToIdx[k] = idx;
+                idx += 1;
+            }
             return [idxToKey, keyToIdx];
         };
         const swapKeys = (idx1, idx2) => {
-            let ordering = Object.keys(this.formMap).map((k, idx) => ({
+            const ordering = Array.from(this.formMap.keys()).map((k, idx) => ({
                 k,
                 i: idx == idx1 ? idx2 : (idx == idx2 ? idx1 : idx)
             }));
             ordering.sort((a, b) => a.i - b.i);
-            let newFormMap = {};
-            ordering.forEach(item => newFormMap[item.k] = this.formMap[item.k]);
+            const newFormMap = new Map();
+            ordering.forEach(item => {
+                const x = this.formMap.get(item.k);
+                if (x)
+                    newFormMap.set(item.k, x);
+            });
             this.formMap = newFormMap;
             m.render(this);
         };
         return {
+            currentIndex: () => {
+                const [, keyToIdx] = keyMaps();
+                return keyToIdx[key];
+            },
             canDelete: () => keyDynamic(key),
             delete: () => {
-                delete this.formMap[key];
+                this.formMap.delete(key);
                 m.render(this);
             },
             canMoveDown: () => {
-                let [, keyToIdx] = keyMaps();
-                let idx = keyToIdx[key];
-                if (idx >= Object.keys(this.formMap).length - 1)
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
+                if (idx >= this.formMap.size - 1)
                     return false;
                 return true;
             },
             moveDown: () => {
-                let [, keyToIdx] = keyMaps();
-                let idx = keyToIdx[key];
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
                 swapKeys(idx, idx + 1);
             },
             canMoveUp: () => {
-                let [idxToKey, keyToIdx] = keyMaps();
-                let idx = keyToIdx[key];
+                const [idxToKey, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
                 if (idx <= 0)
                     return false;
                 if (!keyDynamic(idxToKey[idx - 1]))
@@ -11832,24 +7002,25 @@ class reactiveForm_ObjectForm extends ReactiveForm {
                 return true;
             },
             moveUp: () => {
-                let [, keyToIdx] = keyMaps();
-                let idx = keyToIdx[key];
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
                 swapKeys(idx, idx - 1);
             }
         };
     }
     initialize(m) {
         this.initialized = true;
-        let seen = new Set();
+        const seen = new Set();
         for (const key in this.keyMap) {
             seen.add(key);
-            this.formMap[key] = this.keyMap[key](this.data[key], this.makeInteractor(key, m));
+            const f = this.keyMap[key];
+            this.formMap.set(key, this.keyMap[key](this.data[key], this.makeInteractor(key, m)));
         }
         if (this.newKey) {
             for (const key in this.data) {
                 if (seen.has(key))
                     continue;
-                this.formMap[key] = this.newKey.onAdd(key, this.data[key], this.makeInteractor(key, m));
+                this.formMap.set(key, this.newKey.onAdd(key, this.data[key], this.makeInteractor(key, m)));
             }
         }
     }
@@ -11876,6 +7047,14 @@ class reactiveForm_ObjectForm extends ReactiveForm {
                             src: this.newKey.dropdownOptions.options,
                             map: ['value', 'text']
                         }
+                    },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
                     }
                 };
             }
@@ -11886,6 +7065,14 @@ class reactiveForm_ObjectForm extends ReactiveForm {
                     data: {
                         from: inputId,
                         ensure: true
+                    },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
                     }
                 };
             }
@@ -11907,14 +7094,16 @@ class reactiveForm_ObjectForm extends ReactiveForm {
                         control: {
                             html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
                             onClick: () => {
-                                let newName = m.getFormData(inputId);
+                                const newName = m.getFormData(inputId);
                                 if (typeof newName == 'string' && newName !== '') {
-                                    if (newName in this.formMap) {
-                                        displayErrorMessage("Key " + newName + " was already added.");
+                                    if (this.formMap.has(newName)) {
+                                        displayErrorMessage(new types.ErrMsg("Key " + newName + " was already added."));
                                     }
                                     else {
-                                        let newForm = this.newKey.onAdd(newName, undefined, this.makeInteractor(newName, m));
-                                        this.formMap[newName] = newForm;
+                                        if (this.newKey) {
+                                            const newForm = this.newKey.onAdd(newName, undefined, this.makeInteractor(newName, m));
+                                            this.formMap.set(newName, newForm);
+                                        }
                                     }
                                 }
                                 m.setFormData(inputId, '');
@@ -11936,21 +7125,27 @@ class reactiveForm_ObjectForm extends ReactiveForm {
                     gap: 1rem;
                 `
             },
-            items: [...Object.values(this.formMap), newKeyBtn]
+            items: [...this.formMap.values(), newKeyBtn]
         };
     }
     serialize(formData) {
-        if (this.initialized == false)
-            return { changed: false, raw: this.data };
-        let keys = {};
-        Object.entries(this.formMap).forEach(([k, v]) => keys[k] = v.serialize(formData));
-        return {
+        if (!this.initialized)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        const keys = {};
+        for (const [k, v] of this.formMap.entries()) {
+            const s = v.serialize(formData);
+            if (s.isOk())
+                keys[k] = s.asOk();
+            else
+                return s;
+        }
+        return (0,types.Ok)({
             keys,
             changed: this.changed
-        };
+        });
     }
 }
-class reactiveForm_ArrayForm extends ReactiveForm {
+class ArrayForm extends ReactiveForm {
     constructor(data, item, onAdd) {
         super();
         this.item = item;
@@ -11965,18 +7160,19 @@ class reactiveForm_ArrayForm extends ReactiveForm {
                 return;
             if (i2 < 0 || i2 >= this.entries.length)
                 return;
-            let e1 = this.entries[i1];
-            let e2 = this.entries[i2];
+            const e1 = this.entries[i1];
+            const e2 = this.entries[i2];
             e1.interactorCtx.index = i2;
             e2.interactorCtx.index = i1;
             this.entries[i2] = e1;
             this.entries[i1] = e2;
             m.render(this);
         };
-        let ctx = {
+        const ctx = {
             index: idx
         };
-        let interactor = {
+        const interactor = {
+            currentIndex: () => ctx.index,
             canDelete: () => true,
             delete: () => {
                 this.entries = this.entries.filter(e => e.interactorCtx.index != ctx.index);
@@ -11987,9 +7183,9 @@ class reactiveForm_ArrayForm extends ReactiveForm {
                 m.render(this);
             },
             canMoveUp: () => ctx.index > 0,
-            moveUp: () => swap(ctx.index, ctx.index - 1),
+            moveUp: () => { swap(ctx.index, ctx.index - 1); },
             canMoveDown: () => ctx.index < this.entries.length - 1,
-            moveDown: () => swap(ctx.index, ctx.index + 1)
+            moveDown: () => { swap(ctx.index, ctx.index + 1); }
         };
         return {
             form: this.item(elem, interactor),
@@ -12020,7 +7216,7 @@ class reactiveForm_ArrayForm extends ReactiveForm {
                             control: {
                                 html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
                                 onClick: () => {
-                                    let newItem = this.onAdd();
+                                    const newItem = this.onAdd();
                                     this.entries.push(this.makeEntry(newItem, this.entries.length, m));
                                     m.render(this);
                                 }
@@ -12035,13 +7231,20 @@ class reactiveForm_ArrayForm extends ReactiveForm {
         };
     }
     serialize(formData) {
-        if (this.initialized == false)
-            return { changed: false, raw: this.data };
-        let items = this.entries.map(e => e.form.serialize(formData));
-        return {
+        if (!this.initialized)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        const items = [];
+        for (const e of this.entries) {
+            const s = e.form.serialize(formData);
+            if (s.isOk())
+                items.push(s.asOk());
+            else
+                return s;
+        }
+        return (0,types.Ok)({
             elements: items,
             changed: items.reduce((a, b) => a || b.changed, false)
-        };
+        });
     }
 }
 class ItemLabel extends ReactiveForm {
@@ -12057,7 +7260,7 @@ class ItemLabel extends ReactiveForm {
     enabledCheck(m) {
         if (this.options.enabled === undefined)
             return undefined;
-        let enabled = {
+        const enabled = {
             id: this.id + '_enabled',
             type: 'checkbox',
             data: {
@@ -12069,6 +7272,14 @@ class ItemLabel extends ReactiveForm {
                     this.options.enabled = !this.options.enabled;
                     m.render(this);
                 }
+            },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
             }
         };
         m.setFormData(this.id + '_enabled', this.options.enabled);
@@ -12077,7 +7288,7 @@ class ItemLabel extends ReactiveForm {
     collapseBtn(m) {
         if (this.options.collapsed === undefined)
             return undefined;
-        let icon = this.options.collapsed ? 'chevronRight' : 'chevronDown';
+        const icon = this.options.collapsed ? 'chevronRight' : 'chevronDown';
         return {
             type: 'button',
             disabled: () => !(this.options.enabled ?? true),
@@ -12092,14 +7303,14 @@ class ItemLabel extends ReactiveForm {
         };
     }
     moveBtns(m) {
-        if ((this.options.showMove ?? false) == false)
+        if (!(this.options.showMove ?? false))
             return undefined;
         return {
             type: 'group',
             items: [
                 {
                     type: 'button',
-                    disabled: () => this.interactor.canMoveUp() == false,
+                    disabled: () => !this.interactor.canMoveUp(),
                     control: {
                         html: A5.u.icon.html('svgIcon=#alpha-icon-arrowUp:icon,24'),
                         onClick: () => {
@@ -12111,7 +7322,7 @@ class ItemLabel extends ReactiveForm {
                 },
                 {
                     type: 'button',
-                    disabled: () => this.interactor.canMoveDown() == false,
+                    disabled: () => !this.interactor.canMoveDown(),
                     control: {
                         html: A5.u.icon.html('svgIcon=#alpha-icon-arrowDown:icon,24'),
                         onClick: () => {
@@ -12125,11 +7336,11 @@ class ItemLabel extends ReactiveForm {
         };
     }
     deleteBtn(m) {
-        if ((this.options.showDelete ?? false) == false)
+        if (!(this.options.showDelete ?? false))
             return undefined;
         return {
             type: 'button',
-            disabled: () => this.interactor.canDelete() == false,
+            disabled: () => !this.interactor.canDelete(),
             control: {
                 html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
                 onClick: () => {
@@ -12141,7 +7352,7 @@ class ItemLabel extends ReactiveForm {
         };
     }
     render(m) {
-        let label = {
+        const label = {
             type: 'html',
             control: {
                 html: `<p class="dynamic-form-simple-label">${this.options.label}</p>`
@@ -12164,7 +7375,7 @@ class ItemLabel extends ReactiveForm {
             shouldDisplay = false;
         if (!(this.options.enabled ?? true))
             shouldDisplay = false;
-        let labelGroup = {
+        const labelGroup = {
             type: 'group',
             container: {
                 className: 'dynamic-form-item-group',
@@ -12178,7 +7389,7 @@ class ItemLabel extends ReactiveForm {
             items: [
                 this.enabledCheck(m),
                 this.collapseBtn(m),
-                (this.options.labelRight ?? false) == false ? label : undefined,
+                !(this.options.labelRight ?? false) ? label : undefined,
                 this.deleteBtn(m),
                 this.moveBtns(m),
                 this.options.labelRight ? {
@@ -12188,8 +7399,8 @@ class ItemLabel extends ReactiveForm {
                 } : undefined
             ]
         };
-        let tabCtx = m.getContext(this.options.launchInTab ?? '');
-        let newTabLaunch = {
+        const tabCtx = m.getContext(this.options.launchInTab ?? '');
+        const newTabLaunch = {
             type: 'button',
             control: {
                 html: `
@@ -12212,14 +7423,15 @@ class ItemLabel extends ReactiveForm {
             },
             sys: { isEmbedded: false }
         };
-        let itemGroup = {
+        const itemGroup = {
             type: 'group',
             items: [this.options.launchInTab
                     ? newTabLaunch
                     : this.options.item
             ]
         };
-        if (this.options.enclosed) {
+        if (this.options.enclosed && labelGroup.container) {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             labelGroup.container.style += `
                 padding: 0.5rem;
                 border: 1px solid black;
@@ -12249,7 +7461,7 @@ class ItemLabel extends ReactiveForm {
         if (this.options.enabled ?? true) {
             return this.options.item.serialize(formData);
         }
-        return { changed: false, raw: undefined };
+        return (0,types.Ok)({ changed: false, raw: undefined });
     }
 }
 class LabelBool extends ReactiveForm {
@@ -12290,6 +7502,16 @@ class LabelBool extends ReactiveForm {
                                 onChange: () => {
                                     this.value = !this.value;
                                     this.changed = true;
+                                    m.setFormData(this.id, this.value);
+                                    m.render(this);
+                                }
+                            },
+                            sys: {
+                                isEmbedded: false,
+                                item: {
+                                    layout: {
+                                        handle: {}
+                                    }
                                 }
                             }
                         },
@@ -12315,8 +7537,8 @@ class LabelBool extends ReactiveForm {
                 }]
         };
     }
-    serialize(formData) {
-        return { changed: this.changed, raw: this.value };
+    serialize() {
+        return (0,types.Ok)({ changed: this.changed, raw: this.value });
     }
 }
 class Input extends ReactiveForm {
@@ -12325,29 +7547,23 @@ class Input extends ReactiveForm {
         this.id = uuidv4();
         this.options = options;
         this.changed = false;
+        let fromWorld = (x) => x;
+        let toWorld = (x) => (0,types.Ok)(x);
+        if (this.options.type == 'datetime' && this.options.initialData instanceof Date) {
+            fromWorld = x => x.toFormat(options.dateFmt ?? DEFAULT_DATETIME_FMT);
+            toWorld = x => {
+                if (typeof x === 'string') {
+                    const d = new Date();
+                    d.fromFormat(x, this.options.dateFmt ?? DEFAULT_DATETIME_FMT);
+                    return (0,types.Ok)(d);
+                }
+                return (0,types.Ok)(x);
+            };
+        }
+        this.converters = { fromWorld, toWorld };
+        this.data = this.converters.fromWorld(options.initialData);
     }
     render(m) {
-        if (this.options.type == 'json') {
-            let container = {
-                type: 'html',
-                control: {
-                    html: `<div class="dynamic-form-json-editor" id="${this.id}" style="width: 80%"></div>`
-                }
-            };
-            // this.jsonEditorRenderCallbackId = this.dynForm.addCallback('afterRender', () => {
-            //     if (($(this.id) as HTMLElement).children.length > 0) return;
-            //     let editor = new TF.u.code.Editor(this.id, {
-            //         lang: 'json'
-            //     });
-            //     editor.setValue(this.dynForm.formBox.data[this.id]);
-            //     let simpleForm = this;
-            //     editor.onChange = function () {
-            //         simpleForm.dynForm.formBox.data[simpleForm.id] = this.value;
-            //     }
-            // });
-            // return container;
-            throw new Error('undefined');
-        }
         let editType;
         switch (this.options.type) {
             case "function":
@@ -12362,14 +7578,14 @@ class Input extends ReactiveForm {
                 editType = 'picker';
                 break;
         }
-        let input = {
+        const input = {
             control: {
                 multiLine: this.options.textarea,
                 width: '100%',
                 style: '',
                 picker: (editType == 'picker') ? {
-                    type: 'date',
-                    format: this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT
+                    type: 'date-time',
+                    format: this.options.dateFmt ?? DEFAULT_DATETIME_FMT
                 } : undefined,
                 behavior: (editType == 'picker') ? {
                     show: {
@@ -12384,15 +7600,23 @@ class Input extends ReactiveForm {
                     e.stopPropagation();
                 }
             },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
+            },
             id: this.id,
             type: editType,
             data: {
                 from: this.id,
                 ensure: true,
-                blank: this.options.data
+                blank: this.data
             },
             container: {
-                style: '; flex: 1 1;',
+                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`,
                 className: "dynamic-form-simple-item"
             },
             readonly: () => this.options.readonly ?? false,
@@ -12407,10 +7631,10 @@ class Input extends ReactiveForm {
         m.render(this);
     }
     serialize(formData) {
-        let val = formData[this.id];
+        const val = formData[this.id];
         let jsonVal;
-        if (val === undefined) {
-            return { changed: false, raw: this.options.data };
+        if (!(this.id in formData)) {
+            return (0,types.Ok)({ changed: false, raw: this.options.initialData });
         }
         switch (this.options.type) {
             case "function":
@@ -12424,27 +7648,20 @@ class Input extends ReactiveForm {
                 jsonVal = Boolean(val);
                 break;
             case "datetime": {
-                if (val instanceof Date) {
-                    jsonVal = val;
-                }
-                else {
-                    let d = new Date();
-                    d.fromFormat(val, this.options.dateFmt ?? listBuilder_DEFAULT_DATETIME_FMT);
-                    jsonVal = d;
-                }
-                break;
+                const result = this.converters.toWorld(val);
+                if (result.isOk())
+                    jsonVal = result.asOk();
+                else
+                    return (0,types.Err)("There was an error parsing the date value.");
             }
-            case "json":
-                jsonVal = JSON.parse(val);
-                break;
         }
-        return {
+        return (0,types.Ok)({
             changed: this.changed,
             raw: jsonVal
-        };
+        });
     }
 }
-class reactiveForm_MultiForm extends ReactiveForm {
+class MultiForm extends ReactiveForm {
     constructor(options) {
         super();
         this.cache = {};
@@ -12462,7 +7679,7 @@ class reactiveForm_MultiForm extends ReactiveForm {
     }
     render(m) {
         const icon = this.collapsed ? 'chevronRight' : 'chevronDown';
-        let header = {
+        const header = {
             type: 'group',
             items: [
                 this.allowCollapse ? {
@@ -12484,6 +7701,14 @@ class reactiveForm_MultiForm extends ReactiveForm {
                         ensure: true,
                         blank: this.activeOption
                     },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
+                    },
                     control: {
                         data: {
                             src: this.dropdownOptions.map(x => ({ text: x, value: x })),
@@ -12491,6 +7716,8 @@ class reactiveForm_MultiForm extends ReactiveForm {
                         },
                         onChange: (change) => {
                             if (change.item.data !== null && change.item.data !== undefined) {
+                                if (typeof change.item.data !== 'string')
+                                    return;
                                 this.activeOption = change.item.data;
                                 if (this.onSelect)
                                     this.onSelect(this.activeOption, this);
@@ -12540,7 +7767,7 @@ class reactiveForm_MultiForm extends ReactiveForm {
         return this.activeForm.serialize(formData);
     }
 }
-class reactiveForm_DropdownForm extends ReactiveForm {
+class DropdownForm extends ReactiveForm {
     constructor(options) {
         super();
         this.id = uuidv4();
@@ -12558,6 +7785,7 @@ class reactiveForm_DropdownForm extends ReactiveForm {
                 blank: this.currentOption,
                 defaultValue: this.currentOption
             },
+            readonly: () => this.options.readonly ?? false,
             control: {
                 data: {
                     src: this.options.options,
@@ -12572,6 +7800,8 @@ class reactiveForm_DropdownForm extends ReactiveForm {
                 },
                 onChange: (change) => {
                     if (change.item.data != undefined) {
+                        if (typeof change.item.data !== 'string')
+                            return;
                         this.changed = true;
                         this.currentOption = change.item.data;
                         if (this.options.onChange)
@@ -12583,40 +7813,50 @@ class reactiveForm_DropdownForm extends ReactiveForm {
                 }
             },
             container: {
-                style: '; flex: 1 1;'
+                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`
+            },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
             }
         };
     }
-    serialize(formData) {
-        return { changed: true, raw: this.currentOption };
+    serialize() {
+        return (0,types.Ok)({ changed: true, raw: this.currentOption });
     }
 }
-class reactiveForm_ConstForm extends ReactiveForm {
+class ConstForm extends ReactiveForm {
     constructor(value) {
         super();
         this.value = value;
     }
-    render(m) {
+    render() {
         return undefined;
     }
-    serialize(formData) {
-        return { changed: false, raw: this.value };
+    serialize() {
+        return (0,types.Ok)({ changed: false, raw: this.value });
     }
 }
 class Observer {
     constructor() {
-        this.watching = {};
+        this.watching = new Map();
     }
     onNotify(f) {
-        let id = uuidv4();
-        this.watching[id] = f;
+        const id = uuidv4();
+        this.watching.set(id, f);
         return id;
     }
     removeOnNotify(id) {
-        delete this.watching[id];
+        this.watching.delete(id);
     }
     notify(t) {
-        Object.values(this.watching).forEach(f => f(t));
+        for (const f of this.watching.values()) {
+            f(t);
+        }
     }
 }
 class ObserverForm extends ReactiveForm {
@@ -12625,14 +7865,14 @@ class ObserverForm extends ReactiveForm {
         this.observer = o;
         this.form = makeForm(initial);
         this.makeForm = makeForm;
+        this.fId = this.observer.onNotify(t => {
+            this.form = this.makeForm(t);
+            if (this.manager)
+                this.manager.render(this);
+        });
     }
     render(m) {
-        if (this.fId === undefined) {
-            this.fId = this.observer.onNotify(t => {
-                this.form = this.makeForm(t);
-                m.render(this);
-            });
-        }
+        this.manager = m;
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -12640,7 +7880,7 @@ class ObserverForm extends ReactiveForm {
     }
 }
 class AsyncForm extends ReactiveForm {
-    constructor(form, defaultValue, loadText) {
+    constructor(form, defaultValue) {
         super();
         this.needInitialize = true;
         this.defaultValue = defaultValue;
@@ -12649,10 +7889,10 @@ class AsyncForm extends ReactiveForm {
     render(m) {
         if (this.needInitialize) {
             this.needInitialize = false;
-            this.loader().then(f => {
+            okOrLog(this.loader().then(f => {
                 this.form = f;
                 m.render(this);
-            });
+            }));
         }
         if (this.form == undefined) {
             return {
@@ -12669,8 +7909,23 @@ class AsyncForm extends ReactiveForm {
     }
     serialize(formData) {
         if (this.form === undefined) {
-            return { changed: false, raw: this.defaultValue };
+            return (0,types.Ok)({ changed: false, raw: this.defaultValue });
         }
+        return this.form.serialize(formData);
+    }
+}
+class WithContext extends ReactiveForm {
+    constructor(name, ctx, form) {
+        super();
+        this.c = ctx;
+        this.form = form;
+        this.name = name;
+    }
+    render(m) {
+        m.setContext(this, this.name, this.c);
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
         return this.form.serialize(formData);
     }
 }
@@ -12687,7 +7942,7 @@ class TabForm extends ReactiveForm {
     }
     render(m) {
         m.setContext(this, this.name, new TabContext(this));
-        let tabs = this.tabs.map((tab, index) => {
+        const tabs = this.tabs.map((tab, index) => {
             let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
             if (index == this.tabs.length - 1) {
                 style += 'color: black; text-decoration: underline;';
@@ -12695,11 +7950,11 @@ class TabForm extends ReactiveForm {
             else {
                 style += 'color: #4d4d4d !important;';
             }
-            let t = {
+            const t = {
                 type: 'button',
                 control: {
                     html: `<p style="${style}">${tab.name}</p>`,
-                    onClick: () => this.navigateToTab(m, index),
+                    onClick: () => { this.navigateToTab(m, index); },
                     style: `display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;`
                 },
                 container: {
@@ -12712,7 +7967,7 @@ class TabForm extends ReactiveForm {
             }
             return t;
         });
-        let header = {
+        const header = {
             type: 'group',
             items: tabs,
             container: {
@@ -12770,6 +8025,3251 @@ class Show extends ReactiveForm {
         return this.form.serialize(formData);
     }
 }
+class CodeEditor extends ReactiveForm {
+    constructor(props) {
+        super();
+        this.id = uuidv4();
+        this.props = props;
+        this.changed = false;
+        if (typeof this.props.data == 'string') {
+            this.converters = {
+                fromWorld: d => d,
+                toWorld: d => (0,types.Ok)(d),
+            };
+        }
+        else {
+            this.converters = {
+                fromWorld: d => JSON.stringify(d, null, ' '),
+                toWorld: d => safeJsonParse(d).mapErr(e => e.message).map(x => x)
+            };
+        }
+        this.data = this.converters.fromWorld(props.data);
+    }
+    render(m) {
+        const containerId = this.id + '_CONTAINER';
+        if (!this.editorElem) {
+            const displayEditor = () => {
+                if (!$(this.id)) {
+                    return;
+                }
+                const editor = new TF.u.code.Editor(this.id, {
+                    lang: this.props.lang
+                });
+                this.editorElem = document.getElementById(editor._.id);
+                editor.setValue(this.data);
+                const _this = this;
+                editor.onChange = function () {
+                    if (_this.props.readonly)
+                        return;
+                    m.setFormData(_this.id, this.value);
+                    _this.data = this.value;
+                    _this.changed = true;
+                    m.setDirty(true);
+                };
+            };
+            m.setFormData(this.id, this.data);
+            this.initializationCallback = m.addRefreshCallback(displayEditor);
+        }
+        else {
+            m.removeRefreshCallback(this.initializationCallback);
+        }
+        if (!this.reDisplayEditor) {
+            this.reDisplayEditor = m.addRefreshCallback(() => {
+                const elem = document.getElementById(containerId);
+                if (!elem) {
+                    m.removeRefreshCallback(this.reDisplayEditor);
+                    this.reDisplayEditor = undefined;
+                    return;
+                }
+                elem.innerHTML = "";
+                elem.appendChild(this.editorElem);
+            });
+        }
+        return {
+            type: 'html',
+            control: {
+                html: `
+                    <div id="${containerId}">
+                    <div class="dynamic-form-code-editor"
+                        id="${this.id}" 
+                        style="width: 80%; ${this.props.readonly ? 'pointer-events: none; cursor: not-allowed;' : ''}">
+                    </div>
+                    </div>
+                `
+            },
+            layout: '{content}',
+        };
+    }
+    serialize(formData) {
+        if (this.props.readonly || !(this.id in formData)) {
+            return (0,types.Ok)({ changed: false, raw: this.props.data });
+        }
+        const val = formData[this.id];
+        return this.converters.toWorld(val).map(raw => ({
+            changed: this.changed,
+            raw
+        }));
+    }
+}
+
+;// ./src/listBuilder.ts
+
+
+
+
+
+
+const DEFAULT_DATETIME_FMT = "yyyy/MM/dd 0h:0m:0s.3";
+const LIST_NAME = 'DYNAMIC_LIST';
+const DETAIL_FORM_CONTAINER = 'EDITOR_CONTAINER';
+class ValidationError extends Error {
+    constructor(message, errors) {
+        let finalMsg = `<h4>${message}</h4>`;
+        errors.forEach(e => {
+            finalMsg += `<p>${e.message}</p>`;
+        });
+        super(finalMsg);
+        this.errors = errors;
+        this.message = finalMsg;
+    }
+    log() {
+        console.error(this);
+    }
+    show() {
+        return this.message;
+    }
+}
+const FILE_UPLOAD_STACK = [];
+function AFTER_FILE_UPLOAD() {
+    let top = FILE_UPLOAD_STACK.pop();
+    while (top) {
+        top.afterFileUpload();
+        top = FILE_UPLOAD_STACK.pop();
+    }
+}
+function validateConfig(config) {
+    const errors = [...Errors(types.ConfigTypeSchema, config)];
+    if (errors.length > 0)
+        throw new ValidationError("Could not validate config -- check logs.", errors);
+    return config;
+}
+function validateMapping(mapping) {
+    const errors = [...Errors(types.MappingTypeSchema, mapping)];
+    if (errors.length > 0)
+        throw new ValidationError("Could not validate config -- check logs.", errors);
+    return mapping;
+}
+function validateSchema(schema) {
+    const errors = [...Value.Errors(SchemaTypeSchema, schema)];
+    if (errors.length > 0)
+        throw new ValidationError("Could not validate schema -- check logs.", errors);
+    return schema;
+}
+function clone(t) {
+    if (t instanceof Array)
+        return jQuery.extend(true, [], t);
+    return jQuery.extend(true, {}, t);
+}
+async function listBuilder_fetch(obj, configName, endpoint) {
+    return new Promise((resolve) => {
+        obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
+            + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
+            onComplete: () => {
+                const result = obj.stateInfo.apiResult;
+                resolve(result);
+            }
+        });
+    });
+}
+async function preFileInteraction(obj, list) {
+    const oldGetListData = obj.getListDataAll;
+    const rawData = list.dataController.getAllFlattenedRows();
+    const processed = list.dataBridge.processedToRawStayFlattened(rawData);
+    if (processed.isOk() == false) {
+        displayErrorMessage(new types.ErrMsg("There was an error processing the list data: " + processed.asErr()));
+        return Promise.reject();
+    }
+    obj.getListDataAll = () => {
+        return processed.asOk() ?? [];
+    };
+    return new Promise((resolve) => {
+        obj.ajaxCallback("", "", "pre_file_upload", "", "", {
+            flagSaveListData: true,
+            submitListData: true,
+            onComplete: () => {
+                obj.getListDataAll = oldGetListData;
+                resolve({ ok: undefined });
+            }
+        });
+    });
+}
+async function postFileInteraction(obj) {
+    return new Promise((resolve, reject) => {
+        obj.ajaxCallback("", "", "post_file_upload", "", "", {
+            onComplete: () => {
+                const result = obj.stateInfo.apiResult;
+                if ('err' in result)
+                    resolve(result);
+                else {
+                    safeJsonParse(result.ok).match({
+                        ok: data => resolve({ ok: data }),
+                        err: e => resolve({ err: e.message })
+                    });
+                }
+            }
+        });
+    });
+}
+class DynamicList {
+    constructor() {
+        this.selectedRows = new Set();
+        this.clickedRow = null;
+        this.initialLoadComplete = false;
+        this.permanentFilters = [];
+        this.searchFilters = [];
+        this.orderings = [];
+        this.buttonFns = {};
+        this.onRender = [];
+        this.permissions = {
+            editConfigMappings: false,
+            editFullConfig: false
+        };
+        this.containerId = '';
+        this.id = 'list_' + uuidv4();
+        DYNAMIC_LIST_LOOKUP[this.id] = this;
+    }
+    destructor() {
+        if (this.listBox.destroy)
+            this.listBox.destroy();
+    }
+    static makeDynamicList(ops) {
+        return new Promise((resolve) => {
+            const list = new DynamicList();
+            list.permanentFilters = ops.filters ?? [];
+            list.searchFilters = [];
+            list.buttonFns = {};
+            list.onRender = [];
+            list.obj = ops.obj;
+            list.prefetched = ops.prefetch;
+            list.config = clone(ops.prefetch.config);
+            list.dataBridge = new DataBridge(list.config, ops.prefetch.serverTimeOffset);
+            list.dataController = new DataController([], list.config, ops.prefetch.schema);
+            list.permissions = ops.permissions;
+            ops.obj.stateInfo.configName = list.config.name;
+            const ptr = ops.obj.getPointer(ops.containerId);
+            if (!ptr) {
+                throw new Error("Container ID " + ops.containerId + " does not exist.");
+            }
+            list.containerId = ptr.id;
+            if (ops.otherProperties) {
+                list.onSaveOverride = ops.otherProperties.onSaveOverride;
+                list.staticDataOverride = ops.otherProperties.dataOverride;
+            }
+            validateConfig(list.config);
+            if (list.config.onInitialize) {
+                try {
+                    (0,types.stringReprToFn)(list.config.onInitialize)(list);
+                }
+                catch (e) {
+                    console.error("Initialize function failed.");
+                    console.error(e);
+                }
+            }
+            ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
+            list.buildList();
+            resolve(list);
+        })
+            .then((list) => {
+            if (ops.prefetch.data === undefined || ops.prefetch.data.length == 0) {
+                return list.fetchData();
+            }
+            else {
+                list.setData(ops.prefetch.data, ops.prefetch.serverTimeOffset);
+                return list;
+            }
+        })
+            .then((list) => {
+            list.initialLoadComplete = true;
+            return list.reRender(false);
+        }).then((list) => {
+            list.recalculateButtons();
+            return list;
+        });
+    }
+    reRender(refetch) {
+        if (refetch) {
+            return this.fetchData().then(list => {
+                list.populateListBox();
+                return list;
+            });
+        }
+        this.populateListBox();
+        return Promise.resolve(this);
+    }
+    setStaticData(data) {
+        this.config.dataSource = {
+            type: 'json',
+            jsonData: JSON.stringify(data),
+            preprocess: this.config.dataSource.preprocess,
+        };
+        this.buildList();
+        return this.reRender(true);
+    }
+    downloadExcelTemplate() {
+        okOrLog(preFileInteraction(this.obj, this)
+            .then(() => { this.obj.runAction('Download Excel Template'); }));
+    }
+    uploadFileToList() {
+        const filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+        this.obj.stateInfo.currentFilters = filters;
+        FILE_UPLOAD_STACK.length = 0;
+        FILE_UPLOAD_STACK.push(this);
+        okOrLog(preFileInteraction(this.obj, this)
+            .then(() => { this.obj.runAction('File Upload'); }));
+    }
+    afterFileUpload() {
+        okOrLog(postFileInteraction(this.obj)
+            .then(uploadResult => {
+            if ('ok' in uploadResult) {
+                const onDone = () => {
+                    okOrLog(this.reRender(false).then(() => { this.recalculateButtons(); }));
+                };
+                this.dataBridge.processImportedData(uploadResult.ok).match({
+                    ok: data => {
+                        const regularInsert = () => {
+                            this.dataController.insertRows(data.map(x => ({ data: x, attachToIndex: 0 })), true);
+                            onDone();
+                        };
+                        if (this.dataController.mappingInfo.insertionKeys.length > 0) {
+                            this.showRowPicker({
+                                onUnneeded: regularInsert,
+                                onSelect: idx => {
+                                    this.dataController.insertRows(data.map(x => ({ data: x, attachToIndex: idx })), true);
+                                    onDone();
+                                },
+                            });
+                        }
+                        else {
+                            regularInsert();
+                        }
+                    },
+                    err: e => {
+                        displayErrorMessage(new types.ErrMsg("There was an error processing the imported data: " + e));
+                    }
+                });
+            }
+            else {
+                displayErrorMessage(new types.ErrMsg("There was an error uploading the data: " + uploadResult.err));
+            }
+        }));
+    }
+    downloadDataToFile() {
+        const filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
+        this.obj.stateInfo.currentFilters = filters;
+        okOrLog(preFileInteraction(this.obj, this)
+            .then(() => { this.obj.runAction('File Download'); }));
+    }
+    async saveDynamicListEdits() {
+        let { toUpdate, toDelete, toInsert } = this.dataController.getDirtyRows();
+        const override = this.onSaveOverride;
+        if (override) {
+            let data = this.dataController.applyChanges();
+            return this.dataBridge.processedToRaw(data).match({
+                ok: data => {
+                    const result = override(this, data);
+                    if (result !== undefined) {
+                        return result.then(() => {
+                            this.obj.refreshClientSideComputations(true);
+                            this.recalculateButtons();
+                            return this.reRender(true);
+                        }).then(() => { });
+                    }
+                },
+                err: e => {
+                    displayErrorMessage(new types.ErrMsg("There was an error processing the data: " + e));
+                    return Promise.reject();
+                }
+            });
+        }
+        const onComplete = async () => {
+            const result = this.obj.stateInfo.apiResult;
+            if ('err' in result) {
+                let errMsgTxt = "<p>There were errors while syncing data.</p> <ol>";
+                errMsgTxt = `<li>${result.err.toString()}</li>`;
+                errMsgTxt += "</ol>";
+                displayErrorMessage(new types.ErrMsg(errMsgTxt));
+            }
+            this.obj.refreshClientSideComputations(true);
+            this.recalculateButtons();
+            await this.reRender(true);
+        };
+        const processed = this.dataBridge.processedToRaw(toUpdate)
+            .flatMap(x => this.dataBridge.processedToRaw(toDelete).map(y => [x, y]))
+            .flatMap(([x, y]) => this.dataBridge.processedToRaw(toInsert).map(z => [x, y, z]));
+        if (processed.isOk()) {
+            [toUpdate, toDelete, toInsert] = processed.asOk();
+        }
+        else {
+            displayErrorMessage(new types.ErrMsg("There was an error processing the data: " + processed.asErr()));
+            return Promise.reject();
+        }
+        if (this.config.dataSource.type == 'sql') {
+            return new Promise(resolve => {
+                this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURI(this.config.name)
+                    + "&toUpdate=" + encodeURI(JSON.stringify(toUpdate))
+                    + "&toInsert=" + encodeURI(JSON.stringify(toInsert))
+                    + "&toDelete=" + encodeURI(JSON.stringify(toDelete)), {
+                    onComplete: () => onComplete().then(() => resolve())
+                });
+            });
+        }
+        else if ('endpoints' in this.config.dataSource) {
+            const allQueries = [];
+            const queryPopulateErrors = [];
+            const populateQueries = (list, endpoint) => {
+                list.forEach(() => {
+                    if (!('endpoints' in this.config.dataSource))
+                        return;
+                    if (!(endpoint in this.config.dataSource.endpoints))
+                        return;
+                    const ep = this.config.dataSource.endpoints[endpoint];
+                    if (ep) {
+                        allQueries.push({
+                            endpoint: endpoint,
+                            callback: (0,types.stringReprToFn)("() => {}"),
+                        });
+                    }
+                    else {
+                        const errMsgTxt = `<p>The necessary endpoint (${endpoint}) is not defined for this list.</p>`;
+                        queryPopulateErrors.push(errMsgTxt);
+                    }
+                });
+            };
+            populateQueries(toInsert, 'create');
+            populateQueries(toUpdate, 'update');
+            populateQueries(toDelete, 'delete');
+            if (queryPopulateErrors.length > 0) {
+                let msg = "<p>There were errors while synchronizing the list.</p><ul>";
+                queryPopulateErrors.forEach(x => msg += x);
+                msg += "</ul>";
+                displayErrorMessage(new types.ErrMsg(msg));
+                return;
+            }
+            const promises = allQueries.map(q => listBuilder_fetch(this.obj, this.config.name, q.endpoint).then(q.callback));
+            await Promise.all(promises);
+            return onComplete();
+        }
+    }
+    addOnRenderCallback(f) {
+        this.onRender.push(f);
+    }
+    buildSettings() {
+        const allColumns = [];
+        if (this.config.multiSelect)
+            allColumns.push(this.buildCheckboxColumn());
+        allColumns.push(...DataController.getDataMappings(this.config)
+            .map(x => this.buildColumnDefinition(x)));
+        const items = {};
+        const dialogId = this.obj.dialogId;
+        this.config.buttons.forEach((b, i) => allColumns.push(this.buildColumnButton(b, i, items)));
+        items['__toggleCheck'] = {
+            selectable: false,
+            onClick: (index) => {
+                const idx = this.listBox.getIndex(index)[0].index;
+                let src = this.listBox.__checkedImage;
+                if (this.selectedRows.has(index)) {
+                    this.selectedRows.delete(index);
+                    src = this.listBox.__uncheckedImage;
+                }
+                else {
+                    this.selectedRows.add(index);
+                }
+                const ele = document.getElementById(`${dialogId}.${LIST_NAME}.CHECKBOX${idx.toString()}`);
+                if (ele) {
+                    A5.u.icon.update(ele.children[0], src);
+                }
+                this.recalculateButtons();
+            }
+        };
+        items['__toggleAll'] = {
+            selectable: false,
+            onClick: () => {
+                if (this.selectedRows.size == this.dataController.length().flattened)
+                    this.selectedRows.clear();
+                else {
+                    for (let i = 0; i < this.dataController.length().flattened; i++) {
+                        this.selectedRows.add(i);
+                    }
+                }
+                ;
+                this.recalculateButtons();
+                this.listBox.refresh();
+            }
+        };
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const listObj = this;
+        return {
+            theme: this.obj.styleName,
+            containerId: this.containerId,
+            layout: 'Default',
+            layouts: {
+                'Default': {
+                    type: 'column',
+                    columns: allColumns
+                }
+            },
+            items,
+            group: this.makeGroupingSettings(),
+            onItemDraw: (elem, data, index) => {
+                const dirtyRowClass = `_${dialogId}_${LIST_NAME}_dirtyRow`;
+                const dirtyStyle = `_${dialogId}_${LIST_NAME}_dirtyRowStyle`;
+                const newRowClass = `_${dialogId}_${LIST_NAME}_newRow`;
+                const newRowStyle = `_${dialogId}_${LIST_NAME}_newRowStyle`;
+                const deletedRowClass = `_${dialogId}_${LIST_NAME}_deletedRow`;
+                const deletedRowStyle = `_${dialogId}_${LIST_NAME}_deletedStyle`;
+                const meta = this.dataController.rowMetadata(index);
+                if (!meta)
+                    return;
+                if (meta.isDeleted)
+                    elem.classList.add(deletedRowClass, deletedRowStyle);
+                else if (meta.isInserted)
+                    elem.classList.add(newRowClass, newRowStyle);
+                else if (meta.isDirty)
+                    elem.classList.add(dirtyRowClass, dirtyStyle);
+            },
+            onListDraw(data) {
+                if (data.length == 0) {
+                    const content = $(this.contId + '.CONTENT');
+                    if (!content) {
+                        console.error("Couldn't find element " + this.contId + '.CONTENT');
+                        return;
+                    }
+                    ;
+                    const msg = !listObj.initialLoadComplete ? 'Fetching Data...' : 'No Records in List';
+                    content.innerHTML = `
+                        <div id="${this.contId + '.NORECORDSINLIST'}" style="text-align: center; padding: 1rem;">
+                            <span>${msg}</span>
+                        </div>
+                    `;
+                }
+                if (listObj.config.multiSelect === true) {
+                    const allChecked = listObj.selectedRows.size == listObj.dataController.length().flattened;
+                    let h;
+                    if (allChecked) {
+                        h = A5.u.icon.html(this.__checkedImage);
+                    }
+                    else {
+                        h = A5.u.icon.html(this.__uncheckedImage);
+                    }
+                    const _id = listObj.obj.dialogId + '.' + LIST_NAME + '.CHECKBOXALL';
+                    const ele = $(_id);
+                    if (ele)
+                        ele.innerHTML = h;
+                }
+            },
+            setOrder: (order) => {
+                const origOrder = A5.ListBox.prototype.setOrder.bind(this.listBox);
+                if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+                    // Current page should be reset, otherwise we'll be looking at a seemingly 
+                    // random slice of the data after a sort.
+                    this.listBox._state.page = 1;
+                    let colName = undefined;
+                    if (typeof order === 'object')
+                        colName = Object.keys(order)[0];
+                    else {
+                        this.orderings = [];
+                        okOrLog(this.reRender(true).then(() => { origOrder(order); }));
+                        return;
+                    }
+                    if (!colName)
+                        this.orderings = [];
+                    else {
+                        let colExists = false;
+                        try {
+                            DataController.lookupMapping(colName, this.config);
+                            colExists = true;
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        }
+                        catch (e) {
+                            colExists = false;
+                        }
+                        if (!colExists) {
+                            origOrder(order);
+                            return;
+                        }
+                        this.orderings = this.orderings.filter(o => o.columnName != colName);
+                        if (order[colName] !== false) {
+                            const ordering = order[colName] > 0 ? 'asc' : 'desc';
+                            this.orderings.push({ columnName: colName, order: ordering });
+                        }
+                    }
+                    okOrLog(this.reRender(true).then(() => { origOrder(order); }));
+                    return;
+                }
+                origOrder(order);
+            },
+            _state: {
+                page: 1,
+                pageCount: 5,
+                pageSize: 20,
+                recordCount: 100
+            },
+            _refreshStateMessages: () => {
+                /*eslint-disable */
+                if ('paginate' in this.config.dataSource) {
+                    const pNum = document.getElementById(`_${dialogId}.${LIST_NAME}.PAGENUMBER`);
+                    const pCnt = document.getElementById(`_${dialogId}.${LIST_NAME}.PAGECOUNT`);
+                    const pSelector = document.getElementById(`_${dialogId}.${LIST_NAME}.PAGECOUNT.SELECTOR`);
+                    const lState = document.getElementById(`_${dialogId}.${LIST_NAME}.LISTSTATE`);
+                    const lAny = this.listBox;
+                    if (pNum)
+                        pNum.innerHTML = lAny._state.page;
+                    if (pCnt)
+                        pCnt.innerHTML = lAny._state.pageCount;
+                    if (pSelector)
+                        pSelector.innerHTML = lAny._state.pageCount;
+                    if (lState) {
+                        let listState = JSON.stringify(lAny._state);
+                        lState.innerHTML = listState;
+                    }
+                    let navObj = lAny._listNavigator;
+                    if (!navObj) {
+                        lAny._listNavigator = this.obj._navigationBar(this.listBox._navBarId ?? '');
+                        navObj = lAny._listNavigator;
+                    }
+                    if (navObj) {
+                        let data = navObj.data;
+                        data.settings = lAny._navigationBar;
+                        data.pageNumber = lAny._state.page;
+                        data.totalPages = lAny._state.pageCount;
+                        data.totalRecords = lAny._state.recordCount;
+                        navObj.items.clickNavigationLink.onClick = (v, ia, i, ele) => {
+                            ia = ia.split('|');
+                            let target = ia[1];
+                            if (target == 'first') {
+                                lAny._state.page = 1;
+                            }
+                            else if (target == 'prev') {
+                                if (lAny._state.page >= 1) {
+                                    lAny._state.page -= 1;
+                                }
+                            }
+                            else if (target == 'next') {
+                                if (lAny._state.page < lAny._state.pageCount) {
+                                    lAny._state.page += 1;
+                                }
+                            }
+                            else if (target == 'last') {
+                                lAny._state.page = lAny._state.pageCount;
+                            }
+                            else {
+                                lAny._state.page = Number(target);
+                            }
+                            this.reRender(true);
+                        };
+                        data.listName = lAny.listVariableName;
+                        navObj.populate(data);
+                        this.listBox.refresh();
+                        this.listBox.resize();
+                    }
+                }
+                /* eslint-enable */
+            },
+            view: {
+                navigation: {
+                    next: {
+                        className: 'lsitNavButtonNext'
+                    },
+                    prev: {
+                        className: 'listNavButtonPrev'
+                    }
+                }
+            },
+            _hasNavigationBar: true,
+            _navBarId: `${dialogId}_DYNAMIC_LIST_NAVIGATOR`,
+            _navigationBar: {
+                style: 'dropdown',
+                firstIcon: 'svgIcon=#alpha-icon-chevronDblLeft:icon,24',
+                lastIcon: 'svgIcon=#alpha-icon-chevronDblRight:icon,24',
+                prevIcon: 'svgIcon=#alpha-icon-chevronLeft:icon,24',
+                nextIcon: 'svgIcon=#alpha-icon-chevronRight:icon,24',
+                numberOfLinks: 6,
+                justification: 'Center',
+                buttonSize: 'Normal',
+                buttonsubtheme: 'Circle',
+                showCurrentPageNumber: true,
+                currentPageNumberTemplate: '{pageNumber} of {pageCount}',
+                showCurrentPageNumberasInputControl: false,
+                currentPageNumberInputControlSize: '100px',
+                showPageSizeSelector: false,
+                pageSizeSelectorTemplate: 'Page size: {pageSizeSelector}',
+                pageSizes: '1,10,20,50,100',
+                navBarPlacement: 'ListFooter',
+                navBarFooterPlacement: 'BelowUserContent',
+                customization: {
+                    messages: {
+                        listDirty: 'List is dirty. Please save changes first before navigating.'
+                    }
+                },
+                navBarPlacementDivId: ''
+            },
+            __checkedImage: 'svgIcon=#alpha-icon-checkCircle:icon,24',
+            __uncheckedImage: 'svgIcon=#alpha-icon-circle:icon,24',
+            customization: {
+                confirmDeleteWarning: {
+                    title: 'Warning',
+                    icon: 'svgIcon=#alpha-icon-questionCircle:icon,24',
+                    message: 'Are you sure you want to delete this record?'
+                }
+            },
+            footer: {
+                show: 'paginate' in this.config.dataSource,
+                html: `<div id="${dialogId}_DYNAMIC_LIST_NAVIGATOR" style="width: 100%; text-align: center;"></div>`,
+            },
+        };
+    }
+    buildListFieldDefn(name) {
+        const defn = {
+            name: name,
+            defaultValue: `return this._controlDefaultValueForListField('${name}');`,
+            onDetailViewPopulate: '',
+            onListUpdate: '',
+        };
+        return defn;
+    }
+    linkSublistToField(name, label, index, path) {
+        const onSave = (newData, childList) => {
+            const dirty = this.dataController.isDirty();
+            this.dataBridge.rawToProcessed(newData).match({
+                ok: newData => {
+                    const updatedData = this.dataController.getFlattenedRow(index);
+                    this.dataController.pathUpdate(updatedData, path, newData);
+                    this.dataController.updateRows([{ index, newData: updatedData }]);
+                    const rest = () => {
+                        this.obj.refreshClientSideComputations(true);
+                        this.recalculateButtons();
+                        this.listBox.refresh(true);
+                        this.dataController.getData(index, path).match({
+                            ok: newData => {
+                                if (Array.isArray(newData)) {
+                                    childList.setData(newData, this.dataBridge.serverTzOffset);
+                                }
+                                childList.reRender(false);
+                            },
+                            err: v => {
+                                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
+                            }
+                        });
+                    };
+                    if (dirty) {
+                        A5.msgBox.show("Sync Parent?", "The parent list has other edits. Sync those edits to the server?", "yn", (answer) => {
+                            if (answer == 'yes')
+                                okOrLog(this.saveDynamicListEdits());
+                            else
+                                rest();
+                        });
+                    }
+                    else {
+                        okOrLog(this.saveDynamicListEdits().then(rest));
+                    }
+                },
+                err: e => {
+                    displayErrorMessage(new types.ErrMsg("There was an error processing the child lists' data: " + e));
+                }
+            });
+        };
+        this.dataController.getData(index, path).match({
+            ok: nestedData => {
+                if (!Array.isArray(nestedData)) {
+                    const pathName = path.map(p => {
+                        if (p.tag == 'object')
+                            return p.key;
+                        else
+                            return '[...]';
+                    }).join('.');
+                    const msg = `
+                        <p>The field ${pathName} is not an array. Please ensure the following: </p>
+                        <ul>
+                            <li> "${pathName}" is declared as a DATA MAPPING with data type JSON </li>
+                            <li> The JSON data in "${pathName}" <em>is</em> actually an array, and not an object or value </li>
+                        </ul>
+                    `;
+                    displayErrorMessage(new types.ErrMsg(msg));
+                }
+                else {
+                    this.openSublistFromNested(name, label, nestedData, onSave);
+                }
+            },
+            err: v => {
+                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
+            }
+        });
+    }
+    launchNewPanel(configName, titleName, filters = []) {
+        okOrLog(openNewPanel({
+            configName: configName,
+            filters: filters,
+            listContainerId: 'LIST_CONTAINER',
+            searchContainerId: 'SEARCH_CONTAINER',
+            obj: this.obj,
+            titleName
+        }));
+    }
+    linkNewPanel(configName, titleName, filters) {
+        okOrLog(openNewPanel({
+            configName: configName,
+            listContainerId: 'LIST_CONTAINER',
+            searchContainerId: 'SEARCH_CONTAINER',
+            titleName: titleName,
+            filters: filters,
+            obj: this.obj,
+        }));
+    }
+    showRowPicker(ops) {
+        if (this.dataController.mappingInfo.insertionKeys.length == 0) {
+            ops.onUnneeded();
+            return;
+        }
+        const id = this.id + '_ROW_PICKER_MODAL';
+        let modal = document.getElementById(id);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = id;
+            modal.style.position = 'absolute';
+            modal.style.left = '0px';
+            modal.style.top = '0px';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '100';
+            document.body.appendChild(modal);
+        }
+        const close = () => {
+            document.body.removeChild(modal);
+        };
+        modal.onclick = close;
+        const body = document.createElement('div');
+        const bodyId = this.id + '_ROW_PICKER_BODY';
+        body.id = bodyId;
+        body.style.width = '90%';
+        body.style.height = '90%';
+        body.style.backgroundColor = 'white';
+        body.style.boxShadow = '0px 0px 100px 20px';
+        const listContainer = document.createElement('div');
+        listContainer.id = body.id + "_LIST";
+        listContainer.style.flex = '1';
+        listContainer.style.width = '100%';
+        const title = document.createElement('p');
+        title.innerText = "Select a row to append data to.";
+        title.style.marginLeft = '1rem';
+        body.appendChild(title);
+        body.appendChild(listContainer);
+        modal.appendChild(body);
+        const displayableMapping = (m) => {
+            if (m.tag == 'data')
+                return m;
+            if (m.tag == 'array')
+                return null;
+            if (m.tag == 'nested')
+                return displayableMapping(m.mapping);
+            return displayableMapping(m.item);
+        };
+        const cols = this.config.mappings
+            .map(displayableMapping)
+            .filter(x => x != null)
+            .map(m => this.buildColumnDefinition(m));
+        const settings = {
+            theme: this.obj.styleName,
+            allParentLists: [],
+            layout: 'default',
+            layouts: {
+                'default': {
+                    type: 'column',
+                    columns: cols
+                }
+            },
+            onSelect(index) {
+                const rawIdx = this.getIndex(index)[0].index;
+                ops.onSelect(rawIdx);
+                close();
+            },
+        };
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const l = new A5.ListBox(listContainer.id, [], settings);
+        l.populate(this.dataController.getAllRawData());
+    }
+    updateRecordCount() {
+        const count = document.getElementById(this.obj.dialogId + "_RECORD_COUNT");
+        if (count) {
+            const len = this.listBox._rData.filter(x => !('*group' in x)).length;
+            count.innerHTML = "Records: " + len.toString();
+        }
+    }
+    setFilterAndFetch(filters) {
+        this.searchFilters = filters;
+        okOrLog(this.reRender(true));
+    }
+    newDetailViewRecord(x) {
+        const buildForm = () => {
+            const makeForm = () => { this.buildDetailViewForm(x); };
+            const openForm = () => { this.obj.runAction('Navigate Detail View'); };
+            A5.executeThisThenThat(makeForm, openForm);
+        };
+        if (x.tag == 'newRecord' && this.dataController.mappingInfo.insertionKeys.length > 0) {
+            const html = `<div id="dynamic-list-row-selector-${this.id}"></div>`;
+            const dd = document.createElement('select');
+            A5.msgBox.show("Select a row to add to", html, 'o', () => {
+                const v = Number.parseInt(dd.value);
+                if (!Number.isNaN(v)) {
+                    x = { tag: 'appendToBlankArray', rawRow: v };
+                    buildForm();
+                }
+            });
+            this.dataController.getFreeRows().forEach(({ row, index }) => {
+                const opt = document.createElement('option');
+                const descriptor = DataController
+                    .getDataMappings(this.config)
+                    .filter(x => x.inList)
+                    .map(x => row[x.flattenedName])
+                    .filter(x => typeof x === 'string')
+                    .join(' | ');
+                opt.innerText = descriptor;
+                opt.value = index.toString();
+                dd.appendChild(opt);
+            });
+            document.getElementById(`dynamic-list-row-selector-${this.id}`)?.appendChild(dd);
+        }
+        else {
+            buildForm();
+        }
+    }
+    clearSearchFilters() {
+        this.listBox.setFilter(false);
+    }
+    recalculateButtons() {
+        const sync = this.obj.getControl('BUTTON_DVSYNCHRONIZE_LIST1');
+        if (sync) {
+            if (this.dataController.isDirty())
+                sync.setDisabled(false);
+            else
+                sync.setDisabled(true);
+            sync.onClick = () => { okOrLog(this.saveDynamicListEdits()); };
+        }
+        const multiEdit = this.obj.getControl('MULTI_EDIT_BTN');
+        if (multiEdit) {
+            const selectedCount = this.selectedRows.size;
+            if (selectedCount > 1) {
+                multiEdit.setDisabled(false);
+            }
+            else {
+                multiEdit.setDisabled(true);
+            }
+            multiEdit.onClick = () => {
+                this.newDetailViewRecord({ tag: 'multiEditRecords', records: Array.from(this.selectedRows) });
+            };
+        }
+        const addRow = this.obj.getControl("BUTTON_4");
+        if (addRow) {
+            addRow.onClick = () => {
+                this.showRowPicker({
+                    onUnneeded: () => { this.newDetailViewRecord({ tag: 'newRecord' }); },
+                    onSelect: idx => { this.newDetailViewRecord({ tag: 'appendToBlankArray', rawRow: idx }); }
+                });
+            };
+        }
+        const panelNavigator = this.obj.getPanelObject('PANELNAVIGATOR_1');
+        if (panelNavigator) {
+            panelNavigator.panels.forEach(panel => {
+                if (panel.title == 'List Options') {
+                    if (!this.permissions.editConfigMappings) {
+                        panel.show = false;
+                    }
+                }
+            });
+            panelNavigator.refresh();
+        }
+    }
+    makeGroupingSettings() {
+        const isNestedArr = (m) => {
+            if (m.tag == 'array')
+                return m;
+            else if (m.tag == 'object')
+                return isNestedArr(m.item);
+            else if (m.tag == 'nested')
+                return isNestedArr(m.mapping);
+            return null;
+        };
+        const arrays = this.config.mappings.filter(isNestedArr);
+        if (arrays.length == 0)
+            return { auto: [] };
+        return {
+            auto: [
+                {
+                    order: false,
+                    group: (row) => {
+                        const num = row['*key'];
+                        if (typeof num == 'number') {
+                            const idx = this.dataController.originalIndexOf(num).asOk();
+                            if (idx !== undefined)
+                                return idx.toString();
+                        }
+                        return '';
+                    },
+                    header: {
+                        className: `A5ListGroupHeaders ${A5.themes._t.Alpha.listbox.base.item.titleClassName}`,
+                        html: (group, data) => {
+                            const num = data[0]['*key'];
+                            if (typeof num == 'number') {
+                                const record = this.dataController.originalIndexOf(num).asOk();
+                                if (record !== undefined)
+                                    return "{indicator} Record: " + record.toString();
+                            }
+                            return "{indicator}";
+                        },
+                    },
+                    footer: {
+                        show: false,
+                    },
+                    collapse: {
+                        allow: 'indicator',
+                        indicator: {
+                            collapse: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon'),
+                            expand: A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
+                        },
+                    },
+                }
+            ],
+            continued: { wrap: false }
+        };
+    }
+    buildColumnDefinition(mapping) {
+        const name = mapping.flattenedName;
+        let template = '{' + name + '}';
+        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
+            template = `{${name}:date("${mapping?.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT}")}`;
+        }
+        if (mapping.template)
+            template = mapping.template;
+        return {
+            show: mapping.inList ?? false,
+            header: {
+                html: mapping.displayName ?? name
+            },
+            data: {
+                template: `<span id="${this.obj.dialogId}.${LIST_NAME}.${name}.I.{*dataRow}"> ${template} </span>`
+            },
+            width: mapping.width ?? 'flex(1)',
+            resize: true,
+            order: name,
+        };
+    }
+    buildColumnButton(button, btnNumber, items) {
+        if (!button.title)
+            button.title = '';
+        let innerTemplate = button.title + '&nbsp';
+        if (button.icon && button.icon != '') {
+            innerTemplate += `{@A5.u.icon.html(<escape<'${button.icon}'>>)}`;
+        }
+        if (button.children != undefined) {
+            return {
+                header: {
+                    html: button.columnTitle
+                },
+                _name: button.columnTitle,
+                _type: 'Menu',
+                resize: true,
+                rcw: 0,
+                data: {
+                    template: `
+						<div style="display:inline-block" id="${this.obj.dialogId}.${LIST_NAME}.MENU.${btnNumber.toString()}.{*dataRow}" title="" a5-item="_MENU_onClick_${btnNumber.toString()}" class="${LIST_NAME}_BUTTON">
+							${innerTemplate}
+						</div>&nbsp;
+					`
+                }
+            };
+        }
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const tmpThis = this;
+        items[`_systemButtononClick_${btnNumber.toString()}`] = {
+            'selectable': true,
+            onClick: (idx, v, args) => {
+                const data = this.dataController.getFlattenedRow(idx);
+                if ('function' in button.onClick) {
+                    (function (rowNumber, value, ia, data) {
+                        (0,types.stringReprToFn)(button.onClick.function)(tmpThis, rowNumber, data);
+                    }(idx, v, args, data));
+                }
+                else if ('action' in button.onClick) {
+                    this.obj.runAction(button.onClick.action);
+                }
+                else {
+                    executeListAction(this, button.onClick.listAction, data, idx);
+                }
+            }
+        };
+        return {
+            header: { html: button.columnTitle },
+            _name: btnNumber.toString(),
+            _type: 'Button',
+            data: {
+                template: `
+						<button
+							a5-item = "_systemButtononClick_${btnNumber.toString()}"
+							class="button"
+							style="cursor:pointer;"
+							title="${button.title}"
+							id="${this.obj.dialogId}.${LIST_NAME}.BTN.{*dataRow}"
+						>${innerTemplate}</button>
+				`,
+                style: 'white-space: normal !important;'
+            },
+            order: false,
+        };
+    }
+    buildCheckboxColumn() {
+        const id = this.obj.dialogId + '.' + LIST_NAME;
+        const checked = A5.u.icon.html("svgIcon=#alpha-icon-checkCircle:icon,24");
+        const unchecked = A5.u.icon.html("svgIcon=#alpha-icon-circle:icon,24");
+        const template = `
+            <div 
+                style="display: inline-block;" 
+                id="${id + '.CHECKBOX{*key}'}" 
+                a5-item="__toggleCheck"
+            >
+                {*if DYNAMIC_LIST_LOOKUP["${this.id}"].selectedRows.has([value]["*key"])}
+                    ${checked}
+                {*else}
+                    ${unchecked}
+                {*endif}
+            </div>`;
+        return {
+            header: {
+                html: `<span id="${id + '.CHECKBOXALL'}" a5-item="__toggleAll"></span>`
+            },
+            _name: '<CheckBoxSelect>',
+            resize: true,
+            data: {
+                template: template.replace(/(\r\n|\n|\r|\t)/gm, ""),
+                style: 'text-align: left; text-overflow: clip !important; white-space: normal !important;'
+            },
+            width: '50px'
+        };
+    }
+    buildDetailViewForm(addInfo) {
+        let selectedData;
+        if (addInfo.tag == 'editExistingRecord') {
+            selectedData = this.dataController.getFlattenedRow(addInfo.record);
+        }
+        else if (addInfo.tag == 'multiEditRecords') {
+            selectedData = {};
+            addInfo.records.forEach(r => {
+                const d = this.dataController.getFlattenedRow(r);
+                for (const key in d) {
+                    if (key in selectedData && selectedData[key] !== d[key]) {
+                        selectedData[key] = makeObviousDefault(DataController.lookupMapping(key, this.config));
+                    }
+                    else {
+                        selectedData[key] = d[key];
+                    }
+                }
+            });
+        }
+        else if (addInfo.tag == 'newRecord') {
+            selectedData = {};
+            this.config.mappings.forEach(m => A5.u.object.assign(selectedData, makeObviousDefault(m)));
+        }
+        else if (addInfo.tag == 'newRecordInRow') {
+            selectedData = this.dataController.getFlattenedRow(addInfo.row);
+            this.dataController.mappingInfo.insertionKeys.forEach(k => {
+                selectedData[k] = makeObviousDefault(DataController.lookupMapping(k, this.config));
+            });
+            this.config.mappings.forEach(m => A5.u.object.assign(selectedData, makeObviousDefault(m)));
+        }
+        else {
+            selectedData = {};
+            const origRow = this.dataController.getRawRow(addInfo.rawRow);
+            const fillData = (m, p) => {
+                if (m.tag == 'data') {
+                    if (p.length == 0)
+                        p = [{ tag: 'object', key: m.flattenedName }];
+                    if (this.dataController.mappingInfo.insertionKeys.includes(m.flattenedName)) {
+                        selectedData[m.flattenedName] = makeObviousDefault(m);
+                    }
+                    else {
+                        const chased = this.dataController.chasePath(origRow, p);
+                        if (chased !== undefined && chased !== null)
+                            selectedData[m.flattenedName] = chased;
+                    }
+                }
+                else if (m.tag == 'nested')
+                    fillData(m.mapping, [{ tag: 'object', key: m.key }]);
+                else if (m.tag == 'array')
+                    fillData(m.item, [...p, { tag: 'array', index: 0 }]);
+                else
+                    fillData(m.item, [...p, { tag: 'object', key: m.key }]);
+            };
+            this.config.mappings.forEach(m => { fillData(m, []); });
+        }
+        const form = flatRowInputForm(this, d => !(d.inDetailView ?? false), d => {
+            const i = this.dataController.mappingInfo.insertionKeys;
+            if (i.length == 0)
+                return false;
+            return !i.includes(d.flattenedName);
+        })(selectedData);
+        const saveOps = {};
+        if (addInfo.tag == 'editExistingRecord') {
+            saveOps.onDelete = [addInfo.record];
+            saveOps.onNew = { tag: 'newRecordInRow', row: addInfo.record };
+            saveOps.onSave = { tag: 'update', rows: [addInfo.record] };
+        }
+        else if (addInfo.tag == 'multiEditRecords') {
+            saveOps.onDelete = addInfo.records;
+            saveOps.onNew = { tag: 'newRecord' };
+            saveOps.onSave = { tag: 'update', rows: addInfo.records };
+        }
+        else if (addInfo.tag == 'newRecord') {
+            saveOps.onDelete = [];
+            saveOps.onNew = { tag: 'newRecord' };
+            saveOps.onSave = { tag: 'insert' };
+        }
+        else if (addInfo.tag == 'newRecordInRow') {
+            saveOps.onDelete = [];
+            saveOps.onNew = { tag: 'newRecordInRow', row: addInfo.row };
+            saveOps.onSave = { tag: 'insert', attachTo: addInfo.row };
+        }
+        else {
+            saveOps.onDelete = [];
+            saveOps.onNew = { tag: 'appendToBlankArray', rawRow: addInfo.rawRow };
+            saveOps.onSave = { tag: 'insertRaw', rawRow: addInfo.rawRow };
+        }
+        const bottomButtons = this.makeDetailContextButtons(saveOps);
+        const container = this.obj.getPointer(DETAIL_FORM_CONTAINER);
+        const id = container ? container.id : '';
+        this.detailView = new ReactiveFormManager(form, id, this.obj, objForm => ({
+            type: 'group',
+            items: [
+                objForm,
+                bottomButtons
+            ]
+        }));
+    }
+    makeDetailContextButtons(options) {
+        const divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
+        // Alpha overrides all events on all elements with its own handlers. 
+        // Apparently, there is a bug where the old 'onclick' version of a button is kept 
+        // around. (No other properties of the old button are kept). 
+        // I cannot figure out how or why this is happening, and so the workaround 
+        // is to store the function in the dialog object, so that the 
+        // button onclick method doesn't carry any captured variables. 
+        // We can edit the dialog object properties to change the function.
+        const doDelete = () => {
+            if (this.listBox.customization?.confirmDeleteWarning) {
+                const c = this.listBox.customization.confirmDeleteWarning;
+                A5.msgBox.show(c.title, c.message, "OC", (action) => {
+                    if (action === 'ok') {
+                        this.dataController.deleteRows(options.onDelete);
+                        this.listBox.populate(this.dataController.getAllFlattenedRows());
+                        this.obj.refreshClientSideComputations(true);
+                        this.recalculateButtons();
+                    }
+                });
+            }
+        };
+        const doSave = () => {
+            let d = {};
+            if (options.onSave.tag == 'insert' || options.onSave.tag == 'insertRaw' || (options.onSave.rows.length <= 1)) {
+                const s = this.detailView?.serialize();
+                if (s === undefined) {
+                    displayErrorMessage(new types.ErrMsg('The detail view was never constructed. This is a bug.'));
+                    return;
+                }
+                if (s.isOk() === false) {
+                    displayErrorMessage(new types.ErrMsg(s.asErr()));
+                    return;
+                }
+                d = s.asOk();
+            }
+            else {
+                const serialized = this.detailView?.serializeWithChanges() ?? (0,types.Ok)({ changed: false, raw: null });
+                if (serialized.isOk() == false) {
+                    displayErrorMessage(new types.ErrMsg(serialized.asErr()));
+                    return;
+                }
+                const changes = serialized.asOk();
+                if ('keys' in changes) {
+                    for (const key in changes.keys) {
+                        const item = changes.keys[key];
+                        if ('raw' in item && item.changed) {
+                            d[key] = item.raw;
+                        }
+                        else if ('keys' in item && item.changed) {
+                            d[key] = item.keys;
+                        }
+                        else if ('elements' in item && item.changed) {
+                            d[key] = item.elements;
+                        }
+                    }
+                }
+            }
+            if (typeof d != 'object' || Array.isArray(d)) {
+                displayErrorMessage(new types.ErrMsg('The serialized detail view is neither an object or an array. This is a bug.'));
+                return;
+            }
+            if (options.onSave.tag == 'insert') {
+                this.dataController.insertRows([{ attachToIndex: options.onSave.attachTo ?? 0, data: d }], false);
+            }
+            else if (options.onSave.tag == 'update') {
+                this.dataController.updateRows(options.onSave.rows.map(s => ({ index: s, newData: d })));
+            }
+            else {
+                this.dataController.insertRows([{ data: d, attachToIndex: options.onSave.rawRow }], true);
+            }
+            this.listBox.populate(this.dataController.getAllFlattenedRows());
+            this.recalculateButtons();
+            this.detailView?.setDirty(false);
+            this.detailView?.refresh();
+        };
+        this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doDelete;
+        this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doSave;
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
+                            <p>Save</p>
+                        </div>
+                        `,
+                        onClick: () => { this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                    },
+                    sys: { isEmbedded: false },
+                    disabled: () => this.detailView?.isDirty() === false
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
+                            <p>Delete</p>
+                        </div>
+                        `,
+                        onClick: () => { this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                    },
+                    sys: { isEmbedded: false }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `
+                        <div style="${divStyle}">
+                            ${A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
+                            <p>New Record</p>
+                        </div>
+                        `,
+                        onClick: () => {
+                            this.recalculateButtons();
+                            this.newDetailViewRecord(options.onNew);
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                },
+            ],
+            container: {
+                style: '; display: flex; flex-direction: row; gap: 1rem;'
+            }
+        };
+    }
+    openSublistFromNested(name, label, data, onSave) {
+        const newSchema = {
+            version: this.config.version,
+            name: name,
+            dataSource: {
+                type: 'json',
+                jsonData: JSON.stringify(data)
+            },
+            mappings: [],
+            searchOptions: {},
+            buttons: [],
+        };
+        const ops = {
+            obj: this.obj,
+            listContainerId: "LIST_CONTAINER",
+            searchContainerId: "SEARCH_CONTAINER",
+            configName: name,
+            titleName: label,
+            fallbackConfig: newSchema,
+            otherProps: {
+                onSaveOverride: (list, newData) => {
+                    onSave(newData, list);
+                },
+                dataOverride: data,
+            }
+        };
+        okOrLog(openNewPanel(ops));
+    }
+    makeFilterFromSelected(colName, foreignColName) {
+        let thisVal = '';
+        if (this.listBox.selectionData.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            thisVal = this.listBox.selectionData[0][colName]?.toString() ?? 'null';
+        }
+        return [{
+                columnName: foreignColName,
+                columnVal: { tag: "value", value: thisVal.toString() },
+                connector: 'AND',
+                op: '='
+            }];
+    }
+    setData(rawData, serverTzOffset) {
+        let rawDataRows;
+        if ('count' in rawData) {
+            let pageSize;
+            if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+                pageSize = this.config.dataSource.paginate.pageSize;
+            }
+            else {
+                pageSize = rawData.count;
+            }
+            this.listBox._state = {
+                pageSize: pageSize,
+                page: this.listBox._state?.page ?? 1,
+                pageCount: Math.ceil(rawData.count / pageSize),
+                recordCount: rawData.count
+            };
+            rawDataRows = rawData.result;
+        }
+        else {
+            rawDataRows = rawData;
+        }
+        if (this.staticDataOverride !== undefined)
+            this.staticDataOverride = rawDataRows;
+        try {
+            if (this.config.dataSource.preprocess)
+                rawDataRows = (0,types.stringReprToFn)(this.config.dataSource.preprocess)(rawDataRows);
+        }
+        catch (e) {
+            console.log(e);
+            rawDataRows = [];
+        }
+        this.dataBridge.setTzOffset(serverTzOffset);
+        this.dataBridge.rawToProcessed(rawDataRows).match({
+            ok: processedRows => {
+                this.dataController = new DataController(processedRows, this.config, this.prefetched.schema);
+                if (this.listBox._state == undefined)
+                    this.listBox._state = { page: 0, pageCount: 0, pageSize: 0, recordCount: 0 };
+                this.listBox._state.recordCount = this.dataController.length().flattened;
+                this.recalculateButtons();
+            },
+            err: e => {
+                displayErrorMessage(new types.ErrMsg("There was an error processing your data: " + e));
+            }
+        });
+    }
+    fetchData() {
+        // There is a bug where the parent somehow doesn't point to the most recent list object
+        // During a refresh, the message is something like "cannot set property whiteSpace of undefined"
+        // This is the fix
+        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
+        const allFilters = [...this.permanentFilters, ...this.searchFilters];
+        if (this.config.dataSource.type == 'sql') {
+            for (const filter of allFilters) {
+                if (this.dataController.mappingInfo.insertionKeys.includes(filter.columnName)) {
+                    const errMsg = `
+                        <p> One of your columns, <b>'${filter.columnName}'</b>, is nested inside a list column. </p>
+                        <p> You cannot do a server-side search using this column, and you cannot filter results based on it. </p>
+                        <p> You need to remove the column from your search or remove it from your filter. </p>
+                    `;
+                    displayErrorMessage(new types.ErrMsg(errMsg));
+                    return Promise.resolve(this);
+                }
+            }
+        }
+        const filters = JSON.stringify(allFilters);
+        let paginate = '';
+        if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
+            const page = this.listBox._state?.page ?? 1;
+            paginate = "&pageOptions=" + encodeURIComponent(`{pageSize: ${this.config.dataSource.paginate.pageSize.toString()}, getPage: ${page.toString()}}`);
+        }
+        let sortOptions = '';
+        if (this.orderings.length > 0) {
+            sortOptions = '&sortOptions=' + encodeURIComponent(JSON.stringify(this.orderings));
+        }
+        if (this.config.dataSource.type == 'sql' && 'table' in this.config.dataSource) {
+            return new Promise((resolve, reject) => {
+                this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
+                    + "&filters=" + encodeURIComponent(filters)
+                    + sortOptions
+                    + paginate, {
+                    onComplete: () => {
+                        const response = this.obj.stateInfo.apiResult;
+                        if ("err" in response) {
+                            reject(new Error(response.err));
+                            return;
+                        }
+                        this.setData(response.ok.fetchedData, response.ok.serverTimeOffset);
+                        resolve(this);
+                    }
+                });
+            });
+        }
+        else if (this.config.dataSource.type == 'sql') {
+            return new Promise((resolve, reject) => {
+                this.obj.ajaxCallback("", "", "getAllDataForTable", "", "configName=" + encodeURIComponent(this.config.name)
+                    + "&filters=" + encodeURIComponent(filters)
+                    + sortOptions
+                    + paginate, {
+                    onComplete: () => {
+                        const response = this.obj.stateInfo.apiResult;
+                        if ("err" in response) {
+                            reject(new Error(response.err));
+                            return;
+                        }
+                        this.setData(response.ok.fetchedData, response.ok.serverTimeOffset);
+                        resolve(this);
+                    }
+                });
+            });
+        }
+        else if ('jsonData' in this.config.dataSource) {
+            let data = [];
+            if (this.staticDataOverride) {
+                data = clone(this.staticDataOverride);
+            }
+            else {
+                safeJsonParse(this.config.dataSource.jsonData).flatMap(d => {
+                    if (!Array.isArray(d))
+                        return (0,types.Err)(new SyntaxError("Expected JSON to be an array."));
+                    return (0,types.Ok)(d);
+                }).match({
+                    ok: v => data = clone(v),
+                    err: e => {
+                        data = [];
+                        displayErrorMessage(new types.MsgWithCtx("The data supplied in Static JSON could not be parsed as a JSON array.", e));
+                    }
+                });
+            }
+            this.setData(data, this.dataBridge.serverTzOffset);
+            return Promise.resolve(this);
+        }
+        else {
+            let endpoint;
+            if (this.permanentFilters.length == 0 && this.searchFilters.length == 0) {
+                endpoint = "fetch";
+            }
+            else {
+                endpoint = "search";
+            }
+            return listBuilder_fetch(this.obj, this.config.name, endpoint)
+                .then((json) => {
+                if ('err' in json) {
+                    displayErrorMessage(new types.ErrMsg(json.err));
+                    return this;
+                }
+                this.setData(json.ok.fetchedData, json.ok.serverTimeOffset);
+                return this;
+            });
+        }
+    }
+    populateListBox() {
+        this.listBox.populate(this.dataController.getAllFlattenedRows());
+        for (const f of this.onRender) {
+            f();
+        }
+        this.listBox.refresh();
+        this.listBox.resize();
+        this.updateRecordCount();
+        if (this.listBox._refreshStateMessages)
+            this.listBox._refreshStateMessages();
+    }
+    buildList() {
+        // this.listBox = new A5.ListBox(this.containerId, [], this.settings);
+        // this.listBox._hostComponentId = this.obj.dialogId;
+        // this.listBox._listSystemOnClickPopulateJSONForm = (rowNum: number) => { };
+        // window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+        this.listBox = new A5.ListBox(this.containerId, [], this.buildSettings());
+        this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
+    }
+}
+class DataController {
+    constructor(rawData, config, rawSchema) {
+        this.rowExplosionInfo = new Map();
+        this.config = config;
+        this.rawData = rawData;
+        this.mappingInfo = DataController.collectMappingInfo(this.config);
+        this.buildSchema(rawSchema);
+        this.calculateFlattenedData();
+        this.rawDirtyRows = new Set();
+        this.rawDeletedRows = new Set();
+        this.rawInsertedRows = new Set();
+    }
+    static lookupMapping(name, config) {
+        const searchRec = (m) => {
+            if (m.tag == 'data' && m.flattenedName == name)
+                return m;
+            else if (m.tag == 'data')
+                return null;
+            else
+                return searchRec(m.item);
+        };
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data' && mapping.flattenedName == name)
+                return mapping;
+            else if (mapping.tag == 'nested') {
+                const tmp = searchRec(mapping.mapping);
+                if (tmp)
+                    return tmp;
+            }
+        }
+        throw new Error("No mapping " + name);
+    }
+    static getDetailViewMappings(config) {
+        const traverse = (s) => {
+            if (s.tag == 'data' && s.inDetailView)
+                return s;
+            else if (s.tag == 'array' || s.tag == 'object')
+                return traverse(s.item);
+            return null;
+        };
+        const out = [];
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data' && mapping.inDetailView)
+                out.push({ mapping, key: mapping.flattenedName });
+            else if (mapping.tag == 'nested') {
+                const x = traverse(mapping.mapping);
+                if (x)
+                    out.push({ mapping: x, key: mapping.key });
+            }
+        }
+        return out;
+    }
+    static getDataMappings(config) {
+        const traverse = (s) => {
+            if (s.tag == 'data')
+                return s;
+            return traverse(s.item);
+        };
+        return config.mappings.map(x => x.tag == 'nested' ? traverse(x.mapping) : x);
+    }
+    static getSearchableColumns(config) {
+        const traverse = (m, quantifiable, key) => {
+            if (m.tag == 'data') {
+                const name = m.flattenedName;
+                return {
+                    displayName: m.displayName ?? name,
+                    columnName: name,
+                    quantifiable: quantifiable,
+                    editType: m.editType ?? 'text',
+                    mapping: m
+                };
+            }
+            else if (m.tag == 'array') {
+                return traverse(m.item, true, key);
+            }
+            else {
+                return traverse(m.item, quantifiable, m.key);
+            }
+        };
+        const arr = [];
+        for (const mapping of config.mappings) {
+            if (mapping.tag == 'data') {
+                arr.push({
+                    displayName: mapping.displayName ?? mapping.flattenedName,
+                    columnName: mapping.flattenedName,
+                    quantifiable: false,
+                    editType: mapping.editType ?? 'text',
+                    mapping: mapping
+                });
+            }
+            else {
+                const x = traverse(mapping.mapping, false, mapping.key);
+                arr.push(x);
+            }
+        }
+        return arr;
+    }
+    isDirty() {
+        return this.rawInsertedRows.size > 0 || this.rawDeletedRows.size > 0 || this.rawDirtyRows.size > 0;
+    }
+    // Get non-flattened dirty rows
+    getDirtyRows() {
+        const out = {
+            toUpdate: this.rawData.filter((_, i) => this.rawDirtyRows.has(i)),
+            toDelete: this.rawData.filter((_, i) => this.rawDeletedRows.has(i)),
+            toInsert: this.rawData.filter((_, i) => this.rawInsertedRows.has(i) && !this.rawDeletedRows.has(i)),
+        };
+        return clone(out);
+    }
+    getAllFlattenedRows() {
+        return clone(this.flattenedData).map(x => DataController.unflattenPoint(x));
+    }
+    static unflattenPoint(f) {
+        const out = {};
+        for (const key in f)
+            out[key] = f[key].data;
+        return out;
+    }
+    getFlattenedRow(i) {
+        return DataController.unflattenPoint(this.flattenedData[i]);
+    }
+    getRawRow(i) {
+        return this.rawData[i];
+    }
+    /// Delete deleted rows, set other rows clean. Return (copy of) data.
+    applyChanges() {
+        // No insertion keys ==> 1:1 mapping with flat data
+        // Insertion keys ==> literally cannot delete a top level row because 
+        // we only operate on sub-elements 
+        if (this.mappingInfo.insertionKeys.length == 0) {
+            this.rawData = this.rawData.filter((_, i) => !this.rawDeletedRows.has(i));
+        }
+        this.rawDeletedRows.clear();
+        this.rawInsertedRows.clear();
+        this.rawDirtyRows.clear();
+        return clone(this.rawData);
+    }
+    length() {
+        return { raw: this.rawData.length, flattened: this.flattenedData.length };
+    }
+    rowMetadata(index) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return undefined;
+        }
+        return {
+            isDeleted: this.rawDeletedRows.has(idx),
+            isInserted: this.rawInsertedRows.has(idx),
+            isDirty: this.rawDirtyRows.has(idx)
+        };
+    }
+    getData(index, path) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return (0,types.Err)(void (0));
+        }
+        return (0,types.Ok)(this.chasePath(this.rawData[idx], path));
+    }
+    getAllRawData() {
+        return clone(this.rawData);
+    }
+    updateRows(items) {
+        items.forEach(({ index, newData }) => {
+            const relaventRow = this.flattenedData[index];
+            const unflattenedIndex = this.rowExplosionInfo.get(index);
+            if (unflattenedIndex === undefined) {
+                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
+                return;
+            }
+            for (const key in relaventRow) {
+                if (key in newData) {
+                    this.pathUpdate(this.rawData[unflattenedIndex], relaventRow[key].path, newData[key]);
+                }
+            }
+            this.rawDirtyRows.add(unflattenedIndex);
+        });
+        this.calculateFlattenedData();
+    }
+    // For if we're appending to a brand new item
+    newRowFromBlank(data) {
+        let parent = this.rawData[0];
+        for (let i = 0; i < this.mappingInfo.insertionKeys.length; i++) {
+            const k = this.mappingInfo.insertionKeys[i];
+            const p = this.mappingInfo.insertionPaths[i];
+            if (k in data) {
+                this.pathUpdate(parent, p, data[k]);
+            }
+        }
+        this.rawDirtyRows.add(0);
+        this.calculateFlattenedData();
+    }
+    insertRows(data, indexIsRaw) {
+        if (this.mappingInfo.insertionKeys.length == 0) {
+            data.forEach(x => {
+                const d = x.data;
+                const f = {};
+                for (const key in d) {
+                    f[key] = {
+                        path: [{ tag: 'object', key }],
+                        data: d[key]
+                    };
+                }
+                ;
+                this.rawData.push(d);
+                this.rawInsertedRows.add(this.rawData.length - 1);
+            });
+            this.calculateFlattenedData();
+            return;
+        }
+        if (this.flattenedData.length == 0) {
+            let rest = data.splice(1);
+            this.newRowFromBlank(data[0].data);
+            this.insertRows(rest, indexIsRaw);
+            return;
+        }
+        data.forEach(d => {
+            let relaventRow;
+            let originalRow;
+            const rawIndex = this.rowExplosionInfo.get(d.attachToIndex);
+            if (rawIndex === undefined) {
+                displayErrorMessage(new types.ErrMsg("The index " + rawIndex + " is out of range. This is a bug."));
+                return;
+            }
+            if (indexIsRaw) {
+                relaventRow = this.flattenedData[rawIndex];
+                originalRow = this.rawData[d.attachToIndex];
+                this.rawDirtyRows.add(d.attachToIndex);
+            }
+            else {
+                relaventRow = this.flattenedData[d.attachToIndex];
+                originalRow = this.rawData[rawIndex];
+                this.rawDirtyRows.add(rawIndex);
+            }
+            const seenArrays = [];
+            const getNewIndex = (p) => {
+                const existingArr = this.chasePath(originalRow, p);
+                // Want to insert
+                if (existingArr === null) {
+                    const newArr = [];
+                    seenArrays.push([newArr, 0]);
+                    this.pathUpdate(originalRow, p, newArr);
+                    return (0,types.Ok)(0);
+                }
+                if (!Array.isArray(existingArr)) {
+                    return (0,types.Err)(void (0));
+                }
+                for (const [arr, idx] of seenArrays) {
+                    if (Object.is(arr, existingArr))
+                        return (0,types.Ok)(idx);
+                }
+                seenArrays.push([existingArr, existingArr.length]);
+                return (0,types.Ok)(existingArr.length);
+            };
+            const pathStr = (p) => p.map(x => {
+                if (x.tag == 'object')
+                    return x.key;
+                return '[...]';
+            }).join('.');
+            for (const key in d.data) {
+                if (this.mappingInfo.insertionKeys.includes(key)) {
+                    const path = relaventRow[key].path;
+                    for (let i = path.length - 1; i >= 0; i--) {
+                        const curr = path[i];
+                        if (curr.tag == 'array') {
+                            getNewIndex(path.slice(0, i)).match({
+                                ok: i => { curr.index = i; },
+                                err: () => {
+                                    displayErrorMessage(new types.ErrMsg(`
+                                        The datapoint ${JSON.stringify(d.data)} is misconfigured in the list settings.
+                                        The configured path (${pathStr(path)}) indicates an array at depth ${i}. The datapoint
+                                        does not have this array.
+                                    `));
+                                }
+                            });
+                            break;
+                        }
+                    }
+                    this.pathUpdate(originalRow, path, d.data[key]);
+                }
+            }
+        });
+        this.calculateFlattenedData();
+    }
+    originalIndexOf(index) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return (0,types.Err)(void (0));
+        }
+        return (0,types.Ok)(idx);
+    }
+    deleteRows(indexes) {
+        if (Object.keys(this.mappingInfo.nested).length == 0) {
+            indexes.forEach(i => {
+                this.rawDeletedRows.add(i);
+                this.rawInsertedRows.delete(i);
+            });
+        }
+        else {
+            indexes.forEach(i => {
+                const flatRow = this.flattenedData[i];
+                const rawIndex = this.rowExplosionInfo.get(i);
+                if (rawIndex === undefined) {
+                    displayErrorMessage(new types.ErrMsg("Index " + i + "can't be unflattened. This is a bug."));
+                    return;
+                }
+                const rawRow = this.rawData[rawIndex];
+                const deepestArrayPath = (p) => {
+                    for (let i = p.length - 1; i >= 0; i--) {
+                        if (p[i].tag == 'array')
+                            return p.slice(0, i + 1);
+                    }
+                };
+                const insertionKey = this.mappingInfo.insertionKeys[0];
+                const pathToDelete = flatRow[insertionKey].path;
+                const arrayPart = deepestArrayPath(pathToDelete);
+                if (arrayPart === undefined)
+                    return;
+                const last = arrayPart[arrayPart.length - 1];
+                if (last.tag != 'array')
+                    return;
+                const idxToRemove = last.index;
+                const newArray = this.chasePath(rawRow, arrayPart.slice(0, arrayPart.length - 1));
+                if (!(newArray instanceof Array))
+                    return;
+                newArray.splice(idxToRemove, 1);
+                this.rawDirtyRows.add(rawIndex);
+                this.rowExplosionInfo.delete(i);
+            });
+        }
+        this.calculateFlattenedData();
+    }
+    chasePath(o, path) {
+        if (path.length == 0)
+            return o;
+        if (o === undefined || o === null)
+            return null;
+        if (path[0].tag == 'array')
+            return this.chasePath(o[path[0].index], path.slice(1));
+        return this.chasePath(o[path[0].key], path.slice(1));
+    }
+    // Get any raw rows that were not expanded
+    getFreeRows() {
+        const allShownRows = new Set(this.rowExplosionInfo.values());
+        return clone(this.rawData)
+            .map((x, i) => ({ index: i, row: x }))
+            .filter((_, i) => !allShownRows.has(i));
+    }
+    pathUpdate(o, path, data) {
+        path = clone(path);
+        if (path.length == 0)
+            return;
+        const front = path.splice(0, 1)[0];
+        const expectObj = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an object, but it is not.`);
+        const expectArr = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an array, but it is not.`);
+        if (path.length == 0) {
+            if (front.tag == 'object') {
+                if (o === null)
+                    o = {};
+                else if (typeof o != 'object') {
+                    displayErrorMessage(expectObj);
+                    return;
+                }
+                o[front.key] = data;
+            }
+            else {
+                if (!Array.isArray(o)) {
+                    displayErrorMessage(expectArr);
+                    return;
+                }
+                if (front.index >= o.length) {
+                    o.push(data);
+                }
+                else {
+                    o[front.index] = data;
+                }
+            }
+        }
+        else {
+            if (front.tag == 'object') {
+                if (typeof o != 'object' || o === null) {
+                    displayErrorMessage(expectObj);
+                    return;
+                }
+                if (o[front.key] == null || o[front.key] == undefined) {
+                    if (path[0].tag == 'object')
+                        o[front.key] = {};
+                    else
+                        o[front.key] = [];
+                }
+                this.pathUpdate(o[front.key], path, data);
+            }
+            else {
+                if (!Array.isArray(o)) {
+                    displayErrorMessage(expectArr);
+                    return;
+                }
+                if (o[front.index] == null || o[front.index] == undefined) {
+                    if (path[0].tag == 'object')
+                        o[front.index] = {};
+                    else
+                        o[front.index] = [];
+                }
+                this.pathUpdate(o[front.index], path, data);
+            }
+        }
+    }
+    calculateFlattenedData() {
+        const dataCpy = clone(this.rawData);
+        this.rowExplosionInfo = new Map();
+        this.flattenedData = [];
+        dataCpy.forEach((entry, index) => {
+            const currIdx = this.flattenedData.length;
+            const toInsert = this.flatten(entry);
+            for (let i = currIdx; i < currIdx + toInsert.length; i++) {
+                this.rowExplosionInfo.set(i, index);
+            }
+            this.flattenedData.push(...toInsert);
+        });
+    }
+    static collectMappingInfo(c) {
+        const nestedGroups = {};
+        const nonNested = {};
+        const toMerged = (n) => {
+            if (n.tag == 'array')
+                return { tag: 'array', item: toMerged(n.item) };
+            if (n.tag == 'object')
+                return { tag: 'object', keys: { [n.key]: toMerged(n.item) } };
+            return n;
+        };
+        const merge = (a, b) => {
+            if (a.tag == 'object' && b.tag == 'object') {
+                const allKeys = Array.from(new Set([...Object.keys(a.keys), ...Object.keys(b.keys)]));
+                const out = {};
+                allKeys.forEach(key => {
+                    if (key in a.keys && key in b.keys)
+                        out[key] = merge(a.keys[key], b.keys[key]);
+                    else if (key in a.keys)
+                        out[key] = a.keys[key];
+                    else
+                        out[key] = b.keys[key];
+                });
+                return { tag: 'object', keys: out };
+            }
+            else if (b.tag == 'array' && a.tag == 'array') {
+                return { tag: 'array', item: merge(a.item, b.item) };
+            }
+            throw new Error("Nested mappings do not share a similar structure.");
+        };
+        c.mappings.forEach(m => {
+            if (m.tag == 'nested') {
+                if (!(m.key in nestedGroups))
+                    nestedGroups[m.key] = toMerged(m.mapping);
+                else
+                    nestedGroups[m.key] = merge(nestedGroups[m.key], toMerged(m.mapping));
+            }
+            else {
+                nonNested[m.flattenedName] = m;
+            }
+        });
+        let deepest = 0;
+        let keysToInsertFrom = [];
+        let insertionPaths = [];
+        const findDeepest = (m, depth, foundArray, path) => {
+            if (m.tag == 'data') {
+                if (!foundArray)
+                    return;
+                if (depth == deepest) {
+                    keysToInsertFrom.push(m.flattenedName);
+                    insertionPaths.push(path);
+                }
+                if (depth > deepest) {
+                    keysToInsertFrom = [m.flattenedName];
+                    insertionPaths = [path];
+                    deepest = depth;
+                }
+            }
+            else if (m.tag == 'object') {
+                for (const key in m.keys) {
+                    findDeepest(m.keys[key], depth, foundArray, [...path, { tag: 'object', key }]);
+                }
+            }
+            else {
+                findDeepest(m.item, depth + 1, true, [...path, { tag: 'array', index: 0 }]);
+            }
+        };
+        Object.entries(nestedGroups).forEach(([k, m]) => { findDeepest(m, deepest, false, [{ tag: 'object', key: k }]); });
+        return {
+            nested: nestedGroups,
+            regular: nonNested,
+            insertionKeys: keysToInsertFrom,
+            insertionPaths
+        };
+    }
+    flatten(point) {
+        const dataOut = [];
+        const recurse = (constants, path, current, rest) => {
+            if (current.tag == 'data') {
+                const item = this.chasePath(point, path);
+                if (item === undefined) {
+                    return;
+                }
+                constants[current.flattenedName] = { data: item, path };
+                if (rest.length == 0)
+                    dataOut.push(clone(constants));
+                else {
+                    const [newPath, newCurrent] = rest.splice(0, 1)[0];
+                    recurse(constants, newPath, newCurrent, rest);
+                }
+            }
+            else if (current.tag == 'object') {
+                const keyArr = Object.keys(current.keys);
+                const newRest = keyArr.map(k => [[...path, { tag: 'object', key: k }], current.keys[k]]);
+                if (newRest.length == 0) {
+                    if (rest.length == 0)
+                        return;
+                    const [newPath, newCurr] = rest.splice(0, 1)[0];
+                    recurse(constants, newPath, newCurr, rest);
+                }
+                else {
+                    const [newPath, newCurr] = newRest.splice(0, 1)[0];
+                    rest = [...newRest, ...rest];
+                    recurse(constants, newPath, newCurr, rest);
+                }
+            }
+            else {
+                const item = this.chasePath(point, path);
+                if (!(item instanceof Array)) {
+                    return;
+                }
+                for (let i = 0; i < item.length; i++) {
+                    recurse(constants, [...path, { tag: 'array', index: i }], current.item, rest);
+                }
+            }
+        };
+        const constants = {};
+        Object.values(this.mappingInfo.regular).forEach(n => {
+            constants[n.flattenedName] = { data: point[n.flattenedName], path: [{ tag: 'object', key: n.flattenedName }] };
+        });
+        const toSearch = Object.entries(this.mappingInfo.nested).map(([key, mapping]) => [
+            [{ tag: 'object', key }],
+            mapping
+        ]);
+        if (toSearch.length == 0)
+            return [constants];
+        const [startPath, startMapping] = toSearch.splice(0, 1)[0];
+        recurse(constants, startPath, startMapping, toSearch);
+        return dataOut;
+    }
+    buildSchemaFromRawSchema(s) {
+        let schema = { tag: 'object', keys: {} };
+        const alphaToJs = (a) => {
+            switch (a.toLowerCase()) {
+                case 'c': return 'string';
+                case 'l': return 'boolean';
+                case 'n': return 'number';
+                default: return 'any';
+            }
+        };
+        for (const col of s.jsonOutput.column) {
+            const colSchema = {
+                tag: 'rawData',
+                jsType: alphaToJs(col.alphaType)
+            };
+            schema.keys[col.name] = colSchema;
+        }
+        return schema;
+    }
+    buildSchema(rawSchema) {
+        const mergeSchemas = (s1, s2) => {
+            if (s1.tag == 'array' && s2.tag == 'array') {
+                return { tag: 'array', elem: mergeSchemas(s1.elem, s2.elem) };
+            }
+            else if (s1.tag == 'object' && s2.tag == 'object') {
+                const allKeys = Array.from(new Set([...Object.keys(s1.keys), ...Object.keys(s2.keys)]));
+                const output = {};
+                allKeys.forEach(key => {
+                    if (!(key in s1.keys)) {
+                        output[key] = s2.keys[key];
+                    }
+                    else if (!(key in s2.keys)) {
+                        output[key] = s1.keys[key];
+                    }
+                    else {
+                        output[key] = mergeSchemas(s1.keys[key], s2.keys[key]);
+                    }
+                });
+                return { tag: 'object', keys: output };
+            }
+            else if (s1.tag == 'rawData' && s2.tag == 'rawData') {
+                return { tag: 'rawData', jsType: s1.jsType == s2.jsType ? s1.jsType : 'any' };
+            }
+            return { tag: 'unknown' };
+        };
+        const buildFromInstance = (dataPoint) => {
+            if (dataPoint instanceof Array) {
+                if (dataPoint.length == 0)
+                    return { tag: 'array', elem: { tag: 'unknown' } };
+                return { tag: 'array', elem: dataPoint.map(buildFromInstance).reduce(mergeSchemas) };
+            }
+            else if (dataPoint === null) {
+                return { tag: 'rawData', jsType: 'null' };
+            }
+            else if (typeof dataPoint === 'object') {
+                const keys = {};
+                for (const key in dataPoint) {
+                    keys[key] = buildFromInstance(dataPoint[key]);
+                }
+                return { tag: 'object', keys };
+            }
+            else {
+                let jsType = 'any';
+                switch (typeof dataPoint) {
+                    case 'string':
+                        jsType = 'string';
+                        break;
+                    case 'number':
+                    case 'bigint':
+                        jsType = 'number';
+                        break;
+                    case 'boolean':
+                        jsType = 'boolean';
+                        break;
+                    case 'symbol':
+                    case 'function':
+                    case 'object':
+                    case 'undefined':
+                        jsType = 'any';
+                        break;
+                }
+                return { tag: 'rawData', jsType };
+            }
+        };
+        if (this.rawData.length == 0) {
+            if (rawSchema)
+                this.schema = this.buildSchemaFromRawSchema(rawSchema);
+            else
+                this.schema = { tag: 'unknown' };
+        }
+        else {
+            this.schema = this.rawData.map(buildFromInstance).reduce(mergeSchemas);
+        }
+    }
+}
+function flatRowInputForm(list, exclude, readonly) {
+    exclude = exclude ?? (() => false);
+    readonly = readonly ?? (() => false);
+    const rows = [];
+    const recurse = (m) => {
+        if (m.tag == 'data' && !exclude(m))
+            rows.push(m);
+        else if (m.tag == 'array' || m.tag == 'object')
+            recurse(m.item);
+        else if (m.tag == 'nested')
+            recurse(m.mapping);
+    };
+    list.config.mappings.forEach(recurse);
+    const keymap = {};
+    rows.forEach(r => keymap[r.flattenedName] = mappingToInput(list, r, {
+        forceReadonly: readonly(r),
+    }));
+    return data => new ObjectForm(data, keymap);
+}
+function mappingToInput(list, m, ops) {
+    return (data, i) => {
+        const dataMapping = (d, data) => {
+            const readonly = ops.forceReadonly || (d.readOnly && !ops.forceNoReadonly);
+            if (d.editType == 'dropdown' && d.dropdownConfig) {
+                const config = d.dropdownConfig;
+                let options;
+                if ('choices' in config) {
+                    options = config.choices.map(x => ({ text: x, value: x }));
+                }
+                else {
+                    const s = new Set();
+                    list.dataController.getAllFlattenedRows().forEach(data => s.add(data[config.fromColumn]));
+                    options = Array.from(s).map(x => ({ text: x, value: x }));
+                }
+                return new DropdownForm({
+                    defaultValue: data,
+                    options,
+                    allowAny: d.dropdownConfig.allowCustom,
+                    readonly
+                });
+            }
+            else {
+                let ty = 'string';
+                switch (d.editType ?? 'text') {
+                    case 'number':
+                        ty = 'number';
+                        break;
+                    case 'text':
+                        ty = 'string';
+                        break;
+                    case 'time':
+                    case 'datetime':
+                        ty = 'datetime';
+                        break;
+                    case 'bool':
+                        ty = 'boolean';
+                        break;
+                }
+                if (d.jsonConfig && ops.jsonAsText) {
+                    return new Input({
+                        initialData: data,
+                        type: 'string',
+                        readonly
+                    });
+                }
+                if (d.jsonConfig && d.jsonConfig.editorType == 'form') {
+                    return jsonDefnToInput(d.jsonConfig.definition, [d.flattenedName], false, false)(data, i);
+                }
+                if (d.editType === 'json') {
+                    return new CodeEditor({ data: data, lang: 'json' });
+                }
+                return new Input({
+                    initialData: data,
+                    type: ty,
+                    dateFmt: d.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
+                    readonly
+                });
+            }
+        };
+        let dataForm;
+        const defaultData = data ?? makeObviousDefault(m);
+        let label;
+        if (m.tag == 'data') {
+            dataForm = dataMapping(m, defaultData);
+            label = m.displayName ?? m.flattenedName;
+        }
+        else {
+            let tmp = m.mapping;
+            while (tmp.tag != 'data') {
+                tmp = tmp.item;
+            }
+            dataForm = dataMapping(tmp, defaultData);
+            label = tmp.displayName ?? tmp.flattenedName;
+        }
+        return new ItemLabel(i, {
+            label,
+            item: dataForm,
+            enabled: ops.forceOptional ? (data !== undefined) : undefined,
+        });
+    };
+}
+function jsonDefnToInput(json, keys, move, del) {
+    return (data, i) => {
+        let inner;
+        if (json.tag == 'object') {
+            let keymap = {};
+            for (const key in json.keys) {
+                keymap[key] = jsonDefnToInput(json.keys[key], [...keys, key], true, false);
+            }
+            inner = new ObjectForm(data, keymap);
+        }
+        else if (json.tag == 'array') {
+            inner = new ArrayForm(data, jsonDefnToInput(json.item, [...keys, '[...]'], true, true), () => makeObviousJsonDefault(json.item, false));
+        }
+        else if (json.tag == 'data') {
+            inner = new Input({
+                initialData: data,
+                type: json.dataType,
+            });
+        }
+        else {
+            inner = new CodeEditor({ data: data, lang: 'json' });
+        }
+        return new ItemLabel(i, {
+            label: keys.join('.'),
+            item: inner,
+            enclosed: json.tag == 'object' || json.tag == 'array',
+            collapsed: (json.tag == 'object' || json.tag == 'array') ? true : undefined,
+            showMove: move,
+            showDelete: del,
+        });
+    };
+}
+function makeObviousDefault(m) {
+    let mapping;
+    if (m.tag == 'data')
+        mapping = m;
+    else {
+        const traverse = (s) => {
+            if (s.tag == 'data')
+                return s;
+            return traverse(s.item);
+        };
+        if (m.tag == 'nested')
+            mapping = traverse(m.mapping);
+        else
+            mapping = traverse(m);
+    }
+    switch (mapping.editType ?? 'text') {
+        case "number":
+            return 0;
+        case "bool":
+            return false;
+        case "time":
+        case "datetime":
+            return new Date();
+        case "text":
+        case "dropdown":
+            return '';
+        case 'json': {
+            return makeObviousJsonDefault(mapping.jsonConfig?.definition ?? { tag: 'data', dataType: 'string' }, false);
+        }
+    }
+}
+function makeObviousJsonDefault(j, fillArray) {
+    if (j.tag == 'data') {
+        switch (j.dataType) {
+            case 'string': return '';
+            case 'number': return 0;
+            case 'boolean': return false;
+        }
+    }
+    else if (j.tag == 'array') {
+        if (fillArray)
+            return [makeObviousJsonDefault(j.item, fillArray)];
+        return [];
+    }
+    else if (j.tag == 'object') {
+        const defaultVal = {};
+        for (const key in j.keys) {
+            defaultVal[key] = makeObviousJsonDefault(j.keys[key], fillArray);
+        }
+        return defaultVal;
+    }
+    else
+        return "";
+}
+// Convert raw data -> usable data
+// Usable data -> raw data
+class DataBridge {
+    constructor(config, serverTzOffset) {
+        this.serverTzOffset = serverTzOffset;
+        this.config = config;
+        this.dateConverters = {};
+        this.numConverters = {};
+        this.boolConverters = {};
+        this.jsonConverters = {};
+    }
+    setTzOffset(n) {
+        this.serverTzOffset = n;
+    }
+    processDate(key, date, conversionFn, deconversionFn) {
+        if (key in this.dateConverters) {
+            return this.dateConverters[key].process(date);
+        }
+        const dateIsStr = typeof date === 'string';
+        const converter = {
+            process: (date) => {
+                const defaultConverter = `
+                        (date, serverTimeOffset) => {
+                            if (typeof date === "string") {
+                                let dateObj = new Date();
+                                dateObj.fromFormat(date, "${DEFAULT_DATETIME_FMT}");
+                                date = dateObj;
+                            }
+                            return date;
+                        }
+                    `;
+                const f = (0,types.stringReprToFn)(conversionFn ?? defaultConverter);
+                return (0,types.Ok)(f(date, this.serverTzOffset));
+            },
+            unprocess: (date) => {
+                const defaultUnconverter = `
+                    (date, serverTimeOffset) => {
+                        // This function is being generated at runtime. The condition here is really 'if (typeof date == "string")',
+                        // where 'date' is the property coming directly from the datasource. If the date *is* a string, it must
+                        // be converted back to a string. Otherwise, we'll leave it.
+                        if (${dateIsStr}) {
+                            return date.toFormat("${DEFAULT_DATETIME_FMT}");
+                        }
+
+                        return date;
+                    }
+                `;
+                const f = (0,types.stringReprToFn)(deconversionFn ?? defaultUnconverter)(date, this.serverTzOffset);
+                return (0,types.Ok)(f);
+            }
+        };
+        this.dateConverters[key] = converter;
+        return converter.process(date);
+    }
+    unprocessDate(key, date) {
+        if (key in this.dateConverters)
+            return this.dateConverters[key].unprocess(date);
+        return date;
+    }
+    processBool(key, b) {
+        if (key in this.boolConverters)
+            return this.boolConverters[key].process(b);
+        if (typeof b == 'string') {
+            this.boolConverters[key] = {
+                process: n => (0,types.Ok)($u.s.toBool(n)),
+                unprocess: n => n.toString()
+            };
+            return (0,types.Ok)($u.s.toBool(b));
+        }
+        else if (b)
+            return (0,types.Ok)(true);
+        return (0,types.Ok)(false);
+    }
+    unprocessBool(key, b) {
+        if (key in this.boolConverters)
+            return this.boolConverters[key].unprocess(b);
+        return b;
+    }
+    processNum(key, n) {
+        if (key in this.numConverters)
+            return this.numConverters[key].process(n);
+        if (typeof n == 'string') {
+            this.numConverters[key] = {
+                process: n => (0,types.Ok)($u.s.toNum(n)),
+                unprocess: n => n.toString()
+            };
+            return (0,types.Ok)($u.s.toNum(n));
+        }
+        else if (typeof n === 'number') {
+            return (0,types.Ok)(n);
+        }
+        return (0,types.Err)("Can't convert " + JSON.stringify(n) + " to a number.");
+    }
+    unprocessNum(key, n) {
+        if (key in this.numConverters)
+            return this.numConverters[key].unprocess(n);
+        return n;
+    }
+    processJSON(key, data) {
+        if (key in this.jsonConverters)
+            return this.jsonConverters[key].process(data);
+        if (typeof data == 'string' || data == null) {
+            this.jsonConverters[key] = {
+                process: d => {
+                    let mapping;
+                    try {
+                        mapping = DataController.lookupMapping(key, this.config);
+                    }
+                    catch (e) {
+                        return safeJsonParse(d).mapErr(e => e.message);
+                    }
+                    const schema = mapping.jsonConfig;
+                    if ((d == null || d == '') && schema) {
+                        return (0,types.Ok)(makeObviousDefault(mapping));
+                    }
+                    if (typeof d != 'string') {
+                        // Tested above that data is a string or null, so we're good here.
+                        throw new Error();
+                    }
+                    const parsed = safeJsonParse(d).asOk();
+                    if (parsed === undefined) {
+                        return (0,types.Err)("Couldn't parse JSON data " + JSON.stringify(d));
+                    }
+                    const schemaErrors = [];
+                    const checkSchema = (s, data) => {
+                        if (s.tag == 'any')
+                            return;
+                        else if (s.tag == 'array') {
+                            if (!(data instanceof Array))
+                                schemaErrors.push("Data is not an array.");
+                            else
+                                data.forEach(x => { checkSchema(s.item, x); });
+                        }
+                        else if (s.tag == 'object') {
+                            if (typeof data !== 'object' || data == null)
+                                schemaErrors.push('Data is not an object');
+                            else {
+                                for (const key in s.keys) {
+                                    if (!(key in data))
+                                        schemaErrors.push('Data does not have key ' + key);
+                                    else
+                                        checkSchema(s.keys[key], data[key]);
+                                }
+                            }
+                        }
+                        else {
+                            if (typeof data != s.dataType)
+                                schemaErrors.push('Data type ' + typeof data + " does not match the type in the schema, which is " + s.dataType);
+                        }
+                    };
+                    if (schema)
+                        checkSchema(schema.definition, parsed);
+                    if (schemaErrors.length > 0) {
+                        return (0,types.Err)(schemaErrors.join('\n'));
+                    }
+                    return (0,types.Ok)(parsed);
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                },
+                unprocess: d => {
+                    if (typeof d == 'object')
+                        return JSON.stringify(d);
+                    return d;
+                }
+            };
+            return this.jsonConverters[key].process(data);
+        }
+        return (0,types.Ok)(data);
+    }
+    unprocessJSON(key, data) {
+        if (key in this.jsonConverters)
+            return this.jsonConverters[key].unprocess(data);
+        return data;
+    }
+    // Imported data should already be aligned with the flattening scheme
+    processImportedData(data) {
+        const dataCpy = clone(data);
+        for (const point of dataCpy) {
+            for (const mapping of DataController.getDataMappings(this.config)) {
+                if (!(mapping.flattenedName in point)) {
+                    point[mapping.flattenedName] = makeObviousDefault(mapping);
+                }
+                else {
+                    const res = this._processPoint(point[mapping.flattenedName], mapping);
+                    if (res.isOk()) {
+                        point[mapping.flattenedName] = res.asOk();
+                    }
+                    else {
+                        return res.map(() => []);
+                    }
+                }
+            }
+        }
+        return (0,types.Ok)(dataCpy);
+    }
+    rawToProcessed(d) {
+        const data = clone(d);
+        for (const x of data) {
+            const seenNested = new Set();
+            for (const mapping of this.config.mappings) {
+                if (mapping.tag == 'data' && mapping.flattenedName in x) {
+                    const item = this._processPoint(x[mapping.flattenedName], mapping);
+                    if (item.isOk()) {
+                        x[mapping.flattenedName] = item.asOk();
+                    }
+                    else {
+                        return item.map(() => []);
+                    }
+                }
+                else if (mapping.tag == 'nested' && mapping.key in x) {
+                    if (seenNested.has(mapping.key))
+                        continue;
+                    seenNested.add(mapping.key);
+                    const item = this._processSubMapping(x[mapping.key], mapping.mapping, mapping.key);
+                    if (item.isOk()) {
+                        x[mapping.key] = item.asOk();
+                    }
+                    else {
+                        return item.map(() => []);
+                    }
+                }
+            }
+        }
+        ;
+        return (0,types.Ok)(data);
+    }
+    processedToRaw(d) {
+        const data = clone(d);
+        for (const x of data) {
+            const seenNested = new Set();
+            for (const mapping of this.config.mappings) {
+                if (mapping.tag == 'data' && mapping.flattenedName in x) {
+                    const item = this._unprocessPoint(x[mapping.flattenedName], mapping);
+                    if (item.isOk())
+                        x[mapping.flattenedName] = item.asOk();
+                    else {
+                        return item.map(() => []);
+                    }
+                }
+                else if (mapping.tag == 'nested' && mapping.key in x) {
+                    if (seenNested.has(mapping.key))
+                        continue;
+                    seenNested.add(mapping.key);
+                    const item = this._unprocessSubmapping(x[mapping.key], mapping.mapping, mapping.key);
+                    if (item.isOk())
+                        x[mapping.key] = item.asOk();
+                    else
+                        return item.map(() => []);
+                }
+            }
+        }
+        ;
+        return (0,types.Ok)(data);
+    }
+    processedToRawStayFlattened(d) {
+        const nameToDataMapping = {};
+        const rec = (m) => {
+            if (m.tag == 'data')
+                nameToDataMapping[m.flattenedName] = m;
+            else if (m.tag == 'nested')
+                rec(m.mapping);
+            else
+                rec(m.item);
+        };
+        this.config.mappings.forEach(rec);
+        const data = clone(d);
+        for (const x of data) {
+            for (const [name, mapping] of Object.entries(nameToDataMapping)) {
+                if (name in x) {
+                    const item = this._unprocessPoint(x[name], mapping);
+                    if (item.isOk())
+                        x[name] = item.asOk();
+                    else
+                        return item.map(() => []);
+                }
+            }
+        }
+        ;
+        return (0,types.Ok)(data);
+    }
+    _processPoint(point, mapping) {
+        const name = mapping.flattenedName;
+        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
+            return this.processDate(name, point, mapping.dateSettings?.fromServer, mapping.dateSettings?.toServer);
+        }
+        else if (mapping.editType == 'bool' && typeof point == 'string') {
+            return this.processBool(name, point);
+        }
+        else if (mapping.editType == 'number' && typeof point == 'string') {
+            return this.processNum(name, point);
+        }
+        else if (mapping.editType == 'json') {
+            return this.processJSON(name, point);
+        }
+        return (0,types.Ok)(point);
+    }
+    _processSubMapping(point, mapping, key) {
+        if (point === null)
+            return (0,types.Ok)(null);
+        if (mapping.tag == 'data')
+            return this._processPoint(point, mapping);
+        else if (mapping.tag == 'array') {
+            const jsonResult = this.processJSON(key, point);
+            if (jsonResult.isOk())
+                point = jsonResult.asOk();
+            else
+                return jsonResult;
+            if (!(point instanceof Array))
+                return (0,types.Err)("Point " + JSON.stringify(point) + " is not an array");
+            for (let i = 0; i < point.length; i++) {
+                const item = this._processSubMapping(point[i], mapping.item, key + '_ARRAY_ITEM_');
+                if (item.isOk())
+                    point[i] = item.asOk();
+                else
+                    return item;
+            }
+            return (0,types.Ok)(point);
+        }
+        else {
+            const jsonResult = this.processJSON(key, point);
+            if (jsonResult.isOk())
+                point = jsonResult.asOk();
+            else
+                return jsonResult;
+            if (typeof point !== 'object' || point == null || Array.isArray(point)) {
+                return (0,types.Err)("Either the list is misconfigured, or the point " + JSON.stringify(point) + " should be an object");
+            }
+            if (mapping.key in point) {
+                const item = this._processSubMapping(point[mapping.key], mapping.item, key + '.' + mapping.key);
+                if (item.isOk())
+                    point[mapping.key] = item.asOk();
+                else
+                    return item;
+            }
+            return (0,types.Ok)(point);
+        }
+    }
+    _unprocessPoint(point, mapping) {
+        if (point == null)
+            return (0,types.Ok)(null);
+        const name = mapping.flattenedName;
+        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
+            if (!(point instanceof Date))
+                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a date.");
+            return (0,types.Ok)(this.unprocessDate(name, point));
+        }
+        else if (mapping.editType == 'bool') {
+            if (typeof point !== 'boolean')
+                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a boolean.");
+            return (0,types.Ok)(this.unprocessBool(name, point));
+        }
+        else if (mapping.editType == 'number') {
+            if (typeof point !== 'number')
+                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a number.");
+            return (0,types.Ok)(this.unprocessNum(name, point));
+        }
+        else if (mapping.editType == 'json') {
+            return (0,types.Ok)(this.unprocessJSON(name, point));
+        }
+        return (0,types.Ok)(point);
+    }
+    _unprocessSubmapping(point, sub, key) {
+        if (point === null)
+            return (0,types.Ok)(null);
+        if (sub.tag == 'data')
+            return this._unprocessPoint(point, sub);
+        else if (sub.tag == 'array') {
+            if (!(point instanceof Array)) {
+                return (0,types.Err)("Either the list is misconfigured, or the point " + JSON.stringify(point) + " should be an array");
+            }
+            for (let i = 0; i < point.length; i++) {
+                const item = this._unprocessSubmapping(point[i], sub.item, key + '_ARRAY_ITEM_');
+                if (item.isOk())
+                    point[i] = item.asOk();
+                else
+                    return item;
+            }
+            return (0,types.Ok)(this.unprocessJSON(key, point));
+        }
+        else {
+            if (typeof point !== 'object' || Array.isArray(point)) {
+                return (0,types.Err)(`Either the list is misconfigured, or the datapoint ${JSON.stringify(point)} should be an object.`);
+            }
+            if (sub.key in point) {
+                const item = this._unprocessSubmapping(point[sub.key], sub.item, key + '.' + sub.key);
+                if (item.isOk())
+                    point[sub.key] = item.asOk();
+                else
+                    return item;
+            }
+            return (0,types.Ok)(this.unprocessJSON(key, point));
+        }
+    }
+}
+class DynamicListSearch {
+    constructor(dynamicList, obj, contId) {
+        // Used in _match
+        this.searchMemoizationNeedsRebuild = false;
+        this.searchMemoization = {};
+        this.flatRowData = [];
+        this.list = dynamicList;
+        this.obj = obj;
+        const ptr = obj.getPointer(contId);
+        if (!ptr) {
+            throw new Error("Container ID " + contId + " does not point to a container.");
+        }
+        this.formContainerId = ptr.id;
+        this.resetForm();
+    }
+    resetForm() {
+        this.form = new ReactiveFormManager(this.buildForm(), this.formContainerId, this.obj, f => ({
+            type: 'group',
+            items: [
+                f,
+                this.makeButtons()
+            ]
+        }));
+    }
+    buildForm() {
+        let f;
+        let title;
+        if (this.list.config.searchOptions.advancedSearch) {
+            title = "Advanced Search";
+            f = this.buildAdvancedSearch();
+        }
+        else {
+            title = "List Search";
+            f = this.buildSimpleSearch();
+        }
+        return new TabForm(title, f, "search");
+    }
+    buildSimpleSearch() {
+        const cols = DataController.getSearchableColumns(this.list.config);
+        const keyMap = {};
+        for (const col of cols) {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (!this.list.config.searchOptions.onlyInclude.includes(col.columnName))
+                    continue;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.includes(col.columnName))
+                    continue;
+            }
+            keyMap[col.columnName] = mappingToInput(this.list, col.mapping, {
+                forceNoReadonly: true,
+                forceOptional: true,
+                jsonAsText: true
+            });
+        }
+        return new ObjectForm({}, keyMap);
+    }
+    buildAdvancedSearch() {
+        const cols = DataController.getSearchableColumns(this.list.config).filter(x => {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (!this.list.config.searchOptions.onlyInclude.includes(x.columnName))
+                    return false;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.includes(x.columnName))
+                    return false;
+            }
+            return true;
+        });
+        const arr = new ArrayForm([], (filter, i) => {
+            const colChangeObserver = new Observer();
+            return new ItemLabel(i, {
+                label: "Filter",
+                enclosed: true,
+                collapsed: false,
+                showDelete: true,
+                item: new ObjectForm(filter, {
+                    "columnName": (n, i) => new ItemLabel(i, {
+                        label: 'Column Name',
+                        item: new ColumnSelector(n, false, newName => { colChangeObserver.notify(newName); }),
+                    }),
+                    "columnVal": (n) => new ObserverForm(colChangeObserver, filter.columnName, (newName) => {
+                        const mapping = cols.find(x => x.columnName == newName)?.mapping ?? { flattenedName: newName, tag: 'data' };
+                        const item = mappingToInput(this.list, mapping, {
+                            forceNoReadonly: true,
+                            jsonAsText: true
+                        });
+                        return new ObjectForm(n, {
+                            "tag": () => new ConstForm("value"),
+                            "value": item
+                        });
+                    }),
+                    "connector": (c, cnI) => {
+                        if (i.currentIndex() == 0)
+                            return new ConstForm(c ?? "AND");
+                        return new ItemLabel(cnI, {
+                            label: "Connector",
+                            item: new DropdownForm({
+                                options: [{ text: "And", value: "AND" }, { text: "Or", value: "OR" }],
+                                defaultValue: c,
+                            })
+                        });
+                    },
+                    "op": (n, i) => new ObserverForm(colChangeObserver, filter.columnName, (newName) => {
+                        const editType = cols.find(x => x.columnName == newName)?.editType ?? 'text';
+                        const ops = [{ text: 'Equal To', value: '=' }, { text: 'Not Equal To', value: '<>' }];
+                        if (editType == 'text') {
+                            ops.push({ text: 'Starts With', value: 'x..' }, { text: 'Ends With', value: '..x' }, { text: 'Contains', value: '..x..' });
+                        }
+                        else {
+                            ops.push({ text: 'Less Than', value: '<' }, { text: 'Greater Than', value: '>' }, { text: 'Less Than or Equal To', value: '<=' }, { text: 'Greater Than or Equal To', value: '>=' });
+                        }
+                        return new ItemLabel(i, {
+                            label: 'Operator',
+                            item: new DropdownForm({
+                                options: ops,
+                                defaultValue: n,
+                            })
+                        });
+                    }),
+                    "quantifier": (q, i) => new ObserverForm(colChangeObserver, filter.columnName, (name) => {
+                        const quantifiable = cols.find(c => c.columnName == name)?.quantifiable ?? false;
+                        if (!quantifiable)
+                            return new ConstForm(undefined);
+                        return new ItemLabel(i, {
+                            label: "Quantifier",
+                            item: new DropdownForm({
+                                options: [{ text: 'All', value: 'ALL' }, { 'text': 'Some', value: 'SOME' }],
+                                defaultValue: q ?? 'ALL',
+                            })
+                        });
+                    })
+                })
+            });
+        }, () => ({ columnName: cols[0]?.columnName ?? '', columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
+        return new WithContext(ConfigContext.id, new ConfigContext(false, this.list.config, this.list.obj), arr);
+    }
+    makeButtons() {
+        const makeFilters = () => {
+            let filters = [];
+            const serializeResult = this.form.serialize();
+            if (serializeResult.isOk() == false) {
+                displayErrorMessage(new types.ErrMsg(serializeResult.asErr()));
+            }
+            const serialized = serializeResult.asOk();
+            if (this.list.config.searchOptions.advancedSearch) {
+                filters = serialized;
+                filters.forEach(f => {
+                    const m = DataController.lookupMapping(f.columnName, this.list.config);
+                    if (m.editType === 'json') {
+                        f.op = "..x..";
+                        f.type = 'json';
+                    }
+                });
+            }
+            else {
+                const data = serialized;
+                for (const key in data) {
+                    if (data[key] === undefined)
+                        continue;
+                    if (!(key in data))
+                        continue;
+                    const filter = {
+                        type: DataController.lookupMapping(key, this.list.config).editType,
+                        columnName: key,
+                        columnVal: {
+                            tag: 'value',
+                            value: data[key],
+                        },
+                        op: "=",
+                        connector: "AND"
+                    };
+                    if (filter.type === 'json') {
+                        filter.op = '..x..';
+                    }
+                    filters.push(filter);
+                }
+            }
+            for (const f of filters) {
+                if (f.type === 'json')
+                    continue;
+                const processed = this.list.dataBridge.processedToRaw([{ [f.columnName]: f.columnVal.value }]);
+                if (processed.isOk()) {
+                    f.columnVal.value = processed.asOk()[0][f.columnName];
+                }
+                else {
+                    return processed.map(() => []);
+                }
+            }
+            ;
+            return (0,types.Ok)(filters);
+        };
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-search-btn">Search</span>`,
+                        onClick: () => {
+                            makeFilters().match({
+                                ok: filters => this.doSearch(filters),
+                                err: e => {
+                                    displayErrorMessage(new types.ErrMsg(e));
+                                }
+                            });
+                        },
+                    },
+                    sys: { isEmbedded: false }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-clear-btn">Clear</span>`,
+                        onClick: () => {
+                            this.clearSearch();
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                },
+            ],
+            container: {
+                className: 'dynamic-search-buttons',
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 0.5rem;
+                `,
+            }
+        };
+    }
+    doSearch(filters) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+        (this.obj.stateInfo.onSearchCallbacks ?? []).forEach((f) => f(this));
+        const mode = this.serverOrClientSearch();
+        if (mode == 'serverside') {
+            this.serverSearch(filters);
+        }
+        else {
+            this.clientSearch(filters);
+        }
+        this.obj._functions.search.onSearch();
+        this.list.updateRecordCount();
+    }
+    clientSearch(filters) {
+        this.searchMemoizationNeedsRebuild = true;
+        const colLookup = {};
+        const allowQuantified = this.list.config.searchOptions.advancedSearch === true;
+        this.list.listBox.setFilter((data) => {
+            let matches = true;
+            filters.forEach(query => {
+                let col;
+                if (query.columnName in colLookup)
+                    col = colLookup[query.columnName];
+                else {
+                    col = DataController.lookupMapping(query.columnName, this.list.config);
+                    colLookup[query.columnName] = col;
+                }
+                const val = query.columnVal.value;
+                const thisMatch = this._match(data, query.columnName, val, {
+                    dateFormat: col.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
+                    type: col.editType ?? 'text',
+                    quantifier: query.quantifier,
+                    op: query.op
+                }, allowQuantified);
+                if (query.connector === 'OR')
+                    matches = thisMatch || matches;
+                else
+                    matches = thisMatch && matches;
+            });
+            return matches;
+        });
+    }
+    serverSearch(filters) {
+        this.list.setFilterAndFetch(filters);
+    }
+    clearSearch() {
+        this.resetForm();
+        (this.obj.stateInfo.onClearSearchCallbacks ?? []).forEach((f) => { f(this); });
+        const mode = this.serverOrClientSearch();
+        if (mode == 'serverside') {
+            this.list.setFilterAndFetch([]);
+        }
+        else {
+            this.list.clearSearchFilters();
+        }
+        this.obj._functions.search.onClear();
+        this.list.updateRecordCount();
+    }
+    serverOrClientSearch() {
+        let mode = 'serverside';
+        if (!(this.list.config.searchOptions.serverSearch))
+            mode = 'clientside';
+        return mode;
+    }
+    _match(data, field, compareWith, obj, allowQuantified) {
+        const matches = (data, field) => {
+            let rowValue = data[field];
+            const op = obj.op ?? '=';
+            let rowValDateStr = '';
+            let rowValDate = new Date();
+            let compareWithDate = new Date();
+            if (obj.type == 'datetime' || obj.type == 'time') {
+                if (rowValue instanceof Date) {
+                    rowValDate = rowValue;
+                    rowValDateStr = rowValue.toFormat(obj.dateFormat);
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    rowValDateStr = rowValue?.toString() ?? '';
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    rowValDate.fromFormat(rowValue?.toString() ?? '', obj.dateFormat);
+                }
+                if (compareWith instanceof Date) {
+                    compareWithDate = compareWith;
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    compareWithDate.fromFormat(compareWith?.toString() ?? '', obj.dateFormat);
+                }
+            }
+            else if (obj.type === 'json') {
+                if (typeof rowValue !== 'string')
+                    rowValue = JSON.stringify(rowValue);
+                if (typeof compareWith !== 'string')
+                    compareWith = JSON.stringify(compareWith);
+            }
+            const cmpDate = obj.type == 'datetime' || obj.type == 'time';
+            const cmpText = obj.type == 'dropdown' || obj.type == 'text' || obj.type == 'json';
+            switch (op) {
+                case '=': {
+                    if (cmpDate) {
+                        return compareWith == rowValDateStr;
+                    }
+                    return compareWith == rowValue;
+                }
+                case '<>': {
+                    if (cmpDate) {
+                        return compareWith != rowValDateStr;
+                    }
+                    return compareWith != rowValue;
+                }
+                case '<': {
+                    if (cmpDate) {
+                        return rowValDate < compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue < compareWith;
+                }
+                case '>': {
+                    if (cmpDate) {
+                        return rowValDate > compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue > compareWith;
+                }
+                case '<=': {
+                    if (cmpDate) {
+                        return rowValDate <= compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue <= compareWith;
+                }
+                case '>=': {
+                    if (cmpDate) {
+                        return rowValDate >= compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue >= compareWith;
+                }
+                case 'x..': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).startsWith(compareWith.toString());
+                    }
+                    return false;
+                }
+                case '..x': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).endsWith(compareWith.toString());
+                    }
+                    return false;
+                }
+                case '..x..': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).includes(compareWith.toString());
+                    }
+                    return false;
+                }
+                default: {
+                    return true;
+                }
+            }
+        };
+        if (this.searchMemoizationNeedsRebuild) {
+            this.searchMemoizationNeedsRebuild = false;
+            this.searchMemoization = {};
+            this.flatRowData = this.list.dataController.getAllFlattenedRows();
+            this.flatRowData.forEach((data, index) => {
+                this.searchMemoization[index] = matches(data, field);
+            });
+        }
+        const topLevel = this.list.config.mappings.filter(x => x.tag == 'data').map(x => x.flattenedName);
+        let flag;
+        if (topLevel.includes(field) || allowQuantified == false) {
+            flag = matches(data, field);
+        }
+        else {
+            const row = data['*key'];
+            const unflattenedIndex = this.list.dataController.originalIndexOf(row).asOk();
+            if (unflattenedIndex === undefined)
+                return false;
+            if (obj.quantifier === 'ALL') {
+                // If every row belonging to this parent index matches,
+                // then we match.
+                let allMatch = true;
+                this.flatRowData.forEach((_, index) => {
+                    if (this.list.dataController.originalIndexOf(index).asOk() !== unflattenedIndex)
+                        return;
+                    allMatch = allMatch && this.searchMemoization[index];
+                });
+                flag = allMatch;
+            }
+            else {
+                // If *some* row belonging to the parent index matches,
+                // then we match
+                let someMatch = false;
+                this.flatRowData.forEach((_, index) => {
+                    if (this.list.dataController.originalIndexOf(index).asOk() !== unflattenedIndex)
+                        return;
+                    someMatch = someMatch || this.searchMemoization[index];
+                });
+                flag = someMatch;
+            }
+        }
+        return flag;
+    }
+}
 
 ;// ./src/formComponents.ts
 
@@ -12779,11 +11279,12 @@ class Show extends ReactiveForm {
 class TemplateHelper extends ReactiveForm {
     constructor(data) {
         super();
-        this.inputForm = new Input({ data, type: 'string', textarea: true });
+        this.inputForm = new Input({ initialData: data, type: 'string', textarea: true });
     }
     render(m) {
         const ctx = m.getContext(ConfigContext.id);
-        const colNames = DataScopeManager.getDataMappings(ctx.config).map(x => x.flattenedName);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colNames = DataController.getDataMappings(ctx.config).map(x => x.flattenedName);
         return {
             type: 'group',
             items: [
@@ -12793,10 +11294,10 @@ class TemplateHelper extends ReactiveForm {
                     control: {
                         html: `<p>Add Template Item</p>`,
                         onClick: (_, btn) => {
-                            let popup = templateHelperHTML(this.inputForm, colNames, m);
+                            const popup = templateHelperHTML(this.inputForm, colNames, m);
                             popup.style.position = 'absolute';
-                            let rect = btn.getBoundingClientRect();
-                            popup.style.left = `${rect.width + 20}px`;
+                            const rect = btn.getBoundingClientRect();
+                            popup.style.left = `${(rect.width + 20).toString()}px`;
                             popup.style.top = `0px`;
                             btn.appendChild(popup);
                             btn.addEventListener('blur', () => {
@@ -12818,12 +11319,12 @@ class TemplateHelper extends ReactiveForm {
     }
 }
 function templateHelperHTML(form, colNames, m) {
-    let id = uuidv4();
-    let templateHelper = document.createElement('div');
+    const id = uuidv4();
+    const templateHelper = document.createElement('div');
     templateHelper.id = id;
     templateHelper.tabIndex = 0;
-    let makeItem = (text, onclick) => {
-        let d = document.createElement('div');
+    const makeItem = (text, onclick) => {
+        const d = document.createElement('div');
         d.onmouseenter = () => {
             d.style.backgroundColor = 'lightgray';
         };
@@ -12843,7 +11344,7 @@ function templateHelperHTML(form, colNames, m) {
     templateHelper.style.width = "200px";
     colNames.forEach(name => {
         templateHelper.appendChild(makeItem('Add field ' + name, () => {
-            let curr = form.getValue(m);
+            const curr = form.getValue(m)?.toString() ?? '';
             form.setValue(m, curr + `{row["${name}"]}`);
         }));
     });
@@ -12855,49 +11356,40 @@ function templateHelperHTML(form, colNames, m) {
 
 
 
-function fetchConfigNames(obj) {
-    return new Promise((resolve, reject) => {
-        obj.ajaxCallback("", "", "fetch_config_names", "", "", {
-            onComplete: () => {
-                let result = obj.stateInfo.apiResult;
-                if (result.ok) {
-                    resolve(result.ok.map(x => x.config_name));
-                }
-                else {
-                    reject(result.err);
-                }
-            }
-        });
-    });
-}
+
 function executeListAction(list, action, rowData, row) {
+    const flatIndex = row !== undefined ? list.listBox.getIndex(row)[0].index : undefined;
     if (action.actionName == 'openDetailView') {
-        list.newDetailViewRecord(row);
+        list.newDetailViewRecord(flatIndex !== undefined ? { tag: 'editExistingRecord', record: flatIndex } : { tag: 'newRecord' });
     }
     else if (action.actionName == 'openLinkedList') {
-        let tabTemplate = A5.u.template.parse(action.tabName);
-        let templateData = {
+        const tabTemplate = A5.u.template.parse(action.tabName);
+        const templateData = {
             list: list,
             row: rowData
         };
-        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        list.linkNewPanel(action.configurationName, filled, action.linkedColumns, action.makeFilter);
+        const filled = A5.u.template.expand(templateData, { template: tabTemplate });
+        const filters = action.linkedColumns.map(linked => {
+            const template = A5.u.template.parse(linked.value);
+            const data = { list: list, row: rowData };
+            const filled = A5.u.template.expand(data, { template });
+            return {
+                columnName: linked.foreignCol,
+                columnVal: { tag: 'value', value: filled },
+                connector: 'AND',
+                op: '=',
+            };
+        });
+        list.linkNewPanel(action.configurationName, filled, filters);
     }
-    else if (action.actionName == 'openJSONSublist') {
-        let selected;
-        if (row !== undefined) {
-            selected = list.data[row];
-        }
-        else {
-            selected = list.data[list.getSelectedRows()[0]];
-        }
-        let tabTemplate = A5.u.template.parse(action.tabName);
-        let templateData = {
+    else {
+        const tabTemplate = A5.u.template.parse(action.tabName);
+        const templateData = {
             list: list,
             row: rowData
         };
-        let filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        list.linkSublistToField(action.configurationName, filled, action.fromColumn, selected[action.fromColumn], list.getSelectedRows()[0], selected);
+        const filled = A5.u.template.expand(templateData, { template: tabTemplate });
+        list.linkSublistToField(action.configurationName, filled, flatIndex ?? 0, [{ tag: 'object', key: action.fromColumn }]);
     }
 }
 class ListActionEditor extends ReactiveForm {
@@ -12920,17 +11412,19 @@ class ListActionEditor extends ReactiveForm {
                 defaultSelected = 'Open JSON Sub-list';
                 break;
         }
-        this.form = new reactiveForm_MultiForm({
+        this.form = new MultiForm({
             options: ['Open Detail View', 'Open Linked List', 'Open JSON Sub-list'],
             defaultOption: defaultSelected,
             chooseForm: selected => {
                 if (selected == 'Open Detail View') {
-                    let d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
-                    return new reactiveForm_ObjectForm(d, {
-                        "actionName": () => new reactiveForm_ConstForm("openDetailView")
+                    if (!this.data)
+                        this.data = { actionName: 'openDetailView' };
+                    const d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
+                    return new ObjectForm(d, {
+                        "actionName": () => new ConstForm("openDetailView")
                     });
                 }
-                if (selected == 'Open Json Sub-list')
+                if (selected == 'Open JSON Sub-list')
                     return this.jsonSublistForm(m, this.data);
                 return this.linkedListForm(m, this.data);
             },
@@ -12939,32 +11433,27 @@ class ListActionEditor extends ReactiveForm {
     }
     jsonSublistForm(m, initialData) {
         const ctx = m.getContext(ConfigContext.id);
+        if (!ctx)
+            throw new Error();
+        // eslint-disable-next-line @typescript-eslint/require-await
         return new AsyncForm(async () => {
-            let names = await fetchConfigNames(ctx.obj);
-            let data = (initialData && initialData.actionName == 'openJSONSublist') ? initialData : {
+            const data = (initialData && initialData.actionName == 'openJSONSublist') ? initialData : {
                 actionName: 'openJSONSublist',
-                configurationName: names[0] ?? '',
+                configurationName: '',
                 tabName: '',
                 fromColumn: ''
             };
-            return new reactiveForm_ObjectForm(data, {
-                "actionName": () => new reactiveForm_ConstForm("openJSONSublist"),
-                "configurationName": (data, i) => new ItemLabel(i, {
-                    label: "Configuration",
-                    item: new reactiveForm_DropdownForm({
-                        options: names.map(n => ({ text: n, value: n })),
-                        defaultValue: data,
-                        allowAny: true,
-                    })
-                }),
+            return new ObjectForm(data, {
+                "actionName": () => new ConstForm("openJSONSublist"),
+                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
                 "tabName": (data, i) => new ItemLabel(i, {
                     label: "Tab Name",
                     item: new TemplateHelper(data)
                 }),
                 "fromColumn": (data, i) => new ItemLabel(i, {
                     label: "From Column",
-                    item: new reactiveForm_DropdownForm({
-                        options: DataScopeManager.getDataMappings(ctx.config).map(x => ({ text: x.flattenedName, value: x.flattenedName })),
+                    item: new DropdownForm({
+                        options: DataController.getDataMappings(ctx.config).map(x => ({ text: x.flattenedName, value: x.flattenedName })),
                         defaultValue: data,
                         allowAny: true
                     })
@@ -12974,75 +11463,43 @@ class ListActionEditor extends ReactiveForm {
     }
     linkedListForm(m, initialData) {
         const ctx = m.getContext(ConfigContext.id);
-        const o = new Observer();
-        const availableLocalCols = DataScopeManager.getDataMappings(ctx.config).map(x => x.flattenedName);
-        return new AsyncForm(async () => {
-            let names = await fetchConfigNames(ctx.obj);
-            let data = (initialData && initialData.actionName == 'openLinkedList') ? initialData : {
+        if (!ctx)
+            throw new Error();
+        return new AsyncForm(
+        // eslint-disable-next-line @typescript-eslint/require-await
+        async () => {
+            const data = (initialData && initialData.actionName == 'openLinkedList') ? initialData : {
                 actionName: 'openLinkedList',
-                configurationName: names[0] ?? '',
+                configurationName: '',
                 tabName: '',
                 linkedColumns: [],
                 makeFilter: true
             };
-            return new reactiveForm_ObjectForm(data, {
-                "actionName": () => new reactiveForm_ConstForm("openLinkedList"),
-                "configurationName": (data, i) => new ItemLabel(i, {
-                    label: "Configuration",
-                    item: new reactiveForm_DropdownForm({
-                        options: names.map(n => ({ text: n, value: n })),
-                        defaultValue: data,
-                        allowAny: true,
-                        onChange: t => o.notify(t)
-                    }),
-                }),
+            return new ObjectForm(data, {
+                "actionName": () => new ConstForm("openLinkedList"),
+                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
                 "tabName": (data, i) => new ItemLabel(i, {
                     label: "Tab Name",
                     item: new TemplateHelper(data)
                 }),
                 "linkedColumns": (columns, i) => new ItemLabel(i, {
-                    label: "Linked Columns",
+                    label: "Filters",
                     collapsed: true,
                     enclosed: true,
-                    item: new ObserverForm(o, data.configurationName, configName => new AsyncForm(async () => {
-                        let foreignConfig = await requestListConfig(ctx.obj, configName);
-                        let foreignCols = [];
-                        if ('ok' in foreignConfig) {
-                            foreignCols = DataScopeManager.getDataMappings(foreignConfig.ok).map(x => x.flattenedName);
-                        }
-                        return new reactiveForm_ArrayForm(columns, (item, i) => new ItemLabel(i, {
-                            label: "Linked Column",
-                            collapsed: true,
-                            enclosed: true,
-                            showDelete: true,
-                            item: new reactiveForm_ObjectForm(item, {
-                                "columnName": (name, i) => new ItemLabel(i, {
-                                    label: "Column Name",
-                                    item: new reactiveForm_DropdownForm({
-                                        options: availableLocalCols.map(x => ({ text: x, value: x })),
-                                        defaultValue: name,
-                                        allowAny: true
-                                    })
-                                }),
-                                "foreignName": (name, i) => new ItemLabel(i, {
-                                    label: "Foreign Column Name",
-                                    item: new reactiveForm_DropdownForm({
-                                        options: foreignCols.map(x => ({ text: x, value: x })),
-                                        defaultValue: name,
-                                        allowAny: true
-                                    })
-                                })
+                    item: new ArrayForm(columns, (item, i) => new ItemLabel(i, {
+                        label: 'Filter',
+                        enclosed: true,
+                        collapsed: true,
+                        showDelete: true,
+                        item: new ObjectForm(item, {
+                            'foreignCol': (c, i) => new StringInput(i, "Foreign Column", c),
+                            'value': (c, i) => new ItemLabel(i, {
+                                label: 'Value',
+                                item: new TemplateHelper(c)
                             })
-                        }), () => ({
-                            columnName: availableLocalCols[0] ?? '',
-                            foreignName: foreignCols[0] ?? ''
-                        }));
-                    }, columns))
+                        })
+                    }), () => ({ foreignCol: '', value: '' }))
                 }),
-                "makeFilter": (data, i) => new ItemLabel(i, {
-                    label: "Filter launched list on selected",
-                    item: new Input({ data, type: "boolean" })
-                })
             });
         }, initialData);
     }
@@ -13053,7 +11510,11 @@ class ListActionEditor extends ReactiveForm {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
-        return this.form.serialize(formData);
+        if (!this.form) {
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        }
+        else
+            return this.form.serialize(formData);
     }
 }
 
@@ -13063,14 +11524,16 @@ class ListActionEditor extends ReactiveForm {
 
 
 
-const CONFIG_CONTAINER_NAME = 'CONFIG_CONTAINER';
+
 function batchFetch(obj, configName, filters) {
     configName = encodeURIComponent(configName);
-    let filterStr = encodeURIComponent(JSON.stringify(filters));
-    return new Promise((resolve, reject) => {
+    const filterStr = encodeURIComponent(JSON.stringify(filters));
+    return new Promise((resolve) => {
         obj.ajaxCallback('', '', 'batch_fetch', '', `configName=${configName}`
             + `&filters=${filterStr}`, {
-            onComplete: resolve
+            onComplete: () => {
+                resolve(obj.stateInfo.apiResult);
+            }
         });
     });
 }
@@ -13081,7 +11544,7 @@ class FlatNameSuggestor {
         this.init(mappings);
     }
     init(mappings) {
-        let traverse = (s, path) => {
+        const traverse = (s, path) => {
             if (s.tag == "data") {
                 this.setName(path, s.flattenedName);
             }
@@ -13104,6 +11567,7 @@ class FlatNameSuggestor {
     lookup(path) {
         let curr = this.paths;
         for (let i = 0; i < path.length; i++) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             if (typeof curr == 'object' && path[i] in curr)
                 curr = curr[path[i]];
             else
@@ -13120,22 +11584,23 @@ class FlatNameSuggestor {
                 throw new Error('Bad path: ' + JSON.stringify(path));
             if (!(path[i] in curr))
                 curr[path[i]] = {};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             curr = curr[path[i]];
         }
         if (typeof curr != 'object')
             throw new Error('Bad path: ' + JSON.stringify(path));
-        let last = path[path.length - 1];
+        const last = path[path.length - 1];
         curr[last] = value;
     }
     suggestName(starter) {
-        let s = starter ?? "property";
+        const s = starter ?? "property";
         if (!this.reservedNames.has(s))
             return s;
         let idx = 1;
-        let curr = s + '_' + idx;
+        let curr = s + '_' + idx.toString();
         while (this.reservedNames.has(curr)) {
             idx += 1;
-            curr = s + '_' + idx;
+            curr = s + '_' + idx.toString();
         }
         return curr;
     }
@@ -13153,26 +11618,29 @@ class FlatNameSuggestor {
 }
 function requestListConfig(obj, configName) {
     configName = encodeURIComponent(configName);
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         obj.ajaxCallback('', '', 'request_list_config', '', `configName=${configName}`, {
             onComplete: () => {
-                let response = obj.stateInfo.apiResult;
+                const response = obj.stateInfo.apiResult;
                 resolve(response);
             }
         });
     });
 }
-function checkIfAdmin(obj) {
-    return new Promise((resolve) => {
-        obj.ajaxCallback('', '', 'is_admin', '', '', {
-            onComplete: resolve
+function getUserPermissions(obj) {
+    return new Promise((resolve => {
+        obj.ajaxCallback('', '', 'get_user_permissions', '', '', {
+            onComplete: () => {
+                const response = obj.stateInfo.apiResult;
+                resolve(response);
+            }
         });
-    });
+    }));
 }
-function tryRecoverConfig(config, obj, admin, configName) {
-    if ('err' in config && !admin) {
-        alert('The configuration does not exist or has an error. Log in as an administrator to fix.');
-        throw new Error('The configuration does not exist or has an error. Log in as an administrator to fix.');
+function tryRecoverConfig(config, editFullConfig, configName) {
+    if ('err' in config && !editFullConfig) {
+        alert('The configuration does not exist or has an error. Log in with proper permissions to fix.');
+        throw new Error('The configuration does not exist or has an error. Log in with proper permissions to fix.');
     }
     else if ('err' in config) {
         return {
@@ -13189,138 +11657,178 @@ function tryRecoverConfig(config, obj, admin, configName) {
     }
     return config.ok;
 }
-function initialize(ops) {
-    if (ops.embeddedList === undefined) {
-        ops.embeddedList = ops.obj;
+class ListInitializer {
+    constructor(ops) {
+        ops.embeddedList = ops.embeddedList ?? ops.obj;
+        ops.embeddedSearch = ops.embeddedSearch ?? ops.obj;
+        ops.embeddedSearch._functions.search = {
+            onSearch: () => {
+                ops.obj.runAction('hide docks');
+            },
+            onClear: () => {
+                ops.obj.runAction('hide docks');
+            }
+        };
+        this.options = ops;
+        this.fetchConfig().catch((e) => { this.showError(e, "There was an error fetching the config."); });
     }
-    if (ops.embeddedSearch === undefined) {
-        ops.embeddedSearch = ops.obj;
-    }
-    ops.embeddedSearch._functions.search = {
-        onSearch: () => {
-            ops.obj.runAction('hide docks');
-        },
-        onClear: () => {
-            ops.obj.runAction('hide docks');
+    async fetchConfig() {
+        const permissions = await getUserPermissions(this.options.obj);
+        if ('ok' in permissions) {
+            this.perms = permissions.ok;
         }
-    };
-    let isAdmin = false;
-    return batchFetch(ops.embeddedList, ops.configName, ops.filters ?? []).then(() => {
-        if (ops.embeddedList.stateInfo.apiResult?.err) {
-            return checkIfAdmin(ops.obj)
-                .then(() => {
-                if (ops.obj.stateInfo.apiResult?.ok == true) {
-                    isAdmin = true;
-                }
-                else {
-                    isAdmin = false;
-                }
-                if (ops.fallbackConfig) {
-                    console.warn("Config does not exist, but fallback was specified.");
-                    ops.prefetch = {
-                        isAdmin: isAdmin,
-                        config: ops.fallbackConfig
-                    };
-                    return initList(ops);
-                }
-                else {
-                    console.warn("Config prefetch failed -- reverting to slow fetch.");
-                    return requestListConfig(ops.obj, ops.configName)
-                        .then((c) => {
-                        let config = tryRecoverConfig(c, ops.obj, isAdmin, ops.configName);
-                        ops.prefetch = {
-                            isAdmin: isAdmin,
-                            config: config
-                        };
-                        return initList(ops);
-                    });
-                }
+        else {
+            this.perms = {
+                editConfigMappings: false,
+                editFullConfig: false
+            };
+        }
+        if (!this.options.embeddedList)
+            throw new Error("Embedded list is null.");
+        const fetchResponse = await batchFetch(this.options.embeddedList, this.options.configName, this.options.filters ?? []);
+        if ("err" in fetchResponse) {
+            if (this.options.fallbackConfig) {
+                console.warn("Config does not exist, but fallback was specified.");
+                this.prefetched = {
+                    editFullConfig: this.perms.editFullConfig,
+                    editConfigMappings: this.perms.editConfigMappings,
+                    config: this.options.fallbackConfig,
+                    // Will be set during list fetch anyway
+                    serverTimeOffset: 0
+                };
+                await this.initializeList();
+            }
+            else {
+                console.warn("Config prefetch failed -- reverting to slow fetch.");
+                const requestResult = await requestListConfig(this.options.obj, this.options.configName);
+                const config = tryRecoverConfig(requestResult, this.perms.editConfigMappings, this.options.configName);
+                this.prefetched = {
+                    editFullConfig: this.perms.editFullConfig,
+                    editConfigMappings: this.perms.editConfigMappings,
+                    config: config,
+                    serverTimeOffset: 0
+                };
+                await this.initializeList();
+            }
+        }
+        else {
+            this.prefetched = fetchResponse.ok;
+            await this.initializeList();
+        }
+        this.options.obj.getDynamicList = () => this.list;
+    }
+    async initializeList() {
+        try {
+            if (!this.options.embeddedList) {
+                throw new Error('Embedded list is null');
+            }
+            this.list = await DynamicList.makeDynamicList({
+                obj: this.options.embeddedList,
+                prefetch: this.prefetched,
+                containerId: this.options.listContainerId ?? 'LIST_CONTAINER',
+                filters: this.options.filters,
+                permissions: this.perms,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+                otherProperties: this.options.otherProps
             });
+            this.schema = this.list.dataController.schema;
+            if (!this.options.embeddedSearch) {
+                throw new Error('Embedded list is null');
+            }
+            this.search = new DynamicListSearch(this.list, this.options.embeddedSearch, this.options.searchContainerId ?? 'SEARCH_CONTAINER');
+            this.manageConfigForm();
         }
-        else {
-            ops.prefetch = ops.embeddedList.stateInfo.apiResult.ok;
-            return initList(ops);
+        catch (err) {
+            if (err instanceof ValidationError) {
+                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                displayErrorMessage(err);
+            }
+            else if (err instanceof Error) {
+                displayErrorMessage(new types.ErrMsg(err.message));
+            }
+            else {
+                displayErrorMessage(new types.ErrMsg("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload."));
+            }
+            this.manageConfigForm();
         }
-    }).then(() => {
-        ops.obj.applyConfigChanges = () => {
-            DYNAMIC_LIST_LOOKUP[ops.configName].config.applyChanges();
+    }
+    manageConfigForm() {
+        if (!this.prefetched.editConfigMappings)
+            return;
+        this.options.obj.saveConfigGlobally = this.saveGlobal.bind(this);
+        this.options.obj.saveConfigUser = this.saveUser.bind(this);
+        this.options.obj.applyConfigChanges = async () => {
+            if (!this.configFormManager)
+                return;
+            if (!this.configForm)
+                return;
+            const newConfigResult = this.configFormManager.serialize();
+            if (newConfigResult.isOk() == false) {
+                displayErrorMessage(new types.ErrMsg(newConfigResult.asErr()));
+                return;
+            }
+            const newConfig = newConfigResult.asOk();
+            if (this.prefetched.editFullConfig) {
+                this.prefetched.config = newConfig;
+            }
+            else if (this.prefetched.editConfigMappings) {
+                this.prefetched.config.mappings = newConfig;
+            }
+            else {
+                return;
+            }
+            this.configForm.config = newConfig;
+            try {
+                this.runValidation(newConfig);
+            }
+            catch (e) {
+                this.showError(e, "There was an error validating the config.");
+                return;
+            }
+            if (this.list === undefined || this.search === undefined)
+                return;
+            if (!this.options.embeddedList || !this.options.embeddedSearch)
+                return;
+            this.list.destructor();
+            const prefetchCopy = jQuery.extend(true, {}, this.prefetched);
+            this.list = await DynamicList.makeDynamicList({
+                obj: this.options.embeddedList,
+                prefetch: prefetchCopy,
+                containerId: this.options.listContainerId ?? 'LIST_CONTAINER',
+                filters: this.options.filters,
+                permissions: this.perms,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+                otherProperties: this.options.otherProps
+            });
+            this.schema = this.list.dataController.schema;
+            this.search = new DynamicListSearch(this.list, this.options.embeddedSearch, this.options.searchContainerId ?? 'LIST_CONTAINER');
+            this.configFormManager.render(this.configForm);
+            alert('Changes applied locally.');
         };
-        ops.obj.getDynamicList = () => DYNAMIC_LIST_LOOKUP[ops.configName].list;
-        ops.obj.saveConfigGlobally = () => DYNAMIC_LIST_LOOKUP[ops.configName].config.saveConfigGlobally();
-        ops.obj.saveConfigUser = () => DYNAMIC_LIST_LOOKUP[ops.configName].config.saveConfigUser();
-    });
-}
-function initList(ops) {
-    DynamicList.makeDynamicList({
-        obj: ops.embeddedList,
-        prefetch: ops.prefetch,
-        containerId: ops.listContainerId,
-        filters: ops.filters,
-        args: ops.args,
-        otherProperties: ops.otherProps,
-    }).then((list) => {
-        let search = new DynamicListSearch(list, ops.embeddedSearch, ops.embeddedSearch.getPointer('SEARCH_CONTAINER').id);
-        let nameSuggestor = new FlatNameSuggestor(list.config.mappings);
-        DYNAMIC_LIST_LOOKUP[ops.prefetch.config.name] = {
-            list: list,
-            search: search,
-            config: ops.obj,
-            nameSuggestor
-        };
-        manageConfigForm({
-            obj: ops.obj,
-            preFetch: ops.prefetch,
-            filters: ops.filters,
-            args: ops.args,
-            list: list,
-            embeddedList: ops.embeddedList,
-            listContainerId: ops.listContainerId,
-            embeddedSearch: ops.embeddedSearch,
-            otherProps: ops.otherProps
-        });
-    }).catch((err) => {
-        if (err instanceof ValidationError) {
-            displayErrorMessage(err.toString());
+        if (!this.perms.editConfigMappings)
+            return;
+        this.remakeConfig();
+    }
+    showError(e, msg) {
+        if (e !== null && e !== undefined)
+            displayErrorMessage(new types.MsgWithCtx(msg, e));
+    }
+    runValidation(config) {
+        if (typeof config !== 'object' || config === null) {
+            throw new Error('Config is not an object.');
         }
-        else {
-            displayErrorMessage("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload.");
-            console.error(err);
-        }
-        DYNAMIC_LIST_LOOKUP[ops.prefetch.config.name] = {
-            list: undefined,
-            search: undefined,
-            config: ops.obj,
-            nameSuggestor: new FlatNameSuggestor(ops.prefetch.config.mappings)
-        };
-        manageConfigForm({
-            obj: ops.obj,
-            preFetch: ops.prefetch,
-            filters: ops.filters,
-            args: ops.args,
-            embeddedList: ops.embeddedList,
-            listContainerId: ops.listContainerId,
-            list: null,
-            embeddedSearch: ops.embeddedSearch,
-            otherProps: ops.otherProps
-        });
-    });
-}
-function manageConfigForm(ops) {
-    let configForm;
-    let show;
-    let runValidation = (config) => {
         if ('name' in config) {
             // Throws error if names clash
             new FlatNameSuggestor(config.mappings);
             validateConfig(config);
         }
         else {
-            let c = config;
+            const c = config;
             new FlatNameSuggestor(c);
             c.forEach(m => validateMapping(m));
         }
-    };
-    let extractRelevantConfig = (config, global) => {
+    }
+    extractRelevantConfig(config, global) {
         if (('name' in config) && global)
             return config;
         if (('name' in config) && !global)
@@ -13331,132 +11839,108 @@ function manageConfigForm(ops) {
         }
         // Otherwise, the config is already just the mapping
         return config;
-    };
-    let saveGlobal = async () => {
+    }
+    trySerialize() {
+        return this.configFormManager?.serialize().match({
+            ok: v => v,
+            err: e => {
+                displayErrorMessage(new types.ErrMsg(e));
+                return undefined;
+            }
+        });
+    }
+    saveGlobal() {
+        if (!this.configFormManager)
+            return;
         try {
-            let maybeConfig = (await configForm).serialize();
-            runValidation(maybeConfig);
-            maybeConfig = extractRelevantConfig(maybeConfig, true);
-            let data = encodeURIComponent(JSON.stringify(maybeConfig));
-            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${true}`, {
+            let maybeConfig = this.trySerialize();
+            if (maybeConfig === undefined)
+                return;
+            this.runValidation(maybeConfig);
+            maybeConfig = this.extractRelevantConfig(maybeConfig, true);
+            const data = encodeURIComponent(JSON.stringify(maybeConfig));
+            this.options.obj.ajaxCallback('', '', 'save_config', '', `configName=${this.prefetched.config.name}&payload=${data}&global=true`, {
                 onComplete: () => {
-                    let res = ops.obj.stateInfo.apiResult;
-                    if (res && res.err) {
-                        displayErrorMessage(res.err);
-                        console.error(res.err);
+                    const res = this.options.obj.stateInfo.apiResult;
+                    if ('err' in res) {
+                        displayErrorMessage(new types.ErrMsg(res.err));
                     }
                     else {
                         alert('Config saved.');
                     }
-                    ops.obj.applyConfigChanges();
+                    okOrLog(this.options.obj.applyConfigChanges().then(() => {
+                        this.remakeConfig();
+                    }));
                 }
             });
         }
         catch (e) {
-            displayErrorMessage(e.toString());
+            displayErrorMessage(new types.MsgWithCtx("There was an error saving the config.", e));
             console.error(e);
         }
-    };
-    let saveUser = async () => {
+    }
+    ;
+    remakeConfig() {
+        this.configForm = new ConfigForm(this.prefetched.config, this.perms.editFullConfig, this.options.obj, this.schema);
+        const ptr = this.options.obj.getPointer("CONFIG_CONTAINER");
+        if (!ptr)
+            return;
+        this.configFormManager = new ReactiveFormManager(this.configForm, ptr.id, this.options.obj);
+    }
+    saveUser() {
+        if (!this.configFormManager)
+            return;
         try {
-            let maybeConfig = (await configForm).serialize();
-            runValidation(maybeConfig);
-            maybeConfig = extractRelevantConfig(maybeConfig, false);
-            let data = encodeURIComponent(JSON.stringify(maybeConfig));
-            ops.obj.ajaxCallback('', '', 'save_config', '', `configName=${ops.preFetch.config.name}&payload=${data}&global=${false}`, {
+            let maybeConfig = this.trySerialize();
+            if (maybeConfig === undefined)
+                return;
+            this.runValidation(maybeConfig);
+            maybeConfig = this.extractRelevantConfig(maybeConfig, false);
+            const data = encodeURIComponent(JSON.stringify(maybeConfig));
+            this.options.obj.ajaxCallback('', '', 'save_config', '', `configName=${this.prefetched.config.name}&payload=${data}&global=false`, {
                 onComplete: () => {
-                    let res = ops.obj.stateInfo.apiResult;
-                    if (res && res.err) {
-                        displayErrorMessage(res.err);
-                        console.error(res.err);
+                    const res = this.options.obj.stateInfo.apiResult;
+                    if ('err' in res) {
+                        displayErrorMessage(new types.ErrMsg(res.err));
                     }
                     else {
                         alert('Config saved.');
                     }
-                    ops.obj.applyConfigChanges();
+                    okOrLog(this.options.obj.applyConfigChanges().then(() => {
+                        this.remakeConfig();
+                    }));
                 }
             });
         }
         catch (e) {
-            displayErrorMessage(e.toString());
-            console.error(e);
+            displayErrorMessage(new types.MsgWithCtx("There was an error saving the config.", e));
         }
-    };
-    const containerId = ops.obj.getPointer(CONFIG_CONTAINER_NAME).id;
-    const schema = ops.list?.schema ?? undefined;
-    configForm = new ReactiveFormManager(new ConfigForm(ops.preFetch.config, ops.preFetch.isAdmin, ops.obj, schema), containerId, ops.obj);
-    const showError = (e) => {
-        console.error(e);
-        displayErrorMessage(e.toString());
-    };
-    show = async () => {
-        try {
-            //config.populate(configData);
-            let obj = ops.obj;
-            obj.saveConfigGlobally = saveGlobal;
-            obj.saveConfigUser = saveUser;
-            obj.applyConfigChanges = () => {
-                let newConfig = configForm.serialize();
-                if (ops.preFetch.isAdmin) {
-                    ops.preFetch.config = newConfig;
-                }
-                else {
-                    ops.preFetch.config.mappings = newConfig;
-                }
-                try {
-                    runValidation(newConfig);
-                }
-                catch (e) {
-                    showError(e);
-                    return;
-                }
-                let dynamicItems = DYNAMIC_LIST_LOOKUP[ops.preFetch.config.name] ?? undefined;
-                if (dynamicItems === undefined)
-                    return;
-                dynamicItems.list.destructor();
-                let newSearch;
-                let prefetchCopy = jQuery.extend(true, {}, ops.preFetch);
-                DynamicList.makeDynamicList({
-                    obj: ops.embeddedList,
-                    prefetch: prefetchCopy,
-                    containerId: ops.listContainerId,
-                    filters: ops.filters,
-                    args: ops.args,
-                    otherProperties: ops.otherProps
-                }).then((newList) => {
-                    newSearch = new DynamicListSearch(newList, ops.embeddedSearch, ops.embeddedSearch.getPointer('SEARCH_CONTAINER').id);
-                    dynamicItems.list = newList;
-                    dynamicItems.search = newSearch;
-                    dynamicItems.list.reRender(false);
-                    //config.populate(newConfig);
-                }).catch(showError);
-            };
-        }
-        catch (e) {
-            showError(e);
-        }
-    };
-    show();
+    }
+    ;
+}
+function initialize(ops) {
+    new ListInitializer(ops);
 }
 class ConfigContext {
-    constructor(isAdmin, config, obj) {
-        this.isAdmin = isAdmin;
+    constructor(viewEntireConfig, config, obj) {
+        this.viewEntireConfig = viewEntireConfig;
         this.config = config;
         this.obj = obj;
     }
 }
 ConfigContext.id = "ConfigContext";
 class ConfigForm extends ReactiveForm {
-    constructor(config, admin, obj, schema) {
+    constructor(config, showEntireConfig, obj, schema) {
         super();
-        this.admin = admin;
+        this.showEntireConfig = showEntireConfig;
         this.obj = obj;
         this.config = config;
         let subForm;
-        if (this.admin) {
-            subForm = new reactiveForm_ObjectForm(config, {
-                "name": (data, i) => new ItemLabel(i, { label: "Name", item: new Input({ type: 'string', data }) }),
-                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', data }) }),
+        if (this.showEntireConfig) {
+            subForm = new ObjectForm(config, {
+                "name": data => new ConstForm(data),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', initialData: data }) }),
                 "dataSource": (dataSource, i) => new ItemLabel(i, {
                     label: "Data Source",
                     enclosed: true,
@@ -13494,7 +11978,7 @@ class ConfigForm extends ReactiveForm {
         this.form = new TabForm("List Configuration", subForm, "tabs");
     }
     render(m) {
-        m.setContext(this, ConfigContext.id, new ConfigContext(this.admin, this.config, this.obj));
+        m.setContext(this, ConfigContext.id, new ConfigContext(this.showEntireConfig, this.config, this.obj));
         return {
             type: 'group',
             id: 'dynamic-form-config-form',
@@ -13502,47 +11986,51 @@ class ConfigForm extends ReactiveForm {
         };
     }
     serialize(formData) {
-        let s = this.form.serialize(formData);
-        if ('keys' in s)
-            s.keys['version'] = { changed: false, raw: this.config.version };
-        return s;
+        return this.form.serialize(formData).map(s => {
+            if ('keys' in s)
+                s.keys['version'] = { changed: false, raw: this.config.version };
+            return s;
+        });
     }
 }
 class ForcedValueForm extends ReactiveForm {
     constructor(data) {
         super();
         data = data ?? { column: '', value: { tag: 'value', value: '' } };
-        this.form = new reactiveForm_ObjectForm(data, {
+        this.form = new ObjectForm(data, {
             "column": (d, i) => new ItemLabel(i, {
                 label: "Column",
                 item: new ColumnSelector(d, true)
             }),
-            "value": (data) => new reactiveForm_MultiForm({
-                options: ['Value', 'XBasic Argument'],
-                defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
-                chooseForm: selected => {
-                    if (selected == 'Value') {
-                        if (data.tag == 'argument')
-                            data = { tag: 'value', value: '' };
-                        return new reactiveForm_ObjectForm(data, {
-                            "tag": () => new reactiveForm_ConstForm("value"),
-                            "value": (v, i) => new StringInput(i, "Value", v)
-                        });
-                    }
-                    else {
-                        if (data.tag == 'value')
-                            data = { tag: 'argument', value: '' };
-                        return new reactiveForm_ObjectForm(data, {
-                            "tag": () => new reactiveForm_ConstForm("argument"),
-                            "value": (v, i) => new StringInput(i, "Value", v)
-                        });
-                    }
-                },
-                allowCollapse: false,
-            })
+            "value": (d) => {
+                let data = d;
+                return new MultiForm({
+                    options: ['Value', 'XBasic Argument'],
+                    defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
+                    chooseForm: selected => {
+                        if (selected == 'Value') {
+                            if (data.tag == 'argument')
+                                data = { tag: 'value', value: '' };
+                            return new ObjectForm(data, {
+                                "tag": () => new ConstForm("value"),
+                                "value": (v, i) => new StringInput(i, "Value", v)
+                            });
+                        }
+                        else {
+                            if (data.tag == 'value')
+                                data = { tag: 'argument', value: '' };
+                            return new ObjectForm(data, {
+                                "tag": () => new ConstForm("argument"),
+                                "value": (v, i) => new StringInput(i, "Value", v)
+                            });
+                        }
+                    },
+                    allowCollapse: false,
+                });
+            }
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -13566,7 +12054,7 @@ class ConfigDataSource extends ReactiveForm {
             else
                 defaultItem = 'Custom SQL';
         }
-        let onSelect = (option) => {
+        const onSelect = (option) => {
             if (option in this.cached)
                 return this.cached[option];
             const getInitValue = () => {
@@ -13590,18 +12078,19 @@ class ConfigDataSource extends ReactiveForm {
                 return { type: 'json', jsonData: '' };
             };
             const initValue = getInitValue();
-            let preprocess = {
+            const preprocess = {
                 'preprocess': (p, i) => new ItemLabel(i, {
                     enabled: p !== undefined,
                     label: 'Preprocess Function',
-                    item: new Input({ data: p, type: 'function', textarea: true })
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                    item: new Input({ initialData: p, type: 'function', textarea: true })
                 })
             };
-            let commonSqlOptions = {
+            const commonSqlOptions = {
                 'connectionString': (conn, i) => new ItemLabel(i, {
                     enabled: conn !== undefined,
                     label: 'Connection String',
-                    item: new Input({ data: conn, type: 'string' })
+                    item: new Input({ initialData: conn, type: 'string' })
                 }),
                 "filters": (f, i) => new ItemLabel(i, {
                     label: 'List Filters',
@@ -13622,10 +12111,10 @@ class ConfigDataSource extends ReactiveForm {
                     label: "Pagination Options",
                     enclosed: true,
                     collapsed: true,
-                    item: new reactiveForm_ObjectForm(p ?? { pageSize: 20 }, {
+                    item: new ObjectForm(p ?? { pageSize: 20 }, {
                         'pageSize': (size, i) => new ItemLabel(i, {
                             label: 'Page Size',
-                            item: new Input({ data: size, type: 'number' })
+                            item: new Input({ initialData: size, type: 'number' })
                         })
                     })
                 }),
@@ -13634,10 +12123,11 @@ class ConfigDataSource extends ReactiveForm {
                     label: "Forced Values",
                     enclosed: true,
                     collapsed: true,
-                    item: new reactiveForm_ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+                    item: new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
                         label: "Forced Value",
                         enclosed: true,
                         collapsed: true,
+                        showDelete: true,
                         item: new ForcedValueForm(item)
                     }), () => ({ column: '', value: { tag: 'value', value: '' } }))
                 }),
@@ -13646,20 +12136,20 @@ class ConfigDataSource extends ReactiveForm {
             let form;
             switch (option) {
                 case 'SQL Table': {
-                    form = new reactiveForm_ObjectForm(initValue, {
-                        'type': () => new reactiveForm_ConstForm('sql'),
-                        'table': (name, i) => new ItemLabel(i, { label: 'Table Name', item: new Input({ data: name, type: 'string' }) }),
+                    form = new ObjectForm(initValue, {
+                        'type': () => new ConstForm('sql'),
+                        'table': (name, i) => new ItemLabel(i, { label: 'Table Name', item: new Input({ initialData: name, type: 'string' }) }),
                         ...commonSqlOptions
                     });
                     break;
                 }
                 case 'Custom SQL':
                     {
-                        form = new reactiveForm_ObjectForm(initValue, {
-                            "type": () => new reactiveForm_ConstForm('sql'),
+                        form = new ObjectForm(initValue, {
+                            "type": () => new ConstForm('sql'),
                             "sql": (data, i) => new ItemLabel(i, {
                                 label: 'SQL',
-                                item: new Input({ data, type: 'string', textarea: true })
+                                item: new Input({ initialData: data, type: 'string', textarea: true })
                             }),
                             ...commonSqlOptions
                         });
@@ -13668,8 +12158,8 @@ class ConfigDataSource extends ReactiveForm {
                     ;
                 case 'API':
                     {
-                        let endpointNames = ['fetch', 'search', 'add', 'update', 'delete'];
-                        let endpoints = {};
+                        const endpointNames = ['fetch', 'search', 'add', 'update', 'delete'];
+                        const endpoints = {};
                         endpointNames.forEach(name => endpoints[name] = (data, i) => new ItemLabel(i, {
                             label: "Endpoint for " + name,
                             enclosed: true,
@@ -13677,13 +12167,13 @@ class ConfigDataSource extends ReactiveForm {
                             collapsed: true,
                             item: new EndpointForm(data)
                         }));
-                        form = new reactiveForm_ObjectForm(initValue, {
-                            'type': () => new reactiveForm_ConstForm('json'),
+                        form = new ObjectForm(initValue, {
+                            'type': () => new ConstForm('json'),
                             'endpoints': (data, i) => new ItemLabel(i, {
                                 label: "Endpoints",
                                 enclosed: true,
                                 collapsed: true,
-                                item: new reactiveForm_ObjectForm(data, endpoints)
+                                item: new ObjectForm(data, endpoints)
                             }),
                             ...preprocess
                         });
@@ -13692,28 +12182,29 @@ class ConfigDataSource extends ReactiveForm {
                     ;
                 case 'Static JSON':
                     {
-                        form = new reactiveForm_ObjectForm(initValue, {
-                            'type': () => new reactiveForm_ConstForm('json'),
+                        form = new ObjectForm(initValue, {
+                            'type': () => new ConstForm('json'),
                             'jsonData': (data, i) => new ItemLabel(i, {
                                 label: 'JSON Data',
-                                item: new Input({ data, type: 'string', textarea: true })
+                                item: new CodeEditor({ data: data, lang: 'json' }),
                             }),
                             ...preprocess
                         });
                         break;
                     }
                     ;
+                default: throw new Error();
             }
             this.cached[option] = form;
             return form;
         };
-        this.form = new reactiveForm_MultiForm({
+        this.form = new MultiForm({
             options: ['SQL Table', 'Custom SQL', 'API', 'Static JSON'],
             defaultOption: defaultItem,
             chooseForm: onSelect
         });
     }
-    render(m) {
+    render() {
         return {
             type: 'group',
             id: 'dynamic-form-data-source',
@@ -13727,35 +12218,38 @@ class ConfigDataSource extends ReactiveForm {
 class ListFiltersForm extends ReactiveForm {
     constructor(filters) {
         super();
-        this.form = new reactiveForm_ArrayForm(filters, (filter, i) => new ItemLabel(i, {
+        this.form = new ArrayForm(filters, (filter, i) => new ItemLabel(i, {
             label: "List Filter",
             showDelete: true,
             showMove: true,
             enclosed: true,
-            item: new reactiveForm_ObjectForm(filter, {
+            item: new ObjectForm(filter, {
                 "columnName": (name, i) => new ItemLabel(i, { label: "Column Name", item: new ColumnSelector(name, true) }),
-                "columnVal": (val, i) => new reactiveForm_MultiForm({
-                    options: ['Filter on Value', 'Filter on XBasic Argument'],
-                    defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
-                    chooseForm: selected => selected == 'Filter on Value'
-                        ? new reactiveForm_ObjectForm(val, {
-                            "tag": () => new reactiveForm_ConstForm("value"),
-                            "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ data: val, type: 'string' }) })
-                        })
-                        : new reactiveForm_ObjectForm(val, {
-                            "tag": () => new reactiveForm_ConstForm("arg"),
-                            "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ data: val, type: 'string' }) })
-                        })
-                }),
+                "columnVal": (v) => {
+                    const val = v;
+                    return new MultiForm({
+                        options: ['Filter on Value', 'Filter on XBasic Argument'],
+                        defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
+                        chooseForm: selected => selected == 'Filter on Value'
+                            ? new ObjectForm(val, {
+                                "tag": () => new ConstForm("value"),
+                                "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ initialData: val, type: 'string' }) })
+                            })
+                            : new ObjectForm(val, {
+                                "tag": () => new ConstForm("arg"),
+                                "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ initialData: val, type: 'string' }) })
+                            })
+                    });
+                },
                 "connector": (c, i) => new ItemLabel(i, {
                     label: "Connector",
-                    item: new reactiveForm_DropdownForm({
+                    item: new DropdownForm({
                         options: [{ text: 'And', value: 'AND' }, { text: 'Or', value: 'OR' }],
                         defaultValue: c ?? 'AND',
                     })
                 }),
                 "op": (op, i) => new ItemLabel(i, {
-                    label: "Operator", item: new reactiveForm_DropdownForm({
+                    label: "Operator", item: new DropdownForm({
                         options: [{ text: "Equals", value: "=" },
                             { text: "Not Equals", value: "<>" },
                             { text: "Less Than", value: "<" },
@@ -13769,7 +12263,7 @@ class ListFiltersForm extends ReactiveForm {
                 "quantifier": (q, i) => new ItemLabel(i, {
                     label: "Quantifier",
                     enabled: q !== undefined,
-                    item: new reactiveForm_DropdownForm({
+                    item: new DropdownForm({
                         options: [{ text: 'All', value: 'ALL' }, { text: 'Some', value: 'SOME' }],
                         defaultValue: q ?? 'ALL',
                     })
@@ -13777,7 +12271,7 @@ class ListFiltersForm extends ReactiveForm {
             })
         }), () => ({ columnName: '', columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
     }
-    render(m) {
+    render() {
         return {
             type: 'group',
             id: 'dynamic-form-list-filters',
@@ -13792,16 +12286,16 @@ class ServerSortForm extends ReactiveForm {
     constructor(data) {
         super();
         data = data ?? [];
-        this.form = new reactiveForm_ArrayForm(data, (item, i) => new ItemLabel(i, {
+        this.form = new ArrayForm(data, (item, i) => new ItemLabel(i, {
             label: "Sort Parameter",
             enclosed: true,
             showMove: true,
             showDelete: true,
             collapsed: true,
-            item: new reactiveForm_ObjectForm(item, {
+            item: new ObjectForm(item, {
                 "columnName": (name, i) => new ItemLabel(i, { label: 'Column to Sort By', item: new ColumnSelector(name, true) }),
                 "order": (name, i) => new ItemLabel(i, {
-                    label: 'Ordering', item: new reactiveForm_DropdownForm({
+                    label: 'Ordering', item: new DropdownForm({
                         options: [{ text: 'Ascending', value: 'asc' }, { text: 'Descending', value: 'desc' }],
                         defaultValue: name,
                     })
@@ -13809,7 +12303,7 @@ class ServerSortForm extends ReactiveForm {
             })
         }), () => ({ columnName: '', order: 'asc' }));
     }
-    render(m) {
+    render() {
         return {
             type: 'group',
             items: [this.form]
@@ -13823,29 +12317,32 @@ class EndpointForm extends ReactiveForm {
     constructor(e) {
         super();
         e = e ?? { method: 'GET', endpoint: { tag: 'template', value: '' } };
-        const templateOrArgSelector = data => new reactiveForm_MultiForm({
-            options: ['Template', 'XBasic Argument'],
-            defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
-            chooseForm: selected => selected == 'Template'
-                ? new reactiveForm_ObjectForm(data, {
-                    "tag": () => new reactiveForm_ConstForm("template"),
-                    "value": (data, i) => new ItemLabel(i, {
-                        label: "Template",
-                        item: new TemplateHelper(data)
+        const templateOrArgSelector = d => {
+            const data = d;
+            return new MultiForm({
+                options: ['Template', 'XBasic Argument'],
+                defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
+                chooseForm: selected => selected == 'Template'
+                    ? new ObjectForm(data, {
+                        "tag": () => new ConstForm("template"),
+                        "value": (data, i) => new ItemLabel(i, {
+                            label: "Template",
+                            item: new TemplateHelper(data)
+                        })
                     })
-                })
-                : new reactiveForm_ObjectForm(data, {
-                    "tag": () => new reactiveForm_ConstForm("argument"),
-                    "value": (data, i) => new ItemLabel(i, {
-                        label: "Argument",
-                        item: new Input({ data, type: 'string' })
+                    : new ObjectForm(data, {
+                        "tag": () => new ConstForm("argument"),
+                        "value": (data, i) => new ItemLabel(i, {
+                            label: "Argument",
+                            item: new Input({ initialData: data, type: 'string' })
+                        })
                     })
-                })
-        });
-        this.form = new reactiveForm_ObjectForm(e, {
+            });
+        };
+        this.form = new ObjectForm(e, {
             "method": (m, i) => new ItemLabel(i, {
                 label: "HTTP Verb",
-                item: new reactiveForm_DropdownForm({
+                item: new DropdownForm({
                     options: ['GET', 'POST', 'DELETE', 'PUT', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'].map(x => ({ text: x, value: x })),
                     defaultValue: m,
                 })
@@ -13861,7 +12358,7 @@ class EndpointForm extends ReactiveForm {
                 enabled: headers !== undefined,
                 enclosed: true,
                 collapsed: true,
-                item: new reactiveForm_ObjectForm(headers ?? {}, {}, {
+                item: new ObjectForm(headers ?? {}, {}, {
                     onAdd: (headerName, data, i) => new ItemLabel(i, {
                         label: "Header " + headerName,
                         enclosed: true,
@@ -13871,10 +12368,10 @@ class EndpointForm extends ReactiveForm {
                     })
                 })
             }),
-            "body": (b, i) => new ItemLabel(i, { label: 'Body', enabled: b !== undefined, item: new Input({ data: b, type: 'string', textarea: true }) })
+            "body": (b, i) => new ItemLabel(i, { label: 'Body', enabled: b !== undefined, item: new Input({ initialData: b, type: 'string', textarea: true }) })
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -13882,17 +12379,17 @@ class EndpointForm extends ReactiveForm {
     }
 }
 const getMappingFullPath = (m) => {
-    let rec = (m) => {
+    const rec = (m) => {
         if (m.tag == 'data')
             return [];
         if (m.tag == 'array')
             return ['[...]', ...rec(m.item)];
         if (m.tag == 'object')
             return [m.key, ...rec(m.item)];
-        if (m.tag == 'nested')
+        else
             return [m.key, ...rec(m.mapping)];
     };
-    let path = rec(m);
+    const path = rec(m);
     if (path.length == 0)
         return [m.flattenedName];
     return path;
@@ -13905,7 +12402,7 @@ class MappingsForm extends ReactiveForm {
             tag: 'data',
             flattenedName: schema && Object.keys(schema).length > 0 ? Object.keys(schema.keys)[0] : ''
         };
-        this.form = new reactiveForm_ArrayForm(mappings, (mapping, i) => {
+        this.form = new ArrayForm(mappings, (mapping, i) => {
             const nameChangeObserver = new Observer();
             const makeDataMappingForm = (m) => {
                 if (m.tag != 'data')
@@ -13919,10 +12416,10 @@ class MappingsForm extends ReactiveForm {
                     mapping: m
                 });
             };
-            let item = new reactiveForm_MultiForm({
+            const item = new MultiForm({
                 options: ['Nested Mapping', 'Data Mapping'],
-                defaultOption: mapping ? (mapping.tag == 'nested' ? 'Nested Mapping' : 'Data Mapping') : 'Data Mapping',
-                chooseForm: (selected, multiForm) => {
+                defaultOption: (mapping.tag == 'nested' ? 'Nested Mapping' : 'Data Mapping'),
+                chooseForm: (selected) => {
                     if (selected == 'Data Mapping') {
                         return makeDataMappingForm(mapping);
                     }
@@ -13932,7 +12429,7 @@ class MappingsForm extends ReactiveForm {
                 },
                 onSelect: (selected, multiForm) => {
                     setTimeout(() => {
-                        let item = multiForm.current();
+                        const item = multiForm.current();
                         if (item instanceof MappingFormNestedObject) {
                             nameChangeObserver.notify(getMappingFullPath(item.mapping));
                         }
@@ -13943,7 +12440,7 @@ class MappingsForm extends ReactiveForm {
                 },
                 allowCollapse: false
             });
-            let itemLabel = new ItemLabel(i, {
+            const itemLabel = new ItemLabel(i, {
                 label: 'New Mapping',
                 collapsed: true,
                 enclosed: true,
@@ -13952,13 +12449,13 @@ class MappingsForm extends ReactiveForm {
                 labelRight: true,
                 item
             });
-            return new ObserverForm(nameChangeObserver, mapping ? getMappingFullPath(mapping) : [], newFullPath => {
+            return new ObserverForm(nameChangeObserver, getMappingFullPath(mapping), newFullPath => {
                 itemLabel.setLabel(newFullPath.length > 0 ? ('Mappings for ' + newFullPath.join('.')) : 'New Mapping');
                 return itemLabel;
             });
         }, () => defaultDataMapping);
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -13966,12 +12463,12 @@ class MappingsForm extends ReactiveForm {
     }
 }
 function makeMappingDefaults(schema, key) {
-    if (!schema || schema.tag == 'rawData' || schema.tag == 'none')
+    if (!schema || schema.tag == 'rawData' || schema.tag == 'unknown')
         return ({ tag: 'data', flattenedName: key });
     if (schema.tag == 'array')
         return ({ tag: 'array', item: makeMappingDefaults(schema.elem, key) });
     else {
-        let key = Object.keys(schema.keys)[0] ?? '';
+        const key = Object.keys(schema.keys)[0] ?? '';
         return ({
             tag: 'object',
             key,
@@ -13982,49 +12479,52 @@ function makeMappingDefaults(schema, key) {
 class ListButtonsForm extends ReactiveForm {
     constructor(data) {
         super();
-        this.form = new reactiveForm_ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+        this.form = new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
             label: "Button",
             enclosed: true,
             collapsed: true,
             showMove: true,
             showDelete: true,
-            item: new reactiveForm_ObjectForm(item, {
+            item: new ObjectForm(item, {
                 "columnTitle": (data, i) => new StringInput(i, "Column Title", data),
                 "title": (data, i) => new StringInput(i, "Title", data, true),
                 "icon": (data, i) => new StringInput(i, "Icon", data, true),
-                "onClick": (data, i) => new ItemLabel(i, {
-                    label: "Click Action",
-                    collapsed: true,
-                    enclosed: true,
-                    item: new reactiveForm_MultiForm({
-                        options: ["Javascript Function", "Javascript Action", "List Action"],
-                        defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
-                        chooseForm: selected => {
-                            if (selected == 'Javascript Function') {
-                                let d = ('function' in data) ? data : { function: '() => {}' };
-                                return new reactiveForm_ObjectForm(d, {
-                                    "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
-                                });
+                "onClick": (d, i) => {
+                    const data = d;
+                    return new ItemLabel(i, {
+                        label: "Click Action",
+                        collapsed: true,
+                        enclosed: true,
+                        item: new MultiForm({
+                            options: ["Javascript Function", "Javascript Action", "List Action"],
+                            defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
+                            chooseForm: selected => {
+                                if (selected == 'Javascript Function') {
+                                    const d = ('function' in data) ? data : { function: '() => {}' };
+                                    return new ObjectForm(d, {
+                                        "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
+                                    });
+                                }
+                                else if (selected == 'Javascript Action') {
+                                    const d = ('action' in data) ? data : { action: '' };
+                                    return new ObjectForm(d, {
+                                        "action": (data, i) => new StringInput(i, "Action Name", data)
+                                    });
+                                }
+                                else {
+                                    const d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
+                                    return new ObjectForm(d, {
+                                        "listAction": d => new ListActionEditor(d)
+                                    });
+                                }
                             }
-                            else if (selected == 'Javascript Action') {
-                                let d = ('action' in data) ? data : { action: '' };
-                                return new reactiveForm_ObjectForm(d, {
-                                    "action": (data, i) => new StringInput(i, "Action Name", data)
-                                });
-                            }
-                            else {
-                                let d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
-                                return new reactiveForm_ObjectForm(d, {
-                                    "listAction": d => new ListActionEditor(d)
-                                });
-                            }
-                        }
-                    })
-                })
+                        })
+                    });
+                }
             })
         }), () => ({ columnTitle: '', onClick: { function: '() => {}' } }));
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -14036,7 +12536,7 @@ class SearchOptionsForm extends ReactiveForm {
         super();
         if (ops == undefined)
             ops = {};
-        this.form = new reactiveForm_ObjectForm(ops, {
+        this.form = new ObjectForm(ops, {
             "advancedSearch": data => new LabelBool("Advanced Search", data),
             "serverSearch": data => new LabelBool("Server-side Search", data),
             "onlyInclude": (data, i) => new ItemLabel(i, {
@@ -14044,18 +12544,18 @@ class SearchOptionsForm extends ReactiveForm {
                 enclosed: true,
                 collapsed: true,
                 enabled: data !== undefined,
-                item: new reactiveForm_ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
+                item: new ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
             }),
             "onlyExclude": (data, i) => new ItemLabel(i, {
                 label: "Exclude columns in search",
                 enabled: data !== undefined,
                 enclosed: true,
                 collapsed: true,
-                item: new reactiveForm_ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
+                item: new ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
             })
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -14074,7 +12574,9 @@ class MappingFormNestedObject extends ReactiveForm {
         else {
             if (schema) {
                 selectedKey = Object.entries(schema.keys)
-                    .filter(([k, v]) => v.tag == 'object' || v.tag == 'array')
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    .filter(([_, v]) => v.tag == 'object' || v.tag == 'array')
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     .map(([k, v]) => k)[0] ?? '';
                 this.mapping = {
                     tag: 'nested',
@@ -14092,17 +12594,19 @@ class MappingFormNestedObject extends ReactiveForm {
             }
         }
     }
-    render(m) {
+    render() {
         if (this.form === undefined) {
             const observer = new Observer();
-            let availableKeys = Object.entries(this.schema?.keys ?? {})
+            const availableKeys = Object.entries(this.schema?.keys ?? {})
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 .filter(([k, v]) => v.tag == 'object' || v.tag == 'array')
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 .map(([k, v]) => ({ text: k, value: k }));
-            this.form = new reactiveForm_ObjectForm(this.mapping, {
-                "tag": () => new reactiveForm_ConstForm("nested"),
+            this.form = new ObjectForm(this.mapping, {
+                "tag": () => new ConstForm("nested"),
                 "key": (key, i) => new ItemLabel(i, {
                     label: "Key",
-                    item: new reactiveForm_DropdownForm({
+                    item: new DropdownForm({
                         options: availableKeys,
                         defaultValue: key,
                         allowAny: true,
@@ -14110,8 +12614,8 @@ class MappingFormNestedObject extends ReactiveForm {
                             this.mapping.key = newKey;
                             this.mapping.mapping = makeMappingDefaults(this.schema?.tag == 'object' ? this.schema.keys[newKey] : undefined, newKey);
                             observer.notify(newKey);
-                            let nested = getMappingFullPath(this.mapping.mapping);
-                            let newName = [newKey];
+                            const nested = getMappingFullPath(this.mapping.mapping);
+                            const newName = [newKey];
                             if (nested.length > 0)
                                 newName.push(...nested);
                             this.pathChange.notify(newName);
@@ -14121,7 +12625,7 @@ class MappingFormNestedObject extends ReactiveForm {
                 "mapping": () => new ObserverForm(observer, this.mapping.key, newKey => {
                     if (newKey in this.cache)
                         return this.cache[newKey];
-                    let form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
+                    const form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
                     this.cache[newKey] = form;
                     return form;
                 })
@@ -14131,7 +12635,7 @@ class MappingFormNestedObject extends ReactiveForm {
     }
     serialize(formData) {
         if (this.form === undefined)
-            return { changed: false, raw: this.mapping };
+            return (0,types.Ok)({ changed: false, raw: this.mapping });
         return this.form.serialize(formData);
     }
 }
@@ -14144,46 +12648,49 @@ class DataMappingForm extends ReactiveForm {
     }
     render(m) {
         const context = m.getContext(ConfigContext.id);
+        if (!context)
+            throw new Error();
         this.availableDropdownColumns.length = 0;
-        DataScopeManager.getDataMappings(context.config).forEach(m => this.availableDropdownColumns.push({ text: m.displayName ?? m.flattenedName, value: m.flattenedName }));
+        DataController.getDataMappings(context.config).forEach(m => this.availableDropdownColumns.push({ text: m.displayName ?? m.flattenedName, value: m.flattenedName }));
         if (this.form == null) {
-            let flatName = (data, i) => {
+            const flatName = (data, i) => {
                 let item;
                 if (this.options.flatNameOptions) {
-                    item = new reactiveForm_DropdownForm({
+                    item = new DropdownForm({
                         options: this.options.flatNameOptions.map(x => ({ text: x, value: x })),
                         defaultValue: data,
                         onChange: (newKey) => {
-                            this.options.onChangePath.notify([...this.options.fullPath]);
+                            const path = this.options.fullPath.length > 0 ? this.options.fullPath : [newKey];
+                            this.options.onChangePath.notify(path);
                         }
                     });
                 }
                 else {
-                    item = new Input({ data, type: 'string', readonly: this.options.readonlyFlatName });
+                    item = new Input({ initialData: data, type: 'string', readonly: this.options.readonlyFlatName });
                 }
                 return new ItemLabel(i, {
                     label: this.options.flatNameOptions ? 'Column Name' : 'Flattened Column Name',
                     item
                 });
             };
-            let editTypeObserver = new Observer();
-            let dropdownConfig = (data, i) => new ItemLabel(i, {
+            const editTypeObserver = new Observer();
+            const dropdownConfig = (data, i) => new ItemLabel(i, {
                 label: "Dropdown Config",
                 collapsed: true,
                 enabled: data !== undefined,
                 enclosed: true,
-                item: new reactiveForm_MultiForm({
+                item: new MultiForm({
                     options: ['Static Choices', 'Select From Column'],
                     defaultOption: data === undefined ? 'Static Choices' : ('choices' in data ? 'Static Choices' : 'Select From Column'),
                     chooseForm: selected => selected == 'Static Choices'
-                        ? new reactiveForm_ObjectForm(data ?? { choices: [] }, {
-                            "choices": data => new reactiveForm_ArrayForm(data, (item, i) => new StringInput(i, "Dropdown Choice", item, false), () => ""),
+                        ? new ObjectForm(data ?? { choices: [] }, {
+                            "choices": data => new ArrayForm(data, (item, i) => new StringInput(i, "Dropdown Choice", item, false), () => ""),
                             "allowCustom": data => new LabelBool("Allow Custom Value", data)
                         })
-                        : new reactiveForm_ObjectForm(data ?? { fromColumn: this.availableDropdownColumns[0]?.value ?? '' }, {
+                        : new ObjectForm(data ?? { fromColumn: this.availableDropdownColumns[0]?.value ?? '' }, {
                             "fromColumn": (data, i) => new ItemLabel(i, {
                                 label: "From Column",
-                                item: new reactiveForm_DropdownForm({
+                                item: new DropdownForm({
                                     options: this.availableDropdownColumns,
                                     defaultValue: data,
                                     allowAny: true
@@ -14192,42 +12699,86 @@ class DataMappingForm extends ReactiveForm {
                         })
                 })
             });
-            let dropdownConfigObserver = (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+            const dropdownConfigObserver = (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
                 if (type == 'dropdown')
                     return dropdownConfig(data, i);
-                return new reactiveForm_ConstForm(undefined);
+                return new ConstForm(undefined);
             });
-            let keyMap = {
-                "tag": () => new reactiveForm_ConstForm("data"),
+            const defaultDateConverter = `(date, serverTimeOffset) => {
+    if (typeof date === "string") {
+        let dateObj = new Date();
+        dateObj.fromFormat(date, "${DEFAULT_DATETIME_FMT}");
+        date = dateObj;
+    }
+    return date;
+}`;
+            const defaultDateDeconverter = `(date, serverTimeOffset) => {
+    return date.toFormat("${DEFAULT_DATETIME_FMT}");
+}`;
+            const keyMap = {
+                "tag": () => new ConstForm("data"),
                 "displayName": (data, i) => new StringInput(i, "Display Name", data, true),
-                "readOnly": (data, i) => new Show(new LabelBool("Read-Only", data), () => context?.isAdmin ?? false),
+                "readOnly": (data) => new Show(new LabelBool("Read-Only", data), () => context.viewEntireConfig),
                 "flattenedName": flatName,
                 "inList": d => new LabelBool("In List", d),
                 "inDetailView": d => new LabelBool("In Detail View", d),
                 "editType": (data, i) => new ItemLabel(i, {
-                    label: "Edit Type",
+                    label: "Data Type",
                     enabled: data !== undefined,
-                    item: new EditTypeDropdown(data, newItem => editTypeObserver.notify(newItem)),
+                    item: new EditTypeDropdown(data, newItem => { editTypeObserver.notify(newItem); }),
                 }),
-                "serverDateFormat": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                "dateSettings": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
                     if (type == 'datetime' || type == 'time')
-                        return new StringInput(i, "Server Date Format", data, true);
-                    return new reactiveForm_ConstForm(undefined);
+                        return new ItemLabel(i, {
+                            label: 'Date Settings',
+                            enabled: data !== undefined,
+                            enclosed: true,
+                            collapsed: true,
+                            item: new ObjectForm(data ?? {}, {
+                                "fromServer": (data, i) => new ItemLabel(i, {
+                                    label: 'Conversion from Server',
+                                    enclosed: true,
+                                    collapsed: false,
+                                    enabled: data !== undefined,
+                                    item: new CodeEditor({
+                                        data: data ?? defaultDateConverter,
+                                        lang: 'js'
+                                    })
+                                }),
+                                "toServer": (data, i) => new ItemLabel(i, {
+                                    label: 'Conversion to Server',
+                                    enclosed: true,
+                                    collapsed: false,
+                                    enabled: data !== undefined,
+                                    item: new CodeEditor({
+                                        data: data ?? defaultDateDeconverter,
+                                        lang: 'js'
+                                    })
+                                }),
+                                "clientFormat": (data, i) => new StringInput(i, "Client Format", data, true)
+                            })
+                        });
+                    return new ConstForm(undefined);
                 }),
                 "template": (data, i) => new StringInput(i, "Template", data, true),
                 "width": (data, i) => new StringInput(i, "Width", data, true),
-                "jsonConfig": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                "jsonConfig": (d, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
+                    let data = d;
                     if (type !== 'json')
-                        return new reactiveForm_ConstForm(undefined);
+                        return new ConstForm(undefined);
+                    if (data === undefined)
+                        data = { editorType: 'form', definition: { tag: 'any' } };
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    if (data.editorType === undefined)
+                        data.editorType = 'form';
                     return new ItemLabel(i, {
                         label: "JSON Config",
                         collapsed: true,
-                        enabled: data !== undefined,
                         enclosed: true,
-                        item: new reactiveForm_ObjectForm(data, {
+                        item: new ObjectForm(data, {
                             "editorType": (data, i) => new ItemLabel(i, {
                                 label: "Editor Type",
-                                item: new reactiveForm_DropdownForm({
+                                item: new DropdownForm({
                                     options: [{ text: 'Text Editor', value: 'text' }, { text: 'Form', value: 'form' }],
                                     defaultValue: data,
                                 })
@@ -14241,13 +12792,13 @@ class DataMappingForm extends ReactiveForm {
                 }),
                 "dropdownConfig": (data, i) => dropdownConfigObserver(data, i)
             };
-            this.form = new reactiveForm_ObjectForm(this.options.mapping, keyMap);
+            this.form = new ObjectForm(this.options.mapping, keyMap);
         }
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
         if (this.form == null)
-            return { changed: false, raw: this.options.mapping };
+            return (0,types.Ok)({ changed: false, raw: this.options.mapping });
         return this.form.serialize(formData);
     }
 }
@@ -14255,17 +12806,17 @@ class JSONFieldForm extends ReactiveForm {
     constructor(data) {
         super();
         if (data === undefined)
-            data = { tag: 'data', dataType: 'string' };
-        const defaultOption = (data.tag == 'array') ? 'JSON Array' : (data.tag == 'data' ? 'JSON Value' : 'JSON Object');
-        this.form = new reactiveForm_MultiForm({
-            options: ['JSON Object', 'JSON Array', 'JSON Value'],
+            data = { tag: 'any' };
+        const defaultOption = (data.tag == 'array') ? 'JSON Array' : (data.tag == 'data' ? 'JSON Value' : (data.tag == 'object' ? 'JSON Object' : 'Any Value'));
+        this.form = new MultiForm({
+            options: ['JSON Object', 'JSON Array', 'JSON Value', 'Any Value'],
             defaultOption,
             chooseForm: select => {
                 if (select == 'JSON Object') {
-                    let defaultData = (data.tag == 'object') ? data : { tag: 'object', keys: {} };
-                    return new reactiveForm_ObjectForm(defaultData, {
-                        "tag": () => new reactiveForm_ConstForm("object"),
-                        "keys": (keys) => new reactiveForm_ObjectForm(keys, {}, {
+                    const defaultData = (data.tag == 'object') ? data : { tag: 'object', keys: {} };
+                    return new ObjectForm(defaultData, {
+                        "tag": () => new ConstForm("object"),
+                        "keys": (keys) => new ObjectForm(keys, {}, {
                             onAdd: (name, data, i) => {
                                 data = data ?? { tag: 'data', dataType: 'string' };
                                 return new ItemLabel(i, {
@@ -14279,22 +12830,22 @@ class JSONFieldForm extends ReactiveForm {
                     });
                 }
                 else if (select == 'JSON Array') {
-                    let defaultData = (data.tag == 'array') ? data : { tag: 'array', item: { tag: 'data', dataType: 'string' } };
-                    return new reactiveForm_ObjectForm(defaultData, {
-                        "tag": () => new reactiveForm_ConstForm("array"),
+                    const defaultData = (data.tag == 'array') ? data : { tag: 'array', item: { tag: 'data', dataType: 'string' } };
+                    return new ObjectForm(defaultData, {
+                        "tag": () => new ConstForm("array"),
                         "item": (item, i) => new ItemLabel(i, {
                             label: "Item Definition",
                             item: new JSONFieldForm(item)
                         })
                     });
                 }
-                else {
-                    let defaultData = (data.tag == 'object') ? data : { tag: 'data', dataType: 'string' };
-                    return new reactiveForm_ObjectForm(defaultData, {
-                        "tag": () => new reactiveForm_ConstForm("data"),
+                else if (select == 'JSON Value') {
+                    const defaultData = (data.tag == 'data') ? data : { tag: 'data', dataType: 'string' };
+                    return new ObjectForm(defaultData, {
+                        "tag": () => new ConstForm("data"),
                         "dataType": (data, i) => new ItemLabel(i, {
                             label: 'Data Type',
-                            item: new reactiveForm_DropdownForm({
+                            item: new DropdownForm({
                                 options: [
                                     { text: 'String', value: 'string' }, { text: 'Number', value: 'number' }, { text: 'True/False', value: 'boolean' }
                                 ],
@@ -14303,10 +12854,16 @@ class JSONFieldForm extends ReactiveForm {
                         })
                     });
                 }
+                else {
+                    const defaultData = (data.tag == 'object') ? data : { tag: 'any' };
+                    return new ObjectForm(defaultData, {
+                        "tag": () => new ConstForm("any"),
+                    });
+                }
             }
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -14334,9 +12891,9 @@ class NestedMappingForm extends ReactiveForm {
                 defaultOption = 'Data Mapping';
                 break;
         }
-        this.form = new reactiveForm_MultiForm({
+        this.form = new MultiForm({
             options: ['Array Mapping', 'Object Mapping', 'Data Mapping'],
-            defaultOption,
+            defaultOption: defaultOption,
             chooseForm: select => {
                 if (select == 'Data Mapping')
                     return this.dataNested();
@@ -14355,7 +12912,7 @@ class NestedMappingForm extends ReactiveForm {
         }
         else {
             if (this.schema?.tag == 'object') {
-                let k = Object.keys(this.schema.keys)[0] ?? '';
+                const k = Object.keys(this.schema.keys)[0] ?? '';
                 defaultMapping = {
                     tag: 'object',
                     key: k,
@@ -14377,29 +12934,29 @@ class NestedMappingForm extends ReactiveForm {
             availableKeys = [];
         }
         const observer = new Observer();
-        return new reactiveForm_ObjectForm(defaultMapping, {
-            "tag": () => new reactiveForm_ConstForm("object"),
+        return new ObjectForm(defaultMapping, {
+            "tag": () => new ConstForm("object"),
             "key": (k, i) => new ItemLabel(i, {
                 label: "Key",
-                item: new reactiveForm_DropdownForm({
+                item: new DropdownForm({
                     options: availableKeys,
                     defaultValue: k,
                     allowAny: true,
                     onChange: newKey => {
                         observer.notify(newKey);
-                        let schema = (this.schema?.tag == 'object') ? this.schema.keys[newKey] : undefined;
-                        let nested = makeMappingDefaults(schema, newKey);
-                        let rest = getMappingFullPath(nested);
+                        const schema = (this.schema?.tag == 'object') ? this.schema.keys[newKey] : undefined;
+                        const nested = makeMappingDefaults(schema, newKey);
+                        const rest = getMappingFullPath(nested);
                         this.pathChange.notify([...this.fullPath, newKey, ...(rest.length > 1 ? rest : [])]);
                     }
                 })
             }),
             "item": (itemMapping, i) => new ObserverForm(observer, defaultMapping.key, key => {
-                let schema = (this.schema?.tag == 'object') ? this.schema.keys[key] : undefined;
-                let nested = makeMappingDefaults(schema, key);
+                const schema = (this.schema?.tag == 'object') ? this.schema.keys[key] : undefined;
+                const nested = makeMappingDefaults(schema, key);
                 if (key in this.objectKeyCache)
                     return this.objectKeyCache[key];
-                let form = new ItemLabel(i, {
+                const form = new ItemLabel(i, {
                     label: "Definition for" + [...this.fullPath, key].join('.'),
                     item: new NestedMappingForm(key == defaultMapping.key ? itemMapping : nested, key, [...this.fullPath, key], this.pathChange, schema)
                 });
@@ -14409,7 +12966,7 @@ class NestedMappingForm extends ReactiveForm {
         });
     }
     dataNested() {
-        let mapping = (this.mapping.tag == 'data') ? this.mapping : { tag: 'data', flattenedName: this.key };
+        const mapping = (this.mapping.tag == 'data') ? this.mapping : { tag: 'data', flattenedName: this.key };
         return new DataMappingForm({
             fullPath: this.fullPath,
             onChangePath: this.pathChange,
@@ -14419,17 +12976,17 @@ class NestedMappingForm extends ReactiveForm {
         });
     }
     arrayNested() {
-        let nested = (this.schema?.tag == 'array') ? makeMappingDefaults(this.schema.elem, this.key) : { tag: 'data', flattenedName: '' };
-        let mapping = (this.mapping.tag == 'array') ? this.mapping : { tag: 'array', item: nested };
-        return new reactiveForm_ObjectForm(mapping, {
-            "tag": () => new reactiveForm_ConstForm("array"),
+        const nested = (this.schema?.tag == 'array') ? makeMappingDefaults(this.schema.elem, this.key) : { tag: 'data', flattenedName: '' };
+        const mapping = (this.mapping.tag == 'array') ? this.mapping : { tag: 'array', item: nested };
+        return new ObjectForm(mapping, {
+            "tag": () => new ConstForm("array"),
             "item": (item, i) => new ItemLabel(i, {
                 label: "Definition for " + [...this.fullPath, '[...]'].join('.'),
                 item: new NestedMappingForm(item, this.key, [...this.fullPath, '[...]'], this.pathChange, this.schema?.tag == 'array' ? this.schema.elem : undefined)
             })
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -14439,7 +12996,7 @@ class NestedMappingForm extends ReactiveForm {
 class EditTypeDropdown extends ReactiveForm {
     constructor(data, onChange) {
         super();
-        this.form = new reactiveForm_DropdownForm({
+        this.form = new DropdownForm({
             options: [
                 { text: 'Text', value: 'text' },
                 { text: 'Dropdown', value: 'dropdown' },
@@ -14453,11 +13010,11 @@ class EditTypeDropdown extends ReactiveForm {
             onChange
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
-    serialize(formData) {
-        return this.form.serialize(formData);
+    serialize() {
+        return this.form.serialize();
     }
 }
 class StringInput extends ReactiveForm {
@@ -14466,10 +13023,10 @@ class StringInput extends ReactiveForm {
         this.form = new ItemLabel(i, {
             label,
             enabled: optional ? (data !== undefined) : undefined,
-            item: new Input({ data, type: 'string', textarea: multiLine })
+            item: new Input({ initialData: data, type: 'string', textarea: multiLine })
         });
     }
-    render(m) {
+    render() {
         return { type: 'group', items: [this.form] };
     }
     serialize(formData) {
@@ -14477,13 +13034,16 @@ class StringInput extends ReactiveForm {
     }
 }
 class ColumnSelector extends ReactiveForm {
-    constructor(data, onlyTopLevel) {
+    constructor(data, onlyTopLevel, onChange) {
         super();
+        this.onChange = onChange;
         this.data = data;
         this.onlyTopLevel = onlyTopLevel;
     }
     render(m) {
         const ctx = m.getContext(ConfigContext.id);
+        if (!ctx)
+            throw new Error("Column Selector needs ConfigContext.");
         if (this.dropdown == undefined) {
             let options = [];
             if (this.onlyTopLevel) {
@@ -14492,25 +13052,27 @@ class ColumnSelector extends ReactiveForm {
                     .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
             }
             else {
-                options = DataScopeManager.getDataMappings(ctx.config)
+                options = DataController.getDataMappings(ctx.config)
                     .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
             }
-            this.dropdown = new reactiveForm_DropdownForm({
+            this.dropdown = new DropdownForm({
                 options,
                 defaultValue: this.data,
-                allowAny: true
+                allowAny: true,
+                onChange: this.onChange
             });
         }
         return { type: 'group', items: [this.dropdown] };
     }
-    serialize(formData) {
+    serialize() {
         if (this.dropdown === undefined)
-            return { changed: false, raw: this.data };
-        return this.dropdown.serialize(formData);
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        return this.dropdown.serialize();
     }
 }
 
 ;// ./src/transformInterface.ts
+
 
 function transformAPI(path) {
     return fetch('https://transform.alphasoftware.com/transformAPIVersion1.a5svc/' + path, {
@@ -14529,16 +13091,12 @@ function prepareTFList(obj, formId) {
         });
     });
 }
-async function initTFSelector(containerId, obj) {
-    let cId = obj.getPointer(containerId).id;
-    let loading = {
-        type: 'html',
-        control: {
-            html: '<p> Loading Form Definitions... </p>'
-        }
-    };
-    let formObj = DynamicForm.makeFromRaw(loading, {}, cId);
-    let dropdownItems = await transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
+function initTFSelector(containerId, obj) {
+    const ptr = obj.getPointer(containerId);
+    if (!ptr)
+        throw new Error("Container " + containerId + " does not exist.");
+    const cId = ptr.id;
+    const dropdownItems = transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
         .then(json => {
         if (json.error) {
             console.error(json.errorText);
@@ -14551,65 +13109,46 @@ async function initTFSelector(containerId, obj) {
             };
         });
     });
-    let formJson = {
-        type: 'group',
-        items: [
-            {
-                type: 'picker',
-                id: 'form-picker',
-                data: {
-                    from: 'form-picker',
-                    ensure: true
-                },
-                control: {
-                    data: {
-                        src: dropdownItems,
-                        map: ['value', 'text']
-                    },
-                    picker: {
-                        data: {
-                            empty: {
-                                message: "No Forms Loaded"
-                            }
-                        }
+    let selected = '';
+    const form = new AsyncForm(async () => {
+        const items = await dropdownItems;
+        return new DropdownForm({
+            defaultValue: selected,
+            options: items,
+            onChange: x => selected = x
+        });
+    }, []);
+    new ReactiveFormManager(form, cId, obj, raw => {
+        return {
+            type: 'group',
+            items: [
+                raw,
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span> Load Form into List </span> `,
+                        onClick: () => {
+                            okOrLog(launch(selected, obj));
+                        },
                     }
                 }
-            },
-            {
-                type: 'button',
-                control: {
-                    html: `<span> Load Form into List </span> `,
-                    onClick: () => {
-                        launch(formObj.data['form-picker'], obj);
-                    },
-                }
-            }
-        ],
-        container: {
-            style: `;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-            `
-        }
-    };
-    formObj = DynamicForm.makeFromRaw(formJson, {}, obj.getPointer(containerId).id);
-    formObj.data['form-picker'] = dropdownItems[0].value;
-    formObj.refresh();
+            ]
+        };
+    });
 }
 async function launch(formId, obj) {
-    let prepareResult = await prepareTFList(obj, formId);
+    const prepareResult = await prepareTFList(obj, formId);
     if ('err' in prepareResult) {
         console.error(prepareResult.err);
         return;
     }
-    openNewPanel({
+    okOrLog(openNewPanel({
         obj: obj,
         configName: formId,
         listContainerId: 'LIST_CONTAINER',
         searchContainerId: 'SEARCH_CONTAINER',
         titleName: 'Form ' + formId,
-    });
+    }));
 }
 
 ;// ./src/tfc.js
@@ -20268,6 +18807,11 @@ const tfc_TF = {
     body {
         --json-punctuation:rgb(196, 26, 97);
         --json-value:rgb(18, 119, 214);
+        --js-keyword: rgba(230, 53, 206, 1);
+        --js-string: rgba(204, 63, 7, 1);
+        --js-num: rgba(61, 206, 162, 1);
+        --js-comment: rgba(10, 180, 81, 1);
+        --js-op: black;
     }
 
     .TFCodeJSONBrackets, .TFCodeJSONSep, .TFCodeJSONBool {
@@ -20277,6 +18821,21 @@ const tfc_TF = {
     .TFCodeJSONStr, .TFCodeJSONNum {
         color: var(--json-value);
     }
+
+    .op {
+        color: var(--js-op);
+    }
+
+    .keyword {
+        color: var(--js-keyword); 
+    }
+
+    .str {
+        color: var(--js-string);
+    }
+
+    .num { color: var(--js-num); }
+    .comment { color: var(--js-comment); }
 `);
 
 ;// ./src/index.ts
@@ -20284,8 +18843,11 @@ const tfc_TF = {
 
 
 
+
+/*eslint-disable*/
 window.initialize = initialize;
 window.initTFSelector = initTFSelector;
+window.afterFileUpload = AFTER_FILE_UPLOAD;
 window.TF = tfc_TF;
 window.addEventListener('load', () => {
     let styleNode = document.createElement('style');

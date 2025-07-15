@@ -103,7 +103,7 @@
 	{
 		"page": "main_page.a5w",
 		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,33d23779032a4150a27cd79e75e9f355,USER"
 	},
 	{
 		"page": "insufficientpermission.a5w",
@@ -148,7 +148,7 @@
 	{
 		"page": "main_layout_ux.a5wcmp",
 		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,33d23779032a4150a27cd79e75e9f355,USER"
 	},
 	{
 		"page": "list_ux.a5wcmp",
@@ -156,14 +156,9 @@
 		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
 	},
 	{
-		"page": "search_ux.a5wcmp",
-		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
-	},
-	{
 		"page": "example_layout_ux.a5wcmp",
 		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,33d23779032a4150a27cd79e75e9f355,USER"
 	},
 	{
 		"page": "list_configure_ux.a5wcmp",
@@ -172,21 +167,16 @@
 	},
 	{
 		"page": "LIST_UX.html",
-		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
-	},
-	{
-		"page": "robots.txt",
 		"action": "allow",
 		"groups": ""
 	},
 	{
 		"page": "LIST_CONFIGURE_UX.html",
-		"action": "login",
-		"groups": "02743b8dd47942c181d6ba0611f24641,ADMINISTRATOR,161c21868ea64acc935dd6963619ed19,GROUP2"
+		"action": "allow",
+		"groups": ""
 	},
 	{
-		"page": "__a5RunStaticHTML.a5w",
+		"page": "robots.txt",
 		"action": "allow",
 		"groups": ""
 	}]

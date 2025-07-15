@@ -1,0 +1,46 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+
+exports.loginStatus = loginStatus
+
+' Return:
+' p:
+'	loggedIn: l
+'   username: c
+'   permissions: 
+'		editFullConfig: l
+'		editConfigMappings: l
+function loginStatus as p ()
+	dim result as p
+	dim result.loggedIn as l = .f.
+	dim result.username as c = ""
+	dim result.account as c = ""
+	dim result.permissions as p 
+	dim result.permissions.editFullConfig as l = .f. 
+	dim result.permissions.editConfigMappings as l = .f.
+	
+	result.username = context.security.currentuser
+	result.username = "user1@alpha.com"
+	
+	if .not. context.security.callresult.success then
+		result.username = "" 
+		loginStatus = result 
+		end 
+	end if 
+	
+	result.permissions.editFullConfig = context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_FULL_CONFIG_ROLE)
+	result.permissions.editConfigMappings = result.permissions.editFullConfig .or. context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_CONFIG_MAPPINGS_ROLE)
+	
+	if .not. context.security.callresult.success then 
+	 	result.permissions.editFulLConfig = .f. 
+		result.permissions.editConfigMappings = .f.
+		loginStatus = result 
+		end 
+	end if
+	
+	result.loggedIn = .t.
+	loginStatus = result
+	
+end function

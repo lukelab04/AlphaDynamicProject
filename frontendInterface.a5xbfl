@@ -1,18 +1,23 @@
-loadClass("Result")
 
 function handle_template_download as c (e as p)
 	e.ajaxCallBackType = "FileDownload"
 	e.Action = "Display Message"
 	e.downloadMethod = "direct"
 
-	dim standardQueries as p
-	dim result as Result
-	stdQueries = require("standardQueries")
-	
+	dim result as DynamicLists::Result
 	dim stateInfo as p
 	stateInfo = json_parse(e._stateInfoJSON)
 	
-	result = stdQueries.downloadExcelTemplate(stateInfo.configName)
+	dim fileInteractor as DynamicLists::Result
+	fileInteractor = DynamicLists::FileInteraction.create(stateInfo.configName)
+	
+	if fileInteractor.isSuccess = .f. then
+		e.message = result.getInner()
+		handle_template_download = ""
+		end 
+	end if 
+	
+	result = fileInteractor.getInner().createExcelTemplate()
 	
 	if result.isSuccessful() then 
 		e.fileToDownload = result.getInner()
@@ -28,15 +33,17 @@ function handle_file_download as c (e as p)
 	e.ajaxCallBackType = "FileDownload"
 	e.Action = "Display Message"
 	e.downloadMethod = "direct"
-	
-	dim standardQueries as p
-	dim result as Result
-	stdQueries = require("standardQueries")
-	
 	dim stateInfo as p
 	stateInfo = json_parse(e._stateInfoJSON)
 	
-	result = stdQueries.doFileDownload(stateInfo.configName, stateInfo.currentFilters)
+	dim fileInteractor as DynamicLists::Result = DynamicLists::FileInteraction.create(stateInfo.configName)
+	if fileInteractor.isSuccessful() = .f. then 
+		e.message = fileInteractor.getInner()
+		handle_file_download = ""
+		end 
+	end if 
+	
+	dim result as DynamicLists::Result = fileInteractor.getInner().createExcelFile(stateInfo.currentFilters)
 	
 	if result.isSuccessful() then 
 		e.fileToDownload = result.getInner()
@@ -51,32 +58,70 @@ end function
 
 
 function handle_data_upload as v (e as p)
-	dim standardQueries as p
-	dim results[0] as p
-	stdQueries = require("standardQueries")
+	if .not. context.session.hasVariable("DYNAMIC_LIST_UPLOADED_DATA") then 
+		context.session.add("DYNAMIC_LIST_UPLOADED_DATA", "[]")
+	end if 
+	
+	if .not. context.session.hasVariable("DYNAMIC_LIST_UPLOAD_SUCCESS") then 
+		context.session.add("DYNAMIC_LIST_UPLOAD_SUCCESS", "true")
+	end if 
 	
 	dim stateInfo as p
 	stateInfo = json_parse(e.__si)
-	stdQueries.doFileUpload(e.fileArray, stateInfo.configName, results)
 	
-	dim errorList as extension::json
-	errorList.setJson("[]")
-	for each result in results
-		if .not. result.isSuccessful() then
-			errorList.push(result.toJson().getProperty("err"))
-		end if
-	next
-	
-	dim result as Result
-	if errorList.getLength() > 0 then 
+	dim fileInteractor as DynamicLists::Result = DynamicLists::FileInteraction.create(stateInfo.configName)
+	if fileInteractor.isSuccessful() = .f. then 
+		e.errorText = fileInteractor.getInner()
+		context.session.DYNAMIC_LIST_UPLOAD_SUCCESS = "false"
+		context.session.DYNAMIC_LIST_UPLOADED_DATA = "[]"
 		e.abort = .t.
+		end 
+	end if 
+	
+	dim result as DynamicLists::Result = fileInteractor.data.readFileToJsonString(e.fileArray[1])
+	
+	if result.isSuccessful() then
+		context.session.DYNAMIC_LIST_UPLOAD_SUCCESS = "true"
+		context.session.DYNAMIC_LIST_UPLOADED_DATA = result.data.getJson()
+		e.abort = .f.
 		e.errorText = ""
-		
-		for i = 0 to errorList.getLength() - 1 
-			e.errorText = e.errorText + errorList.getIndexed(i) + crlf()
-		next
+	else 
+		context.session.DYNAMIC_LIST_UPLOAD_SUCCESS = "false"
+		context.session.DYNAMIC_LIST_UPLOADED_DATA = "[]"
+		e.abort = .t.
+		e.errorText = result.getInner()
 	end if
-		
+end function
+
+function pre_file_upload as v (e as p)
+	dim key as c = "DYNAMIC_LIST_CURRENT_DATA"
+	if .not. context.session.hasVariable(key) then 
+		context.session.add(key, e.__listData)
+	else 
+		context.session.DYNAMIC_LIST_CURRENT_DATA = e.__listData
+	end if 
+end function
+
+function post_file_upload as c (e as p)
+	dim res as DynamicLists::Result
+	if context.session.DYNAMIC_LIST_UPLOAD_SUCCESS = "true" then 
+		res = DynamicLists::Result.success(context.session.DYNAMIC_LIST_UPLOADED_DATA)
+	else 
+		res = DynamicLists::Result.fail("File upload failed!")
+	end if 
+	
+	post_file_upload = "{dialog.object}.stateInfo.apiResult = " + res.toJson().getJson() + ";"
+end function
+
+function get_user_permissions as c (e as p)
+	dim login as p 
+	login = require("login")
+	dim loginStatus as p = login.loginStatus()
+
+	dim perms as extension::json 
+	perms.setJson(json_generate(loginStatus.permissions))
+
+	get_user_permissions = "{dialog.object}.stateInfo.apiResult = " + DynamicLists::Result.success(perms).toJson().getJson() + ";"
 end function
 
 function batch_fetch as c (e as p)
@@ -85,14 +130,6 @@ function batch_fetch as c (e as p)
 	configInterface = require("listConfigInterface")
 	batch = configInterface.batchFetch(e).toJson().getJson()
 	batch_fetch = "{dialog.object}.stateInfo.apiResult = " + batch + ";"
-end function
-
-function fetch_config_names as c (e as p)
-	dim configInterface as p
-	dim names as c
-	configInterface = require("listConfigInterface")
-	names = configInterface.getConfigNames().toJson().getJson()
-	fetch_config_names = "{dialog.object}.stateInfo.apiResult = " + names + ";"
 end function
 
 ' e.formid
@@ -107,7 +144,7 @@ end function
 ' Takes e.connectionName and e.tableName
 function getSchemaAjaxCallback as c (e as p)
 	dim schemaInfo as p
-	dim schemaRes as Result
+	dim schemaRes as DynamicLists::Result
 	schemaInfo = require("schemaInfo")
 	schemaRes = schemaInfo.getConnectionSchemaJSON(e.connectionName, e.tableName)
 	
@@ -116,43 +153,44 @@ end function
 
 function getAllDataForTable as c (e as p)
 	dim standardQueries as p
-	dim result as Result
+	dim result as DynamicLists::Result
 	stdQueries = require("standardQueries")
 	result = stdQueries.querySqlWithFilters(e)
-	getAllDataForTable = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+	if result.isSuccess = .f. then 
+		getAllDataForTable = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+	end if
+
+	dim inner as extension::json = result.data 
+	dim output as extension::json 
+	output.setJson("{}")
+	output.setProperty("fetchedData", inner)
+	output.setProperty("serverTimeOffset", gettimezoneoffset())
+	getAllDataForTable = "{dialog.object}.stateInfo.apiResult = " + DynamicLists::Result.success(output).toJson().getJson() + ";"
 end function
 
 function updateData as c (e as p)
 	dim standardQueries as p
 	dim results[0] as p
 	stdQueries = require("standardQueries")
-	stdQueries.updateTableData(e, results, e.connectionName)
-	
-	dim errorList as extension::json
-	errorList.setJson("[]")
-	for each result in results
-		if .not. result.isSuccessful() then
-			errorList.push(result.toJson().getProperty("err"))
-		end if
-	next
-	
-	dim result as Result
-	if errorList.getLength() == 0 then 
-		result = Result.success("")
-	else 
-		result = Result.fail(errorList)
-	end if
-	
-	updateData = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+	dim res as DynamicLists::Result = stdQueries.updateData(e)
+	updateData = "{dialog.object}.stateInfo.apiResult = " + res.toJson().getJson() + ";"
 end function
 
 function fetch as c (e as p)
 	dim stdQueries as p
-	dim result as Result
+	dim result as DynamicLists::Result
 	stdQueries = require("standardQueries")
 	result = stdQueries.performFetch(e)
-	fetch = "{dialog.object}.stateInfo.fetchResult = " + result.toJson().getJson() + ";"
-	
+	if result.isSuccess = .f. then 
+		fetch = "{dialog.object}.stateInfo.apiResult = " + result.toJson().getJson() + ";"
+	end if 
+
+	dim inner as extension::json = result.data 
+	dim output as extension::json 
+	output.setJson("{}")
+	output.setProperty("fetchedData", inner)
+	output.setProperty("serverTimeOffset", gettimezoneoffset())
+	fetch = "{dialog.object}.stateInfo.apiResult = " + DynamicLists::Result.success(output).toJson().getJson() + ";"
 end function
 
 ' e.configName (string)
@@ -175,19 +213,4 @@ function save_config as c (e as p)
 	configInterface = require("listConfigInterface")
 	result = configInterface.saveConfig(e).toJson().getJson()
 	save_config = "{dialog.object}.stateInfo.apiResult = " + result + ";"
-end function
-
-function is_admin as c (e as p) 
-	dim username as c = context.security.currentuser
-	if .not. context.security.callresult.success then 
-		username = ""
-	end if
-	
-	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
-	if ((.not. context.security.callresult.success) .or. (.not. has_permissions)) then 
-		is_admin = "{dialog.object}.stateInfo.apiResult = { \"ok\": false };"
-		end 
-	end if
-	
-	is_admin = "{dialog.object}.stateInfo.apiResult = { \"ok\": true };"
 end function

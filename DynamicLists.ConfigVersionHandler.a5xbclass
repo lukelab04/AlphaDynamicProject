@@ -5,9 +5,9 @@
 'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
 'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
 
-define class ConfigVersionHandler
-	dim read static VERSIONS[0] as c = ["0.8.0"]
-	dim read protected write static CURRENT_VERSION
+define class DynamicLists::ConfigVersionHandler
+	dim read VERSIONS[0] as c = ["0.8.0", "0.8.1", "0.8.2"]
+	dim read protected write CURRENT_VERSION
 	dim read protected write MADE_CHANGES as l
 	
 	function ConfigVersionHandler()
@@ -33,11 +33,88 @@ define class ConfigVersionHandler
 			select 
 				case version = "unversioned"
 					config = convertUnversioned(config)
+				case version = "0.8.0"
+					config = convert080to081(config)
+				case version = "0.8.1"
+					config = convert081to082(config)
 			end select
 
 		end while
 		
 		handleConversion = config
+	end function
+
+	function private convert081to082 as extension::json (config as extension::json)
+		dim mappings as extension::json = config.getProperty("mappings")
+		dim newMappings as extension::json
+		newMappings.setJson("[]")
+
+		for i = 0 to mappings.getLength() - 1 
+			newMappings.push(setDate081to082(mappings.getIndexed(i)))
+		next
+
+		config.setProperty("mappings", newMappings)
+		config.setProperty("version", "0.8.2")
+		convert081to082 = config
+	end function
+
+	function private setDate081to082 as extension::json (mapping as extension::json)
+		if mapping.getProperty("tag") = "nested" then 
+			dim inner as extension::json = mapping.getProperty("mapping")
+			mapping.setProperty("mapping", setDate081to082(inner))
+			setDate081to082 = mapping
+		else if mapping.getProperty("tag") = "object" .or. mapping.getProperty("tag") = "array" then 
+			dim inner as extension::json = mapping.getProperty("item")
+			mapping.setProperty("item", setDate081to082(inner))
+			setDate081to082 = mapping
+		else 
+			' No way to remove keys, so we just have to remap every key *except* serverDateFormat
+			dim newMapping as extension::json 
+			newMapping.setJson("{}")
+
+			for i = 0 to mapping.getLength() - 1
+				dim key as c = mapping.nameIndexed(i)
+				if key == "serverDateFormat" then 
+					self.MADE_CHANGES = .t.
+				else 
+					newMapping.setProperty(key, mapping.getProperty(key))
+				end if
+			next
+
+			setDate081to082 = newMapping
+		end if
+	end function
+	
+	function private convert080to081 as extension::json (config as extension::json)
+		dim buttons as extension::json = config.getProperty("buttons")
+		dim newButtons as extension::json 
+		newButtons.setJson("[]")
+		
+		for i = 0 to buttons.getLength() - 1 
+			dim btn as extension::json = buttons.getIndexed(i)
+			
+			if btn.getProperty("onClick").hasProperty("listAction") then
+				dim onClick as extension::json = btn.getProperty("onClick")
+				dim action as extension::json = onClick.getProperty("listAction")
+				
+				if action.getProperty("actionName") = "openLinkedList"
+					self.MADE_CHANGES = .t.
+					dim newArr as extension::json
+					newArr.setJson("[]")
+					
+					action.setProperty("linkedColumns", newArr)
+				end if 
+				
+				onClick.setProperty("listAction", action)
+				btn.setProperty("onClick", onClick)
+			end if
+			
+			newButtons.push(btn)
+		next
+		
+		config.setProperty("buttons", newButtons)
+		config.setProperty("version", "0.8.1")
+		convert080to081 = config
 	end function
 	
 	function private convertUnversioned as extension::json (config as extension::json)

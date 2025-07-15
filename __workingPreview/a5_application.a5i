@@ -61,6 +61,7 @@ loadConnectionStrings(gv, _SSRS_ConnectionStrings, "SSRS")
 
 Dim _AlphaDAO_ConnectionStrings as c 
 _AlphaDAO_ConnectionStrings = <<%txt%
+AADemo-Northwind|Encrypted:3MLNR/D8BLa2BOcsjSrGjaXxKIGPYizrLrAjjczoQeOGI+8OHZ/NxEuFOiD63hOIaGm6QMZFLzyb86JUQduk86h5rG0H1QnpRu+4dpA9mE1UO8N3cZS/htXYHI4UddZ62nYB2xy1zUtA38gnMH4cJXivd5RdKB8DrMJHoA+wklTcRV4tk4hZNJrjk0ZMIWIta5CdKPEGJsfcmKCEEvCu9cMNMOYON4aXpOumqSN+3G/2KkdA4dwuQ8ER/ticBuuk5PYLTFDHRXw=
 conn|Encrypted:xI3OKMADTTuPlPyxbyQ2IY1reY9EsgHMzSZ0sClMTWBwtRqWw04v7F26gMRzJYYROChcKzPiSrvEuEKAQTp4B/bZYRSr5UsxS4gG4k/hBpGMwPqgdvHjkQ==
 conn2|Encrypted:odGUptyi4wOcpaG3h0t4maeExwKcIFag8FuRfyEwsHYgIikxntin6Cb0G+nC+T1mDf4EYAsGiL3KXo+isyWws2OOOiUUqqwumi8OrkMxUleEUgwF4/TOC6dZmC3kyzPGUeSxbN96PLLj5EFVGbXawo/i+7bgq7xl
 %txt%
@@ -335,7 +336,10 @@ DIM application.library as C
 DIM publish as P
 DIM publish.onPublish as C
 DIM publish.library as C
-DIM __token as C = "d5b5bd0b6eea46ed85c72c1428b78f84"
+DIM oneSignal as P
+DIM oneSignal.enable as L
+DIM oneSignal.appid as C
+DIM __token as C = "0ebd44de4295454eb31a870ea53fc20d"
 %txt%
 
 dim gv as p 
@@ -346,10 +350,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 202542421316426012
-gv.__buildNumberExe__ = 9529
-gv.__buildNumberAddins__ = 5718
-gv.__guid = "39cae0ff-ee5f-4859-81ad-7b0ce583c5dd"
+gv.__A5PublishTimestamp = 202518181516185292
+gv.__buildNumberExe__ = 9804
+gv.__buildNumberAddins__ = 5722
+gv.__guid = "02b4a99a-a11b-4881-945d-b6ce625f2bbd"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

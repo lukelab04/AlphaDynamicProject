@@ -1,0 +1,16 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+
+'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
+'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
+
+define class DynamicLists::Environment
+	dim read static DEFAULT_CONNECTION_STRING as c = "conn"
+	dim read static LIST_CONFIGS_CONNECTION_STRING as c = "conn"
+	dim read static LIST_CONFIGURATIONS_DATABASE_NAME as c = "alpha_anywhere_dynamic_list_settings"
+
+	dim read static EDIT_FULL_CONFIG_ROLE as c = "ADMINISTRATOR"
+	dim read static EDIT_CONFIG_MAPPINGS_ROLE as c = "USER"
+	dim read static APPLICATION_NAME as c = "DYNAMIC_LISTS"
+end class

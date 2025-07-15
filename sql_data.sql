@@ -41,7 +41,7 @@ INSERT INTO `alpha_anywhere_dynamic_list_settings` (`ID`, `USER_NAME`, `GLOBAL`,
 	(87, NULL, 1, '{"version":"0.8.0","name":"JSON Field","dataSource":{"type":"sql","table":"Friends"},"mappings":[{"tag":"data","flattenedName":"ID"},{"tag":"data","flattenedName":"FirstName","inList":true,"inDetailView":true},{"tag":"data","flattenedName":"Friends","editType":"json","jsonConfig":{"definition":{"tag":"array","item":{"tag":"object","keys":{"name":{"tag":"data","dataType":"string"}}}},"editorType":"text"},"inDetailView":true}],"buttons":[{"columnTitle":"Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"},{"columnTitle":"Friends","onClick":{"listAction":{"actionName":"openJSONSublist","configurationName":"JSON Field.Friends","tabName":"Friends of {row[\\"FirstName\\"]}","fromColumn":"Friends"}},"title":"Open Friends List"}],"searchOptions":{}}', 'JSON Field'),
 	(88, NULL, 1, '{"name":"INVOICE_HEADERS","dataSource":{"type":"sql","table":"invoice_header"},"mappings":[{"tag":"data","flattenedName":"INVOICE_NUMBER","readOnly":false,"inList":true,"inDetailView":true} , {"tag":"data","flattenedName":"CUSTOMER_ID","readOnly":false,"inList":true,"inDetailView":true} , {"tag":"data","flattenedName":"INV_DATE","readOnly":false,"inList":true,"inDetailView":true,"editType":"datetime"} , {"tag":"data","flattenedName":"PAY_METHOD","readOnly":false,"inList":true,"inDetailView":false}],"buttons":[{"columnTitle":"Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"}],"searchOptions":{} , "version" : "0.8.0"}', 'INVOICE_HEADERS'),
 	(89, NULL, 1, '{"name":"JSON Field.Friends","dataSource":{"type":"json","jsonData":"[{\\"name\\":\\"Luke\\"}]"},"mappings":[{"tag":"data","flattenedName":"name","inList":true,"inDetailView":true}],"buttons":[{"columnTitle":"Detail View","onClick":{"listAction":{"actionName":"openDetailView"}},"title":"Open Detail View"}],"searchOptions":{} , "version" : "0.8.0"}', 'JSON Field.Friends'),
-	(90, NULL, 1, '{"name":"Forced Invoice Header","dataSource":{"type":"sql","table":"invoice_header","forcedValues":[{"column":"CUSTOMER_ID","value":{"tag":"argument","value":"FORCED_VALUE"}},{"column":"INVOICE_NUMBER","value":{"tag":"value","value":"19"}}]},"mappings":[{"tag":"data","readOnly":false,"flattenedName":"INVOICE_NUMBER","inList":true,"inDetailView":false},{"tag":"data","readOnly":false,"flattenedName":"CUSTOMER_ID","inList":true,"inDetailView":false}],"searchOptions":{},"multiSelect":false,"buttons":[],"version":"0.8.0"}', 'Forced Invoice Header');
+	(90, NULL, 1, '{"name":"Forced Invoice Header","dataSource":{"type":"sql","table":"invoice_header","forcedValues":[{"column":"CUSTOMER_ID","value":{"tag":"argument","value":"FORCED_VALUE"}},{"column":"INVOICE_NUMBER","value":{"tag":"value","value":"19"}}]},"mappings":[{"tag":"data","readOnly":false,"flattenedName":"INVOICE_NUMBER","inList":true,"inDetailView":false},{"tag":"data","readOnly":false,"flattenedName":"CUSTOMER_ID","inList":true,"inDetailView":false}],"searchOptions":{},"multiSelect":false,"buttons":[{"columnTitle":"Detail View","title":"Open Detail View","onClick":{"listAction":{"actionName":"openDetailView"}}}],"version":"0.8.0"}', 'Forced Invoice Header');
 
 -- Dumping structure for table alphasports.customer
 CREATE TABLE IF NOT EXISTS `customer` (
@@ -165,10 +165,12 @@ CREATE TABLE IF NOT EXISTS `invoice_header` (
   `DELIVERY_BY` varchar(50) NOT NULL DEFAULT '',
   `PAY_METHOD` varchar(50) NOT NULL DEFAULT '',
   `SALES_REP` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`INVOICE_NUMBER`)
+  PRIMARY KEY (`INVOICE_NUMBER`),
+  KEY `FK_invoice_header_customer` (`CUSTOMER_ID`),
+  CONSTRAINT `FK_invoice_header_customer` FOREIGN KEY (`CUSTOMER_ID`) REFERENCES `customer` (`CUSTOMER_ID`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
--- Dumping data for table alphasports.invoice_header: ~32 rows (approximately)
+-- Dumping data for table alphasports.invoice_header: ~31 rows (approximately)
 DELETE FROM `invoice_header`;
 INSERT INTO `invoice_header` (`INVOICE_NUMBER`, `CUSTOMER_ID`, `INV_DATE`, `DELIVERY_BY`, `PAY_METHOD`, `SALES_REP`) VALUES
 	(2, 6, '2025-03-07 00:00:00', 'US Mail Priority', 'Cash', 2),
@@ -187,7 +189,6 @@ INSERT INTO `invoice_header` (`INVOICE_NUMBER`, `CUSTOMER_ID`, `INV_DATE`, `DELI
 	(15, 19, '2002-01-17 00:00:00', 'US Mail Priority', 'Visa', 4),
 	(16, 6, '2002-01-17 00:00:00', 'US Mail Priority', 'Cash', 5),
 	(17, 4, '2002-01-18 00:00:00', 'PM Delivery', 'MCard', 7),
-	(18, 2, '2002-01-18 00:00:00', 'Bulk Rate Post', 'Visa', 1),
 	(19, 1, '2025-03-29 00:00:00', 'US Mail Priority', 'Cash', 2),
 	(20, 9, '2002-01-19 00:00:00', 'Bulk Rate Post', 'Other', 2),
 	(21, 22, '2002-01-20 00:00:00', 'UPS Priority', 'Check', 2),

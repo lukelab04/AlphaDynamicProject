@@ -1,604 +1,632 @@
-'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
-'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
-'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
-'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+ 'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+ 'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+ 'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+ 'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
+ 
+ exports.requestConfig = requestConfig
+ exports.saveConfig = saveConfig
+ exports.batchFetch = batchFetch
+ exports.prepareTransformFormList =  prepareTransformFormList
+ 
+ ' Input: e.configName (string)
+ ' Input: e.filters (filter array)
+ ' Output: Result(ok: {data array, schema (if schema can be fetched), config) OR Result(err: { configVersion: string })
+ function batchFetch as DynamicLists::Result (e as p)
+ 	dim resultObj as extension::json 
+ 	resultObj.setJson("{}")
+ 	
+ 	dim config as p
+ 	config = requestConfig(e)
+ 	if .not. config.isSuccessful()
+ 		batchFetch = config 
+ 		end 
+ 	end if 
+ 	config = config.getInner()
+ 	resultObj.setProperty("config", config)
+ 	
+ 	dim login as p = require("login")
+ 	dim loginStatus as p = login.loginStatus()
 
-exports.requestConfig = requestConfig
-exports.saveConfig = saveConfig
-exports.batchFetch = batchFetch
-exports.prepareTransformFormList =  prepareTransformFormList
-
-loadClass("Result")
-loadClass("ConfigVersionHandler")
-
-' Input: e.configName (string)
-' Input: e.filters (filter array)
-' Output: Result(ok: {data array, schema (if schema can be fetched), isAdmin (bool), config) OR Result(err: { configVersion: string })
-function batchFetch as Result (e as p)
-	dim resultObj as extension::json 
-	resultObj.setJson("{}")
-	
-	dim config as p
-	config = requestConfig(e)
-	if .not. config.isSuccessful()
-		batchFetch = config 
+	if loginStatus.loggedIn = .f. then 
+		batchFetch = DynamicLists::Result.fail("User is not logged in.")
 		end 
-	end if 
-	config = config.getInner()
-	resultObj.setProperty("config", config)
-	
-	dim admin as l
-	dim username as c = context.security.currentuser
-	if .not. context.security.callresult.success then 
-		username = ""
 	end if
 
-	' Ensure user is logged in
-	if username == "" then 
-		admin = .f.
+	resultObj.setProperty("editFullConfig", loginStatus.permissions.editFullConfig)
+	resultObj.setProperty("editConfigMappings", loginStatus.permissions.editConfigMappings)
+	resultObj.setProperty("serverTimeOffset", gettimezoneoffset())
+
+ 	dim schemaInfo as p 
+ 	schemaInfo = require("schemaInfo")
+ 	dim standardQueries as p 
+ 	standardQueries = require("standardQueries")
+ 	dim ds as extension::json 
+ 	ds = config.getProperty("dataSource")
+ 	
+ 	dim connectionString as c 
+ 	if ds.hasProperty("connectionString") then 
+ 		connectionString = ds.getProperty("connectionString")
+ 	else 
+ 		connectionString = (new DynamicLists::Environment()).DEFAULT_CONNECTION_STRING
+ 	end if
+ 	
+ 	dim data as p
+ 	
+ 	if ds.hasProperty("table") then
+ 		dim schema as c
+ 		dim schemaRes as DynamicLists::Result
+ 		schemaRes = schemaInfo.getConnectionSchemaJSON(connectionString, ds.getProperty("table"))
+ 		if schemaRes.isSuccessful() then 
+ 			schema = schemaRes.getInner()
+ 		else 
+ 			batchFetch = schemaRes 
+ 			end 
+ 		end if
+ 		
+ 		dim schemaJson as extension::json 
+ 		schemaJson.setJson(schema)
+ 		resultObj.setProperty("schema", schemaJson)
+ 	end if
+ 	
+ 	if ds.getProperty("type") == "sql" then
+ 		if config.getProperty("dataSource").hasProperty("paginate") then
+ 			dim pageOpts as extension::json 
+ 			pageOpts.setJson("{}")
+ 			pageOpts.setProperty("pageSize", config.getProperty("dataSource").getProperty("paginate").getProperty("pageSize"))
+ 			pageOpts.setProperty("getPage", 0)
+ 			e.pageOptions = pageOpts.getJson()
+ 		end if 
+ 		data = standardQueries.querySqlWithFilters(e)
+ 		if .not. data.isSuccessful() then 
+ 			batchFetch = data 
+ 			end
+ 		end if 
+ 		resultObj.setProperty("data", data.getInner())
+ 	else if ds.hasProperty("static") then 
+ 		resultObj.setProperty("data", ds.getProperty("static"))
+ 	end if
+ 	
+ 	batchFetch = DynamicLists::Result.success(resultObj)
+ 	
+ end function
+ 
+ ' e.formid string
+ ' This will return a config with the argument API_KEY for the TF API key
+ ' It is expected that the UX has this argument defined
+ function prepareTransformFormList as DynamicLists::Result (e as p)
+ 	if e.data("formid") = "" then 
+ 		prepareTransformFormList = DynamicLists::Result.fail("Must provide a formId")
+ 		end 
+ 	end if
+ 	
+ 	
+ 	dim existingConfig as DynamicLists::Result
+ 	dim existingConfigArgs as p
+ 	existingConfigArgs.configName = e.formid
+ 	existingConfig = requestConfig(existingConfigArgs)
+ 	
+ 	if existingConfig.isSuccessful() then
+ 		' Config already exists, so nothing to do. 
+ 		prepareTransformFormList = DynamicLists::Result.success("")
+ 		end 
+ 	end if
+ 
+ 	
+ 	dim defaultTFConfig as c
+ 	defaultTFConfig = <<%str%
+ {
+ 	"name": "args.name",
+ 	"buttons": [],
+ 	"dataSource": {
+ 		"type": "json",
+ 		"endpoints": {
+ 			"fetch": {
+ 				"endpoint": {
+ 					"tag": "template",
+ 					"value": "args.defaultUrl"
+ 				},
+ 				"method": "GET",
+ 				"headers": {
+ 					"apikey": {
+ 						"tag": "argument",
+ 						"value": "API_KEY"
+ 					}
+ 				}
+ 			}
+ 		},
+ 		"preprocess": "res => res.result"
+ 	},
+ 	"searchOptions": {
+ 		"advancedSearch": false,
+ 		"serverSearch": false,
+ 	},
+ 	"mappings": [
+ 		{
+ 			tag: "data",
+ 			flattenedName: "ID",
+ 			inList: true,
+ 			editType: "number"
+ 		},
+ 		{
+ 			tag: "data",
+ 			flattenedName: "forminstanceid",
+ 			displayName: "Form Instance ID",
+ 			inList: true,
+ 			editType: "text",
+ 			readOnly: true,
+ 		},
+ 		{
+ 			tag: "data",
+ 			flattenedName: "person",
+ 			displayName: "Person",
+ 			inList: true,
+ 			editType: "text"
+ 		}
+ 	],
+ 	"version": "0.8.0"
+ }
+ %str%
+ 	dim tfArgs as p
+ 	tfArgs.name = e.formid
+ 	tfArgs.defaultUrl = "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormInstancesArrayForFormId/" + e.formId + "?paginated=true&mode=Detailed&resolveMediaFields=true&getFormDefinition=false"
+ 	defaultTFConfig = replace_variables_in_string(defaultTFConfig, tfArgs, "args")
+ 	
+ 	dim cn as sql::connection
+ 	dim flag as l 
+ 	flag = cn_open(cn,"::Name::" + (new DynamicLists::Environment()).LIST_CONFIGS_CONNECTION_STRING)
+ 	if flag = .f. then 
+ 		'there was an error
+ 		dim errorText as c 
+ 		errorText = cn.callresult.text
+ 		prepareTransformFormList = DynamicLists::Result.fail(errorText)
+ 		end
+ 	end if 
+ 	'turn on portable SQL
+ 	cn.PortableSQLEnabled = .t.
+ 	dim SQL as c 
+ 	sql = "INSERT INTO " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + "([GLOBAL],CONFIG,CONFIG_NAME) VALUES (:GLOBAL,:CONFIG,:CONFIGNAME)"
+ 	dim args as sql::arguments
+ 	args.add("GLOBAL", 1)
+ 	args.add("CONFIG", defaultTFConfig)
+ 	args.add("CONFIGNAME", e.formid)
+ 	'execute the SQL
+ 	flag = cn.execute(sql,args)
+ 	if flag = .f. then 
+ 		'there was an error
+ 		dim errorText as c 
+ 		errorText = cn.callresult.text
+ 		cn.close()
+ 		prepareTransformFormList = DynamicLists::Result.fail(errorText)
+ 		end
+ 	end if 
+ 	dim rowsInserted as n 
+ 	cn.close()
+ 	
+ 	prepareTransformFormList = DynamicLists::Result.success("")
+ end function
+ 
+ function getConfigNames as DynamicLists::Result ()
+ 	dim cn as sql::connection
+ 	dim flag as l
+ 	''open the connection object to connect to the Database
+ 	flag = cn_open(cn,"::Name::" + (new DynamicLists::Environment()).LIST_CONFIGS_CONNECTION_STRING)
+ 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+ 	cn.PortableSQLEnabled = .t.
+ 	'execute the SQL - pass in the sql::arguments object
+ 	flag = cn.execute("select config_name from " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME)
+ 	if flag = .f. then 
+ 		'an error occurred - get the error message from cn.callresult.text 
+ 		'report the error, close the database and then end the script
+ 		dim errortext as c 
+ 		getConfigNames = DynamicLists::Result.fail(cn.callResult.text)
+ 		cn.close()
+ 		end
+ 	end if
+ 	'DIM a SQL::Resultset object
+ 	dim rs as sql::resultset
+ 	rs = cn.resultset
+ 	'get the JSON from the query
+ 	dim json as extension::json
+ 	json.setJson(rs.tojson())
+ 	getConfigNames = DynamicLists::Result.success(json)
+ 	
+ 	'Clean up by freeing the resultset and then closing the database
+ 	cn.freeresult()
+ 	cn.close()
+ end function
+ 
+ ' Input: e.configName (string)
+ ' Output: {ok : JSON configuration} or {err: Error Message }
+ 
+ function requestConfig as DynamicLists::Result (e as p)
+ 	dim login as p = require("login")
+ 	dim loginStatus as p = login.loginStatus()
+
+	if loginStatus.loggedIn = .f. then 
+		requestConfig = DynamicLists::Result.fail("User is not logged in")
+		end 
 	end if
-	
-	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
-	if (.not. context.security.callresult.success) .or. (.not. has_permissions) then 
-		admin = .f.
-	else 
-		admin = .t.
+
+ 	dim configVersionHandler as DynamicLists::ConfigVersionHandler
+ 	dim errMsg as extension::json 
+ 	errMsg.setJson("{}")
+ 	errMsg.setProperty("version", configVersionHandler.CURRENT_VERSION)
+ 	
+ 	'DIM a SQL arguments object
+ 	dim args as sql::arguments
+ 	args.add("username", loginStatus.username)
+ 	args.add("account", loginStatus.account)
+ 	
+ 	if e.data("configName") == "" then 
+ 		errMsg.setProperty("message", "property configName cannot be empty")
+ 		requestConfig = DynamicLists::Result.fail(errMsg)
+ 		end 
+ 	else 
+ 		args.add("listname", e.configName)
+ 	end if 
+ 	
+ 	dim userSql as c
+ 	dim globalSql as c
+ 	userSql = "SELECT CONFIG FROM " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " WHERE ACCOUNT = :account AND USER_NAME = :username AND CONFIG_NAME = :listname AND GLOBAL = .f."
+ 	globalSql = "SELECT CONFIG FROM " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " WHERE ACCOUNT = :account AND CONFIG_NAME = :listname AND GLOBAL = .t."
+ 	
+ 	dim userMappings as DynamicLists::Result
+ 	dim globalConfig as p
+ 	userMappings = fetchFromDb(userSql, args, "conn")
+ 	globalConfig = fetchFromDb(globalSql, args, "conn")
+ 	
+ 	if .not. globalConfig.isSuccessful() then
+ 		errMsg.setProperty("message", globalConfig.getInner())
+ 		requestConfig = DynamicLists::Result.fail(errMsg)
+ 		end
+ 	end if 
+ 	
+ 	if globalConfig.getInner().getJson() == "" then 
+ 		errMsg.setProperty("message", "config does not exist")
+ 		requestConfig = DynamicLists::Result.fail(errMsg)
+ 		end 
+ 	end if
+ 	
+ 	globalConfig = globalConfig.getInner()
+ 	
+ 	if userMappings.isSuccessful() .and. userMappings.getInner().getJson() <> "" then 
+ 		globalConfig.setProperty("mappings", userMappings.getInner())
+ 	end if
+ 	
+ 	globalConfig = configVersionHandler.handleConversion(globalConfig)
+ 	
+ 	' May need to re-write to DB
+ 	if configVersionHandler.MADE_CHANGES then 
+ 		dim saveOps as p
+ 		saveOps.global = "true"
+ 		saveOps.configName = e.configName
+ 		saveOps.payload = globalConfig.getJson()
+ 		
+ 		saveConfig(saveOps, .t.)
+ 	end if
+ 	
+ 	requestConfig = DynamicLists::Result.success(globalConfig)
+ end function
+ 
+ ' Take SQL and Args, query database, return as JSON object
+ ' Returns { ok: Obj } or { err: errMsg }
+ function fetchFromDb as DynamicLists::Result (sql as c, args as sql::arguments, connectionString as c)
+ 	'DIM an Xbasic AlphaDAO connection object
+ 	dim cn as sql::connection
+ 	dim flag as l
+ 	''open the connection object to connect to the Database
+ 	flag = cn_open(cn,"::Name::" + connectionString)
+ 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+ 	cn.PortableSQLEnabled = .t.
+ 	'execute the SQL - pass in the sql::arguments object
+ 	flag = cn.execute(sql,args)
+ 	if flag = .f. then 
+ 		'an error occurred - get the error message from cn.callresult.text 
+ 		'report the error, close the database and then end the script
+ 		dim errortext as c 
+ 		fetchFromDb = DynamicLists::Result.fail(cn.callResult.text)
+ 		cn.close()
+ 		end
+ 	end if
+ 	'DIM a SQL::Resultset object
+ 	dim rs as sql::resultset
+ 	rs = cn.resultset
+ 	'get the JSON from the query
+ 	dim json as extension::json
+ 	json.setJson(rs.tostring())
+ 	fetchFromDb = DynamicLists::Result.success(json)
+ 	
+ 	'Clean up by freeing the resultset and then closing the database
+ 	cn.freeresult()
+ 	cn.close()
+ end function
+ 
+ ' Input: e.global -- Flag to save as global (will fail, depending on user)
+ ' Input: e.configName -- Name to save the config under
+ ' Input: e.payload
+ ' 	If global is true, then this is the entire configuration 
+ ' 	If global is false, then this is just the mapping portion of the config
+ ' Input: saveAsSystem -- Flag for the system to save something without being logged in.
+ function saveConfig as DynamicLists::Result (e as p, saveAsSystem as l = .f.) 
+ 	if e.data("global") == "" then 
+ 		saveConfig = DynamicLists::Result.fail("Field 'global' is required")
+ 		end 
+ 	else if e.data("configName") == "" then 
+ 		saveConfig = DynamicLists::Result.fail("Field 'configName' is required")
+ 		end 
+ 	else if e.data("payload") == "" then 
+ 		saveConfig = DynamicLists::Result.fail("Field 'payload' is required")
+ 		end 
+ 	end if
+ 	
+ 	dim saveGlobal as L
+ 	if e.global == "true" then 
+ 		saveGlobal = .t.
+ 	else 
+ 		saveGlobal = .f.
+ 	end if
+ 	
+ 	dim login as p = require("login")
+ 	dim loginStatus as p = login.loginStatus()
+ 	
+ 	if saveAsSystem = .t. then 
+ 		loginStatus.username = "SYSTEM"
+ 	end if
+ 
+ 	' Ensure user is logged in
+ 	if loginStatus.loggedIn = .f. then 
+ 		saveConfig = DynamicLists::Result.fail("User is not logged in")
+ 		end 
+ 	end if
+ 	
+ 	' User is trying to save globally, but doesn't have the permissions?
+ 	dim userCannotSave as l = saveGlobal .and. (loginStatus.loggedIn = .f. .or. loginStatus.permissions.editFulLConfig = .f.)
+ 	if userCannotSave .and. (saveAsSystem = .f.) then 
+ 		saveConfig = DynamicLists::Result.fail("User does not have permissions to save globally.")
+ 		end 
+ 	end if
+
+	dim userCannotSaveLocal as l = loginStatus.loggedIn = .f. .or. loginStatus.permissions.editConfigMappings = .f.
+	if userCannotSaveLocal .and. (saveAsSystem = .f.) then 
+		saveConfig = DynamicLists::Result.fail("User does not have permissions to save the config.")
+		end 
 	end if
-	resultObj.setProperty("isAdmin", admin)
-	
-	dim schemaInfo as p 
-	schemaInfo = require("schemaInfo")
-	dim standardQueries as p 
-	standardQueries = require("standardQueries")
-	dim ds as extension::json 
-	ds = config.getProperty("dataSource")
-	
-	dim connectionString as c 
-	if ds.hasProperty("connectionString") then 
-		connectionString = ds.getProperty("connectionString")
-	else 
-		connectionString = "conn"
-	end if
-	
-	dim data as p
-	
-	if ds.hasProperty("table") then
-		dim schema as c
-		dim schemaRes as Result
-		schemaRes = schemaInfo.getConnectionSchemaJSON(connectionString, ds.getProperty("table"))
-		if schemaRes.isSuccessful() then 
-			schema = schemaRes.getInner()
-		else 
-			batchFetch = schemaRes 
-			end 
+ 	
+ 	'DIM a SQL arguments object
+ 	dim args as sql::arguments
+ 	args.add("listname", e.configName)
+ 	args.add("username", loginStatus.username)
+ 	args.add("global", saveGlobal)
+ 	args.add("account", loginStatus.account)
+ 	dim sql as c
+ 	dim already_exists as l = config_exists(loginStatus.username, loginStatus.account, saveGlobal, e.configName)
+ 	
+ 	'DIM an Xbasic AlphaDAO connection object
+ 	dim cn as sql::connection
+ 	dim flag as l
+ 	''open the connection object to connect to the Database
+ 	flag = cn_open(cn,"::Name::" + (new DynamicLists::Environment()).LIST_CONFIGS_CONNECTION_STRING)
+ 	
+ 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+ 	cn.PortableSQLEnabled = .t.
+ 	cn.ReportNotFoundAsWarning = .t.
+ 	
+ 	dim userSuppliedConfig as extension::json 
+ 	dim globalConfig as a
+ 	dim maybeGlobalConfig as DynamicLists::Result
+ 	userSuppliedConfig.setJson(e.payload)
+
+ 	if saveGlobal then 
+ 		globalConfig = null_value()
+
+		dim applicationName as c = (new DynamicLists::Environment()).APPLICATION_NAME
+		if applicationName = "TF_PORTAL" then 
+			forceIncludeAccount(userSuppliedConfig)
 		end if
-		
-		dim schemaJson as extension::json 
-		schemaJson.setJson(schema)
-		resultObj.setProperty("schema", schemaJson)
-	end if
-	
-	if ds.getProperty("type") == "sql" then
-		if config.getProperty("dataSource").hasProperty("paginate") then
-			dim pageOpts as extension::json 
-			pageOpts.setJson("{}")
-			pageOpts.setProperty("pageSize", config.getProperty("dataSource").getProperty("paginate").getProperty("pageSize"))
-			pageOpts.setProperty("getPage", 0)
-			e.pageOptions = pageOpts.getJson()
-		end if 
-		data = standardQueries.querySqlWithFilters(e)
-		if .not. data.isSuccessful() then 
-			batchFetch = data 
-			end
-		end if 
-		resultObj.setProperty("data", data.getInner())
-	else if ds.hasProperty("static") then 
-		resultObj.setProperty("data", ds.getProperty("static"))
-	end if
-	
-	batchFetch = Result.success(resultObj)
-	
-end function
+ 	else
+ 		maybeGlobalConfig = requestConfig(e)
+ 		if maybeGlobalConfig.isSuccessful() then 
+ 			globalConfig = maybeGlobalConfig.getInner()
+ 		else 
+ 			globalConfig = null_value()
+ 		end if 
+ 	end if
+ 	
+ 	if already_exists then
+ 		if saveGlobal then
+ 			args.add("config", userSuppliedConfig.getJson())
+ 			flag = cn.execute("UPDATE " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .t.", args)
+ 		else
+ 			dim mappingsResult as DynamicLists::Result 
+ 			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
+ 			if mappingsResult.isSuccessful() = .f. then 
+ 				saveConfig = mappingsResult
+ 				end 
+ 			else 
+ 				userSuppliedConfig = mappingsResult.getInner()
+ 			end if
+ 			args.add("config", userSuppliedConfig.getJson())
+ 			flag = cn.execute("UPDATE " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .f. AND USER_NAME = :username", args)
+ 		end if
+ 	else 
+ 		if saveGlobal then
+ 			args.add("config", userSuppliedConfig.getJson())
+ 			flag = cn.execute("INSERT INTO " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME, ACCOUNT) VALUES (:config, :listname, :global, NULL, :account)", args)
+ 		else 
+ 			dim mappingsResult as DynamicLists::Result 
+ 			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
+ 			if mappingsResult.isSuccessful() = .f. then 
+ 				saveConfig = mappingsResult
+ 				end 
+ 			else 
+ 				userSuppliedConfig = mappingsResult.getInner()
+ 			end if
+ 
+ 			dim exists_globally as l = config_exists("", loginStatus.account, .t., e.configName)
+ 			if .not. exists_globally then 
+ 				saveConfig = DynamicLists::Result.fail("Cannot save user config when no corresponding global config exists").toJson().getJson()
+ 			end if
+ 			args.add("config", userSuppliedConfig.getJson())
+ 			flag = cn.execute("INSERT INTO " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME, ACCOUNT) VALUES (:config, :listname, :global, :username, :account)", args)
+ 		end if 
+ 	end if
+ 	
+ 	if flag = .f. then 
+ 		'an error occurred - get the error message from cn.callresult.text 
+ 		'report the error, close the database and then end the script
+ 		saveConfig = DynamicLists::Result.fail(cn.callresult.text)
+ 		cn.close()
+ 		end
+ 	end if
+ 	
+ 	saveConfig = DynamicLists::Result.success("")
+ 	cn.close()
+ 	
+ end function
 
-' e.formid string
-' This will return a config with the argument API_KEY for the TF API key
-' It is expected that the UX has this argument defined
-function prepareTransformFormList as Result (e as p)
-	if e.data("formid") = "" then 
-		prepareTransformFormList = Result.fail("Must provide a formId")
+ function forceIncludeAccount as v (config as extension::json)
+	dim ds as extension::json = config.getProperty("dataSource")
+	if ds.getProperty("type") <> "sql" then 
 		end 
-	end if
-	
-	
-	dim existingConfig as Result
-	dim existingConfigArgs as p
-	existingConfigArgs.configName = e.formid
-	existingConfig = requestConfig(existingConfigArgs)
-	
-	if existingConfig.isSuccessful() then
-		' Config already exists, so nothing to do. 
-		prepareTransformFormList = Result.success("")
-		end 
-	end if
-
-	
-	dim defaultTFConfig as c
-	defaultTFConfig = <<%str%
-{
-	"name": "args.name",
-	"buttons": [],
-	"dataSource": {
-		"type": "json",
-		"endpoints": {
-			"fetch": {
-				"endpoint": {
-					"tag": "template",
-					"value": "args.defaultUrl"
-				},
-				"method": "GET",
-				"headers": {
-					"apikey": {
-						"tag": "argument",
-						"value": "API_KEY"
-					}
-				}
-			}
-		},
-		"preprocess": "res => res.result"
-	},
-	"searchOptions": {
-		"advancedSearch": false,
-		"serverSearch": false,
-	},
-	"mappings": [
-		{
-			tag: "data",
-			flattenedName: "ID",
-			inList: true,
-			editType: "number"
-		},
-		{
-			tag: "data",
-			flattenedName: "forminstanceid",
-			displayName: "Form Instance ID",
-			inList: true,
-			editType: "text",
-			readOnly: true,
-		},
-		{
-			tag: "data",
-			flattenedName: "person",
-			displayName: "Person",
-			inList: true,
-			editType: "text"
-		}
-	]
-}
-%str%
-	dim tfArgs as p
-	tfArgs.name = e.formid
-	tfArgs.defaultUrl = "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/GetFormInstancesArrayForFormId/" + e.formId + "?paginated=true&mode=Detailed&resolveMediaFields=true&getFormDefinition=false"
-	defaultTFConfig = replace_variables_in_string(defaultTFConfig, tfArgs, "args")
-	
-	dim cn as sql::connection
-	dim flag as l 
-	flag = cn_open(cn,"::Name::conn")
-	if flag = .f. then 
-		'there was an error
-		dim errorText as c 
-		errorText = cn.callresult.text
-		prepareTransformFormList = Result.fail(errorText)
-		end
 	end if 
-	'turn on portable SQL
-	cn.PortableSQLEnabled = .t.
-	dim SQL as c 
-	sql = "INSERT INTO alpha_anywhere_dynamic_list_settings([GLOBAL],CONFIG,CONFIG_NAME) VALUES (:GLOBAL,:CONFIG,:CONFIGNAME)"
-	dim args as sql::arguments
-	args.add("GLOBAL", 1)
-	args.add("CONFIG", defaultTFConfig)
-	args.add("CONFIGNAME", e.formid)
-	'execute the SQL
-	flag = cn.execute(sql,args)
-	if flag = .f. then 
-		'there was an error
-		dim errorText as c 
-		errorText = cn.callresult.text
-		cn.close()
-		prepareTransformFormList = Result.fail(errorText)
-		end
-	end if 
-	dim rowsInserted as n 
-	cn.close()
-	
-	prepareTransformFormList = Result.success("")
-end function
 
-function getConfigNames as Result ()
-	dim cn as sql::connection
-	dim flag as l
-	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
-	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
-	cn.PortableSQLEnabled = .t.
-	'execute the SQL - pass in the sql::arguments object
-	flag = cn.execute("select config_name from alpha_anywhere_dynamic_list_settings")
-	if flag = .f. then 
-		'an error occurred - get the error message from cn.callresult.text 
-		'report the error, close the database and then end the script
-		dim errortext as c 
-		getConfigNames = Result.fail(cn.callResult.text)
-		cn.close()
-		end
-	end if
-	'DIM a SQL::Resultset object
-	dim rs as sql::resultset
-	rs = cn.resultset
-	'get the JSON from the query
-	dim json as extension::json
-	json.setJson(rs.tojson())
-	getConfigNames = Result.success(json)
-	
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
-	cn.close()
-end function
-
-' Input: e.configName (string)
-' Output: {ok : JSON configuration} or {err: Error Message }
-
-function requestConfig as Result (e as p)
-	dim username as c = context.security.currentuser
-	
-	if .not. context.security.callresult.success then 
-		username = ""
-	end if
-	
-	dim configVersionHandler as ConfigVersionHandler
-	dim errMsg as extension::json 
-	errMsg.setJson("{}")
-	errMsg.setProperty("version", configVersionHandler.CURRENT_VERSION)
-	
-	'DIM a SQL arguments object
-	dim args as sql::arguments
-	args.add("username", username)
-	
-	if e.data("configName") == "" then 
-		errMsg.setProperty("message", "property configName cannot be empty")
-		requestConfig = Result.fail(errMsg)
-		end 
-	else 
-		args.add("listname", e.configName)
-	end if 
-	
-	dim userSql as c
-	dim globalSql as c
-	userSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings  WHERE USER_NAME = :username AND CONFIG_NAME = :listname AND GLOBAL = .f."
-	globalSql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
-	
-	dim userMappings as Result
-	dim globalConfig as p
-	userMappings = fetchFromDb(userSql, args, "conn")
-	globalConfig = fetchFromDb(globalSql, args, "conn")
-	
-	if .not. globalConfig.isSuccessful() then
-		errMsg.setProperty("message", globalConfig.getInner())
-		requestConfig = Result.fail(errMsg)
-		end
-	end if 
-	
-	if globalConfig.getInner().getJson() == "" then 
-		errMsg.setProperty("message", "config does not exist")
-		requestConfig = Result.fail(errMsg)
-		end 
-	end if
-	
-	globalConfig = globalConfig.getInner()
-	
-	if userMappings.isSuccessful() .and. userMappings.getInner().getJson() <> "" then 
-		globalConfig.setProperty("mappings", userMappings.getInner())
-	end if
-	
-	globalConfig = configVersionHandler.handleConversion(globalConfig)
-	
-	' May need to re-write to DB
-	if configVersionHandler.MADE_CHANGES then 
-		dim saveOps as p
-		saveOps.global = "true"
-		saveOps.configName = e.configName
-		saveOps.payload = globalConfig.getJson()
-		
-		saveConfig(saveOps, .t.)
-	end if
-	
-	requestConfig = Result.success(globalConfig)
-end function
-
-' Take SQL and Args, query database, return as JSON object
-' Returns { ok: Obj } or { err: errMsg }
-function fetchFromDb as Result (sql as c, args as sql::arguments, connectionString as c)
-	'DIM an Xbasic AlphaDAO connection object
-	dim cn as sql::connection
-	dim flag as l
-	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::" + connectionString)
-	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
-	cn.PortableSQLEnabled = .t.
-	'execute the SQL - pass in the sql::arguments object
-	flag = cn.execute(sql,args)
-	if flag = .f. then 
-		'an error occurred - get the error message from cn.callresult.text 
-		'report the error, close the database and then end the script
-		dim errortext as c 
-		fetchFromDb = Result.fail(cn.callResult.text)
-		cn.close()
-		end
-	end if
-	'DIM a SQL::Resultset object
-	dim rs as sql::resultset
-	rs = cn.resultset
-	'get the JSON from the query
-	dim json as extension::json
-	json.setJson(rs.tostring())
-	fetchFromDb = Result.success(json)
-	
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
-	cn.close()
-end function
-
-' Input: e.global -- Flag to save as global (will fail, depending on user)
-' Input: e.configName -- Name to save the config under
-' Input: e.payload
-' 	If global is true, then this is the entire configuration 
-' 	If global is false, then this is just the mapping portion of the config
-' Input: saveAsSystem -- Flag for the system to save something without being logged in.
-function saveConfig as Result (e as p, saveAsSystem as l = .f.) 
-	if e.data("global") == "" then 
-		saveConfig = Result.fail("Field 'global' is required")
-		end 
-	else if e.data("configName") == "" then 
-		saveConfig = Result.fail("Field 'configName' is required")
-		end 
-	else if e.data("payload") == "" then 
-		saveConfig = Result.fail("Field 'payload' is required")
-		end 
-	end if
-	
-	dim saveGlobal as L
-	if e.global == "true" then 
-		saveGlobal = .t.
-	else 
-		saveGlobal = .f.
-	end if
-	
-	dim username as c = context.security.currentuser
-	if .not. context.security.callresult.success then 
-		username = ""
-	end if
-	
-	if saveAsSystem = .t. then 
-		username = "SYSTEM"
-	end if
-
-	' Ensure user is logged in
-	if username == "" then 
-		saveConfig = Result.fail("User is not logged in")
-		end 
-	end if
-	
-	dim has_permissions as L = context.security.isUserInRole(username, "ADMINISTRATOR")
-	' User is trying to save globally, but isn't an admin?
-	dim securityFail as l = .not. context.security.callresult.success
-	dim noSavePermission as l = .not. has_permissions
-	dim userCannotSave as l = saveGlobal .and. (securityFail .or. noSavePermission)
-	if userCannotSave .and. (saveAsSystem = .f.) then 
-		saveConfig = Result.fail("User does not have permissions to save globally.")
-		end 
-	end if
-	
-	'DIM a SQL arguments object
-	dim args as sql::arguments
-	args.add("listname", e.configName)
-	args.add("username", username)
-	args.add("global", saveGlobal)
-	
-	dim sql as c
-	dim already_exists as l = config_exists(username, saveGlobal, e.configName)
-	
-	'DIM an Xbasic AlphaDAO connection object
-	dim cn as sql::connection
-	dim flag as l
-	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
-	
-	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
-	cn.PortableSQLEnabled = .t.
-	cn.ReportNotFoundAsWarning = .t.
-	
-	dim userSuppliedConfig as extension::json 
-	dim globalConfig as a
-	dim maybeGlobalConfig as Result
-	userSuppliedConfig.setJson(e.payload)
-	
-	if saveGlobal then 
-		globalConfig = null_value()
-	else
-		maybeGlobalConfig = requestConfig(e)
-		if maybeGlobalConfig.isSuccessful() then 
-			globalConfig = maybeGlobalConfig.getInner()
-		else 
-			globalConfig = null_value()
-		end if 
-	end if
-	
-	if already_exists then
-		if saveGlobal then
-			args.add("config", e.payload)
-			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .t.", args)
-		else
-			' saveGlobal false, so not admin
-			dim mappingsResult as Result 
-			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
-			if mappingsResult.isSuccessful() = .f. then 
-				saveConfig = mappingsResult
+	if ds.hasProperty("forcedValues") then 
+		for i = 0 to ds.getProperty("forcedValues").getLength() - 1 
+			dim fv as extension::json = ds.getProperty("forcedValues").getIndexed(i)
+			if fv.getProperty("column") = "account" .and. fv.getProperty("value").getProperty("tag") = "argument" .and. fv.getProperty("value").getProperty("value") = "TF_ACCOUNT" then 
+				' The value we need is already in there.
 				end 
-			else 
-				userSuppliedConfig = mappingsResult.getInner()
 			end if
-			args.add("config", userSuppliedConfig.getJson())
-			flag = cn.execute("UPDATE alpha_anywhere_dynamic_list_settings SET CONFIG = :config WHERE CONFIG_NAME = :listname AND GLOBAL = .f. AND USER_NAME = :username", args)
-		end if
+		next
 	else 
-		if saveGlobal then
-			args.add("config", e.payload)
-			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, NULL)", args)
-		else 
-			' saveGlobal false, so not admin
-			dim mappingsResult as Result 
-			mappingsResult = screenUserConfig(userSuppliedConfig, globalConfig)
-			if mappingsResult.isSuccessful() = .f. then 
-				saveConfig = mappingsResult
-				end 
-			else 
-				userSuppliedConfig = mappingsResult.getInner()
-			end if
+		dim fv as extension::json 
+		fv.setJson("[]")
+		ds.setProperty("forcedValues", fv)
+	end if
 
-			dim exists_globally as l = config_exists("", .t., e.configName)
-			if .not. exists_globally then 
-				saveConfig = Result.fail("Cannot save user config when no corresponding global config exists").toJson().getJson()
-			end if
-			args.add("config", userSuppliedConfig.getJson())
-			flag = cn.execute("INSERT INTO alpha_anywhere_dynamic_list_settings (CONFIG, CONFIG_NAME, GLOBAL, USER_NAME) VALUES (:config, :listname, :global, :username)", args)
-		end if 
-	end if
-	
-	if flag = .f. then 
-		'an error occurred - get the error message from cn.callresult.text 
-		'report the error, close the database and then end the script
-		saveConfig = Result.fail(cn.callresult.text)
-		cn.close()
-		end
-	end if
-	
-	saveConfig = Result.success("")
-	cn.close()
-	
-end function
+	dim fv as extension::json 
+	fv.setJson("{column: \"account\", value: {tag: \"argument\", value: \"TF_ACCOUNT\"}}")
 
-' Call only if the user is not an administrator
-' userConfig should be just the Mapping portion of the config, supplied by the front end
-' savedConfig should be the entire config from the DB OR a null value (this function will choose defaults)
-' Function ensures user has not changed admin only options (like readonly) and returns a screened JSON object
-function screenUserConfig as Result (userConfig as p, savedConfig as a) 
-	dim officialMappings as extension::json 
-	officialMappings = savedConfig.getProperty("mappings")
-	
-	if officialMappings = null_value() then 
-		screenUserConfig = Result.success(userConfig) 
-		end 
-	end if
-	
-	if userConfig.isArray() = .f. then 
-		screenUserConfig = Result.success(officialMappings) 
-		end 
-	end if
-	
-	dim userConfigReadonlyKeys as extension::json 
-	userConfigReadonlyKeys.setJson("{}")
-	
-	dim officialConfigReadonlyKeys as extension::json 
-	officialConfigReadonlyKeys.setJson("{}")
-	debug(1)
-	
-	for i = 0 to userConfig.getLength() - 1
-		getReadonlyColumns(userConfig.getIndexed(i), userConfigReadonlyKeys)
-		getReadonlyColumns(officialMappings.getIndexed(i), officialConfigReadonlyKeys)
-	next
-	
-	for i = 0 to officialConfigReadonlyKeys.getLength() - 1
-		dim name as c
-		name = officialConfigReadonlyKeys.nameIndexed(i)
-		
-		if userConfigReadonlyKeys.hasProperty(name) = .f. then 
-			screenUserConfig = Result.fail("Cannot change readonly keys as non-administrator")
-			end 
-		end if 
-	next
-	
-	screenUserConfig = Result.success(userConfig)
-end function
+	dim allFvs as extension::json = ds.getProperty("forcedValues")
+	allFvs.push(fv)
 
-function getReadonlyColumns as v (mapping as extension::json, keySet as extension::json)
-	dim tag as c 
-	tag = mapping.getProperty("tag")
-	
-	if tag = "nested" then 
-		getReadonlyColumns(mapping.getProperty("mapping"), keySet)
-	else if tag = "object" .or. tag = "array" then 
-		getReadonlyColumns(mapping.getProperty("item"), keySet)
-	else if tag = "data" then
-		if mapping.hasProperty("readOnly") then 
-			if mapping.getProperty("readOnly") = .t. then 
-				keySet.setProperty(mapping.getProperty("flattenedName"), 0)
-			end if
-		end if
-	end if
-	
-end function
+	ds.setProperty("forcedValues", allFvs)
+	config.setProperty("dataSource", ds)
+ end function
+ 
+ ' Call only if the user cannot modify the full config
+ ' userConfig should be just the Mapping portion of the config, supplied by the front end
+ ' savedConfig should be the entire config from the DB OR a null value (this function will choose defaults)
+ ' Function ensures user has not changed secure options (like readonly) and returns a screened JSON object
+ function screenUserConfig as DynamicLists::Result (userConfig as p, savedConfig as a) 
+ 	dim officialMappings as extension::json 
+ 	officialMappings = savedConfig.getProperty("mappings")
+ 	
+ 	if officialMappings = null_value() then 
+ 		screenUserConfig = DynamicLists::Result.success(userConfig) 
+ 		end 
+ 	end if
+ 	
+ 	if userConfig.isArray() = .f. then 
+ 		screenUserConfig = DynamicLists::Result.success(officialMappings) 
+ 		end 
+ 	end if
+ 	
+ 	dim userConfigReadonlyKeys as extension::json 
+ 	userConfigReadonlyKeys.setJson("{}")
+ 	
+ 	dim officialConfigReadonlyKeys as extension::json 
+ 	officialConfigReadonlyKeys.setJson("{}")
 
-
-function config_exists as l (username as c, global as l, configName as c)
-	'DIM a SQL arguments object
-	dim args as sql::arguments
-	args.add("listname", configName)
-	args.add("username", username)
-	
-	'DIM an Xbasic AlphaDAO connection object
-	dim cn as sql::connection
-	dim flag as l
-	''open the connection object to connect to the Database
-	flag = cn_open(cn,"::Name::conn")
-	
-	
-	dim sql as c
-	
-	if global then 
-		sql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND GLOBAL = .t."
-	else 
-		sql = "SELECT CONFIG FROM alpha_anywhere_dynamic_list_settings WHERE CONFIG_NAME = :listname AND USER_NAME = :username AND GLOBAL = .f."
-	end if
-	
-	
-	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
-	cn.PortableSQLEnabled = .t.
-	'execute the SQL - pass in the sql::arguments object
-	flag = cn.execute(sql,args)
-	if flag = .f. then 
-		'an error occurred - get the error message from cn.callresult.text 
-		'report the error, close the database and then end the script
-		dim errortext as c 
-		errortext = js_escape(cn.callresult.text)
-		config_exists = .f.
-		cn.close()
-		end
-	end if
-	'DIM a SQL::Resultset object
-	dim rs as sql::resultset
-	rs = cn.resultset
-	'get the JSON from the query
-	dim json as c 
-	
-	if rs.tostring() == "" then
-		config_exists = .f.
-	else
-		config_exists = .t.
-	end if
-	
-	'Clean up by freeing the resultset and then closing the database
-	cn.freeresult()
-	cn.close()	
-end function
-
-
-	
+ 	for i = 0 to userConfig.getLength() - 1
+ 		getReadonlyColumns(userConfig.getIndexed(i), userConfigReadonlyKeys)
+ 		getReadonlyColumns(officialMappings.getIndexed(i), officialConfigReadonlyKeys)
+ 	next
+ 	
+ 	for i = 0 to officialConfigReadonlyKeys.getLength() - 1
+ 		dim name as c
+ 		name = officialConfigReadonlyKeys.nameIndexed(i)
+ 		
+ 		if userConfigReadonlyKeys.hasProperty(name) = .f. then 
+ 			screenUserConfig = DynamicLists::Result.fail("You do not have the permissions to edit read-only")
+ 			end 
+ 		end if 
+ 	next
+ 	
+ 	screenUserConfig = DynamicLists::Result.success(userConfig)
+ end function
+ 
+ function getReadonlyColumns as v (mapping as extension::json, keySet as extension::json)
+ 	dim tag as c 
+ 	tag = mapping.getProperty("tag")
+ 	
+ 	if tag = "nested" then 
+ 		getReadonlyColumns(mapping.getProperty("mapping"), keySet)
+ 	else if tag = "object" .or. tag = "array" then 
+ 		getReadonlyColumns(mapping.getProperty("item"), keySet)
+ 	else if tag = "data" then
+ 		if mapping.hasProperty("readOnly") then 
+ 			if mapping.getProperty("readOnly") = .t. then 
+ 				keySet.setProperty(mapping.getProperty("flattenedName"), 0)
+ 			end if
+ 		end if
+ 	end if
+ 	
+ end function
+ 
+ 
+ function config_exists as l (username as c, account as c, global as l, configName as c)
+ 	'DIM a SQL arguments object
+ 	dim args as sql::arguments
+ 	args.add("listname", configName)
+ 	args.add("username", username)
+	args.add("account", account)
+ 	
+ 	'DIM an Xbasic AlphaDAO connection object
+ 	dim cn as sql::connection
+ 	dim flag as l
+ 	''open the connection object to connect to the Database
+ 	flag = cn_open(cn,"::Name::" + (new DynamicLists::Environment()).LIST_CONFIGS_CONNECTION_STRING)
+ 	
+ 	
+ 	dim sql as c
+ 	
+ 	if global then 
+ 		sql = "SELECT CONFIG FROM " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " WHERE CONFIG_NAME = :listname AND ACCOUNT = :account AND GLOBAL = .t."
+ 	else 
+ 		sql = "SELECT CONFIG FROM " + (new DynamicLists::Environment()).LIST_CONFIGURATIONS_DATABASE_NAME + " WHERE CONFIG_NAME = :listname AND ACCOUNT = :account AND USER_NAME = :username AND GLOBAL = .f."
+ 	end if
+ 	
+ 	
+ 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+ 	cn.PortableSQLEnabled = .t.
+ 	'execute the SQL - pass in the sql::arguments object
+ 	flag = cn.execute(sql,args)
+ 	if flag = .f. then 
+ 		'an error occurred - get the error message from cn.callresult.text 
+ 		'report the error, close the database and then end the script
+ 		dim errortext as c 
+ 		errortext = js_escape(cn.callresult.text)
+ 		config_exists = .f.
+ 		cn.close()
+ 		end
+ 	end if
+ 	'DIM a SQL::Resultset object
+ 	dim rs as sql::resultset
+ 	rs = cn.resultset
+ 	'get the JSON from the query
+ 	dim json as c 
+ 	
+ 	if rs.tostring() == "" then
+ 		config_exists = .f.
+ 	else
+ 		config_exists = .t.
+ 	end if
+ 	
+ 	'Clean up by freeing the resultset and then closing the database
+ 	cn.freeresult()
+ 	cn.close()	
+ end function
+ 
+ 
+ 	

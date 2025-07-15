@@ -1,0 +1,788 @@
+'TIP: You can encrypt this file when it is saved, or password protect it, by adding a special comment to the first line of the file (with no leading spaces).
+'To encrypt the file, set the comment on the first line to: 'ENCRYPTED
+'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
+
+'IMPORTANT - WEB APPLICATIONS: If you are using this class definition in Xbasic code in a web application, after you publish a new version of the class definition,
+'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
+
+define class DynamicLists::ListFilter
+	dim columnName as c
+	dim columnVal as c
+	dim connector as c
+	dim operator as c
+	
+	function [static] createFromJSON as DynamicLists::Result (e as p, filter as extension::json, allowedColumnNames as u)
+		dim safeOperators as u
+		safeOperators.set("=", .t.)
+		safeOperators.set("<>", .t.)
+		safeOperators.set("<", .t.)
+		safeOperators.set(">", .t.)
+		safeOperators.set("<=", .t.)
+		safeOperators.set(">=", .t.)
+		safeOperators.set("LIKE", .t.)
+		safeOperators.set("..x", .t.)
+		safeOperators.set("x..", .t.)
+		safeOperators.set("..x..", .t.)
+		
+		if .not. filter.hasProperty("columnName") then 
+			createFromJSON = DynamicLists::Result.fail("Filter does not have a column name.")
+			end 
+		end if 
+		
+		dim maybeColName as c = filter.getProperty("columnName")
+		if .not. allowedColumnNames.exist(maybeColName) then 
+			createFromJSON = DynamicLists::Result.fail("Column name " + maybeColName + " is unknown.")
+			end 
+		end if
+		
+		dim colName as c = maybeColName
+		
+		if .not. filter.hasProperty("op") then 
+			createFromJSON = DynamicLists::Result.fail("Filter does not have an operator.")
+			end
+		else if .not. safeOperators.exist(filter.getProperty("op")) then 
+			createFromJSON = DynamicLists::Result.fail("Operator " + filter.getProperty("op") + " is unknown.")
+			end 
+		end if 
+		
+		dim op as c = filter.getProperty("op")
+		dim textContainedOp as c = ""
+		if op = "..x" then 
+			op = "LIKE"
+			textContainedOp = "..x"
+		else if op = "x.."
+			op = "LIKE"
+			textContainedOp = "x.."
+		else if op = "..x.."
+			op = "LIKE"
+			textContainedOp = "..x.."
+		end if  
+		
+		dim cn as c
+		
+		if filter.hasProperty("connector") then 
+			dim maybeConnector as c = filter.getProperty("connector")
+			if maybeConnector = "AND" .or. maybeConnector = "OR" then 
+				cn = maybeConnector
+			else 
+				cn = "AND"
+			end if 
+		else 
+			cn = "AND"
+		end if
+		
+		if .not. filter.hasProperty("columnVal") then 
+			createFromJSON = DynamicLists::Result.fail("Filter does not have a column value.")
+			end 
+		end if 
+		
+		dim maybeColVal as extension::json = filter.getProperty("columnVal")
+		if .not. maybeColVal.hasProperty("tag") then 
+			createFromJSON = DynamicLists::Result.fail("Filter column value does not have a tag.")
+			end 
+		end if 
+		
+		if .not. maybeColVal.hasProperty("value") then 
+			createFromJSON = DynamicLists::Result.fail("Filter column value does not have value specified")
+			end 
+		end if 
+		
+		dim tag as c = maybeColVal.getProperty("tag")
+		if tag <> "value" .and. tag <> "arg" then 
+			createFromJSON = DynamicLists::Result.fail("Filter column tag should be either value or arg")
+			end 
+		end if 
+		
+		dim colVal as c
+		if tag = "value"
+			colVal = modifyConstraintValue(maybeColVal.getProperty("value"), textContainedOp)
+		else 
+			dim argName as c = maybeColVal.getProperty("value")
+			if e.arguments.argumentNumber(argName) = -1 then 
+				createFromJSON = DynamicLists::Result.fail("Argument " + argName + " does not exist.")
+				end 
+			end if 
+			colVal = modifyConstraintValue(e.arguments.find(argName).data, textContainedOp)
+		end if 
+		
+		createFromJSON = DynamicLists::Result.success(new DynamicLists::ListFilter(colName, colVal, cn, op))
+		
+	end function
+	
+	function [static] modifyConstraintValue as c (value as c, containedOp as c)
+		if containedOp = "..x" then 
+			modifyConstraintValue = "%" + value 
+		else if containedOp = "x.." then 
+			modifyConstraintValue = value + "%"
+		else if containedOp = "..x.." then 
+			modifyConstraintValue = "%" + value + "%"
+		else 
+			modifyConstraintValue = value 
+		end if 
+	end function
+	
+	function ListFilter (colName as c, colVal as c, cn as c, op as c)
+		columnName = colName
+		columnVal = colVal
+		connector = cn
+		operator = op
+	end function
+end class
+
+define class DynamicLists::QueryHandler
+	
+	dim private conn as sql::connection
+	dim customQuery as c
+	dim tableName as c
+	' Only valid if customQuery is empty
+	dim tableInfo as sql::tableInfo
+	dim dataSource as extension::json
+	dim columnLookup as u
+
+	function [static] create as DynamicLists::Result (dataSource as extension::json)
+		if dataSource.getProperty("type") <> "sql" then 
+			create = DynamicLists::Result.fail("Datasource type should be SQL!")
+			end
+		end if
+		
+		dim selectStmt as c 
+		dim tblName as c
+		if dataSource.hasProperty("table") then
+			selectStmt = "SELECT * from [" + dataSource.getProperty("table") + "]"
+			tblName = dataSource.getProperty("table")
+		else 
+			selectStmt = dataSource.getProperty("sql")
+		end if
+		
+		
+		dim qry as sql::query 
+		if qry.parse(selectStmt) = .f. then 
+			create = DynamicLists::Result.fail(qry.ErrorText)
+			end 
+		end if
+		
+		dim cn as sql::connection
+		cn.portableSqlEnabled = .t.
+		dim cnStr as c = (new DynamicLists::Environment()).DEFAULT_CONNECTION_STRING
+		if dataSource.hasProperty("connectionString") then 
+			cnStr = dataSource.getProperty("connectionString")
+		end if 
+		
+
+		if cn.open("::Name::" + cnStr) = .f. then 
+			create = DynamicLists::Result.fail("Could not open connection " + cnStr)
+			end
+		end if
+		
+		dim tableInfo as sql::TableInfo
+
+		if tblName <> "" then 
+			if cn.getTableInfo(tableInfo, tblName) = .f. then 
+				create = DynamicLists::Result.fail("Couldn't get table info for table " + tblName)
+				end 
+			end if 
+		end if
+		
+		dim custSql as c = ""
+		if dataSource.hasProperty("sql") then 
+			custSql = dataSource.getProperty("sql")
+		end if
+		
+		qry.validate(cn)
+		if qry.ResultSet.callResult.success = .f. then 
+			create = DynamicLists::Result.fail(qry.resultSet.callResult.text)
+			end 
+		end if 
+		
+		if qry.resultSet.columnCount = 0 then 
+			create = DynamicLists::Result.fail("No columns were specified for this query, or some column(s) could not be resolved.")
+			end 
+		end if 
+		
+		dim colLookup as u
+		for i = 1 to qry.resultSet.columnInfo.count
+			colLookup.set(qry.resultSet.columnInfo[i].name, qry.resultSet.columnInfo[i])
+		next
+		
+		create = DynamicLists::Result.success(new DynamicLists::QueryHandler(cn, custSql, tblName, dataSource, colLookup, tableInfo))
+	end function
+	
+	function QueryHandler (cn as sql::connection, custSql as c, tblName as c, ds as extension::json, colLookup as u, tableInfo as sql::TableInfo)
+		conn = cn
+		customQuery = custSql
+		tableName = tblName
+		dataSource = ds
+		columnLookup = colLookup
+		self.tableInfo = tableInfo
+	end function
+	
+	function ~QueryHandler ()
+		conn.close()
+	end function
+
+	function private convertVal as a (val as a, colName as c)
+		if columnLookup.exist(colName) then 
+			convertVal = convert_type(val, columnLookup.get(colName).alphaType)
+		end if
+		convertVal = val
+	end function
+	
+	function private forcedValues as DynamicLists::Result (e as p)
+		dim forcedVals as u
+		if dataSource.hasProperty("forcedValues") then 
+			dim fvs as extension::json = dataSource.getProperty("forcedValues")
+			for i = 0 to fvs.getLength() - 1 
+				dim fv as extension::json = fvs.getIndexed(i)
+				dim colName as c = fv.getProperty("column")
+				dim val as c
+				if fv.getProperty("value").getProperty("tag") = "value"
+					val = fv.getProperty("value").getProperty("value")
+				else 
+					dim argName as c = fv.getProperty("value").getProperty("value")
+					if e.arguments.argumentNumber(argName) = -1 then 
+						forcedValues = DynamicLists::Result.fail("Argument " + argName + " does not exist.")
+						end 
+					end if 
+					val = e.arguments.find(argName).data
+				end if 
+				
+				forcedVals.set(colName, val)
+			next
+		end if
+		
+		forcedValues = DynamicLists::Result.success(forcedVals) 
+	end function
+	
+	' filters is an array of {columnName: string, order: "asc" | "desc"} or it is null
+	function private sortByPart as DynamicLists::Result (sortOptions = NULL_VALUE())
+		dim allSortOptions as extension::JSON
+		if dataSource.hasProperty("serverSort") then 
+			allSortOptions = dataSource.getProperty("serverSort")
+		else 
+			allSortOptions.setJson("[]")
+		end if 
+		
+		if sortOptions <> null_value() then 
+			for i = 0 to sortOptions.getLength() - 1
+				allSortOptions.push(sortOptions.getIndexed(i))
+			next
+		end if 
+		
+		if allSortOptions.getLength() = 0 then 
+			sortByPart = DynamicLists::Result.success("")
+			end 
+		end if 
+		
+		dim sortBy as c = " ORDER BY "
+		for i = 0 to allSortOptions.getLength() - 1 
+			dim sortOpt as extension::json = allSortOptions.getIndexed(i)
+			dim colName as c = sortOpt.getProperty("columnName")
+			dim sortDir as c = sortOpt.getProperty("order")
+			
+			if columnLookup.exist(colName) = .f. then 
+				sortByPart = DynamicLists::Result.fail("Can't sort by " + colName + " because it isn't in the returned result set.")
+				end 
+			end if 
+			
+			if sortDir <> "asc" .and. sortDir <> "desc" then 
+				sortDir = "asc"
+			end if 
+			
+			sortBy = sortBy + " [" + colName + "] " + sortDir + ","
+		next
+		
+		if right(sortBy, 1) = "," then 
+				sortBy = substr(sortBy, 1, len(sortBy) - 1)	
+		end if
+		
+		
+		sortByPart = DynamicLists::Result.success(sortBy)
+	end function
+	
+	' filters should be of type extension::Json, as an array of List Filters.
+	function private wherePart as DynamicLists::Result (e as p, BYREF argsOut as sql::arguments, filters = NULL_VALUE())
+		' Can't dim as ListFilter becuase that crashes xbasic
+		dim allFilters[0] as p
+		dim allJsonFilters as extension::json
+		allJsonFilters.setJson("[]")
+		
+		if typeof(filters) = "Z" then 
+			dim dummyFilters as extension::JSON
+			dummyFilters.setJson("[]")
+			filters = dummyFilters
+		end if
+		
+		if dataSource.hasProperty("filters") then 
+			dim dsFilters as extension::json = dataSource.getProperty("filters")
+			for i = 0 to dsFilters.getLength() - 1 
+				allJsonFilters.push(dsFilters.getIndexed(i))
+			next
+		end if 
+		
+		for i = 0 to filters.getLength() - 1 
+			allJsonFilters.push(filters.getIndexed(i))
+		next 
+		
+		for i = 0 to allJsonFilters.getLength() - 1 
+			dim maybeFilter as DynamicLists::Result = DynamicLists::ListFilter.createFromJSON(e, allJsonFilters.getIndexed(i), columnLookup)
+			if maybeFilter.isSuccess = .f. then 
+				wherePart = maybeFilter
+				end 
+			end if 
+			
+			allFilters[] = maybeFilter.data
+		next 
+		
+		dim whereStr as c = ""
+		for i = 1 to allFilters.size()
+			dim f as DynamicLists::ListFilter = allFilters[i]
+			if whereStr <> "" 
+				whereStr = whereStr + " " + f.connector
+			end if 
+			
+			whereStr = whereStr + " [" + f.columnName + "] " + f.operator + " :LIST_FILTER_ARG" + i
+			argsOut.add("LIST_FILTER_ARG" + i, convertVal(f.columnVal, f.columnName))
+		next
+		
+		' Forced values need to be added after everything.
+		dim forcedValsRes as DynamicLists::Result = forcedValues(e)
+		if forcedValsRes.isSuccess = .f. then 
+			wherePart = forcedValsRes
+			end 
+		end if 
+		
+		dim forcedVals as u = forcedValsRes.data
+		if forcedVals.size() > 0 then
+			if whereStr <> "" then 
+				whereStr = "(" + whereStr + ")"
+			end if 
+			
+			dim argCounter as n = 1
+			for each column in forcedVals.enum_all()
+				if whereStr <> "" then 
+					whereStr = whereStr + " AND "
+				end if 
+				whereStr = whereStr + " [" + column.value + "] = :FORCED_VAL_ARG" + argCounter
+				argsOut.add("FORCED_VAL_ARG" + argCounter, convertVal(forcedVals.get(column.value), column.value))
+				argCounter = argCounter + 1
+			next
+		end if 
+
+		
+		if whereStr = "" then 
+			wherePart = DynamicLists::Result.success("")
+			end
+		end if
+		
+		whereStr = " WHERE " + whereStr
+		wherePart = DynamicLists::Result.success(whereStr)
+	end function
+	
+	function private count as n (sql as c, args as sql::arguments)
+		dim tmpQuery as sql::Query
+		dim realQuery as sql::query
+		tmpQuery.Parse("select count(*) from col")
+		realQuery.parse(sql)
+		realQuery.Column.reset()
+		realQuery.Column.add(tmpQuery.Column.item(1))
+	
+		dim flag as l
+		flag = realQuery.Execute(conn, args)
+		if .not. flag then 
+			count = 0
+			end 
+		else
+			count = realQuery.ResultSet.data(1)
+			end
+		end if
+	end function
+	
+	function private run as DynamicLists::Result (sql as c, args as sql::arguments)
+		conn.PortableSqlEnabled = .t.
+		conn.JSONDateTimeFormat = "yyyy/MM/dd 0h:0m:0s.3"
+		if conn.execute(sql, args) = .f. then 
+			run = DynamicLists::Result.fail(conn.callResult.text)
+			end
+		else 
+			run = DynamicLists::Result.success(conn.resultSet)
+		end if 
+	end function
+	
+	' Clean incoming by setting any forced columns to those values
+	function private cleanIncomingRows as DynamicLists::Result (e as p, rows as extension::json)
+		dim forcedValsResult as DynamicLists::Result = forcedValues(e)
+		if forcedValsResult.isSuccess = .f. then 
+			cleanIncomingRows = forcedValsResult
+			end
+		end if 
+		
+		dim forcedVals as u = forcedValsResult.data
+		
+		' Can't modify in place because using ".setIndexed(i, jsonObject)" doesn't work well when the item you're inserting is a ref to an 
+		' item in that list.
+		dim rowsOut as extension::json 
+		rowsOut.setJson("[]")
+		for i = 0 to rows.getLength() - 1
+			dim row as extension::json = rows.getIndexed(i)
+			for each column in forcedVals.enum_all()
+				row.setProperty(column.value, forcedVals.get(column.value))
+			next
+			
+			rowsOut.push(row)
+		next
+		
+		cleanIncomingRows = DynamicLists::Result.success(rowsOut)
+	end function
+	
+	function private forceIncludePrimaryKeys as DynamicLists::Result (e as p, rows as extension::json)
+		dim forcedValsResult as DynamicLists::Result = forcedValues(e)
+		if forcedValsResult.isSuccess = .f. then 
+			cleanIncomingRows = forcedValsResult
+			end
+		end if 
+		
+		dim forcedVals as u = forcedValsResult.data
+		
+		dim allPrimaryKeys as u
+		dim autoKeys as u
+		
+		for i = 1 to self.tableInfo.column.count
+			dim colName as c = self.tableInfo.Column[i].name
+			dim auto as l = self.tableInfo.Column[i].autoGenerate .or. self.tableInfo.Column[i].autoIncrement
+			if self.tableInfo.ColumnIsInPrimaryKey(i) then
+				allPrimaryKeys.set(colName, "")
+			end if 
+			
+			if auto then
+				autoKeys.set(colName, "") 
+			end if 
+		next
+		
+		dim rowsOut as extension::JSON
+		rowsOut.setJson("[]")
+		for i = 0 to rows.getLength() - 1 
+			dim row as extension::json = rows.getIndexed(i)
+			for each primaryKey in allPrimaryKeys.enum_all()
+				if forcedVals.exist(primaryKey.value) then
+					row.setProperty(primaryKey.value, forcedVals.get(primaryKey.value))
+				else if (row.hasProperty(primaryKey.value) = .f.) .and. (autoKeys.exist(primaryKey.value) = .f.) then 
+					forceIncludePrimaryKeys = DynamicLists::Result.fail("Primary key " + primaryKey.value + " was not included, and wasn't specified as a forced value")
+					end
+				end if 
+			next
+			rowsOut.push(row)
+		next
+		forceIncludePrimaryKeys = DynamicLists::Result.success(rowsOut)
+	end function
+
+	function private cleanAndIncludePrimary as DynamicLists::Result (e as p, rows as extension::json)
+		dim result as DynamicLists::Result = cleanIncomingRows(e, rows)
+		if result.isSuccess = .f. then 
+			cleanAndIncludePrimary = result 
+			end 
+		end if 
+
+		cleanAndIncludePrimary = forceIncludePrimaryKeys(e, result.data)
+	end function
+
+	function private filtersFromPrimaryKeys as DynamicLists::Result (row as extension::json)
+	 	dim filters as extension::json 
+		filters.setJson("[]")
+
+		dim primaryKeys[0] as c
+		for i = 1 to self.tableInfo.column.count
+			dim colName as c = self.tableInfo.Column[i].name
+			if self.tableInfo.ColumnIsInPrimaryKey(i) then
+				primaryKeys[] = colName
+			end if 
+		next
+
+		for each primaryKey in primaryKeys 
+			if row.hasProperty(primaryKey.value) = .f. then 
+				filtersFromPrimaryKeys = DynamicLists::Result.fail("One or more rows is missing a primary key: " + primaryKey.value)
+				end
+			end if
+
+			dim filter as extension::json
+			filter.setJson("{}")
+			filter.setProperty("columnName", primaryKey.value)
+
+			dim columnVal as extension::json 
+			columnVal.setJson("{}")
+			columnVal.setProperty("tag", "value")
+			columnVal.setProperty("value", row.getProperty(primaryKey.value))
+			filter.setProperty("columnVal", columnVal)
+			filter.setProperty("connector", "AND")
+			filter.setProperty("op", "=")
+
+			filters.push(filter)
+		next
+
+		filtersFromPrimaryKeys = DynamicLists::Result.success(filters)
+	end function
+	
+	' sortOptions is array of { columnName: string, order: "asc" | "desc" }
+	' Return a POINTER with result & count
+	function select as DynamicLists::Result (e as p, filters as extension::json, sortOptions as extension::json)
+		dim sql as c
+		if customQuery <> "" then 
+			sql = customQuery
+		else
+			sql = "select * from " + tableName
+		end if 
+		
+		dim args as sql::arguments
+		dim maybeWhere as DynamicLists::Result = wherePart(e, args, filters)
+		
+		if maybeWhere.isSuccess = .f. then 
+			select = maybeWhere
+			end
+		end if 
+		
+		dim maybeSortBy as DynamicLists::Result = sortByPart(sortOptions)
+		if maybeSortBy.isSuccess = .f. then 
+			select = maybeSortBy
+			end 
+		end if 
+		
+		sql = sql + " " + maybeWhere.data + " " + maybeSortBy.data
+		
+		dim runResult as DynamicLists::Result
+		runResult = run(sql, args)
+		dim count as n
+		count = self.count(sql, args)
+		
+		if runResult.isSuccess then 
+			dim out as p
+			out.result = runResult.data
+			out.count = count
+			select = DynamicLists::Result.success(out)
+		else 
+			select = runResult 
+		end if
+	end function
+	
+	' toDelete is list of rows
+	function delete as DynamicLists::Result (e as p, toUpdate as extension::json)
+		if customQuery <> "" then 
+			insert = DynamicLists::Result.fail("Custom SQL lists are view-only.")
+			end 
+		end if 
+				
+		dim cleanedResult as DynamicLists::Result = cleanAndIncludePrimary(e, toUpdate)
+		if cleanedResult.isSuccess = .f. then 
+			delete = cleanedResult
+			end 
+		end if 
+		dim cleaned as extension::json = cleanedResult.data
+		
+		if cleaned.getLength() = 0 then 
+			delete = DynamicLists::Result.success("")
+			end
+		end if
+		
+		dim allErrors[0] as DynamicLists::Result
+		'conn.beginTransaction()
+		for i = 0 to cleaned.getLength() - 1
+			dim row as extension::json = cleaned.getIndexed(i)
+			dim sql as c = "delete from [" + tableName + "]"
+			
+			dim args as sql::arguments
+
+			dim filtersToAdd as DynamicLists::Result = filtersFromPrimaryKeys(row)
+			if filtersToAdd.isSuccess = .f. then 
+				allErrors[] = filtersToAdd 
+				continue 
+			end if 
+
+			dim whereResult as DynamicLists::Result = wherePart(e, args, filtersToAdd.data)
+			if whereResult.isSuccess = .f. then 
+				allErrors[] = whereResult
+				continue 
+			end if 
+			
+			sql = sql + " " + whereResult.data
+			dim res as DynamicLists::Result
+			res = run(sql, args)
+			if res.isSuccess = .f. then 
+				allErrors[] = res
+			end if
+		next
+		
+		if allErrors.size() > 0 then 
+			'conn.rollBackTransaction()
+			delete = allErrors[1]
+			end
+		end if 
+		
+		'conn.commitTransaction()
+		delete = DynamicLists::Result.success("")
+	end function
+	
+	function update as DynamicLists::Result (e as p, toUpdate as extension::json)
+		if customQuery <> "" then 
+			update = DynamicLists::Result.fail("Custom SQL lists are view-only.")
+			end 
+		end if
+		
+		dim cleanedResult as DynamicLists::Result = cleanAndIncludePrimary(e, toUpdate)
+		if cleanedResult.isSuccess = .f. then 
+			delete = cleanedResult
+			end 
+		end if 
+		dim cleaned as extension::json = cleanedResult.data
+		
+		dim allErrors[0] as DynamicLists::Result
+		
+		if cleaned.getLength() = 0 then 
+			update = DynamicLists::Result.success("")
+			end
+		end if
+		
+		'conn.beginTransaction()
+		for i = 0 to cleaned.getLength() - 1 
+			dim row as extension::json = cleaned.getIndexed(i)
+			
+			dim sql as c = "update [" + tableName + "] SET "
+			dim args as sql::arguments 
+			dim argNum as n = 0
+			
+			for each colName in columnLookup.enum_all()
+				if row.hasProperty(colName.value) = .f. then 
+					continue 
+				end if 
+
+				if typeof(row.getProperty(colName.value)) = "Z" then 
+					continue 
+				end if 
+				
+				args.add("UPDATE_ARG" + argNum, convertVal(row.getProperty(colName.value), colName.value))
+				sql = sql + " [" + colName.value + "] = :UPDATE_ARG" + argNum + ","
+				argNum = argNum + 1
+			next
+			
+			if right(sql, 1) = "," then 
+				sql = substr(sql, 1, len(sql) - 1)
+			end if
+
+			dim filtersToAdd as DynamicLists::Result = filtersFromPrimaryKeys(row)
+			if filtersToAdd.isSuccess = .f. then 
+				allErrors[] = filtersToAdd 
+				continue 
+			end if 
+			
+			dim whereResult as DynamicLists::Result = wherePart(e, args, filtersToAdd.data)
+			if whereResult.isSuccess = .f. then 
+				allErrors[] = whereResult
+				continue 
+			end if 
+			
+			sql = sql + " " + whereResult.data
+			
+			dim res as DynamicLists::Result 
+			res = run(sql, args)
+			
+			if res.isSuccess = .f. then 
+				allErrors[] = res
+			end if 
+		next
+		
+		if allErrors.size() > 0 then 
+			'conn.rollBackTransaction()
+			update = allErrors[1]
+			end 
+		end if 
+		
+		'conn.commitTransaction()
+		update = DynamicLists::Result.success("")
+	end function
+	
+	' toUpdate is a list of rows
+	function insert as DynamicLists::Result (e as p, toUpdate as extension::json)
+		if customQuery <> "" then 
+			insert = DynamicLists::Result.fail("Custom SQL lists are view-only.")
+			end 
+		end if
+		
+		dim cleanedResult as DynamicLists::Result = cleanAndIncludePrimary(e, toUpdate)
+		if cleanedResult.isSuccess = .f. then 
+			delete = cleanedResult
+			end 
+		end if 
+		dim cleaned as extension::json = cleanedResult.data
+
+		dim autoCols as u 
+		for i = 1 to self.tableInfo.column.count 
+			dim columnName as c = self.tableInfo.column[i].name 
+			if self.tableInfo.column[i].autoGenerate .or. self.tableInfo.column[i].autoIncrement then 
+				autoCols.set(columnName, "")
+			end if 
+		next
+		
+		dim allErrors[0] as DynamicLists::Result
+		
+		if cleaned.getLength() = 0 then 
+			insert = DynamicLists::Result.success("")
+			end 
+		end if 
+		
+		'conn.beginTransaction()
+
+		for i = 0 to cleaned.getLength() - 1
+			dim row as extension::json 
+			row = cleaned.getIndexed(i)
+							
+			dim sql as c = "insert into [" + tableName + "]"
+			dim columns as c = "("
+			dim values as c = "("
+			
+			dim args as sql::arguments
+
+			dim argNum as n = 0			
+			for each colName in columnLookup.enum_all()
+				if row.hasProperty(colName.value) = .f. then 
+					continue
+				end if
+
+				if autoCols.exist(colName.value) then 
+					continue 
+				end if 
+
+				columns = columns + "[" + colName.value + "],"
+				values = values + ":INSERTED_VALUE" + argNum + ","
+				args.add("INSERTED_VALUE" + argNum, convertVal(row.getProperty(colName.value), colName.value))
+				argNum = argNum + 1
+			next
+			
+			if right(columns, 1) = "," then 
+				columns = substr(columns, 1, len(columns) - 1)
+			end if 
+			
+			if right(values, 1) = "," then 
+				values = substr(values, 1, len(values) - 1)
+			end if 
+			
+			columns = columns + ")"
+			values = values + ")"
+	
+			sql = sql + columns + " VALUES " + values
+			
+			dim res as DynamicLists::Result
+			res = run(sql, args)
+			if res.isSuccess = .f. then 
+				allErrors[] = res
+			end if
+		next
+		
+		if allErrors.size() > 0 then
+			 'conn.rollBackTransaction()
+			 insert = allErrors[1]
+			 end
+		end if
+		
+		'conn.commitTransaction()
+		insert = DynamicLists::Result.success("")
+
+	end function
+	
+end class

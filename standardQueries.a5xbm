@@ -3,20 +3,143 @@
 'To password protect the file (which will also encrypt it), set the comment on the first line to: 'PASSWORD:your_password_phrase
 'To create a compiled AEX library (when this project is published), add the comment 'COMPILEAEX at the START of a line in the code.
 
-loadClass("Result")
-
 ' Input: [e.filters] like {"columnName": name, columnVal: val, connector: 'OR' | 'AND', op: '=', '!=', etc}
 ' Input: e.configName
 ' Input: e.pageOptions like {pageSize: n, getPage: n} or nothing
-function querySqlWithFilters as Result (e as p, returnResultSet as l = .f.)
+' Input: e.sortOptions
+
+function querySqlWithFilters as DynamicLists::Result (e as p, returnResultSet as l = .f.)
 	dim configInterface as p
-	dim config as Result
+	dim config as DynamicLists::Result
+	dim configJson as extension::Json
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+
+	if .not. config.isSuccessful() then 
+		querySqlWithFilters = config
+		end 
+	end if
+
+	configJson = config.getInner()
+
+	if configJson.hasProperty("dataSource") = .f. then 
+		querySqlWithFilters = DynamicLists::Result.fail("Configuration does not have a datasource.")
+		end
+	end if 
+
+	dim sortOptions as extension::json
+	if e.data("sortOptions") <> "" then 
+		sortOptions.setJson(e.sortOptions)
+	else 
+		sortOptions.setJson("[]")
+	end if
+
+	dim qhResult as DynamicLists::Result = DynamicLists::QueryHandler.create(configJson.getProperty("dataSource"))
+	if qhResult.isSuccess = .f. then 
+		querySqlWithFilters = qhResult
+		end
+	end if
+	dim qh as DynamicLists::QueryHandler = qhResult.data
+
+	dim filters as extension::json
+	filters.setJson(e.filters)
+
+	dim queryResult as DynamicLists::Result = qh.select(e, filters, sortOptions)
+	if queryResult.isSuccess = .f. then 
+		querySqlWithFilters = queryResult
+		end
+	end if 
+
+	if returnResultSet then 
+		querySqlWithFilters = DynamicLists::Result.success(queryResult.data.result)
+		end
+	end if
+
+	dim rs as sql::ResultSet = queryResult.data.result
+	dim count as n = queryResult.data.count
+
+	dim jsonStr as c
+	if e.data("pageOptions") <> "" then 
+		dim pageOps as p = json_parse(e.pageOptions)
+		dim rowStart as n = 1 + (pageOps.pageSize * (pageOps.getPage - 1))
+		dim getRows as n = pageOps.pageSize
+		jsonStr = rs.toJSON(getRows, rowStart)
+	else 
+		jsonStr = rs.toJSON()
+	end if
+
+	dim json as extension::json 
+	dim results as extension::json 
+	results.setJson(jsonStr)
+	json.setJson("{}")
+	json.setProperty("result", results)
+	json.setProperty("count", count)
+
+	querySqlWithFilters = DynamicLists::Result.success(json)
+end function
+
+' Input: e.toDelete
+' Input: e.toUpdate
+' Input: e.toInsert
+function updateData as DynamicLists::Result (e as p)
+	dim configInterface as p
+	dim config as DynamicLists::Result
 	dim configJson as extension::Json
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
 	
 	if .not. config.isSuccessful() then 
-		querySqlWithFilters = config
+		updateData = config
+		end 
+	end if
+
+	configJson = config.getInner()
+
+	if configJson.hasProperty("dataSource") = .f. then 
+		sqlInsert = DynamicLists::Result.fail("Configuration does not have a datasource.")
+	end if 
+
+	dim qhResult as DynamicLists::Result = DynamicLists::QueryHandler.create(configJson.getProperty("dataSource"))
+	if qhResult.isSuccess = .f. then 
+		sqlInsert = qhResult
+	end if
+	dim qh as DynamicLists::QueryHandler = qhResult.data
+
+	dim toDelete as extension::json
+	if e.data("toDelete") = "" then 
+		sqlInsert = DynamicLists::Result.fail("toDelete was not supplied.")
+	end if 
+	toDelete.setJson(e.toDelete)
+
+	dim toInsert as extension::json
+	if e.data("toInsert") = "" then 
+		sqlInsert = DynamicLists::Result.fail("toInsert was not supplied.")
+	end if 
+	toInsert.setJson(e.toInsert)
+
+	dim toUpdate as extension::json
+	if e.data("toUpdate") = "" then 
+		sqlInsert = DynamicLists::Result.fail("toUpdate was not supplied.")
+	end if 
+	toUpdate.setJson(e.data("toUpdate"))
+
+	dim res as DynamicLists::Result = qh.insert(e, toInsert)
+	res.andThen(qh.delete(e, toDelete))
+	res.andThen(qh.update(e, toUpdate))
+
+	updateData = res
+end function
+
+
+function querySqlWithFiltersOld as DynamicLists::Result (e as p, returnResultSet as l = .f.)
+	dim configInterface as p
+	dim config as DynamicLists::Result
+	dim configJson as extension::Json
+	configInterface = require("listConfigInterface")
+	config = configInterface.requestConfig(e)
+	
+	if .not. config.isSuccessful() then 
+		querySqlWithFiltersOld = config
 		end 
 	end if
 	
@@ -86,16 +209,16 @@ function querySqlWithFilters as Result (e as p, returnResultSet as l = .f.)
 				columns[index] = colName
 			end if
 		next
-		querySqlWithFilters = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
+		querySqlWithFiltersOld = getTableData(configJson.getProperty("dataSource").getProperty("table"), columns, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
 	else
 		dim sql as c 
 		sql = configJson.getProperty("dataSource").getProperty("sql")
-		querySqlWithFilters = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
+		querySqlWithFiltersOld = getTableDataFromSql(sql, pageOptions, sortOptions, filters, e, cnString, ds, returnResultSet)
 	end if
 	
 end function
 
-function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
+function getTableDataFromSql as DynamicLists::Result (sql as c, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -104,7 +227,7 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 	flag = cn_open(cn,"::Name::" + connName)
 	
 	dim filterStr as c
-	dim filterStrRes as Result
+	dim filterStrRes as DynamicLists::Result
 	filterStrRes = buildConstraint(filters, args, cn, e, dataSource)
 	
 	if .not. filterStrRes.isSuccessful() then 
@@ -118,14 +241,14 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 		sql = sql + " WHERE " + filterStr
 	end if
 	
-	dim result as Result
+	dim result as DynamicLists::Result
 	result = runSqlFetch(cn, sql, args, pageOptions, sortOptions, returnResultSet)
 	
 	if .not. result.isSuccessful() then 
 		getTableDataFromSql = result 
 	else 
 		if returnResultSet then 
-			getTableDataFromSql = Result.success(result.getInner())
+			getTableDataFromSql = DynamicLists::Result.success(result.getInner())
 		else
 			dim count as n
 			count = customSqlCount(sql, args, cn)
@@ -133,14 +256,17 @@ function getTableDataFromSql as Result (sql as c, pageOptions as a, sortOptions 
 			data.setJson("{}")
 			data.setProperty("result", result.getInner())
 			data.setProperty("count", count)
-			getTableDataFromSql = Result.success(data)
+			getTableDataFromSql = DynamicLists::Result.success(data)
 		end if
 	end if
 	
 	cn.close()
 end function
 
-function getTableData as Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
+function getTableData as DynamicLists::Result (tableName as c, columns as p, pageOptions as a, sortOptions as a, filters as extension::json, e as p, connName as c, dataSource as extension::json, returnResultSet as l = .f.)
+	dim qhResult as DynamicLists::Result = DynamicLists::QueryHandler.create(dataSource)
+	qhResult.data.select(e, filters)
+
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
 	dim flag as l
@@ -150,12 +276,12 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	if columns.size == 0 then
 		dim data as extension::json 
 		data.setJson("[]")
-		getTableData = Result.success(data)
+		getTableData = DynamicLists::Result.success(data)
 		end 
 	end if
 	
 	dim args as sql::arguments
-	dim filterStrRes as Result
+	dim filterStrRes as DynamicLists::Result
 	dim filterStr as c
 	filterStrRes = buildConstraint(filters, args, cn, e, dataSource)
 	if .not. filterStrRes.isSuccessful() then 
@@ -195,7 +321,7 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	
 	sql = "SELECT " + selectPart + " FROM " + fromPart + " WHERE " + wherePart
 	
-	dim data as Result
+	dim data as DynamicLists::Result
 	data = runSqlFetch(cn, sql, args, pageOptions, sortOptions, returnResultSet)
 	
 	if .not. data.isSuccessful() then 
@@ -204,7 +330,7 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 	end if 
 	
 	if returnResultSet then 
-		getTableData = Result.success(data.getInner())
+		getTableData = DynamicLists::Result.success(data.getInner())
 	else
 		dim count as n
 		count = sql_count(cn, tableName, "*", wherePart, args);
@@ -212,7 +338,7 @@ function getTableData as Result (tableName as c, columns as p, pageOptions as a,
 		dataObj.setJson("{}")
 		dataObj.setProperty("count", count)
 		dataObj.setProperty("result", data.getInner())
-		getTableData = Result.success(dataObj)
+		getTableData = DynamicLists::Result.success(dataObj)
 	end if
 	
 	cn.close()
@@ -226,8 +352,9 @@ end function
 ' sortOptions
 '	columnName: string
 ' 	order: "asc" | "desc"
-function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a, sortOptions as a, returnResultSet as l)
-	dim result as Result
+function runSqlFetch as DynamicLists::Result (cn as sql::connection, sql as c, args as sql::Arguments, pageOptions as a, sortOptions as a, returnResultSet as l)
+
+	dim result as DynamicLists::Result
 	
 	if pageOptions == null_value() then 
 		rowStart = 1
@@ -253,7 +380,7 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		result = Result.fail(cn.callresult.text)
+		result = DynamicLists::Result.fail(cn.callresult.text)
 		runSqlFetch = result
 		cn.close()
 		end
@@ -265,19 +392,19 @@ function runSqlFetch as Result (cn as sql::connection, sql as c, args as sql::Ar
 	cr = cn.CallResult
 	
 	if returnResultSet then 
-		runSqlFetch = Result.success(rs)
+		runSqlFetch = DynamicLists::Result.success(rs)
 	else
 		'get the JSON from the query
 		dim jsonStr as c 
 		jsonStr = rs.toJSON(getRows, rowStart)
 		dim json as extension::json
 		json.setJson(jsonStr)
-		result = Result.success(json)
+		result = DynamicLists::Result.success(json)
 		runSqlFetch = result
 	end if
 end function
 
-function buildConstraint as Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p, dataSource as extension::json)
+function buildConstraint as DynamicLists::Result (filters as extension::json, args as sql::arguments, connection as sql::connection, e as p, dataSource as extension::json)
 	dim args as sql::arguments
 	dim filterStr as c
 	dim argCounter as n
@@ -338,7 +465,7 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 			else
 				dim argName as c = filter.getProperty("columnVal").getProperty("value")
 				if e.arguments.argumentNumber(argName) == -1 then 
-					buildConstraint = Result.fail("Argument " + argName + " does not exist")
+					buildConstraint = DynamicLists::Result.fail("Argument " + argName + " does not exist")
 					end 
 				end if 
 				dim argVal as c
@@ -372,7 +499,7 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 			else 
 				dim argName as c = forcedValue.getProperty("value").getProperty("value")
 				if e.arguments.argumentNumber(argName) == -1 then 
-					buildConstraint = Result.fail("Argument " + argName + " does not exist")
+					buildConstraint = DynamicLists::Result.fail("Argument " + argName + " does not exist")
 					end 
 				end if 
 				dim argVal as c
@@ -383,7 +510,7 @@ function buildConstraint as Result (filters as extension::json, args as sql::arg
 		next
 	end if
 	
-	buildConstraint = Result.success(filterStr)
+	buildConstraint = DynamicLists::Result.success(filterStr)
 end function
 
 function modifyConstraintValue as c (value as c, textContainedOp as c)
@@ -406,7 +533,7 @@ function isSafeOp as l (op as c)
 	isSafeOp = (op == "=") .or. (op == "<>") .or. (op == "<") .or. (op == "<=") .or. (op == ">") .or. (op == ">=") .or. (op == "LIKE") .or. (op == "..x") .or. (op == "x..") .or. (op == "..x..")
 end function 
 
-function getMappingFromMappings as Result (mappings as extension::json, column as c)
+function getMappingFromMappings as DynamicLists::Result (mappings as extension::json, column as c)
 	for i = 0 to mappings.getLength() - 1
 		dim m as extension::json 
 		m = mappings.getIndexed(i)
@@ -416,12 +543,12 @@ function getMappingFromMappings as Result (mappings as extension::json, column a
 			colName = m.getProperty("flattenedName")
 			
 			if colName == column then 
-				getMappingFromMappings = Result.success(m)
+				getMappingFromMappings = DynamicLists::Result.success(m)
 				end 
 			end if
 		end if
 	next
-	getMappingFromMappings = Result.fail("Mapping " + column + " was not specified.")
+	getMappingFromMappings = DynamicLists::Result.fail("Mapping " + column + " was not specified.")
 end function
 
 ' Input: e.configName
@@ -429,12 +556,11 @@ end function
 ' Input: resultsOut output parameter list of results
 function updateTableData as v (e as p, resultsOut as p, connName as c)
 	dim configInterface as p
-	dim config as Result
+	dim config as DynamicLists::Result
 	dim configJson as extension::Json
 	dim dataSource as extension::json
 	configInterface = require("listConfigInterface")
 	config = configInterface.requestConfig(e)
-	
 	if .not. config.isSuccessful() then 
 		resultsOut[] = config 
 		end
@@ -444,7 +570,7 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	end if
 	
 	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
-		resultsOut[] = Result.fail("Cannot update table data for non-SQL list")
+		resultsOut[] = DynamicLists::Result.fail("Cannot update table data for non-SQL list")
 		end 
 	end if 
 	
@@ -452,7 +578,7 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	isCustomSql = configJson.getProperty("dataSource").hasProperty("sql")
 	
 	if isCustomSql then 
-		resultsOut[] = Result.fail("Custom SQL Lists are Read Only")
+		resultsOut[] = DynamicLists::Result.fail("Custom SQL Lists are Read Only")
 		end 
 	end if
 	
@@ -466,7 +592,7 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 		queryInfo.tableName = configJson.getProperty("dataSource").getProperty("table")
 		
 		schemaInfo = require("schemaInfo")
-		dim schemaRes as Result
+		dim schemaRes as DynamicLists::Result
 		schemaRes = schemaInfo.getConnectionSchemaJSON(connName, queryInfo.tableName)
 		if schemaRes.isSuccess then 
 			info = schemaRes.getInner()
@@ -480,6 +606,14 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 	
 	dim dirty as p
 	dirty = json_parse(e.dirty)
+
+	dim tmpJson as extension::json
+	tmpJson.setJson(e.dirty)
+	dim qh as DynamicLists::QueryHandler = DynamicLists::QueryHandler.create(dataSource)
+	qh.data.insert(e, tmpJson)
+	updateTableData = DynamicLists::Result.fail("")
+	end
+	
 	
 	'DIM an Xbasic AlphaDAO connection object
 	dim cn as sql::connection
@@ -495,37 +629,34 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 		dim shouldUpdate as l
 		dim shouldInsert as l
 		
-		if prop_valid(item.value, "_isDeleted") then 
-			shouldDelete = item.value._isDeleted
-		else if prop_valid(item.value, "_isNewRow") then 
-			shouldInsert = item.value._isNewRow
-		end if
-		debug(1)
+		dim itemJsonStr as c = json_generate(item.value)
+		dim itemJson as extension::json 
+		itemJson.setJson(itemJsonStr)
+		
 		if dataSource.hasProperty("forcedValues") then 
-			dim forcedValues as extension::json 
-			forcedValues = dataSource.getProperty("forcedValues")
-			
-			for i = 0 to forcedValues.getLength() - 1
-				dim forcedVal as extension::json 
-				forcedVal = forcedValues.getIndexed(i)
+			for i = 0 to dataSource.getProperty("forcedValues").getLength() - 1
+				dim forcedVal as extension::json = dataSource.getProperty("forcedValues").getIndexed(i)
+				dim colName as c = forcedVal.getProperty("column")
 				
-				dim val as c
 				if forcedVal.getProperty("value").getProperty("tag") = "value" then 
-					val = forcedVal.getProperty("value")
+					itemJson.setProperty(colName, forcedVal.getProperty("value").getProperty("value"))
 				else 
 					dim argName as c = forcedVal.getProperty("value").getProperty("value")
 					if e.arguments.argumentNumber(argName) == -1 then 
-						updateTableData = Result.fail("Argument " + argName + " does not exist")
+						updateTableData = DynamicLists::Result.fail("Argument " + argName + " does not exist")
 						end 
 					end if 
 					dim argVal as c
-					val = e.arguments.find(argName).data
-				end if
-				
-				if prop_valid(item.value, forcedVal.getProperty("column")) then 
-					item.value = val
+					argVal = e.arguments.find(argName).data
+					itemJson.setProperty(colName, argVal)
 				end if
 			next
+		end if
+		
+		if itemJson.hasProperty("_isDeleted") then 
+			shouldDelete = item.value._isDeleted
+		else if itemJson.hasProperty("_isNewRow") then 
+			shouldInsert = item.value._isNewRow
 		end if
 		
 		if shouldDelete == .f. .and. shouldInsert == .f. then 
@@ -534,35 +665,35 @@ function updateTableData as v (e as p, resultsOut as p, connName as c)
 		
 		if shouldDelete then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "delete", connName, mappings)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, itemJson, cn, "delete", connName, mappings)
 			else 
-				resultsOut[] = runDeleteQuery(queryInfo, schema, item, cn)
+				resultsOut[] = runDeleteQuery(queryInfo, schema, itemJson, cn)
 			end if
 		else if shouldUpdate then 
 			if isCustomSql then 
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "update", connName, mappings)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, itemJson, cn, "update", connName, mappings)
 			else 
-				resultsOut[] = runUpdateQuery(queryInfo, schema, item, cn, mappings)
+				resultsOut[] = runUpdateQuery(queryInfo, schema, itemJson, cn, mappings)
 			end if
 		else if shouldInsert then
 			if isCustomSql then
-				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, item, cn, "insert", connName, mappings)
+				resultsOut[] = runQueryWithCustomSql(queryInfo.sql, itemJson, cn, "insert", connName, mappings)
 			else 
-				resultsOut[] = runInsertQuery(queryInfo, schema, item, cn)
+				resultsOut[] = runInsertQuery(queryInfo, schema, itemJson, cn)
 			end if
 		end if
 	next item
 
 end function
 
-function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::connection, mappings as extension::json)
+function runUpdateQuery as DynamicLists::Result (e as p, schema as p, item as extension::json, cn as sql::connection, mappings as extension::json)
 	dim updateSql as c
 	updateSql = "UPDATE [" + e.tableName + "] SET "
 	dim args as sql::arguments
 	
 	' For each field, add an arg to the pile
 	for each column in schema.jsonOutput.column
-		if prop_valid(item.value, column.value.name) == .f. then 
+		if item.hasProperty(column.value.name) == .f. then 
 			continue 
 		end if
 		
@@ -571,21 +702,21 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 		' We *do* want to add it to the argument list, so that the WHERE clause can be specified. 
 		' But we should draw the value from _oldData, in case the user tried to change the primary key.
 		if .not. needExplicitPrimaryKey(schema) .and. (column.value.name == schema.primaryKey) then 
-			args.set(schema.primaryKey, convert_type(item.value._oldData.data(schema.primaryKey), column.value.alphaType))
+			args.set(schema.primaryKey, convert_type(item.getProperty("_oldData").getProperty(schema.primaryKey), column.value.alphaType))
 			continue
 		else
 			' As with the above, we may need read only fields to be specified, but we must set them to _oldData
-			dim mappingInfo as Result
+			dim mappingInfo as DynamicLists::Result
 			mappingInfo = getMappingFromMappings(mappings, column.value.name)
 			if mappingInfo.isSuccessful() then 
 				if mappingInfo.data.hasProperty("readOnly") .and. mappingInfo.data.getProperty("readOnly") == .t. then 
-					args.set(column.value.name, convert_type(item.value._oldData.data(column.value.name), column.value.alphaType))
+					args.set(column.value.name, convert_type(item.getProperty("_oldData").getProperty(column.value.name), column.value.alphaType))
 					continue
 				end if
 			end if
 		end if 
 		
-		args.set(column.value.name, convert_type(item.value.data(column.value.name), column.value.alphaType))
+		args.set(column.value.name, convert_type(item.getProperty(column.value.name), column.value.alphaType))
 		updateSql = updateSql + "[" + column.value.name + "] = :" + column.value.name + ","
 
 	next field
@@ -596,31 +727,31 @@ function runUpdateQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	
 	' User forgot to put primary ID in their mappings
 	if schema.primaryKey <> "" .and. typeof(args.find(schema.primaryKey)) == "V" then 
-		runUpdateQuery = Result.fail("Primary key must be specified in the mappings.")
+		runUpdateQuery = DynamicLists::Result.fail("Primary key must be specified in the mappings.")
 		end
 	end if
 	
 	updateSql = updateSql + " WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
 	
-	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
+	'turn portable SQL on.
 	cn.PortableSQLEnabled = .t.
 	'execute the SQL - pass in the sql::arguments object
 	flag = cn.execute(updateSql,args)
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		runUpdateQuery = Result.fail(cn.callresult.text)
+		runUpdateQuery = DynamicLists::Result.fail(cn.callresult.text)
 		cn.close()
 		end
 	end if
 	
-	runUpdateQuery = Result.success("")
+	runUpdateQuery = DynamicLists::Result.success("")
 end function
 
-function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connection, queryType as c, cnString as c, mappings as extension::json)
+function runQueryWithCustomSql as DynamicLists::Result (sql as c, item as p, cn as sql::connection, queryType as c, cnString as c, mappings as extension::json)
 	dim query as sql::query 
 	query.parse(sql)
-	dim output as Result = Result.success("")
+	dim output as DynamicLists::Result = Result.success("")
 	
 	dim dependencies as extension::json
 	dependencies.setJson("{}")
@@ -655,7 +786,7 @@ function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connec
 		dim schemaInfo as p
 		dim info as c
 		dim schema as p
-		dim schemaRes as Result
+		dim schemaRes as DynamicLists::Result
 		schemaInfo = require("schemaInfo")
 		
 		schemaRes = schemaInfo.getConnectionSchemaJSON(cnString, e.tableName)
@@ -681,7 +812,9 @@ function runQueryWithCustomSql as Result (sql as c, item as p, cn as sql::connec
 			addToDependencies (cn, tableName.value, item, dependencies)
 		else if queryType == "update" then 
 			output = runUpdateQuery(e, schema, item, cn, mappings)
-		else if queryType == "delete" then 
+		else if queryType == "delete" then
+			' THis shouldn't be running, since I set complex SQL to be read only.
+			' If it ever runs again, I need to pass in data source.
 			output = runDeleteQuery(e, schema, item, cn)
 		end if
 		
@@ -774,15 +907,15 @@ function addToDependencies as v (cn as sql::Connection, tableName as c, argument
 	
 end function
 
-function runInsertQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
+function runInsertQuery as DynamicLists::Result (e as p, schema as p, item as extension::json, cn as sql::connection)
 	dim insertSql as c
 	insertSql = "INSERT INTO [" + e.tableName + "] ("
 	dim args as sql::arguments
 	dim valueSql as c
 	valueSql = " VALUES ("
-	
+
 	for each column in schema.jsonOutput.column
-		if prop_valid(item.value, column.value.name) == .f. then 
+		if item.hasProperty(column.value.name) == .f. then 
 			continue 
 		end if
 		
@@ -790,7 +923,7 @@ function runInsertQuery as Result (e as p, schema as p, item as p, cn as sql::co
 			continue
 		end if 
 		
-		args.set(column.value.name, convert_type(item.value.data(column.value.name), column.value.alphaType))
+		args.set(column.value.name, convert_type(item.getProperty(column.value.name), column.value.alphaType))
 		insertSql = insertSql + "[" + column.value.name + "],"
 		valueSql = valueSql + ":" + column.value.name + ","
 
@@ -816,11 +949,11 @@ function runInsertQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		runInsertQuery = Result.fail(cn.CallResult.text)
+		runInsertQuery = DynamicLists::Result.fail(cn.CallResult.text)
 		cn.close()
 		end
 	end if
-	runInsertQuery = Result.success("")
+	runInsertQuery = DynamicLists::Result.success("")
 end function
 
 ' Return true if column is not autogenerated in any way
@@ -838,12 +971,13 @@ function needExplicitPrimaryKey as l (schema as p)
 	needExplicitPrimaryKey = .f.
 end function
 
-function runDeleteQuery as Result (e as p, schema as p, item as p, cn as sql::connection)
+function runDeleteQuery as DynamicLists::Result (e as p, schema as p, item as extension::json, cn as sql::connection)
+	dim whereClause as c
+	dim args as sql::arguments 
+	args.add(schema.primaryKey, item.getProperty(schema.primaryKey))	
+
 	dim deleteSql as c
 	deleteSql = "DELETE FROM [" + e.tableName + "] WHERE [" + schema.primaryKey + "] = :" + schema.primaryKey
-	
-	dim args as sql::arguments 
-	args.add(schema.primaryKey, item.value.data(schema.primaryKey))
 	
 	'turn portable SQL on. (for more information on portable sql search in help (https://www.alphasoftware.com/documentation)
 	cn.PortableSQLEnabled = .t.
@@ -852,11 +986,11 @@ function runDeleteQuery as Result (e as p, schema as p, item as p, cn as sql::co
 	if flag = .f. then 
 		'an error occurred - get the error message from cn.callresult.text 
 		'report the error, close the database and then end the script
-		runDeleteQuery = Result.fail(cn.CallResult.text)
+		runDeleteQuery = DynamicLists::Result.fail(cn.CallResult.text)
 		cn.close()
 		end
 	end if
-	runDeleteQuery = Result.success("")
+	runDeleteQuery = DynamicLists::Result.success("")
 end function
 
 ' Given any sql select query with arguments, return number of rows matching the query
@@ -881,7 +1015,7 @@ end function
 
 ' e.configName string
 ' e.endpoint string
-function performFetch as Result (e as p)
+function performFetch as DynamicLists::Result (e as p)
 	dim configInterface as p
 	dim config as p
 	configInterface = require("listConfigInterface")
@@ -897,7 +1031,7 @@ function performFetch as Result (e as p)
 	dim endpoints as extension::json 
 	
 	if config.getProperty("dataSource").hasProperty("endpoints") = .f. then 
-		performFetch = Result.fail("Configuration does not have any endpoints")
+		performFetch = DynamicLists::Result.fail("Configuration does not have any endpoints")
 		end
 	end if 
 	endpoints = config.getProperty("dataSource").getProperty("endpoints")
@@ -905,7 +1039,7 @@ function performFetch as Result (e as p)
 	if endpoints.hasProperty(e.endpoint) then 
 		endpoint = endpoints.getProperty(e.endpoint)
 	else 
-		performFetch = Result.fail("Configuration does not have an endpoint configured for " + e.endpoint)
+		performFetch = DynamicLists::Result.fail("Configuration does not have an endpoint configured for " + e.endpoint)
 		end 
 	end if 
 	
@@ -944,11 +1078,11 @@ function performFetch as Result (e as p)
 	fetchRes = http_fetch(settings)
 	
 	if fetchRes.error_code <> 0 then 
-		performFetch = Result.fail(fetchRes.error_text)
+		performFetch = DynamicLists::Result.fail(fetchRes.error_text)
 	else 
 		dim jsonRes as extension::json 
 		jsonRes.setJson(fetchRes.body)
-		performFetch = Result.success(jsonRes)
+		performFetch = DynamicLists::Result.success(jsonRes)
 	end if
 	
 end function
@@ -963,175 +1097,9 @@ function fillEndpointItem as c (e as p, item as extension::json)
 	end if
 end function
 
-function downloadExcelTemplate as Result (configName as c)
-	dim configInterface as p
-	dim config as Result
-	dim configJson as extension::Json
-	dim configRequestArgs as p
-	configRequestArgs.configName = configName
-	configInterface = require("listConfigInterface")
-	config = configInterface.requestConfig(configRequestArgs)
-	
-	if .not. config.isSuccessful() then
-		downloadExcelTemplate = config
-		end 
-	end if
-	
-	configJson = config.getInner()
-	
-	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
-		downloadExcelTemplate = Result.fail("Cannot get template for non-SQL list")
-		end
-	end if
-	
-	if configJson.getProperty("dataSource").hasProperty("table") = .f. then 
-		downloadExcelTemplate = Result.fail("Cannot get template for custom SQL List")
-		end
-	end if
-	
-	dim dataSource as extension::json 
-	dataSource = configJson.getProperty("dataSource")
-	
-	dim tableNames[0] as c
-	dim cnName as c
-
-	dim flag as l
-	if dataSource.hasProperty("connectionString") then 
-		cnName = dataSource.getProperty("connectionString")
-	else 
-		cnName = "::Name::conn"
-	end if 
-
-	if dataSource.hasProperty("table") then
-		tableNames[] = dataSource.getProperty("table")
-	else 
-		dim query as sql::query 
-		if query.parse(dataSource.getProperty("sql")) = .f. then 
-			downloadExcelTemplate = Result.fail("Could not parse SQL!")
-			end 
-		end if
-
-		for each queryTableName in query.selectTableReferences 
-			tableNames[] = queryTableName.value.name 
-		next
-	end if	
-	
-	dim columnNames[0] as c 
-	for each tableName in tableNames 
-		dim schemaRes as Result 
-		dim schemaInfo as p
-		dim schema as p
-		schemaInfo = require("schemaInfo")
-		
-		schemaRes = schemaInfo.getConnectionSchemaJSON(cnName, tableName.value)
-		if schemaRes.isSuccessful() = .f. then 
-			downloadExcelTemplate = schemaRes 
-			end 
-		end if 
-
-		schema = json_parse(schemaRes.getInner())
-		
-		for each column in schema.jsonOutput.column 
-			if column.value.autoGenerate .or. column.value.autoIncrement then 
-				continue 
-			end if 
-
-			' columnNames[] = tableName + "." + column.value.name
-			columnNames[] = column.value.name
-		next
-	next
-	
-	dim sheet as Office::Spreadsheet
-	dim doc as Office::ExcelDocument
-	sheet = doc.addSheet(configName)
-
-	for i = 1 to columnNames.size()
-		sheet.write(1, i, columnNames[i])
-	next
-
-	dim fileName as c = context.request.GetRequestTempFileName(".xlsx")
-	if doc.save(filename) then 
-		downloadExcelTemplate = Result.success(filename)
-	else 
-		downloadExcelTemplate = Result.fail("Could not generate Excel template") 
-	end if
-	
-end function
-
-' Create Spreadsheet from data, then return filename if successful
-' Filters is JSON string of filters
-function doFileDownload as Result (configName as c, filters as c)
-	dim configInterface as p
-	dim config as Result
-	dim configJson as extension::Json
-	dim configRequestArgs as p
-	configRequestArgs.configName = configName
-	configInterface = require("listConfigInterface")
-	config = configInterface.requestConfig(configRequestArgs)
-	
-	if .not. config.isSuccessful() then
-		doFileDownload = config
-		end 
-	end if
-	
-	configJson = config.getInner()
-	
-	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
-		doFileDownload = Result.fail("Cannot upload data to non-SQL List")
-		end
-	end if
-	
-	dim dataResult as Result 
-	dim resultSet as sql::ResultSet
-	dim fetchArgs as p
-	fetchArgs.configName = configName
-	fetchArgs.filters = filters
-	dataResult = querySqlWithFilters(fetchArgs, .t.)
-	
-	if dataResult.isSuccessful() = .f. then 
-		doFileDownload = dataResult 
-		end 
-	else 
-		resultSet = dataResult.getInner()
-	end if
-	
-	dim sheet as Office::Spreadsheet
-	dim doc as Office::ExcelDocument
-	sheet = doc.AddSheetFromResultSet(resultSet, configName, .t.) 
-
-	dim mappings as extension::json
-	mappings = configJson.getProperty("mappings")
-	for i = sheet.firstColumn to sheet.NextAvailableColumn
-		dim fmt as Office::Format
-		dim cellValue as a
-		cellValue = sheet.read(sheet.firstRow, i, fmt)
-		
-		if typeof(cellValue) = "c" then
-			dim mappingRes as Result 
-			mappingRes = getMappingFromMappings(mappings, cellValue)
-			if mappingRes.isSuccessful() then 
-				dim mapping as extension::json 
-				mapping = mappingRes.getInner()
-				if mapping.hasProperty("displayName") then 
-					sheet.write(sheet.firstRow, i, mapping.getProperty("displayName"), fmt)
-				end if
-			end if
-		end if
-	next
-	
-	dim filename as c = context.request.GetRequestTempFileName(".xlsx")
-	if doc.save(filename) then 
-		doFileDownload = Result.success(filename)
-	else 
-		doFileDownload = Result.fail("Could not generate Excel file")
-	end if
-	
-end function
-
-
 function doFileUpload as v (fileList as p, configName as c, results as p)
 	dim configInterface as p
-	dim config as Result
+	dim config as DynamicLists::Result
 	dim configJson as extension::Json
 	dim configRequestArgs as p
 	configRequestArgs.configName = configName
@@ -1146,11 +1114,11 @@ function doFileUpload as v (fileList as p, configName as c, results as p)
 	configJson = config.getInner()
 	
 	if configJson.getProperty("dataSource").getProperty("type") <> "sql" then 
-		doFileUpload = Result.fail("Cannot upload data to non-SQL List")
+		doFileUpload = DynamicLists::Result.fail("Cannot upload data to non-SQL List")
 		end
 	end if
 	if configJson.getProperty("dataSource").hasProperty("table") = .f. then 
-		downloadExcelTemplate = Result.fail("Cannot upload data for custom SQL List")
+		downloadExcelTemplate = DynamicLists::Result.fail("Cannot upload data for custom SQL List")
 		end
 	end if
 	
@@ -1162,7 +1130,7 @@ function doFileUpload as v (fileList as p, configName as c, results as p)
 	end if
 	
 	for each file in fileList
-		dim fileResult as Result
+		dim fileResult as DynamicLists::Result
 		dim fileData as extension::JSON
 		if file.file.contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" then 
 			fileResult = getExcel2007Data(file)
@@ -1196,13 +1164,13 @@ function doFileUpload as v (fileList as p, configName as c, results as p)
 	next
 end function
 
-function getExcel2007Data as Result (file as p)
+function getExcel2007Data as DynamicLists::Result (file as p)
 	dim obj as Office::ExcelDocument
 	dim flag as l
 	flag = obj.load(file.tempFileUploadedData)
 	
 	if .not. flag then
-		getExcel2007Data = Result.fail("Could not load file " + file.fileName)
+		getExcel2007Data = DynamicLists::Result.fail("Could not load file " + file.fileName)
 		end
 	end if
 	
@@ -1210,28 +1178,24 @@ function getExcel2007Data as Result (file as p)
 	json.setJson(obj.toJson())
 	
 	if json.getLength() = 0 then 
-		getExcel2007Data = Result.fail("No sheets exist in file " + file.fileName)
+		getExcel2007Data = DynamicLists::Result.fail("No sheets exist in file " + file.fileName)
 		end 
 	end if 
 	
-	getExcel2007Data = Result.success(json.getIndexed(0))
+	getExcel2007Data = DynamicLists::Result.success(json.getIndexed(0))
 end function
 
-function getCSVData as Result (file as p)
+function getCSVData as DynamicLists::Result (file as p)
 	dim text as c 
 	text = get_from_file(file.tempFileUploadedData)
 
 	dim json as extension::json 
 	json.setJson(extension::json::JsonFromCSV(text))
 	
-	getCSVData = Result.success(json)
+	getCSVData = DynamicLists::Result.success(json)
 end function
 
-exports.getTableData = getTableData
-exports.updateTableData = updateTableData
+exports.updateData = updateData
 exports.performFetch = performFetch
 exports.querySqlWithFilters = querySqlWithFilters
-exports.doFileUpload = doFileUpload
-exports.doFileDownload = doFileDownload
-exports.downloadExcelTemplate = downloadExcelTemplate
 

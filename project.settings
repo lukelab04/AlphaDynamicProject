@@ -3,7 +3,7 @@
 <misc<SecurityGuid="37b2bc97be654c93a545af028a64f357">
 <RestrictWebDataPublish=.F.>
 <AutoRestrictWebDataPublish=.F.>
-<WebDataPublished=.F.>
+<WebDataPublished=.T.>
 <DefaultValuePublishSupportFiles=.T.>
 <DefaultValuePublishSelectedOnly=.F.>
 <DefaultflagCheckBeforePublish=.T.>
