@@ -6,7 +6,7 @@
 'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
 
 define class DynamicLists::ConfigVersionHandler
-	dim read VERSIONS[0] as c = ["0.8.0", "0.8.1", "0.8.2"]
+	dim read VERSIONS[0] as c = ["0.8.0", "0.8.1", "0.8.2", "0.8.3", "0.8.4", "0.8.5"]
 	dim read protected write CURRENT_VERSION
 	dim read protected write MADE_CHANGES as l
 	
@@ -37,11 +37,86 @@ define class DynamicLists::ConfigVersionHandler
 					config = convert080to081(config)
 				case version = "0.8.1"
 					config = convert081to082(config)
+				case version = "0.8.2"
+					config = convert082to083(config)
+				case version = "0.8.3"
+					config = convert083to084(config)
+				case version = "0.8.4"
+					config = convert084to085(config)
 			end select
 
 		end while
 		
 		handleConversion = config
+	end function
+
+	function private convert084to085 as extension::json (config as extension::json)
+		if config.hasProperty("multiSelect") then 
+			MADE_CHANGES = .t.
+
+			dim newRowOps as extension::json 
+			newRowOps.setJson("{\"multiSelect\": " + if(config.getProperty("multiSelect"), "true", "false") + "}")
+
+			config.setProperty("rowOptions", newRowOps)
+		end if
+
+		config.setProperty("version", "0.8.5")
+		convert084to085 = config
+	end function
+
+	function private convert083to084 as extension::json (config as extension::json)
+		dim buttons as extension::json = config.getProperty("buttons")
+		dim newButtons as extension::json 
+		newButtons.setJson("[]")
+
+		for i = 0 to buttons.getLength() - 1 
+			dim btn as extension::json = buttons.getIndexed(i)
+			if btn.getProperty("onClick").hasProperty("listAction") then 
+				if btn.getProperty("onClick").getProperty("listAction").getProperty("actionName") = "openJSONSublist" then 
+					continue
+				end if
+			end if
+
+			newButtons.push(btn)
+		next
+
+		config.setProperty("buttons", newButtons)
+		config.setProperty("version", "0.8.4")
+		convert083to084 = config
+	end function
+
+	function private convert082to083 as extension::json (config as extension::json)
+		dim mappings as extension::json = config.getProperty("mappings")
+		dim newMappings as extension::json 
+		newMappings.setJson("[]")
+
+		for i = 0 to mappings.getLength() - 1 
+			dim mapping as extension::json = mappings.getIndexed(i)
+			dim newMapping as extension::json
+			newMapping.setJson("{}")
+			if mapping.getProperty("tag") = "data" then 
+				dim fullPath as extension::json 
+				fullPath.setJson("[{\"tag\": \"object\", \"key\": \"" + mapping.getProperty("flattenedName") + "\"}]")
+				newMapping.setProperty("fullPath", fullPath)
+
+				if mapping.hasProperty("inList") then 
+					newMapping.setProperty("inList", mapping.getProperty("inList"))
+				end if
+
+				if mapping.hasProperty("inDetailView") then 
+					newMapping.setProperty("inDetailView", mapping.getProperty("inDetailView"))
+				end if
+
+				if mapping.hasProperty("readOnly") then 
+					newMapping.setProperty("readOnly", mapping.getProperty("readOnly"))
+				end if
+				newMappings.push(newMapping)
+			end if 
+		next
+
+		config.setProperty("mappings", newMappings)
+		config.setProperty("version", "0.8.3")
+		convert082to083 = config
 	end function
 
 	function private convert081to082 as extension::json (config as extension::json)

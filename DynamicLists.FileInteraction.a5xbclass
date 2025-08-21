@@ -35,7 +35,7 @@ define class DynamicLists::FileInteraction
         self.cn = cn
     end function
 
-    function createExcelFile as DynamicLists::Result (filters as c) 
+    function createExcelFile as DynamicLists::Result (e as p, filters as c) 
         dim ds as extension::json = self.config.getProperty("dataSource")
 
         dim sheet as Office::Spreadsheet
@@ -46,64 +46,38 @@ define class DynamicLists::FileInteraction
         numFmt = doc.addFormat()
         numFmt.numericFormat = Office::NumericFormat::General
 
-        if ds.getProperty("type") = "sql" then 
-            dim dataResult as DynamicLists::Result 
-            dim fetchArgs as p 
-            fetchArgs.configName = self.config.getProperty("name")
-            fetchArgs.filters = filters 
+        dim dataJsonStr as c = context.session.DYNAMIC_LIST_CURRENT_DATA
+        dim columnNamesStr as c = context.session.DYNAMIC_LIST_COLUMN_NAMES
+        dim columnDisplayNamesStr as c = context.session.DYNAMIC_LIST_COLUMN_DISPLAY_NAMES
 
-            dim standardQueries as p = require("standardQueries")
-            dataResult = standardQueries.querySqlWithFilters(fetchArgs, .t.)
+        dim dataJson as extension::json
+        dim mappingNames as extension::json
+        dim displayNames as extension::json
+        dataJson.setJson(dataJsonStr)
+        mappingNames.setJson(columnNamesStr)
+        displayNames.setJson(columnDisplayNamesStr)
 
-            if dataResult.isSuccessful() = .f. then 
-                createExcelFile = dataResult
-                end 
-            end if 
+        sheet = doc.addSheet(self.config.getProperty("name"))
 
-            dim rs as sql::ResultSet = dataResult.getInner()
-            sheet = doc.AddSheetFromResultSet(rs, self.config.getProperty("name"), .t.)
-        else
-            dim dataJsonStr as c = context.session.DYNAMIC_LIST_CURRENT_DATA
-            dim dataJson as extension::json 
-            dataJson.setJson(dataJsonStr)
+        ' Write headers
+        for i = 0 to mappingNames.getLength() - 1
+            sheet.write(1, i + 1, mappingNames.getIndexed(i), fmt)
+        next
+        for i = 0 to displayNames.getLength() - 1
+            sheet.Write(2, i + 1, displayNames.getIndexed(i), fmt)
+        next
 
-            dim editTypeLookup as u
-
-            dim mappingNames[0] as c 
-            for i = 0 to self.config.getProperty("mappings").getLength() - 1 
-                dim mapping as extension::json = self.config.getProperty("mappings").getIndexed(i)
-                mappingNames[] = DynamicLists::FileInteraction.mappingName(mapping)
-
-                if mapping.hasProperty("editType") then 
-                    editTypeLookup.set(mappingNames[i + 1], mapping.getProperty("editType"))
+        ' Write values
+        for column = 1 to mappingNames.getLength()
+            dim mappingName as c = mappingNames.getIndexed(column - 1)
+            for row = 1 to dataJson.getLength()
+                dim rowJson as extension::json = dataJson.getIndexed(row - 1)
+                if rowJson.hasProperty(mappingName) then 
+                    dim currFmt as Office::Format = fmt
+                    sheet.write(row + 2, column, rowJson.getProperty(mappingName), currFmt)
                 end if
             next
-
-            sheet = doc.addSheet(self.config.getProperty("name"))
-            ' Write headers
-            for i = 1 to mappingNames.size()
-                sheet.write(1, i, mappingNames[i], fmt)
-            next
-
-            ' Write values
-            for column = 1 to mappingNames.size()
-                for row = 1 to dataJson.getLength()
-                    dim rowJson as extension::json = dataJson.getIndexed(row - 1)
-                    if rowJson.hasProperty(mappingNames[column]) then 
-                        dim currFmt as Office::Format = fmt
-
-                        if editTypeLookup.exist(mappingNames[column]) then 
-                            dim ty as c = editTypeLookup.get(mappingNames[column])
-                            if ty = "time" .or. ty = "datetime" .or. ty = "number" then 
-                                currFmt = numFmt
-                            end if
-                        end if
-
-                        sheet.write(row + 1, column, rowJson.getProperty(mappingNames[column]), currFmt)
-                    end if
-                next
-            next
-        end if
+        next
 
         dim filename as c = context.request.GetRequestTempFileName(".xlsx")
         if doc.save(filename) then 
@@ -138,8 +112,25 @@ define class DynamicLists::FileInteraction
             getExcel2007Data = DynamicLists::Result.fail("No sheets exist in file " + file.fileName)
             end 
         end if 
+
+        ' The toJSON function associates the first row as column names. But we have another 
+        ' row for display names. This needs to be skipped. However, we have no way 
+        ' to pop from an array in xbasic. So we just need to copy the array.
+
+        json = json.getIndexed(0)
+
+        dim jsonOut as extension::json 
+        jsonOut.setJson("[]")
+
+        for i = 0 to json.getLength() - 1 
+            if i = 0 then 
+                continue
+            else 
+                jsonOut.push(json.getIndexed(i))
+            end if
+        next
         
-        getExcel2007Data = DynamicLists::Result.success(json.getIndexed(0))
+        getExcel2007Data = DynamicLists::Result.success(jsonOut)
     end function
 
     function private getCSVData as DynamicLists::Result (file as p)
@@ -158,9 +149,16 @@ define class DynamicLists::FileInteraction
             end 
         end if 
 
-        dim allColNames[0] as c 
-        dim colIsAuto as u
+        dim columnNamesStr as c = context.session.DYNAMIC_LIST_COLUMN_NAMES
+        dim displayNamesStr as c = context.session.DYNAMIC_LIST_COLUMN_DISPLAY_NAMES
 
+        dim mappingNames as extension::json
+        mappingNames.setJson(columnNamesStr)
+
+        dim displayNames as extension::json
+        displayNames.setJson(displayNamesStr)
+
+        dim colIsAuto as u
         if self.config.getProperty("dataSource").hasProperty("table") then 
             dim tblName as c = self.config.getProperty("dataSource").getProperty("table")
             dim tblInfo as sql::tableInfo 
@@ -179,23 +177,20 @@ define class DynamicLists::FileInteraction
             next
         end if
 
-        for i = 0 to self.config.getProperty("mappings").getLength() - 1 
-            dim mapping as extension::json = self.config.getProperty("mappings").getIndexed(i)
-            dim name as c = mappingName(mapping)
-
-            if colIsAuto.exist(name) .and. colIsAuto.get(name) = .t. then 
-                continue
-            end if
-
-            allColNames[] = name 
-        next
-
         dim sheet as Office::Spreadsheet 
         dim doc as Office::ExcelDocument 
         sheet = doc.addSheet(self.config.getProperty("name"))
 
-        for i = 1 to allColNames.size()
-            sheet.write(1, i, allColNames[i])
+        dim increment as n = 1
+        for i = 0 to mappingNames.getLength() - 1
+            dim name as c = mappingNames.getIndexed(i)
+            dim displayName as c = displayNames.getIndexed(i)
+            if colIsAuto.exist(name) .and. colIsAuto.get(name) = .t. then 
+                continue 
+            end if 
+            sheet.write(1, increment, name)
+            sheet.write(2, increment, displayName)
+            increment = increment + 1
         next 
 
         dim fileName as c = context.request.GetRequestTempFileName(".xlsx")
@@ -205,20 +200,4 @@ define class DynamicLists::FileInteraction
             createExcelTemplate = DynamicLists::Result.fail("Could not generate Excel template")
         end if
     end function
-
-
-    function [static] mappingName as c (mapping as extension::json)
-        dim tag as c = mapping.getProperty("tag")
-
-        if tag = "data" then 
-            mappingName = mapping.getProperty("flattenedName")
-        else if tag = "nested" then
-            mappingName = DynamicLists::FileInteraction.mappingName(mapping.getProperty("mapping"))
-        else if tag = "object" .or. tag = "array" then 
-            mappingName = DynamicLists::FileInteraction.mappingName(mapping.getProperty("item"))
-        end if
-    end function
-
-
-
 end class

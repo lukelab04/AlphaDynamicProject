@@ -2,7 +2,7 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 397:
+/***/ 876:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -14,7 +14,7 @@
 /* harmony export */   Ok: () => (/* binding */ Ok),
 /* harmony export */   stringReprToFn: () => (/* binding */ stringReprToFn)
 /* harmony export */ });
-/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, JsonFieldTypeSchema, DataMappingTypeSchema, NestedMappingTypeSchema, SearchOptionsTypeSchema, SchemaTypeSchema, ServerSortTypeSchema, ForcedValueTypeSchema, DataSourceTypeSchema, RawSchemaTypeSchema, PrefetchedDataTypeSchema */
+/* unused harmony exports EditTypeTypeSchema, EndpointTypeSchema, PathTypeSchema, ListFilterTypeSchema, ListActionTypeSchema, ListBtnTypeSchema, DataModelTypeSchema, SearchOptionsTypeSchema, ServerSortTypeSchema, ForcedValueTypeSchema, DataSourceTypeSchema, RawSchemaTypeSchema, PrefetchedDataTypeSchema */
 /* harmony import */ var _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(811);
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
@@ -65,11 +65,9 @@ class ErrMsg {
 const EditTypeTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('text'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('dropdown'),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('time'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('datetime'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('bool'),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json'),
 ]);
 const EndpointTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     method: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
@@ -83,8 +81,12 @@ const EndpointTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.O
     ]),
     body: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Any()),
 });
+const PathTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'), key: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('array') }),
+]));
 const ListFilterTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-    columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    columnName: PathTypeSchema,
     columnVal: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
             tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('value'),
@@ -97,7 +99,7 @@ const ListFilterTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
     ]),
     connector: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('AND'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('OR')]),
     op: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-    type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
+    type: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([EditTypeTypeSchema, _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('json')])),
     quantifier: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('ALL'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('SOME')]))
 });
 const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
@@ -117,7 +119,7 @@ const ListActionTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type
         actionName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('openJSONSublist'),
         configurationName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
         tabName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-        fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        fromColumn: PathTypeSchema,
     })
 ]);
 const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -131,111 +133,72 @@ const ListBtnTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Re
     ]),
     children: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(Self)),
 }));
-const JsonFieldTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('any') }),
+const DataModelTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(This => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Intersect([
+    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
+            fromString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
+            keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), This)
+        }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('array'),
+            fromString: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
+            item: This,
+        }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('data'),
+            type: EditTypeTypeSchema,
+        }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+            tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('unknown'),
+        })
+    ]),
     _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("object"),
-        keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self)
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("array"),
-        item: Self
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal("data"),
-        dataType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean')
-        ]),
-        defaultValue: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())
+        uniqueName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+        nullable: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+        optional: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean(),
+        // Function (data: unknown, serverTimeOffset: number) => any
+        // Data is unchanged from the server
+        // serverTimeOffset is the timezone offset from GMT
+        preprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        postprocess: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
+        defaultValue: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Any()),
     })
 ]));
-const DataMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-    tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('data'),
+const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     displayName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-    // If top level, mapping is the column key
-    // Otherwise it is a unique identifier
-    flattenedName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
+    fullPath: PathTypeSchema,
     inList: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     inDetailView: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
-    editType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(EditTypeTypeSchema),
     readOnly: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     dateSettings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        // Function (date: unknown, serverTimeOffset: number) => Date
-        // Date is unchanged from the server
-        // serverTimeOffset is the timezone offset from GMT
-        fromServer: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-        toServer: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
         // Format as specified by Alpha date templating
         clientFormat: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     })),
     template: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     width: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
-    // Required iff edit type is json
-    jsonConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        editorType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('text'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('form')]),
-        definition: JsonFieldTypeSchema
-    })),
+    // Required if edit type is json
+    jsonEditorType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('text'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('list')])),
+    // Visible if jsonEditorType is 'list'
+    jsonEditorListConfigName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dropdownConfig: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ choices: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
-        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
+        _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ fromColumn: PathTypeSchema, allowCustom: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()) }),
     ]))
 });
-const NestedMappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive((Self) => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
-        key: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-        item: Self
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('array'),
-        item: Self
-    }),
-    DataMappingTypeSchema,
-]));
-const MappingTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('nested'),
-        key: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
-        mapping: NestedMappingTypeSchema
-    }),
-    DataMappingTypeSchema,
-]);
 const SearchOptionsTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
     advancedSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
     serverSearch: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
-    onlyInclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())),
-    onlyExclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String())),
+    onlyInclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(PathTypeSchema)),
+    onlyExclude: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(PathTypeSchema)),
 });
-const SchemaTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Recursive(Self => _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('unknown')
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('rawData'),
-        jsType: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('string'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('number'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('boolean'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('null'),
-            _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('any'),
-        ])
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('object'),
-        keys: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Record(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(), Self)
-    }),
-    _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
-        tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('array'),
-        elem: Self
-    })
-]));
 const ServerSortTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    // Must be a top-level name
     columnName: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     order: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('asc'), _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('desc')])
 }));
 const ForcedValueTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+    // Must be top-level
     column: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Union([
         _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({ tag: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Literal('value'), value: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String() }),
@@ -317,9 +280,13 @@ const ConfigTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Obj
     name: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String(),
     onInitialize: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.String()),
     dataSource: DataSourceTypeSchema,
+    dataModel: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(DataModelTypeSchema),
     mappings: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(MappingTypeSchema),
     searchOptions: SearchOptionsTypeSchema,
-    multiSelect: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
+    rowOptions: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
+        multiSelect: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
+        moveRows: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Optional(_sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Boolean()),
+    })),
     buttons: _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Array(ListBtnTypeSchema),
 });
 const PrefetchedDataTypeSchema = _sinclair_typebox__WEBPACK_IMPORTED_MODULE_0__.Type.Object({
@@ -5142,6 +5109,8970 @@ function IsValueType(value) {
 /************************************************************************/
 var __webpack_exports__ = {};
 
+;// ./src/data/FlatNameSuggester.ts
+
+
+class FlatNameSuggestor {
+    constructor(initial) {
+        this.taken = new Set(initial.map(x => x[1]));
+        this.names = initial;
+    }
+    lookup(path) {
+        let entry = this.names.find(x => pathsEq(x[0], path));
+        if (entry)
+            return entry[1];
+        return undefined;
+    }
+    get(path) {
+        let existing = this.lookup(path);
+        if (existing)
+            return existing;
+        let baseName = DataModel.printPath(path);
+        if (this.taken.has(baseName)) {
+            let n = 1;
+            let currName = baseName + `_${n}`;
+            while (this.taken.has(currName)) {
+                n += 1;
+                currName = baseName + `_${n}`;
+            }
+            baseName = currName;
+        }
+        this.names.push([path, baseName]);
+        this.taken.add(baseName);
+        return baseName;
+    }
+}
+
+;// ./src/data/DataModel.ts
+
+
+class DataModel {
+    constructor(props) {
+        if (props.root)
+            this.model = props.root;
+        else if (props.rawSchema)
+            this.model = DataModel.buildModelFromRawSchema(props.rawSchema);
+        else
+            this.model = DataModel.buildModelFromRawData(props.rawRows);
+        this.uniqueNameLookup = this.fillLookupMap();
+    }
+    static printPath(p) {
+        return p.map(p => p.tag == 'object' ? p.key : '[...]')
+            .join('.');
+    }
+    getUniqueName(m) {
+        let p;
+        if ('fullPath' in m)
+            p = m.fullPath;
+        else
+            p = m;
+        return this.find(p)?.uniqueName;
+    }
+    reverseNameLookup(uniqueName) {
+        return this.uniqueNameLookup.get(uniqueName);
+    }
+    getNestingLevel(item) {
+        if (item instanceof Array) {
+            let i = 0;
+            item.forEach(p => {
+                if (p.tag == 'array')
+                    i += 1;
+            });
+            return i;
+        }
+        if (item.tag == 'array')
+            return 1 + this.getNestingLevel(item.item);
+        else if (item.tag == 'object')
+            return Math.max(...Object.values(item.keys).map(x => this.getNestingLevel(x)));
+        else
+            return 0;
+    }
+    isTopLevel(path) {
+        if (path.length == 1 && path[0].tag == 'object')
+            return path[0].key;
+        return undefined;
+    }
+    find(path) {
+        let dm;
+        this.pathTraverser(path, (_, i, e) => {
+            if (i == path.length - 1)
+                dm = e;
+        });
+        return dm;
+    }
+    pathTraverser(path, callback) {
+        let curr = this.model;
+        for (let i = 0; i < path.length; i++) {
+            let currPath = path[i];
+            if (currPath.tag == 'object' && curr.tag == 'object' && currPath.key in curr.keys) {
+                curr = curr.keys[currPath.key];
+            }
+            else if (currPath.tag == 'array' && curr.tag == 'array') {
+                curr = curr.item;
+            }
+            else
+                return;
+            callback(currPath, i, curr);
+        }
+    }
+    topLevelPaths() {
+        return this.allPaths().filter(x => x.length == 1);
+    }
+    allPaths() {
+        let paths = [];
+        this.traverse({
+            default: () => null,
+            processArray: (_, p) => paths.push(p),
+            processData: (_, p) => paths.push(p),
+            // Intentially do not want to include JSON paths, since they are sort of fake
+            //processJson: (_, p) => paths.push(p),
+            processObject: (_, p) => paths.push(p),
+            processUnknown: (_, p) => paths.push(p),
+        });
+        return paths.filter(x => x.length > 0);
+    }
+    traverse(traverser) {
+        const order = traverser.visitChildren ?? 'preSelf';
+        const visitObj = traverser.visitObject ?? ((o, path) => {
+            let result;
+            if (order == 'postSelf')
+                result = (traverser.processObject ?? traverser.default)(o, path);
+            for (const key in o.keys) {
+                _traverse(o.keys[key], [...path, { tag: 'object', key }]);
+            }
+            if (order == 'preSelf')
+                result = (traverser.processObject ?? traverser.default)(o, path);
+            return result;
+        });
+        const visitArr = traverser.visitArray ?? ((a, path) => {
+            let result;
+            if (order == 'postSelf')
+                result = (traverser.processArray ?? traverser.default)(a, path);
+            _traverse(a.item, [...path, { tag: 'array' }]);
+            if (order == 'preSelf')
+                result = (traverser.processArray ?? traverser.default)(a, path);
+            return result;
+        });
+        const visitData = traverser.visitData ?? ((d, path) => {
+            return (traverser.processData ?? traverser.default)(d, path);
+        });
+        const visitUnknown = traverser.visitUnknown ?? ((d, path) => {
+            return (traverser.processUnknown ?? traverser.default)(d, path);
+        });
+        const _traverse = (m, path) => {
+            if (m.tag == 'object')
+                return visitObj(m, path);
+            else if (m.tag == 'array')
+                return visitArr(m, path);
+            else if (m.tag == 'data')
+                return visitData(m, path);
+            else
+                visitUnknown(m, path);
+        };
+        return _traverse(this.model, []);
+    }
+    static buildModelFromRawSchema(s) {
+        const suggestor = new FlatNameSuggestor([[[], '']]);
+        const dmt = {
+            keys: {},
+            tag: 'object',
+            nullable: false,
+            optional: false,
+            uniqueName: '',
+        };
+        const alphaToJs = (a) => {
+            switch (a.toLowerCase()) {
+                case 'c': return 'text';
+                case 'l': return 'bool';
+                case 'n': return 'number';
+                default: return 'text';
+            }
+        };
+        for (const col of s.jsonOutput.column) {
+            dmt.keys[col.name] = {
+                tag: 'data',
+                nullable: col.nullable,
+                optional: col.autoGenerate || col.autoIncrement,
+                type: alphaToJs(col.alphaType),
+                uniqueName: suggestor.get([{ tag: 'object', key: col.name }])
+            };
+        }
+        return dmt;
+    }
+    static buildModelFromRawData(data) {
+        if (data.length == 0)
+            return {
+                tag: 'object',
+                keys: {},
+                nullable: false,
+                optional: false,
+                uniqueName: ''
+            };
+        return data.map(d => this.modelFromPoint(d, [])).reduce((a, b) => this.combine(a, b));
+    }
+    static modelFromPoint(point, path) {
+        const uniqueName = this.printPath(path);
+        if (point === null)
+            return { tag: 'unknown', uniqueName, nullable: true, optional: false };
+        if (point === undefined)
+            return { tag: 'unknown', uniqueName, nullable: false, optional: true };
+        if (point instanceof Array) {
+            let subPath = [...path, { tag: 'array' }];
+            return {
+                tag: 'array',
+                nullable: false,
+                optional: false,
+                uniqueName,
+                item: point.length == 0
+                    ? { tag: 'unknown', nullable: false, optional: false, uniqueName: this.printPath(subPath) }
+                    : point.map(x => this.modelFromPoint(x, subPath)).reduce((a, b) => this.combine(a, b))
+            };
+        }
+        else if (typeof point === 'object') {
+            let dmt = {
+                tag: 'object',
+                keys: {},
+                uniqueName,
+                nullable: false,
+                optional: false
+            };
+            for (const key in point) {
+                dmt.keys[key] = this.modelFromPoint(point[key], [...path, { tag: 'object', key }]);
+            }
+            return dmt;
+        }
+        else if (typeof point === 'string') {
+            const stripped = point.trimStart();
+            if (stripped.length >= 2 && (stripped[0] == '[' || stripped[0] == '{')) {
+                let maybeJson = safeJsonParse(stripped);
+                if (maybeJson.asErr() === undefined) {
+                    const model = this.modelFromPoint(maybeJson.asOk(), path);
+                    model.fromString = true;
+                    return model;
+                }
+            }
+        }
+        let ty;
+        switch (typeof point) {
+            case 'boolean':
+                ty = 'bool';
+                break;
+            case 'number':
+                ty = 'number';
+                break;
+            default:
+                ty = 'text';
+                break;
+        }
+        return {
+            tag: 'data',
+            type: ty,
+            nullable: false,
+            optional: false,
+            uniqueName
+        };
+    }
+    static combine(a, b) {
+        if (a.tag === 'unknown')
+            return b;
+        if (b.tag === 'unknown')
+            return a;
+        const nullable = a.nullable || b.nullable;
+        const optional = a.optional || b.optional;
+        const uniqueName = a.uniqueName;
+        if (a.tag == 'array' && b.tag == 'array') {
+            return {
+                tag: 'array',
+                item: this.combine(a.item, b.item),
+                fromString: (a.fromString ?? false) || (b.fromString ?? false),
+                nullable,
+                optional,
+                uniqueName
+            };
+        }
+        else if (a.tag == 'data' && b.tag == 'data') {
+            if (a.type != b.type)
+                return { tag: 'unknown', uniqueName, nullable: false, optional: false };
+            return {
+                tag: 'data',
+                uniqueName,
+                nullable,
+                optional,
+                type: a.type
+            };
+        }
+        else if (a.tag == 'object' && b.tag == 'object') {
+            let dmt = {
+                tag: 'object',
+                keys: {},
+                uniqueName,
+                fromString: (a.fromString ?? false) || (b.fromString ?? false),
+                nullable,
+                optional
+            };
+            const allKeys = [...Object.keys(a.keys), ...Object.keys(b.keys)];
+            for (const key of allKeys) {
+                if (key in a.keys && key in b.keys) {
+                    dmt.keys[key] = this.combine(a.keys[key], b.keys[key]);
+                }
+                else if (key in a.keys) {
+                    dmt.keys[key] = {
+                        ...a.keys[key],
+                        optional: true
+                    };
+                }
+                else {
+                    dmt.keys[key] = {
+                        ...b.keys[key],
+                        optional: true
+                    };
+                }
+            }
+            return dmt;
+        }
+        return { tag: 'unknown', uniqueName: a.uniqueName, nullable: false, optional: false };
+    }
+    fillLookupMap() {
+        let map = new Map();
+        let traverser = {
+            visitChildren: 'postSelf',
+            default: () => null,
+            processArray: (a, path) => map.set(a.uniqueName, path),
+            processData: (d, path) => map.set(d.uniqueName, path),
+            processObject: (o, path) => map.set(o.uniqueName, path),
+            processUnknown: (o, path) => map.set(o.uniqueName, path),
+        };
+        this.traverse(traverser);
+        return map;
+    }
+}
+
+// EXTERNAL MODULE: ./src/util/types.ts
+var types = __webpack_require__(876);
+;// ./src/util/util.ts
+
+
+const DEFAULT_DATETIME_FMT = "yyyy/MM/dd 0h:0m:0s.3";
+function uuidv4() {
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+}
+function safeJsonParse(s) {
+    try {
+        const json = JSON.parse(s);
+        return (0,types.Ok)(json);
+    }
+    catch (e) {
+        if (e instanceof SyntaxError) {
+            return (0,types.Err)(e);
+        }
+        return (0,types.Err)(new SyntaxError("There was an unknown error parsing the json."));
+    }
+}
+function pathsEq(p1, p2) {
+    if (p1.length !== p2.length)
+        return false;
+    for (let i = 0; i < p1.length; i++) {
+        let curr1 = p1[i];
+        let curr2 = p2[i];
+        if (curr1.tag == 'object' && curr2.tag == 'object') {
+            if (curr1.key !== curr2.key)
+                return false;
+        }
+        else if (curr1.tag == 'array' && curr2.tag == 'array') {
+            // ok
+        }
+        else {
+            return false;
+        }
+    }
+    return true;
+}
+function safeServerFilters(f) {
+    let out = [];
+    for (let i = 0; i < f.length; i++) {
+        let col = f[i].columnName;
+        if (col.length != 1)
+            return (0,types.Err)(`Column ${DataModel.printPath(col)} is nested, and cannot be searched server-side.`);
+        if (col[0].tag != 'object')
+            return (0,types.Err)(`Column ${DataModel.printPath(col)} cannot be searched server-side3.`);
+        out.push({ ...f[i], columnName: col });
+    }
+    return (0,types.Ok)(out);
+}
+function okOrLog(p) {
+    p.catch(e => displayErrorMessage(new types.MsgWithCtx("There was an unexpected error.", e)));
+}
+function displayErrorMessage(e) {
+    e.log();
+    /* eslint-disable */
+    let errContainer;
+    let existing = document.getElementById("list-config-error-container");
+    if (existing) {
+        existing.innerHTML = "";
+        errContainer = existing;
+    }
+    else {
+        errContainer = document.createElement('div');
+        document.body.append(errContainer);
+    }
+    let msgContainer = document.createElement('div');
+    msgContainer.style.marginBottom = "2rem";
+    let ok = document.createElement('button');
+    ok.innerText = "OK";
+    ok.onclick = () => {
+        errContainer.style.display = "none";
+    };
+    msgContainer.innerHTML = e.show();
+    msgContainer.classList.add("error-message-content");
+    errContainer.append(msgContainer, ok);
+    errContainer.style.position = "absolute";
+    errContainer.style.top = "50%";
+    errContainer.style.left = "50%";
+    errContainer.style.transform = "translate(-50%, -50%)";
+    errContainer.style.zIndex = "5";
+    errContainer.style.display = "flex";
+    errContainer.style.backgroundColor = "white";
+    errContainer.style.flexDirection = "column";
+    errContainer.style.padding = "1rem";
+    errContainer.style.alignItems = "center";
+    errContainer.style.border = "2px solid red";
+    errContainer.style.fontSize = "1.3rem";
+    /* eslint-enable */
+}
+
+;// ./src/tfc.js
+const TF = {
+	theme: 'Alpha',
+	url: 'tfc.a5w',
+	_: {
+		saveState: function (refresh) {
+			var sl = TF.state.login;
+			localStorage.setItem('A5TFState', JSON.stringify(sl));
+			if (refresh) {
+				if (typeof TF.ui.main._.vb != 'undefined') TF.ui.main._.vb.refresh();
+				if (typeof TF.ui.user._.h != 'undefined') TF.ui.user._.h.refresh();
+				if (typeof TF.ui.account._.h != 'undefined') TF.ui.account._.h.refresh();
+				if (typeof TF.ui.home._.vb != 'undefined') TF.ui.home._.vb.getStructure();
+			}
+		},
+		act: function (t, d) {
+			// t: navigate, login, logout
+			TF.state.login.activity.unshift({ type: t, data: d, at: Date.now() });
+		},
+		beta: function () {
+			return location.hostname != 'transform.alphasoftware.com';
+		},
+		r: {
+			t: {
+				'login': { method: 'GET' },
+				'login-confirm': { method: 'GET' },
+				'login-two-factor': { method: 'GET' },
+				'login-account': { method: 'GET' },
+				'login-reset-pw': { method: 'GET' },
+				'login-forgot-pw': { method: 'GET' },
+				'login-check-user': { method: 'GET' },
+				'login-create-user': { method: 'GET' },
+				'login-create-account': { method: 'GET' },
+				'login-confirm-user': { method: 'GET' },
+
+				'get-preferences': { method: 'GET' },
+				'set-preferences': { method: 'POST' },
+				'get-profile': { method: 'GET' },
+				'set-profile': { method: 'POST' },
+
+				'get-log': { method: 'GET' },
+				'update-log': { method: 'GET' },
+
+
+				'get-api-keys': { method: 'GET' },
+				'create-api-key': { method: 'GET' },
+				'revoke-api-key': { method: 'GET' },
+				'remove-api-key': { method: 'GET' },
+
+				'get-members': { method: 'GET' },
+				'update-members': { method: 'POST' },
+
+				'get-connections': { method: 'GET' },
+				'authenticate-connection': { method: 'GET' },
+				'create-connection': { method: 'POST' },
+				'update-connection': { method: 'POST' },
+				'remove-connections': { method: 'GET' },
+
+				'get-plan': { method: 'GET' },
+				'update-plan': { method: 'POST' },
+
+				'get-structure': { method: 'GET' },
+
+				'get-form-info': { method: 'GET' },
+
+				'get-form-defs': { method: 'POST' },
+				'update-form-defs': { method: 'POST' },
+
+			},
+			i: {},
+			e: { // errors
+				pd: { // permission-denied
+					'generic': { title: 'Permission Denied', text: 'You do not have permission to do the requested action on this account.' }
+				},
+				lad: { // login-account-denied
+					'generic': { title: 'Account Error', text: 'You cannot login to the selected account. Please contact your account administrator to fix the issue.' },
+					'user-count': { title: 'Account Error', text: 'The account you are trying to log into has exceeded the licensed user count. Please contact your account administrator to fix the issue.' },
+				},
+				id: { // invalid-data
+					'plan-key': {
+						'exists': { title: 'Key', text: 'The key that you entered is already in use.' },
+						'invalid': { title: 'Key', text: 'The key that you entered is not valid.' }
+					}
+				}
+			}
+		},
+		l: {
+			ra: [],
+			i: function () { // login initialize
+				var s = TF.state;
+				var sl = s.login;
+				var sJSON = localStorage.getItem('A5TFState');
+				if (sJSON) {
+					try {
+						var lss = JSON.parse(sJSON);
+						A5.u.object.assign(sl, lss);
+						if (typeof sl.expires == 'string') sl.expires = new Date(sl.expires);
+						if (sl.expires.getFullYear() == NaN) sl.expires = new Date();
+						if (sl.expires <= Date.now() && sl.state != 'logged-out') {
+							sl.state = 'login-expired';
+						}
+						if (typeof TF.ui.main._.vb != 'undefined') TF.ui.main._.vb.refresh();
+					} catch (e) {
+						//console.log('couldn\'t restore state from storage');
+					}
+				}
+
+				var args = location.href.split('?');
+				args.shift();
+				args = args.join('?').split('&');
+				var arg = null;
+				var argsObj = {};
+				for (var i = 0; i < args.length; i++) {
+					arg = args[i].split('=');
+					if (arg.length == 2) argsObj[arg[0].trim()] = arg[1].trim();
+				}
+
+				if (argsObj.mode == 'dev') {
+					s.ui.editing.json.forms = true;
+					s.ui.editing.json.lists = true;
+				} else if (argsObj.mode == 'create-account' || argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
+					sl.mode = { type: argsObj.mode };
+					if (argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
+						if (typeof argsObj.code == 'string') sl.mode.code = argsObj.code;
+						else sl.mode = null;
+					}
+				}
+				// page interval
+				setInterval(function () {
+					// activity log
+					var a = TF.state.login.activity;
+					if (Array.isArray(a)) {
+						var al = a.length;
+						if (al != 0) {
+							TF.request('update-log', { type: 'activity', log: a }).then(function () {
+								if (TF.state.login.activity.length == al) TF.state.login.activity = [];
+								else TF.state.login.activity.splice(0, al);
+							});
+						}
+					}
+				}, 60000);
+				TF._.l.initialized = true;
+			},
+			d: function (d, c) { // login done - set variables
+				var s = TF.state;
+				var sl = s.login;
+				sl.state = 'logged-in';
+				sl.mode = null;
+				sl.expires = new Date(d.expires);
+				if (sl.expires.getFullYear() == NaN) {
+					sl.expires = new Date();
+					sl.state = 'login-expired';
+				}
+
+				if (A5.u.typeOf(d.user) == 'object') {
+					A5.u.object.assign(d.user, {
+						id: null, // logged in user ID (email)
+						name: null // logged in user name
+					}, true);
+					sl.user = d.user;
+				}
+				if (A5.u.typeOf(d.account) == 'object') {
+					A5.u.object.assign(d.account, {
+						id: null, // account ID
+						name: null, // selected account name
+						member: {
+							roles: null,
+							ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
+						}, // information about logged in user relative to account
+						permissions: {} // account permissions
+					}, true);
+					sl.account = d.account;
+				}
+
+				var slam = sl.account.member;
+				slam.ui = {
+					allow: {
+						design: (slam.roles.indexOf('FormDesigner') != -1),
+						manage: (slam.roles.indexOf('ManagementConsole') != -1),
+						dashboard: (slam.roles.indexOf('ManagementConsole') != -1),
+						filler: {
+							web: (slam.roles.indexOf('browseruser') != -1),
+							mobile: (slam.roles.indexOf('user') != -1)
+						},
+						account: (slam.roles.indexOf('AccountAdmin') != -1),
+						developer: (slam.roles.indexOf('AccountAdmin') != -1)
+					}
+				}
+				if (typeof TF.ui.main._.vb != 'undefined') TF.ui.main._.vb.refresh();
+				this.ele.style.display = 'none';
+				TF._.saveState(true);
+				var ra = this.ra;
+				var ri, args = null;
+				for (var i = 0; i < ra.length; i++) {
+					ri = TF._.r.i[ra[i]];
+					if (typeof ri != 'undefined') {
+						args = ['type=' + ri.type];
+						if (typeof ri.data == 'object' && ri.data) args.push('data=' + urlencode(JSON.stringify(ri.data)));
+						args.push('token=' + (TF.state.login.token ? urlencode(TF.state.login.token) : ""));
+						args = args.join('&');
+						ri.xhr.open('POST', TF.url);
+						ri.xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+						ri.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+						ri.xhr.overrideMimeType('text/html; charset=UTF-8');
+						ri.xhr.send(args);
+					}
+				}
+				this.ra = [];
+				// clear data
+				TF.u.filler._.route.m = false;
+				TF.u.filler._.route.q = false;
+				var m_ = TF.ui.main._;
+				// reset ui
+				if (c) {
+					// need to update JWT on loaded UXs
+					var ux = m_.ux;
+					if (m_.d.ux) ux.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+					if (m_.m.ux) ux.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+					if (m_.b.ux) ux.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
+				} else {
+					// diff user/account - reset all
+					var p = m_.ux.panelGet('TRANSFORM_MAIN_NAV');
+					m_.vb.setTab('home');
+
+					// TFIFrameLoading
+					if (m_.d.ux) { // dash
+						m_.d.ux._destroy();
+						m_.d.ux = null;
+						delete p.state._render['TRANSFORM_DASHBOARD'];
+						var pc = m_.ux.panelGet('TRANSFORM_DASHBOARD');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+					if (m_.m.ux) { // manage
+						m_.m.ux._destroy();
+						m_.m.ux = null;
+						delete p.state._render['TRANSFORM_MANAGE'];
+						var pc = m_.ux.panelGet('TRANSFORM_MANAGE');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+					if (m_.b.ux) { // designer
+						m_.b.ux._destroy();
+						m_.b.ux = null;
+						delete p.state._render['TRANSFORM_DESIGN'];
+						var pc = m_.ux.panelGet('TRANSFORM_DESIGN');
+						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
+					}
+				}
+
+				if (TF.u.filler._.iEle) TF.u.filler._.iEle.src = '';
+
+				var l = TF.state.login;
+				TF._.act('login', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
+			},
+			a: function (t) { // login actions
+				var f = this.f;
+				var fd = f.data;
+				if (t == 'login') {
+					var id = fd.userId;
+					TF.request('login', {
+						userId: id,
+						pw: fd.pw
+					}).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						TF.state.login.user.id = id;
+						if (d.step == 'done') _l.d(d, false);
+						else if (d.step == 'account') {
+							l.state = 'logging-in';
+							_l.f.accounts = d.accounts;
+							TF.login('account');
+						} else if (d.step == 'two-factor') {
+							l.state = 'logging-in';
+							_l.f.tfSentTo = d.sentTo;
+							TF.login('two-factor');
+						}
+					}).catch(function (d) {
+						if (d.error == 'login-id-pw') {
+							TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'confirm') {
+					TF.request('login-confirm', {
+						userId: TF.state.login.user.id,
+						account: TF.state.login.account.id,
+						pw: fd.confirmPW,
+					}).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, true);
+						else if (d.step == 'two-factor') {
+							l.state = 'logging-in';
+							_l.f.tfSentTo = d.sentTo;
+							TF.login('two-factor');
+						}
+					}).catch(function (d) {
+						if (d.error == 'login-id-pw') {
+							TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'account') {
+					TF.request('login-account', {
+						account: fd.account,
+					}).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, false);
+						else if (d.step == 'two-factor') {
+							_l.f.tfSentTo = d.sentTo;
+							TF.login('two-factor');
+						}
+					});
+				} else if (t == 'forgot-pw') {
+					var id = fd.userId;
+					TF.request('login-forgot-pw', { userId: id }).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						TF.state.login.user.id = id;
+						TF.login('code-reset-pw');
+					}).catch(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						TF.state.login.user.id = id;
+						TF.login('code-reset-pw');
+					});
+				} else if (t == 'reset-pw') {
+					var d = {
+						method: 'pw',
+						newPW: fd.newPW1
+					}
+					if (fd.state == 'code-reset-pw') {
+						d.method = 'code'
+						d.code = fd.fpCode;
+					} else d.oldPW = fd.currentPW;
+					TF.request('login-reset-pw', d).then(function (d) {
+						TF.u.message.show('confirm', 'Password Changed', 'Your password was reset.');
+						if (d.step == 'login') TF.login();
+						else {
+							var _l = TF._.l;
+							var l = TF.state.login;
+							if (d.token) l.token = d.token;
+							if (d.step == 'done') _l.d(d, false);
+						}
+
+					}).catch(function (d) {
+						if (d.error == 'login-code') {
+							if (d.type == 'used') TF.u.message.show('confirm', 'Error', 'The code has already been used. Please request a new code to be sent.');
+							else if (d.type == 'expired') TF.u.message.show('confirm', 'Error', 'The code has expired. Please request a new code to be sent.');
+							else if (d.type == 'invalid') TF.u.message.show('confirm', 'Error', 'Invalid code. Please correct or request a new code to be sent.');
+						} else TF.u.message.show('confirm', 'Error', 'Could not reset password.');
+					});
+				} else if (t == 'tf-submit') {
+					TF.request('login-two-factor', {
+						type: 'submit',
+						code: fd.tfCode,
+						sentTo: f.tfSentTo
+					}).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, false);
+					}).catch(function (d) {
+						if (d.error == 'login-code') {
+							TF.u.message.show('confirm', 'Error', 'Invalid two-factor authentication code. Please try again.');
+						}
+					});;
+				} else if (t == 'tf-resend') {
+					TF.request('login-two-factor', {
+						type: 'resend',
+						method: arguments[1]
+					}).then(function (d) {
+						var _l = TF._.l;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						_l.f.tfSentTo = d.sentTo;
+						_l.f.refresh();
+						A5.u.element.cls('TF.LOGIN.TWO-FACTOR.MSG', '+=TFElementIndicate');
+					});
+				} else if (t == 'tf-resend-choose') {
+					TF.u.message.show('choice-cancel', 'Choose method', 'Choose how you would like to perform your two-factor authentication.', {
+						options: [
+							{ html: 'Email', value: 'email' },
+							{ html: 'SMS', value: 'sms' },
+							{ html: 'Authenticator App', value: 'app' }
+						],
+						action: function (t) {
+							if (t == 'email' || t == 'sms' || t == 'app') TF._.l.a('tf-resend', t);
+						}
+					});
+				} else if (t == 'create-pw') {
+					TF.request('login-check-user', { userId: fd.userId }).then(function (d) {
+						var f = TF._.l.f;
+						f.data.exists = d.exists;
+						f.data.state = 'create-user-pw';
+						f.refresh();
+					}).catch(function () {
+
+					});
+				} else if (t == 'create-user-pw') {
+					TF.request('login-create-user', {
+						userId: fd.userId,
+						firstName: fd.firstName,
+						lastName: fd.lastName,
+						company: fd.company,
+						phone: fd.phone,
+						agree: {
+							tos: fd.readTOS,
+							pp: fd.readPP,
+							email: fd.allowEmail
+						}
+					}).then(function (d) {
+						var f = TF._.l.f;
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						f.data.state = 'create-account';
+						f.refresh();
+					}).catch(function () {
+						if (d.error == 'login-id-pw') {
+							TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				} else if (t == 'create-account') {
+					TF.request('login-create-user', {
+						account: fd.account
+					}).then(function (d) {
+						var l = TF.state.login;
+						if (d.token) l.token = d.token;
+						if (d.step == 'done') _l.d(d, true);
+					}).catch(function () {
+						if (d.error == 'login-id-pw') {
+							TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
+						}
+					});
+				}
+
+			},
+			c: function () { // login create UI
+				if (!this.ele) {
+					var id = 'TF.LOGIN';
+					var idP = 'TF.LOGIN.PANEL';
+					var ele = document.createElement('div');
+					ele.id = id;
+					ele.className = 'TFLogin';
+					A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom:0px; z-index: 49;');
+					ele.innerHTML = '<div id="' + idP + '" class="TFLoginPanel"></div>';
+					document.body.appendChild(ele);
+					this.ele = ele;
+					this.f = new A5.FormBox(idP, {
+						form: {
+							items: [
+								{ // LOGIN PANEL
+									"type": "group",
+									"id": "login",
+									"include": function () {
+										return this.data.state == 'login';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">What will you TransForm today?</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "pw",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'login') return;
+															if (v == '') {
+																return 'You must enter your password.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) TF._.l.a('login');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"control": {
+												"theme": TF.theme + ":primary",
+												"html": "Sign In",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) TF._.l.a('login');
+												}
+											}
+										},
+										{
+											"type": "html",
+											"container": { "className": "TFLoginFooter" },
+											"control": {
+												"html": function () {
+
+													var html = [
+														'<div style="font-size: 90%;">',
+														'With sign in, you agree to the ',
+														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_terms_of_service" target="_blank">Terms of Service</a> ',
+														'and ',
+														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_privacy_policy" target="_blank">Privacy Policy</a>.',
+														'</div>',
+														'<div>',
+														'<a class="link" href="#" onclick="TF.login(\'forgot-pw\');">Forgot password?</a>',
+														'</div>',
+														'<div style="font-size: 90%;">',
+														'or',
+														'</div>',
+														'<div>',
+														'<a class="link" href="#" onclick="TF.login(\'create-user\');">Create a new user & account.</a>',
+														'</div>'
+													].join('');
+													return html;
+												}
+											}
+										}
+									]
+								},
+								{ // CREATE USER PANEL
+									"type": "group",
+									"id": "create-user",
+									"include": function () {
+										return this.data.state == 'create-user';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">Step 1: Register Email Address</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"label": { "text": "Email" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "firstname",
+														"required": true,
+													},
+													"label": { "text": "First Name" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "First Name" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "lastname",
+														"required": true,
+													},
+													"label": { "text": "Last Name" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Last Name" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": { "from": "company" },
+													"label": { "text": "Company" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Company" }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": { "from": "phone" },
+													"label": { "text": "Phone" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Phone" }
+													}
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "readTOS" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " I agree to Alpha TransForm <a href=\"https://server.alphasoftware.com/transform_terms_of_service\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Terms of Service</a>." },
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "readPP" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " I have read and understand the <a href=\"https://server.alphasoftware.com/transform_privacy_policy\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Private Policy</a>." },
+												},
+												{
+													"type": "checkbox",
+													"layout": "tf-simple",
+													"data": { "from": "allowEmail" },
+													"container": { "style": "cursor: default;" },
+													"control": { "html": " You may send emails about new features, info, and offers." },
+												},
+												{
+													"type": "group",
+													"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
+													"items": [
+														{
+															"type": "button",
+															"layout": "tf-simple",
+															"control": {
+																"theme": TF.theme + ":subtle",
+																"html": "Cancel",
+																"style": "width: 100%;",
+																"width": "100%",
+																"onClick": function () {
+																	TF.state.login.mode = null;
+																	TF.login();
+																}
+															}
+														},
+														{
+															"type": "button",
+															"layout": "tf-simple",
+															"control": {
+																"theme": TF.theme + ":primary",
+																"html": "Next",
+																"style": "width: 100%;",
+																"width": "100%",
+																"onClick": function () {
+																	if (this.validate()) {
+																		if (!this.data.readTOS || !this.data.readPP) {
+																			TF.u.message.show('confirm', 'Error', 'You must read and agree to both the terms of service and private policy,');
+																		} else TF._.l.a('create-pw');
+																	}
+																}
+															}
+														}
+													]
+												}
+											]
+										}
+									]
+								},
+								{ // CREATE USER PASSWORD PANEL
+									"type": "group",
+									"id": "create-pw",
+									"include": function () {
+										return this.data.state == 'create-user-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginHeader">',
+														(this.data.exists ? 'Step 2: Enter Password' : 'Step 2: Create Password'),
+														'</div>'
+													].join('');
+
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"data": {
+														"from": "pw",
+														"required": true,
+														"validate": function (p, v, d) { if (v == '') return 'You must enter a password.'; }
+													},
+													"label": { "text": "Password" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"behavior": { "edit": { "autocomplete": "password" } }
+													}
+												},
+												{
+													"type": "edit",
+													"layout": "tf-label-above",
+													"include": function () {
+														return !this.data.exists;
+													},
+													"data": {
+														"from": "confirmPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state == 'create-user-pw') {
+																if (v == '') return 'You must enter a password.';
+																else if (v != this.data.pw) return 'Passwords do not match.';
+															}
+														}
+													},
+													"label": { "text": "Confirm Password" },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"behavior": { "edit": { "autocomplete": "password" } }
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Back",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															this.data.state = 'create-user';
+															this.refresh();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () { return this.data.exists },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"html": "Login",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) TF._.l.a('create-user-pw');
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () { return !this.data.exists },
+													"control": {
+														"theme": TF.theme + ":primary",
+														"html": "Create User",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) TF._.l.a('create-user-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // CREATE ACCOUNT PANEL
+									"type": "group",
+									"id": "create-account",
+									"include": function () {
+										return this.data.state == 'create-account';
+									},
+									"items": [
+
+									]
+								},
+								{ // CONFIRM LOGIN PANEL
+									"type": "group",
+									"id": "confirm",
+									"include": function () {
+										return this.data.state == 'confirm';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var ls = TF.state.login.state;
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginConfirmMsg">',
+														(ls == 'login-expired' ? 'Session has expired. Please confirm login for: ' : 'Confirm login for: '),
+														'<strong>' + TF.state.login.user.id + '</strong>',
+														'<br/>Account: <strong>' + TF.state.login.account.name + ' <span style="font-family: monospace; font-size: 10px;">(' + TF.state.login.account.id + ')</span></strong>',
+														'</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "confirmPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'confirm') return;
+															if (v == '') {
+																return 'You must enter your password.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) TF._.l.a('confirm');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"control": {
+												"theme": TF.theme + ":primary",
+												"html": "Confirm Login",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) TF._.l.a('confirm');
+												}
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRowSpaced TFLoginVerticalSpace" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Logout",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { TF.logout(); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { $('TF.LOGIN').style.display = 'none'; }
+													}
+												},
+											]
+										}
+
+									]
+								},
+								{ // FORGOT PASSWORD PANEL
+									"type": "group",
+									"id": "forgot-pw",
+									"include": function () {
+										return this.data.state == 'forgot-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginPWMsg">',
+														'Enter your email and press the "Send Code" button. ',
+														'A reset password code will be sent to your email. ',
+														'</div>'
+													].join('');
+													return html;
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "userId",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
+															if (v == '') {
+																return 'You must enter a valid email address.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Email" },
+														"behavior": {
+															"edit": {
+																"type": "email",
+																"autocomplete": "email"
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
+															else TF.login();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":primary",
+														"html": "Send Code",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) TF._.l.a('forgot-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // RESET PASSWORD PANEL
+									"type": "group",
+									"id": "reset-pw",
+									"include": function () {
+										return this.data.state == 'reset-pw' || this.data.state == 'force-reset-pw' || this.data.state == 'code-reset-pw';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginPWMsg">',
+														(this.data.state == 'force-reset-pw' ? 'You must reset ' : 'Reset '),
+														'the password for: ',
+														'<strong>' + TF.state.login.user.id + '</strong>',
+														'</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit-password",
+													"include": function () {
+														return this.data.state == 'reset-pw';
+													},
+													"layout": "tf-simple",
+													"data": {
+														"from": "currentPW",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'reset-pw') return;
+															if (v == '') {
+																return 'You must enter your current password.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Current password" }
+													}
+												},
+												{
+													"type": "edit",
+													"include": function () { return this.data.state == 'code-reset-pw'; },
+													"layout": "tf-simple",
+													"data": {
+														"from": "fpCode",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'code-reset-pw') return;
+															if (v == '') {
+																return 'You must enter the code that was emailed to you.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"style": "text-align: center;",
+														"placeholder": { "text": "Code" }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"include": function () {
+														return this.data.state == 'code-reset-pw';
+													},
+													"container": { "style": "text-align: right;" },
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Send New Code",
+														"style": "",
+														"width": "",
+														"onClick": function () { this.data.userId = TF.state.login.user.id; TF._.l.a('forgot-pw'); }
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "newPW1",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state.indexOf('reset-pw') == -1) return;
+															if (v == '') {
+																return 'You must enter a new password.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "New password" }
+													}
+												},
+												{
+													"type": "edit-password",
+													"layout": "tf-simple",
+													"data": {
+														"from": "newPW2",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state.indexOf('reset-pw') == -1) return;
+															if (v == '') {
+																return 'You must enter a new password.';
+															} else if (v != d.newPW1) {
+																return 'Your passwords do not match.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"placeholder": { "text": "Confirm new password" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) TF._.l.a('reset-pw');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"include": function () {
+														return this.data.state != 'force-reset-pw';
+													},
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Cancel",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
+															else TF.login();
+														}
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":primary",
+														"html": "Change Password",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) TF._.l.a('reset-pw');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // ACCOUNT PANEL
+									"type": "group",
+									"id": "account",
+									"include": function () {
+										return this.data.state == 'account';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div class="TFLoginAccountMsg">Logged in as: ',
+														'<strong>' + TF.state.login.user.id + '</strong>',
+														'<br />',
+														'Please select the TransForm account you wish to use.',
+														'</div>'
+													].join('');
+													return html;
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "list",
+													"layout": "tf-simple",
+													"data": {
+														"from": "account",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'account') return;
+															if (v == '') {
+																return 'You must chose an account.';
+															}
+														}
+													},
+													"control": {
+														"onDblClick": function () {
+															if (this.validate()) TF._.l.a('account');
+														},
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"content": {
+															"style": "max-height: 120px; overflow: auto; text-align: left;"
+														},
+														"data": {
+															"src": function () {
+																return { src: this.accounts };
+															}
+														},
+														"layout": "main",
+														"layouts": {
+															"main": {
+																"item": {
+																	"html": '<div style="display: flex; flex-direction: row; align-items: center;"><div style="flex: 1 1 auto;">{name}</div><div style="font-size: 10px;">({id})</div></div>',
+																	"value": "id"
+																}
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRow" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Logout",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { TF.login(); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":primary",
+														"html": "Select Account",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () {
+															if (this.validate()) TF._.l.a('account');
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{ // TWO-FACTOR PANEL
+									"type": "group",
+									"id": "two-factor",
+									"include": function () {
+										return this.data.state == 'two-factor';
+									},
+									"items": [
+										{
+											"type": "html",
+											"layout": "tf-simple",
+											"control": {
+												"html": function () {
+													var method = this.tfSentTo;
+													var msg = '';
+													if (method == 'app') msg = 'Use the authenticator application to finish login.';
+													else if (method == 'sms') msg = 'Enter the authentication code you\'ve received via SMS.';
+													else if (method == 'email') msg = 'Enter the authentication code you\'ve received via email.';
+													var html = [
+														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
+														'<div id="TF.LOGIN.TWO-FACTOR.MSG" class="TFLoginTwoFactorMsg">' + msg + '</div>'
+													].join('');
+													return html
+												},
+												"width": "100%"
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginFields" },
+											"items": [
+												{
+													"type": "edit",
+													"layout": "tf-simple",
+													"data": {
+														"from": "tfCode",
+														"required": true,
+														"validate": function (p, v, d) {
+															if (this.data.state != 'two-factor') return;
+															if (v == '') {
+																return 'You must must enter the authentication code you received via email or SMS.';
+															}
+														}
+													},
+													"control": {
+														"theme": TF.theme + ":primary",
+														"width": "100%",
+														"style": "text-align: center;",
+														"placeholder": { "text": "Authentication code" },
+														"onKeyUp": function (dObj, ele, e) {
+															if (e.key == 'Enter') {
+																if (this.validate()) TF._.l.a('tf-submit');
+															}
+														}
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"container": { "className": "TFLoginVerticalSpace" },
+											"control": {
+												"theme": TF.theme + ":primary",
+												"html": "Submit Code",
+												"style": "width: 100%;",
+												"width": "100%",
+												"onClick": function () {
+													if (this.validate()) TF._.l.a('tf-submit');
+												}
+											}
+										},
+										{
+											"type": "group",
+											"container": { "className": "TFLoginButtonRowSpaced" },
+											"items": [
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Resend code",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { TF._.l.a('tf-resend', 'default'); }
+													}
+												},
+												{
+													"type": "button",
+													"layout": "tf-simple",
+													"control": {
+														"theme": TF.theme + ":subtle",
+														"html": "Use a different method",
+														"style": "width: 100%;",
+														"width": "100%",
+														"onClick": function () { TF._.l.a('tf-resend-choose', 'default'); }
+													}
+												}
+											]
+										},
+										{
+											"type": "button",
+											"layout": "tf-simple",
+											"container": { "style": "text-align: left;" },
+											"control": {
+												"theme": TF.theme + ":subtle",
+												"html": "Logout",
+												"onClick": function () { TF.login(); }
+											}
+										}
+									]
+								},
+								{
+									"type": "html",
+									"include": function () {
+										var s = this.data.state;
+										return s == 'login' || s == 'create-user';
+									},
+									"container": { "className": "TFLoginCopyright" },
+									"control": {
+										"html": function () {
+											var d = new Date();
+											return '&copy; Copyright ' + d.getFullYear() + ' Alpha Software Corporation.<br/>All Rights Reserved.';
+										}
+									}
+								}
+							]
+						}
+					}, {}, {
+						theme: TF.theme
+					});
+				}
+			}
+		}
+
+	},
+
+
+	// current state
+	state: {
+		login: {
+			state: 'logged-out',
+			mode: null,
+			expires: null,
+			token: null,
+			user: {
+				id: null, // logged in user ID (email)
+				name: null // logged in user name
+			},
+			account: {
+				id: null, // account ID
+				name: null, // selected account name
+				member: {
+					roles: null,
+					ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
+				}, // information about logged in user relative to account
+				permissions: {} // account permissions
+			},
+			activity: []
+		},
+		ui: {
+			tab: 'home',
+			dirty: {
+				dashboard: false,
+				manage: false,
+				design: false
+			},
+			dock: {
+				type: '',
+				active: false
+			},
+			help: {
+				mode: 'docked'
+			},
+			home: {
+				forms: { collapsed: false },
+				dashboards: { collapsed: false }
+			},
+			editing: {
+				json: {
+					forms: false
+				}
+			}
+		}
+	},
+
+	init: function () {
+		if (typeof A5.formBox != 'undefined') {
+			A5.u.object.assign(A5.formBox.guides.layouts, {
+				"tf-label-flex": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-label-above": "<div class=\"TFFormItem\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-button": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">&nbsp;</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
+				"tf-simple": "{content}{error}"
+			});
+		}
+		if (!this._.l.initialized) this._.l.i();
+	},
+
+	// login/out
+	login: function () {
+		var type = typeof arguments[0] == 'string' ? arguments[0] : 'login';
+		var ls = this.state.login.state;
+		var d = {
+			state: '',
+			userId: '',
+			pw: '',
+			confirmPW: '',
+			currentPW: '',
+			newPW1: '',
+			newPW2: '',
+			account: '',
+			tfCode: '',
+			fpCode: ''
+		}
+		if (type != 'forgot-pw' && type != 'create-user' && type != 'code-reset-pw') {
+			if (ls == 'login-expired') {
+				if (type != 'confirm') type = 'login';
+			} else if (ls != 'logged-in' && ls != 'logging-in') type = 'login';
+
+			var lm = this.state.login.mode;
+			if (lm) {
+				if (lm.type == 'create-account') type = 'create-user';
+				else if (lm.type == 'confirm-user') type = 'create-user';
+				else if (lm.type == 'code-reset-pw') {
+					type = lm.type;
+					d.fpCode = lm.code;
+				}
+			}
+		}
+
+
+		// make old create user get opened
+		if (!TF._.beta() && type == 'create-user') {
+			window.open('CreateAccount.html');
+			return false;
+		}
+
+		d.state = type;
+		var l = this._.l;
+		l.c();
+		l.f.populate(d);
+		l.ele.style.display = '';
+		if (type == 'confirm' || type == 'reset-pw') A5.u.element.cls(l.ele, '+=TFLoginTrans');
+		else A5.u.element.cls(l.ele, '-=TFLoginTrans');
+	},
+	logout: function () {
+		TF.u.message.show('confirm-cancel', 'Logout', 'Are you sure you want to logout?', {
+			action: function (v) {
+				if (v == 'confirm') {
+					var l = TF.state.login;
+					TF._.act('logout', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
+					A5.u.object.assign(TF.state.login, {
+						state: 'logged-out',
+						expires: null,
+						token: null,
+						user: {
+							name: null,
+							id: null,
+						},
+						account: {
+							id: null,
+							name: null,
+							member: {
+								roles: null,
+								ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false } }
+							},
+							permissions: {}
+						},
+						activity: []
+					});
+					TF._.saveState();
+					location.href = location.href;
+				}
+			}
+		});
+	},
+
+	// request
+	request: function (type, data) {
+		return new Promise(function (resolve, reject) {
+			const td = TF._.r.t[type];
+			if (typeof td == 'undefined') {
+				// error - not a valid type
+				reject({ error: 'request-type', type: type });
+			} else {
+				const url = TF.url;
+				const uid = Date.now();
+
+				var args = ['type=' + type];
+				if (typeof data == 'object' && data) args.push('data=' + urlencode(JSON.stringify(data)));
+				args.push('token=' + (TF.state.login.token ? urlencode(TF.state.login.token) : ""));
+				args = args.join('&')
+				const xhr = new XMLHttpRequest();
+				xhr.open('POST', url);
+				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+				xhr.overrideMimeType('text/html; charset=UTF-8');
+				xhr.onload = function () {
+					// server response
+					if (xhr.status >= 200 && xhr.status < 300) {
+						try {
+							// parse JSON response
+							var res = JSON.parse(xhr.response);
+						} catch (err) {
+							// error - response not JSON
+							reject({ error: 'request-response', type: 'json-parse', data: err });
+							delete TF._.r.i[uid];
+						}
+						if (res) {
+							if (!res.success) {
+								// problem on server
+								if (res.data?.error == 'login-expired') {
+									TF.state.login.state = 'login-expired';
+									TF.login('confirm');
+									TF._.l.ra.push(uid);
+								} else if (res.data?.error == 'login-required') {
+									TF.state.login.state = 'logged-out';
+									TF.login();
+									TF._.l.ra.push(uid);
+								} else {
+									reject(res.data);
+									delete TF._.r.i[uid];
+									if (res.data?.error == 'custom') TF.u.message.show('confirm', res.data.message.title, res.data.message.text, { icon: 'warning' });
+									else if (res.data?.error == 'permission-denied' || res.data?.error == 'invalid-data' || res.data?.error == 'login-account-denied') {
+										var msg = null;
+										var ed = TF._.r.e;
+										if (res.data.error == 'permission-denied') msg = ed.pd.generic;
+										else if (res.data.error == 'login-account-denied') {
+											msg = ed.lad.generic;
+											if (typeof ed.lad[res.data?.type] == 'object') msg = ed.lad[res.data.type];
+											TF.login();
+										} else {
+											// get the type
+											var edt = A5.u.object.get(ed.id, res.data?.type);
+											// get the issue
+											if (edt) msg = A5.u.object.get(edt, res.data?.issue);
+										}
+										if (msg) TF.u.message.show('confirm', msg.title, msg.text, { icon: 'warning' });
+									}
+								}
+							} else {
+								resolve(res.data);
+								delete TF._.r.i[uid];
+							}
+						}
+					} else {
+						// no success on server - preform resend?
+					}
+				};
+				xhr.onerror = function (err) {
+					// callback error
+					reject({ error: 'request-response', type: 'server', data: err });
+					delete TF._.r.i[uid];
+				};
+				TF._.r.i[uid] = { type: type, data: data, def: td, count: 0, xhr: xhr };
+
+				if ((TF.state.login.state == 'login-expired' || TF.state.login.state == 'logged-out') && !(type.indexOf('login') == 0 || (type == 'update-log' && data?.type == 'activity'))) {
+					TF.login((TF.state.login.state == 'login-expired' ? 'confirm' : null));
+					TF._.l.ra.push(uid);
+				} else xhr.send(args);
+			}
+		});
+	},
+
+	// utilities
+	u: {
+		re: {
+			url: /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+			email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+		},
+		code: {
+			lang: {
+				'json': {
+					validate: function (json) {
+						try {
+							var o = JSON.parse(json);
+						} catch (e) {
+							return e;
+						}
+						return true;
+					},
+					reformat: function (json) {
+						try {
+							var o = JSON.parse(json);
+							json = JSON.stringify(o, '', '\t');
+						} catch (e) { }
+						return json;
+					},
+					keywords: {
+						caseSensitive: true,
+						values: []
+					},
+					draw: function (v) {
+						var ti = v[0];
+						var tin = '';
+						var lookFor = false;
+						var v2 = [];
+						var lookI = 0;
+						for (var i = 0; i < v.length; i++) {
+							tin = v[i + 1];
+							if (lookFor) {
+								lookI = v.substr(i).search(lookFor);
+								if (lookI == -1) {
+									v2.push(v.substr(i));
+									break;
+								} else {
+									v2.push(v.substr(i, lookI + 1));
+									v2.push('__ENDSPAN__');
+									i += lookI;
+								}
+								tin = v[i + 1];
+								lookFor = false;
+							} else {
+								if (ti == '"') {
+									lookFor = '"';
+									v2.push('__STR__');
+								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
+									lookFor = /[^0-9\.]/;
+									v2.push('__NUM__');
+								}
+								v2.push(ti);
+							}
+							ti = tin;
+						}
+						v = v2.join('');
+						v = A5.u.html.escape(v);
+						v = v.replace(/(\{|\}|\[|\])/g, '<span class="TFCodeJSONBrackets">$1</span>');
+						v = v.replace(/(,|:)/g, '<span class="TFCodeJSONSep">$1</span>');
+						v = v.replace(/(false|true)([^A-z]|$)/g, '<span class="TFCodeJSONBool">$1</span>$2');
+						v = v.split('__STR__').join('<span class="TFCodeJSONStr">');
+						v = v.split('__NUM__').join('<span class="TFCodeJSONNum">');
+						v = v.split('__ENDSPAN__').join('</span>');
+						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
+					}
+				},
+				'js': {
+					keywords: {
+						caseSensitive: true,
+						values: ['Array', 'Date', 'eval', 'function', 'hasOwnProperty', 'Infinity', 'isFinite', 'isNaN', 'isPrototypeOf', 'length', 'Math', 'NaN', 'Number', 'Object', 'prototype', 'String', 'toString', 'undefined', 'valueOf', 'abstract', 'arguments', 'await', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'double', 'else', 'enum', 'eval', 'export', 'extends', 'false', 'final', 'finally', 'float', 'for', 'function', 'goto', 'if', 'implements', 'import', 'in', 'instanceof', 'int', 'interface', 'let', 'long', 'native', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'short', 'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with', 'yield']
+					},
+					draw: function (v) {
+						var ti = v[0];
+						var tin = '';
+						var lookFor = false;
+						var v2 = [];
+						var lookI = 0;
+						for (var i = 0; i < v.length; i++) {
+							tin = v[i + 1];
+							if (lookFor) {
+								lookI = v.substr(i).search(lookFor);
+								if (lookI == -1) {
+									v2.push(v.substr(i));
+									break;
+								} else {
+									v2.push(v.substr(i, lookI + 1));
+									v2.push('__ENDSPAN__');
+									i += lookI;
+								}
+								tin = v[i + 1];
+								lookFor = false;
+							} else {
+								if (ti == '/' && tin == '/') {
+									lookFor = '\n';
+									v2.push('__COMMENT__');
+								} else if (ti == '/' && tin == '*') {
+									lookFor = '\\*/';
+									v2.push('__COMMENT__');
+								} else if (ti == '\'') {
+									lookFor = '\'';
+									v2.push('__STR__');
+								} else if (ti == '"') {
+									lookFor = '"';
+									v2.push('__STR__');
+								} else if (ti == '`') {
+									lookFor = '`';
+									v2.push('__STR__');
+								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
+									lookFor = /[^0-9\.]/;
+									v2.push('__NUM__');
+								}
+								v2.push(ti);
+							}
+							ti = tin;
+						}
+						v = v2.join('');
+						v = v.replace(/(\{|\}|\[|\]|\(|\)|instanceof|typeof|>>>|!==|===|\*\*=|>>|<<|\|\||&&|<=|>=|!=|==|%=|\/=|\*=|-=|\+=|--|\+\+|\*\*|\^|~|\||&|!|\?|<|>|=|%|\/|\*|-|\+|;|:)/g, '<span class="op">$1</span>');
+						v = v.replace(/(Array|Date|eval|function|hasOwnProperty|Infinity|isFinite|isNaN|isPrototypeOf|length|Math|NaN|Number|Object|prototype|String|toString|undefined|valueOf|abstract|arguments|await|boolean|break|byte|case|catch|char|const|continue|debugger|default|delete|do|double|else|enum|eval|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|let|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|var|void|volatile|while|with|yield)([^A-z]|$)/g, '<span class="keyword">$1</span>$2');
+						v = v.split('__STR__').join('<span class="str">');
+						v = v.split('__NUM__').join('<span class="num">');
+						v = v.split('__COMMENT__').join('<span class="comment">');
+						v = v.split('__ENDSPAN__').join('</span>');
+						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
+					}
+				},
+				'tpl': {
+					keywords: {
+						caseSensitive: false,
+						values: ['IF', 'ELSEIF', 'ELSE', 'ENDIF', 'FOR', 'TO', 'STEP', 'CONTINUE', 'EXITFOR', 'ENDFOR', 'ON', 'ENDON', 'FUNCTION', 'ENDFUNCTION', 'RETURN', 'DEBUGGER'],
+					},
+					draw: function (v) {
+						v = v.split('\n');
+						var t = null;
+						var ti = null;
+						var pti = null;
+						var nti = null;
+						var html = [];
+						var lErr = null;
+						var errors = {};
+						var errorsOn = [];
+						var suf = '';
+						var qRE = /"/g;
+						for (var i = 0; i < v.length; i++) {
+							lErr = null;
+							html.push('<div>');
+							if (v[i] == '') html.push('\n');
+							else if (v[i][0] == '\'') html.push('<span class="tplCode-comment">' + v[i] + '</span>\n');
+							else {
+								t = breakIntoTokens(v[i], 0);
+								pti = null;
+								if (t.length > 0) {
+									ti = t[0];
+									for (var j = 0; j < t.length; j++) {
+										nti = j < t.length - 1 ? t[j + 1] : null;
+										if (nti && nti.type == 'error') {
+											if (ti.type == 'string') html.push('<span class="tplCode-error">"' + A5.u.html.escape(ti.text) + '</span>');
+											else html.push('<span class="tplCode-error">' + A5.u.html.escape(ti.text) + '</span>');
+											lErr = A5.u.html.escape(nti.text.replace(qRE, '\\"'));
+										} else if (ti.type != 'error' && ti.type != 'eol') {
+											if (ti.type == 'spacing') html.push(ti.text);
+											else if (ti.type == 'string') html.push('<span class="tplCode-string">"' + A5.u.html.escape(ti.text.replace(qRE, '\\"')) + '"</span>');
+											else if (ti.type == 'text') {
+												if (this.keywords.values.indexOf(ti.text.toUpperCase()) != -1) html.push('<span class="tplCode-keyword">' + A5.u.html.escape(ti.text) + '</span>');
+												else if (nti && nti.type == 'op' && nti.text == '(') html.push('<span class="tplCode-call">' + A5.u.html.escape(ti.text) + '</span>');
+												else html.push('<span class="tplCode-text">' + A5.u.html.escape(ti.text) + '</span>');
+											} else if (ti.type == 'op') {
+												if (ti.op == 'M') html.push('<span class="tplCode-number">-</span>');
+												else if (ti.op == 'P') html.push('<span class="tplCode-number">+</span>');
+												else html.push('<span class="tplCode-op">' + A5.u.html.escape(ti.op) + '</span>');
+											} else html.push('<span class="tplCode-' + ti.type + '">' + A5.u.html.escape(ti.text) + '</span>');
+										}
+										pti = ti;
+										ti = nti;
+									}
+
+									if (pti.pos < v[i].length) {
+										suf = v[i].substr(pti.pos + (pti.typeof != 'eol' ? pti.text.length : 0));
+										if (suf[0] == '\'') suf = '<span class="tplCode-comment">' + suf + '</span>';
+										else suf = '<span class="tplCode-text">' + suf + '</span>';
+										html.push(suf);
+									}
+								}
+							}
+							html.push('</div>');
+
+							if (lErr) {
+								errorsOn.push(i);
+								errors['line-' + i] = lErr;
+							}
+						}
+						html = html.join('');
+
+						return { html: html, lines: { errors: errors, errorsOn: errorsOn, count: v.length } };
+					}
+				}
+			},
+			Editor: A5.u.object.creator({
+				init: function (id, s) {
+					A5.u.object.assign(s, {
+						lang: '',
+						className: '',
+						size: {
+							font: '15px',
+							line: '20px',
+							tab: '20px',
+							padding: '6px'
+						},
+						margin: {
+							show: true,
+							className: '',
+							line: {
+								base: 1,
+								className: '',
+								errorClassName: ''
+							}
+						},
+						onChange: null,
+						onStateChange: null
+					}, true);
+					A5.u.object.assign(this, s);
+
+					var ele = $(id);
+					var html = [
+						'<div class="' + this.margin.className + '" style="min-width: 40px; line-height: inherit; font-family: inherit; font-size: 12px; overflow: hidden; ' + (!this.margin.show ? 'display: none;' : '') + '"><div class="' + this.margin.line.className + '">' + this.margin.line.base + '</div></div>',
+						'<div style="overflow: auto; flex: 1 1 0%;" onscroll="this.previousSibling.scrollTop = this.scrollTop;">',
+						'<div style="position: relative; min-width: 100%; min-height: 100%; width: fit-content;">',
+						'<div id="' + id + '.COLORIZED" style="white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; padding: 0px ' + this.size.padding + '; box-sizing: border-box;"></div>',
+						'<textarea id="' + id + '.CODE" spellcheck="false" style="position: absolute; top: 0px; left: 0px; bottom: 0px; width: 100%; color: transparent; caret-color: #000; background: transparent; resize: none; padding: 0px ' + this.size.padding + '; border: none; outline: none; white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; box-sizing: border-box;"></textarea>',
+						'&nbsp;',
+						'</div>',
+						'</div>'
+					];
+
+
+					ele.innerHTML = html.join('');
+					ele.className = this.className;
+					A5.u.element.style(ele, '+=position: relative; display: inline-flex; font-family: monospace; font-size: ' + this.size.font + '; line-height: ' + this.size.line + '; tab-size: ' + this.size.tab + '; overflow: hidden;');
+
+					$e.add(id + '.CODE', 'input', function (e, c) {
+						if (c.value == this.value) return false;
+						var cc = TF.u.code.lang[c.lang];
+						var res = {};
+						if (cc) res = cc.draw(this.value);
+						else {
+							res.html = this.value;
+							res.lines = {
+								errorsOn: [],
+								errors: {},
+								count: res.html.split('\n').length
+							}
+
+							/*
+								var res = cc.parse(value[,start[,end]])
+								res.html = ['<div>....','...']
+								res.errors = [{index: n, text: ''}]
+								res.warnings = [{index: n, text: ''}]
+								res.info = [{index: n, text: ''}]
+							*/
+						}
+
+						this.previousSibling.innerHTML = res.html;
+						var lHTML = [];
+						var lb = c.margin.line.base;
+						for (var i = 0; i < res.lines.count; i++) {
+							if (res.lines.errorsOn.indexOf(i) != -1) lHTML.push('<div class="' + c.margin.line.className + ' ' + c.margin.line.errorClassName + '" title="' + res.lines.errors['line-' + i] + '">' + (i + lb) + '</div>');
+							else lHTML.push('<div class="' + c.margin.line.className + '">' + (i + lb) + '</div>');
+						}
+
+						lHTML.push('<div style="height: 100px;">&nbsp;</div>')
+						lHTML = lHTML.join('');
+						this.parentNode.parentNode.previousSibling.innerHTML = lHTML;
+						c._.state(c, 'dirty', true);
+						c.value = this.value;
+						if (typeof c.onChange == 'function') c.onChange();
+					}, this);
+					$e.add(id + '.CODE', 'keyup', function (e, c) {
+						if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Enter'].indexOf(e.code) != -1) {
+							c._.nav();
+						} else if (e.code[0] == 'K') {
+							c._.sel.start++;
+							c._.sel.end = c._.sel.start;
+							c._.sel.length = 0;
+						}
+					}, this);
+					$e.add(id + '.CODE', 'keydown', function (e, c) {
+						if (e.code == 'Tab') {
+							e.preventDefault();
+							A5.edit.insert(this, '\t');
+						} else if (e.code == 'Enter' && c._.line > 0) {
+							e.preventDefault();
+							var ele = c._.ele;
+							var ws = ele.value.split('\n')[c._.line];
+							var txt = ws.replace(/^[\s]+/, '');
+							ws = ws.substr(0, ws.length - txt.length)
+							A5.edit.insert(this, '\n' + ws);
+
+						}
+					}, this);
+					$e.add(id + '.CODE', A5.d.evnts.click, function (e, c) { c._.nav(); }, this);
+
+					this.state = {
+						isDirty: false
+					}
+					this._ = {
+						id: id,
+						ele: $(id + '.CODE'),
+						sel: null,
+						line: -1,
+						col: -1,
+						state: function (c, t, v) {
+							if (t == 'dirty') {
+								if (c.state.isDirty != v) {
+									c.state.isDirty = v;
+									if (typeof c.onStateChange == 'function') c.onStateChange(t, v);
+								}
+							}
+						},
+						nav: function () {
+							var ele = this.ele;
+							var sel = A5.edit.getSelection(ele);
+							var lns = ele.value.substr(0, sel.end).split('\n');
+							this.line = lns.length - 1;
+							this.col = lns[lns.length - 1].length;
+							this.sel = sel;
+						}
+					}
+				},
+				setValue: function (v) {
+					var ele = this._.ele;
+					A5.edit.setSelection(ele, 0, ele.value.length);
+					A5.edit.insert(ele, v);
+					$e.execute(ele, 'input');
+					this._.state(this, 'dirty', false);
+					if (typeof this.onChange == 'function') this.onChange();
+				},
+				setDirty: function (v) { this._.state(this, 'dirty', v); }
+			}),
+			editors: {
+				json: {
+					_: { h: null },
+					edit: function (d, h) {
+						if (!this._.je) {
+							var ele = document.createElement('div');
+							ele.id = 'TF.JSON.EDIT';
+							A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 10;');
+							ele.className = '';
+							ele.innerHTML = [
+								'<div class="window" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column;">',
+								'<div class="TFDockHeader" style="display: flex; flex-direction: row;">',
+								'<div style="flex: 1 1 auto;">',
+								A5.buttons.html('TF.JSON.EDIT.VALIDATE', { theme: TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }),
+								A5.buttons.html('TF.JSON.EDIT.REFORMAT', { theme: TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }),
+								'</div>',
+								'<div>',
+								A5.buttons.html('TF.JSON.EDIT.SAVE', { theme: TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
+								A5.buttons.html('TF.JSON.EDIT.CANCEL', { theme: TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
+								'</div>',
+								'</div>',
+								'<div id="TF.JSON.EDIT.EDITOR" style="flex: 1 1 auto"></div>',
+								'</div>'
+							].join('');
+							document.body.appendChild(ele);
+
+							$e.add('TF.JSON.EDIT.CANCEL', 'click', function () {
+								TF.u.code.editors.json._.ele.style.display = 'none';
+								TF.u.code.editors.json._.h = null;
+							});
+							$e.add('TF.JSON.EDIT.SAVE', 'click', function () {
+								var json = TF.u.code.editors.json._.je.value;
+								var res = TF.u.code.lang.json.validate(json);
+								if (res !== true) {
+									TF.u.message.show('confirm', 'Error', res.message);
+								} else {
+									var d = JSON.parse(json);
+									var h = TF.u.code.editors.json._.h;
+									if (typeof h == 'function') h(d);
+									else if (typeof h == 'object' && typeof h.populate == 'function') h.populate(d);
+									TF.u.code.editors.json._.ele.style.display = 'none';
+									TF.u.code.editors.json._.h = null;
+								}
+							});
+							$e.add('TF.JSON.EDIT.VALIDATE', 'click', function (e) {
+								var json = TF.u.code.editors.json._.je.value;
+								var res = TF.u.code.lang.json.validate(json);
+								if (res !== true) {
+									TF.u.message.show('confirm', 'Error', res.message);
+								}
+							});
+							$e.add('TF.JSON.EDIT.REFORMAT', 'click', function (e) {
+								var json = TF.u.code.editors.json._.je.value;
+								json = TF.u.code.lang.json.reformat(json);
+								TF.u.code.editors.json._.je.setValue(json);
+							});
+
+							var je = new TF.u.code.Editor('TF.JSON.EDIT.EDITOR', {
+								lang: 'json',
+								className: 'TFCodeEditor',
+								margin: {
+									show: true,
+									className: 'TFCodeEditorMargin'
+								},
+								onStateChange: function (t, v) {
+									if (t == 'dirty') {
+
+									}
+								}
+							});
+							this._.ele = ele;
+							this._.je = je;
+						}
+						var json = JSON.stringify(d, '', '\t');
+						this._.je.setValue(json);
+						this._.h = h;
+						this._.ele.style.display = 'flex';
+					}
+				}
+			}
+		},
+		docks: {
+			tabs: {
+				html: function (idp, tabs, tab) {
+					var html = [];
+					if (!this.buttons) {
+						this.icons = {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {fill: #ff9000; width: 7px; height: 7px;}')
+						}
+						this.buttons = {
+							save: A5.buttons.html('', { theme: TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
+							cancel: A5.buttons.html('', { theme: TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						}
+					}
+
+					var hasGroup = false;
+					var ti = null;
+					var tk = null;
+					var ta = null;
+					var count = 0;
+					for (var i = 0; i < tabs.length; i++) {
+						ti = tabs[i];
+						if (Array.isArray(ti.items)) {
+							hasGroup = true;
+							html.push('<div class="TFDockTabGroup"' + (typeof ti.color == 'string' ? ' style="background: ' + ti.color + ';"' : '') + '>');
+							html.push('<div>' + ti.title + '</div>');
+							html.push('<div>');
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (tab == tk.value) ta = tk;
+								this.tabHTML(idp, count, tk, tab, html);
+								count++;
+							}
+							html.push('</div>');
+							html.push('</div>');
+						} else {
+							if (tab == ti.value) ta = ti;
+							html.push('<div class="TFDockTabSingle">');
+							this.tabHTML(idp, count, ti, tab, html);
+							html.push('</div>');
+						}
+						count++;
+					}
+					html.push('<div class="TFDockTabEnd">');
+					html.push('<div></div>');
+					html.push('<div>');
+					if (ta && ta.dirty) {
+						html.push('<div class="TFDockTabActions">');
+						html.push('<div id="' + idp + '.TAB.COMMIT" a5-item="tab-action:commit" onmouseenter="TF.u.flyout.show(this,\'Save changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.save + '</div>');
+						html.push('<div id="' + idp + '.TAB.CANCEL" a5-item="tab-action:cancel" onmouseenter="TF.u.flyout.show(this,\'Discard changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.cancel + '</div>');
+						html.push('</div>');
+					}
+					html.push('</div>');
+					html.push('</div>');
+
+					if (hasGroup) html.unshift('<div class="TFDockTabs TFDockTabsGroups">');
+					else html.unshift('<div class="TFDockTabs">');
+
+					html.push('</div>');
+					return html.join('');
+				},
+				tabHTML: function (idp, i, ti, tab, html) {
+					html.push('<div id="' + idp + '.TAB.' + i + '" a5-item="tab:' + ti.value + '" class="TFDockTab' + (tab == ti.value ? ' TFDockTabSelected' : '') + '">' + ti.html + (ti.dirty ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + this.icons.dirty + '</div>' : '') + '</div>');
+				},
+				setTabDirty: function (t, v) {
+					var ti, tk = null;
+					for (var i = 0; i < this.data.tabs.length; i++) {
+						ti = this.data.tabs[i];
+						if (Array.isArray(ti.items)) {
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (t == tk.value) {
+									tk.dirty = v;
+									this.refresh();
+									return true;
+								}
+							}
+						} else if (t == ti.value) {
+							ti.dirty = v;
+							this.refresh();
+							return true;
+						}
+
+					}
+					return false;
+				},
+				getTab: function (t) {
+					var ti, tk = null;
+					if (typeof t == 'undefined') t = this.data.tab;
+					for (var i = 0; i < this.data.tabs.length; i++) {
+						ti = this.data.tabs[i];
+						if (Array.isArray(ti.items)) {
+							for (var k = 0; k < ti.items.length; k++) {
+								tk = ti.items[k];
+								if (t == tk.value) {
+									return tk;
+								}
+							}
+						} else if (t == ti.value) return ti;
+					}
+					return false;
+				},
+				items: {
+					'tab': {
+						selectable: false,
+						onClick: function (v, ia) {
+							var otv = this.data.tab;
+							var ntv = ia;
+							if (otv == ntv) return false;
+							var ot, nt, ti, tk = null;
+							for (var i = 0; i < this.data.tabs.length; i++) {
+								ti = this.data.tabs[i];
+								if (Array.isArray(ti.items)) {
+									for (var k = 0; k < ti.items.length; k++) {
+										tk = ti.items[k];
+										if (tk.value == otv) ot = tk;
+										else if (tk.value == ntv) nt = tk;
+									}
+								} else {
+									if (ti.value == otv) ot = ti;
+									else if (ti.value == ntv) nt = ti;
+								}
+							}
+							var res = true;
+							if (ot && typeof ot.onBeforeHide == 'function') var res = ot.onBeforeHide();
+							if (res) {
+								if (nt && typeof nt.onShow == 'function') nt.onShow();
+								if (ot && typeof ot.onHide == 'function') var res = ot.onHide();
+								this.data.tab = ntv;
+								TF._.act('navigate', { context: this.context, target: ntv });
+								this.refresh();
+							}
+						}
+					},
+					'tab-action': {
+						selectable: false,
+						onClick: function (v, ia) {
+							TF.u.flyout.hide();
+							var tv = this.data.tab;
+							var t, ti, tk = null;
+							for (var i = 0; i < this.data.tabs.length; i++) {
+								ti = this.data.tabs[i];
+
+								if (Array.isArray(ti.items)) {
+									for (var k = 0; k < ti.items.length; k++) {
+										tk = ti.items[k];
+										if (tk.value == tv) {
+											t = tk;
+											break;
+										}
+									}
+								} else {
+									if (ti.value == tv) {
+										t = ti;
+										break;
+									}
+								}
+							}
+							if (t) {
+								if (typeof t.action == 'function') t.action(ia, false);
+							}
+						}
+					}
+				}
+			}
+		},
+		panels: {
+			lockable: function (p) {
+				var id = p.getPanelId();
+				var ele = $(id);
+				var lEle = document.createElement('div');
+				lEle.id = id + '.LOCK';
+				lEle.className = 'TFWorkingMessageOverlay';
+				lEle.innerHTML = '<div class="TFWorkingMessage"></div>';
+				lEle.style.display = 'none';
+				ele.appendChild(lEle);
+
+				p.lock = function (m) {
+					var lEle = $(this.contId + '.LOCK');
+					var mEle = lEle.children[0]
+					if (arguments[1]) A5.u.element.cls(mEle, '+=TFWorkingMessageNoInd');
+					else A5.u.element.cls(mEle, '-=TFWorkingMessageNoInd');
+					mEle.innerHTML = m;
+					lEle.style.display = '';
+				}
+				p.unlock = function (m) {
+					var lEle = $(this.contId + '.LOCK');
+					lEle.style.display = 'none';
+				}
+			}
+		},
+		flyout: {
+			_: {
+				t: false,
+				id: '',
+				hide: function (id) {
+					if (id != this.id) this.t.hide();
+				}
+			},
+			/*
+				show a flyout message
+					e = element to flyout from
+					m = message 
+			*/
+			show: function (e, m, s) {
+				var id = Date.now().toString(36);
+				if (!this._.t) {
+					this._.t = new A5.Transient({
+						theme: 'Alpha',
+						content: { type: 'html', html: '' },
+						layout: 'v',
+						layouts: {
+							v: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-center'],
+								behavior: { type: 'modeless' }
+							},
+							vl: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-left'],
+								behavior: { type: 'modeless' }
+							},
+							vr: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['dropdown-right'],
+								behavior: { type: 'modeless' }
+							},
+							h: {
+								stretch: 'none',
+								innerClassName: 'TFFlyout',
+								location: ['flyout-top'],
+								behavior: { type: 'modeless' }
+							}
+						}
+					});
+					var tEle = this._.t.getElement()
+					tEle.style.zIndex = '1000';
+					tEle.style.pointerEvents = 'none'
+				}
+				if (typeof s.direction == 'string') {
+					var l = 'v';
+					if (s.direction[0] == 'h') l = 'h';
+					else if (s.direction == 'vertical-left') l = 'vl';
+					else if (s.direction == 'vertical-right') l = 'vr';
+
+					if (this._.t.layout != l) this._.t.setLayout(l);
+				}
+				var cEle = this._.t.getElement('content');
+				cEle.innerHTML = m;
+				this._.id = id;
+				this._.t.show(e);
+				return id;
+			},
+			hide: function () {
+				var hide = true;
+				if (typeof arguments[0] == 'string' && arguments[0] != this._.id) hide = false;
+				if (hide) this._.t.hide();
+
+			},
+			/*
+				show a flyout message
+					id = flyout message instance ID
+					m = message html
+			*/
+			update: function (id, m) {
+				if (id == this._.id) {
+					var cEle = this._.t.getElement('content');
+					cEle.innerHTML = m;
+				}
+			}
+		},
+
+		message: {
+			_: {
+				ele: null
+			},
+			show: function (t, mt, m, s) {
+				if (typeof s == 'undefined') s = {};
+				if (!this._.ele) {
+					var ele = document.createElement('div');
+					ele.id = 'TF.MSG';
+					A5.u.element.style(ele, 'display: none; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 50;');
+					ele.className = 'TFMsg';
+					ele.innerHTML = '<div id="TF.MSG.CONTENT" class="TFMsgPanel"></div>';
+					document.body.appendChild(ele);
+					this._.ele = ele;
+
+					var vb = new A5.ViewBox('TF.MSG.CONTENT', [], {
+						captureFocus: false,
+						buttons: {
+							confirm: A5.buttons.html('TF.MSG.B.[[[i]]].CONFIRM', {
+								theme: TF.theme + ':confirm',
+								html: '[[[text]]]'
+							}, 'a5-item=button:confirm|[[[i]]]'),
+							deny: A5.buttons.html('TF.MSG.B.[[[i]]].DENY', {
+								theme: TF.theme + ':deny',
+								html: '[[[text]]]'
+							}, 'a5-item=button:deny|[[[i]]]'),
+							cancel: A5.buttons.html('TF.MSG.B.[[[i]]].CANCEL', {
+								theme: TF.theme + ':subtle',
+								html: '[[[text]]]'
+							}, 'a5-item=button:cancel|[[[i]]]')
+						},
+						icons: {
+							defaults: {
+								'confirm': 'info',
+								'confirm-deny': 'question',
+								'confirm-cancel': 'question',
+								'choice': 'question',
+								'choice-deny': 'question',
+								'choice-cancel': 'question',
+								'prompt': 'question',
+								'prompt-cancel': 'question',
+								'deny-cancel': 'warning',
+								'confirm-deny-cancel': 'warning'
+							},
+							q: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{width: 32px; height: 32px;}'),
+							e: A5.u.icon.html('svgIcon=#alpha-icon-exclamationTriangle:icon{width: 32px; height: 32px;}'),
+							i: A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}')
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									var di, dit, opk = null;
+									var html = [];
+									for (var i = 0; i < d.length; i++) {
+										di = d[i]
+										html.push('<div class="TFMsgItem">');
+										html.push('<div>');
+										html.push('<div>');
+										if (di.type == 'wait' || di.type == 'wait-cancel') {
+											html.push('<div class="TFMsgItemWait"></div>');
+										} else {
+											var icon = di.settings.icon || (typeof this.icons.defaults[di.type] == 'string' ? this.icons.defaults[di.type] : 'info');
+											if (icon == 'question') html.push(this.icons.q);
+											else if (icon == 'warning') html.push(this.icons.e);
+											else if (icon != 'info') html.push(A5.u.icon.html(icon));
+											else html.push(this.icons.i);
+										}
+										html.push('</div>');
+										html.push('<div style="flex: 1 1 auto;">');
+										if (di.title) {
+											html.push('<div class="TFMsgItemTitle">');
+											html.push(di.title);
+											html.push('</div>');
+										}
+										if (di.msg) {
+											html.push('<div class="TFMsgItemMsg">');
+											html.push(di.msg);
+											html.push('</div>');
+										}
+										html.push('</div>');
+										html.push('</div>');
+										if (di.type == 'confirm' || di.type == 'confirm-deny' || di.type == 'confirm-cancel' || di.type == 'deny-cancel' || di.type == 'confirm-deny-cancel' || di.type == 'wait-cancel') {
+											dit = di.settings.text;
+											html.push('<div class="TFMsgItemButtons">');
+											if (di.type == 'confirm') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+											} else if (di.type == 'confirm-deny') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+											} else if (di.type == 'confirm-cancel') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'deny-cancel') {
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'confirm-deny-cancel') {
+												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											} else if (di.type == 'wait-cancel') {
+												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											}
+											html.push('</div>');
+										} else if (di.type == 'choice' || di.type == 'choice-deny' || di.type == 'choice-cancel') {
+											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
+
+											for (var k = 0; k < di.settings.options.length; k++) {
+												opk = di.settings.options[k];
+												html.push(A5.buttons.html('TF.MSG.B.' + i + '.OPTION.' + k, {
+													theme: TF.theme + ':confirm',
+													html: (typeof opk == 'string' ? opk : opk.html)
+												}, 'a5-item=button:choose|' + i + '|' + k));
+											}
+											dit = di.settings.text;
+											if (di.type == 'choice-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											else if (di.type == 'choice-deny') html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
+											html.push('</div>');
+										} else if (di.type == 'prompt' || di.type == 'prompt-cancel') {
+											html.push('<div class="TFMsgItemEdit">');
+											if (Array.isArray(di.settings.value)) {
+												for (var k = 0; k < di.settings.value.length; k++) {
+													html.push('<input class="editPrimary' + (di.error[k] ? ' editError' : '') + '" value="' + di.settings.value[k] + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value[' + k + '] = this.value;" placeholder="' + di.settings.placeholder[k] + '">');
+													if (di.error[k]) html.push('<div class="TFMsgItemEditError">' + di.error[k] + '</div>');
+												}
+											} else {
+												html.push('<input class="editPrimary' + (di.error ? ' editError' : '') + '" value="' + di.settings.value + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value = this.value;" placeholder="' + di.settings.placeholder + '">');
+												if (di.error) html.push('<div class="TFMsgItemEditError">' + di.error + '</div>');
+											}
+											html.push('</div>');
+											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
+											dit = di.settings.text;
+											html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
+											if (di.type == 'prompt-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
+											html.push('</div>');
+										}
+										html.push('</div>');
+									}
+									return html.join('');
+								}
+							}
+						},
+						items: {
+							'button': {
+								selectable: false,
+								onClick: function (v, ia) {
+									ia = ia.split('|');
+									var di = this.data[ia[1]];
+									if (typeof di.settings.action == 'function') {
+										if (ia[0] == 'choose') {
+											var o = di.settings.options[ia[2]];
+											if (o) di.settings.action((typeof o == 'string' ? o : o.value));
+										} else if (di.type.indexOf('prompt') == 0) {
+											var res = di.settings.action(ia[0], di.settings.value);
+											if (A5.u.typeOf(res) == 'object') {
+												di.error = res.error;
+												this.refresh();
+												return false;
+											}
+										} else di.settings.action(ia[0]);
+									}
+									TF.u.message.hide(di.id, false);
+								}
+							}
+						}
+					});
+					this._.vb = vb;
+				} else {
+					var ele = this._.ele;
+					var vb = this._.vb;
+				}
+
+				var d = vb.data;
+
+				if (t.indexOf('deny') != -1) {
+					A5.u.object.assign(s, {
+						text: { confirm: 'Yes', deny: 'No', cancel: 'Cancel' }
+					}, true);
+				} else {
+					A5.u.object.assign(s, {
+						text: { confirm: 'OK', deny: 'No', cancel: 'Cancel' }
+					}, true);
+				}
+
+				if (t.indexOf('prompt') == 0) {
+					A5.u.object.assign(s, {
+						value: '',
+						placeholder: ''
+					}, true);
+				}
+				var di = {
+					id: (typeof s.id == 'string' ? s.id : 'pid:' + Date.now()),
+					type: t,
+					title: mt,
+					msg: m,
+					error: false,
+					settings: (A5.u.typeOf(s) == 'object' ? s : {})
+				}
+				var res = di.id;
+
+				if (typeof s.duration == 'number') setTimeout(function () { TF.u.message.hide(res); }, s.duration);
+
+				d.push(di);
+				ele.style.display = '';
+				if (d.length == 1) {
+					A5.u.element.transition(ele.children[0], {
+						from: { transform: 'translateY(-110%)' },
+						to: { transform: 'translateY(0px)' },
+						duration: 200
+					});
+				}
+				vb.refresh();
+				return res;
+			},
+			update: function (id, mt, m) {
+				var vb = this._.vb;
+				var d = vb.data;
+				var di = null;
+				for (var i = d.length - 1; i >= 0; i--) {
+					di = d[i];
+					if (di.id == id) {
+						if (typeof mt == 'string') di.title = mt;
+						if (typeof m == 'string') di.msg = m;
+						vb.refresh();
+						break;
+					}
+				}
+			},
+			hide: function (id) {
+				var ele = this._.ele;
+				var vb = this._.vb;
+				var d = vb.data;
+				var di = null;
+				var fa = typeof arguments[1] == 'boolean' ? arguments[1] : true;
+				for (var i = d.length - 1; i >= 0; i--) {
+					di = d[i];
+					if (di.id == id) {
+						if (typeof di.settings.action == 'function' && fa) di.settings.action('hide');
+						d.splice(i, 1);
+						break;
+					}
+				}
+				if (d.length == 0) {
+					A5.u.element.transition(ele.children[0], {
+						from: { transform: 'translateY(0px)' },
+						to: { transform: 'translateY(-110%)' },
+						duration: 200
+					}, function () {
+						if (TF.u.message._.vb.data.length == 0) this.parentNode.style.display = 'none';
+					}
+					);
+				} else vb.refresh();
+			}
+		},
+
+		filler: {
+			_: {
+				ele: null,
+				iEle: null,
+				dirty: false,
+				route: {
+					m: false,
+					q: false,
+					default: null,
+					current: null,
+					tip: function (ele, show) {
+						if (show) {
+							var m = 'Form will not be routed on save.';
+							var c = this.current;
+							if (c) {
+								if (c.indexOf('queue:') == 0) {
+									c = c.split(':');
+									c.shift();
+									c.pop();
+									var q = this.q ? this.q.src : false;
+									if (q) {
+										var cq = '';
+										for (var i = 0; i < c.length; i++) {
+											cq = c[i];
+											for (var k = 0; k < q.length; k++) {
+												if (q[k].queueID == cq) {
+													cq = q[k].name;
+													break;
+												}
+											}
+											c[i] = '"' + cq + '"';
+										}
+									} else {
+										for (var i = 0; i < c.length; i++) c[i] = '"' + c[i] + '"';
+									}
+									m = 'Form will be routed to the ' + c.join(', ') + ' queue' + (c.length > 1 ? 's' : '') + ' on save.';
+								} else m = 'Form will be routed to "' + A5.u.html.escape(c) + '" on save.';
+							}
+							TF.u.flyout.show(ele, m, { direction: 'vertical' });
+						} else {
+							TF.u.flyout.hide();
+						}
+					},
+					shown: false,
+					show: function () {
+						var _f = TF.u.filler._;
+						var _r = _f.route;
+
+						var d = { type: 'none' };
+						var c = _r.current;
+						if (typeof c == 'string') {
+							if (c.indexOf('queue:') == 0) {
+								c = c.split(':');
+								c.shift();
+								c.pop();
+								d.type = 'queue';
+								d.queue = c;
+							} else if (c.trim() != '') {
+								d.type = 'member';
+								d.member = c;
+							}
+						}
+						_r.f.populate(d);
+						_f.rEle.style.display = '';
+						_f.lEle.setAttribute('mode', 'route');
+						_f.lEle.style.display = '';
+						this.shown = true;
+						A5.u.element.transition(_f.rEle, {
+							from: { transform: 'translateY(-100%)' },
+							to: { transform: 'translateY(0%)' }
+						});
+					},
+					hide: function () {
+						if (this.shown) {
+							A5.u.element.transition(TF.u.filler._.rEle, {
+								from: { transform: 'translateY(0%)' },
+								to: { transform: 'translateY(-100%)' },
+								after: { display: 'none' }
+							}, function () { TF.u.filler._.lEle.style.display = 'none'; });
+							this.shown = false;
+						}
+					},
+					set: function () {
+						var _f = TF.u.filler._;
+						var p = _f.route.current;
+						if (!p) p = TF.state.login.user.id;
+						_f.iEle.contentWindow.postMessage({ cmd: 'setPersonFiller', person: p }, "*");
+					}
+				},
+				jwtMsg: function (args) {
+					var l = TF.state.login;
+					var d = l.expires;
+					var e = String(Number(d) / 1000);
+					var p = JSON.stringify(l.account.permissions);
+					var res = {
+						cmd: 'setJWTFromParent',
+						efobj: {
+							JWTname: l.user.id,
+							JWTuserToken: l.token,
+							JWTexpiration: e,
+							JWTdisplayName: l.user.name,
+							JWTaccount: l.account.id,
+							JWTrole: l.account.member.roles.join(','),
+							JWTpermissions: p,
+							EFJWTname: l.user.id,
+							EFJWTuserToken: l.token,
+							EFJWTexpiration: e,
+							EFJWTdisplayName: l.user.name,
+							EFJWTaccount: l.account.id,
+							EFJWTrole: l.account.member.roles.join(','),
+							EFJWTpermissions: p,
+
+						}
+					}
+					if (typeof args == 'string' && args.trim() != '') res.efobj.JWToverridesearchparams = args;
+					return res;
+				},
+				msg: function (event) {
+					var msg = event.data;
+					if (typeof msg != 'object') msg = {};
+					if (event.origin != location.origin) return; // 2023-11-15 DSB let go to some other handler
+					var f = TF.u.filler;
+					var ele = f._.iEle;
+					if (!ele || event.source != ele.contentWindow) return; // 2023-11-15 DSB let go to some other handler
+					switch (msg.cmd) {
+						case 'fillerCentralDoneLogout':
+							//console.log('Got quicklink embed logout. Should not.');
+							break;
+						case 'fillerCentralGetParentJWT':
+							ele.contentWindow.postMessage(f._.jwtMsg(), "*");
+							break;
+						case 'fillerCentralLoggedInEditForm':
+							//console.log('Quicklink embed LoggedInEditForm.');
+							setTimeout(function () {
+								TF.u.filler._.lEle.style.display = 'none';
+							}, 600);
+							if (f._.route.current) f._.route.set();
+							break;
+						case 'fillerCentralUpdateDirtyValue':
+							f._.dirty = msg.isDirty;
+							f._.setState();
+							//console.log("Quicklink embed message: "+(msg.isDirty ? "Is dirty" : "Is not dirty."));
+							break;
+
+						case 'fillerCentralAfterSyncWithErrors':
+							//console.log('Got AfterSyncWithErrors. Updated:'+msg.updated+", inserted:"+msg.inserted);
+							//console.log(JSON.stringify(msg.errors));
+							break;
+
+						case 'fillerCentralAfterSuccessfulSync':
+							//console.log('Got AfterSuccessfulSync. Updated:'+msg.updated+", inserted:"+msg.inserted);
+							if (typeof f._.s.onCommit == 'function') f._.s.onCommit(f._.m, f._.id, f._.s);
+							f._.ele.style.display = 'none';
+							f._.route.hide();
+							break;
+
+						case 'ignore':
+							break;
+
+						default:
+					}
+				},
+				setState: function () {
+					var bEle = $('TF.FILLER.COMMIT');
+					if (this.dirty) {
+						bEle.disabled = false;
+						A5.u.element.cls(bEle, '-=buttonDisabled');
+					} else {
+						bEle.disabled = true;
+						A5.u.element.cls(bEle, '+=buttonDisabled');
+					}
+					if (this.route.current) {
+						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeOn:icon');
+						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Routed';
+					} else {
+						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeEnd:icon');
+						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Not Routed';
+					}
+				},
+				cancel: function () {
+					TF._.act('filler', { action: 'cancel', mode: this.m, id: this.id });
+					this.iEle.contentWindow.postMessage({ cmd: 'cancelFiller' }, "*");
+					this.ele.style.display = 'none';
+					this.route.hide();
+				}
+			},
+
+			start: function (m, id, s) { // mode, formId / formInstId
+				if (this._.ele == null) {
+					var ele = document.createElement('div');
+					ele.id = 'TF.FILLER';
+					A5.u.element.style(ele, 'display: none; z-index: 49;');
+					ele.className = 'TFModal';
+					var html = [
+						'<div id="TF.FILLER.CONTENT" class="TFModalPanel TFFillerPanel">',
+						'<div class="TFModalPanelHeader">',
+						'<div id="TF.FILLER.TITLE">',
+						'Filler',
+						'</div>',
+						'<div>',
+						A5.buttons.html('TF.FILLER.ROUTE', { theme: TF.theme + ':subtle', html: A5.u.icon.html('svgIcon=#alpha-icon-routeEnd:icon', 'id="TF.FILLER.ROUTE.ICON"') + ' <span id="TF.FILLER.ROUTE.TEXT">Route</span>' }),
+						A5.buttons.html('TF.FILLER.COMMIT', { theme: TF.theme + ':confirm', html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
+						A5.buttons.html('TF.FILLER.CANCEL', { theme: TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }),
+						'</div>',
+						'</div>',
+						'<div style="position: relative; overflow: hidden;">',
+						'<div id="TF.FILLER.IFRAME.LOCK" mode="loading" style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px;" onclick="if(this.getAttribute(\'mode\') == \'route\') TF.u.filler._.route.hide();"></div>',
+						'<div id="TF.FILLER.ROUTE.PANEL" class="TFFillerRoutePanel" style="display: none; position: absolute; top: 0px; right: 0px; width: 320px; max-height: 100%;">',
+						'<div id="TF.FILLER.ROUTE.FORM" class="TFForm"></div>',
+						'</div>',
+						'<iframe id="TF.FILLER.IFRAME" src="" border="0" style="width: 100%; height: 100%;" />',
+						'</div>',
+						'</div>'
+					];
+					ele.innerHTML = html.join('');
+					document.body.appendChild(ele);
+
+					$e.add('TF.FILLER.COMMIT', 'click', function () { TF.u.filler.commit(); });
+					$e.add('TF.FILLER.CANCEL', 'click', function () { TF.u.filler.cancel(); });
+					$e.add('TF.FILLER.ROUTE', 'click', function () {
+						var r = TF.u.filler._.route;
+						if (r.shown) r.hide();
+						else {
+							TF.u.flyout.hide();
+							r.show();
+						}
+					});
+					$e.add('TF.FILLER.ROUTE', 'mouseenter', function () { TF.u.filler._.route.tip(this, true); });
+					$e.add('TF.FILLER.ROUTE', 'mouseleave', function () { TF.u.filler._.route.tip(this, false); });
+
+					this._.route.f = new A5.FormBox('TF.FILLER.ROUTE.FORM', {
+						form: {
+							items: [
+								{
+									type: 'button-list',
+									layout: 'tf-label-above',
+									data: { from: 'type' },
+									label: { text: 'Route to' },
+									control: {
+										style: 'display: flex; flex-direction: row;',
+										allowNullSelection: false,
+										data: {
+											src: [
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-docCheckSolid:icon') + ' Myself', value: 'none', style: 'flex: 1 1 0%;' },
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-personInSolid:icon') + ' Member', value: 'member', style: 'flex: 1 1 0%;' },
+												{ html: A5.u.icon.html('svgIcon=#alpha-icon-trayFull:icon') + ' Queue', value: 'queue', style: 'flex: 1 1 0%;' }
+											]
+										}
+									}
+								},
+								{
+									type: 'edit-picker',
+									show: function (d) { return d.form.data.type == 'member' },
+									data: { from: 'member' },
+									container: { className: 'TFFormItem' },
+									control: {
+										width: '100%',
+										behavior: { show: { mode: 'change' } },
+										picker: {
+											type: 'list',
+											data: { filter: 'contains' }
+										},
+										buttons: {
+											after: [{
+												html: A5.u.icon.html('svgIcon=#alpha-icon-refresh:icon'),
+												click: function () { TF.u.filler._.route.m = false; }
+											}]
+										},
+										data: {
+											src: function () {
+												if (TF.u.filler._.route.m) return TF.u.filler._.route.m;
+												else {
+													TF.request('get-members', { manage: false }).then(function (d) {
+														var ld = [];
+														var di = null
+														for (var i = 0; i < d.members.length; i++) {
+															di = d.members[i];
+															ld.push({
+																html: '<div class="listItemPartMain">' + di.name + '</div><div class="listItemPartSub">' + di.userId + '</div>',
+																value: di.userId
+															});
+														}
+														TF.u.filler._.route.m = { src: ld };
+														TF.u.filler._.route.f.ctrls.picker.update('data', ld);
+													}).catch(function () {
+														TF.u.filler._.route.f.ctrls.picker.hide();
+													});
+													return null;
+												}
+											}
+										}
+									}
+								},
+								{
+									type: 'group',
+									show: function (d) { return d.form.data.type == 'queue' },
+									items: [
+										{
+											type: 'list',
+											data: { from: 'queue' },
+											container: { className: 'TFFormItem' },
+											control: {
+												width: '100%',
+												style: 'max-height: 200px; overflow: auto;',
+												multiple: true,
+												selectionMode: 'additive',
+												className: 'list TFFillerQueuesList',
+												data: {
+													src: function () {
+														if (TF.u.filler._.route.q) return TF.u.filler._.route.q;
+														else {
+															TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+																var qd = A5.u.object.get(d.data, 'queues.listOfQueues');
+																if (!Array.isArray(qd)) qd = [];
+																TF.u.filler._.route.q = { src: qd };
+																TF.u.filler._.route.f.refresh();
+															});
+															return null;
+														}
+													}
+												},
+												layout: 'main',
+												layouts: { main: { item: { html: '<div style="display: flex; flex-direction: row; gap: 6px; align-items: center;"><div style="display: inline-block; width: 20px; height: 20px; background: {color}; border: 1px solid #fff; border-radius: 4px;"></div><div>{name}</div></div>', value: 'queueID' } } }
+											}
+										},
+										{
+											type: 'group',
+											container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row;' },
+											items: [
+												{
+													type: 'button',
+													layout: 'tf-simple',
+													container: { style: 'flex: 1 1 auto;' },
+													control: {
+														theme: TF.theme + ':subtle',
+														html: 'Clear Selection',
+														onClick: function () { this.update('queue', []); }
+													}
+												},
+												{
+													type: 'button',
+													layout: 'tf-simple',
+													control: {
+														theme: TF.theme + ':subtle',
+														html: 'Refresh Queues List',
+														onClick: function () {
+															TF.u.filler._.route.q = false;
+															TF.u.filler._.route.f.refresh();
+														}
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									type: 'switch',
+									layout: 'tf-label-flex',
+									data: { from: 'makeDefault' },
+									label: { text: 'Make default route' },
+									control: { width: '50px' }
+								},
+								{
+									type: 'html',
+									show: function (d) { return d.form.data.makeDefault },
+									container: { className: 'TFFormNote' },
+									control: {
+										html: 'When you press "Done", the selected value will be stored, and the next time you fill in a form instance the form will be routed to the same location.'
+									}
+								},
+								{
+									type: 'group',
+									container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row' },
+									items: [
+										{
+											type: 'button',
+											container: { style: 'flex: 1 1 auto;' },
+											control: {
+												html: 'Done',
+												style: 'width: 100%;',
+												onClick: function () {
+													var _f = TF.u.filler._;
+													var _r = _f.route;
+
+													_r.hide();
+													var d = this.data;
+													if (d.type == 'none') _r.current = null;
+													else if (d.type == 'member') _r.current = d.member;
+													else if (d.type == 'queue') _r.current = 'queue:' + d.queue.join(':') + ':';
+													if (d.makeDefault) _r.default = _r.current;
+													_r.set();
+													_f.setState();
+												}
+											}
+										},
+										{
+											type: 'button',
+											container: { style: 'flex: 1 1 auto;' },
+											control: {
+												html: 'Cancel',
+												theme: TF.theme + ':subtle',
+												style: 'width: 100%;',
+												onClick: function () {
+													TF.u.filler._.route.hide();
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}, {}, { theme: TF.theme, item: { label: { style: '' }, description: { style: '' } } });
+
+					this._.ele = ele;
+					this._.tEle = $('TF.FILLER.TITLE');
+					this._.lEle = $('TF.FILLER.IFRAME.LOCK');
+					this._.iEle = $('TF.FILLER.IFRAME');
+					this._.rEle = $('TF.FILLER.ROUTE.PANEL');
+					window.addEventListener("message", this._.msg, false);
+				}
+				var bEle = $('TF.FILLER.ROUTE');
+				if (TF.state.login.account.member.ui.allow.manage) bEle.style.display = '';
+				else bEle.style.display = 'none';
+				this._.dirty = false;
+				this._.route.current = this._.route.default;
+				this._.setState();
+
+				if (this._.iEle.src.indexOf('QuickLink.html') != -1) this._.iEle.contentWindow.postMessage(this._.jwtMsg('m=n&a=' + TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N'), "*");
+				else this._.iEle.src = 'QuickLink.html?m=n&a=' + TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N';
+				//m=q&a=Account1&q=default3 - get queue
+
+				if (m == 'create') {
+					this._.tEle.innerHTML = 'New Form Instance';
+					this._.lEle.setAttribute('message', 'Creating form...');
+				} else {
+					this._.tEle.innerHTML = 'Edit Form Instance';
+					this._.lEle.setAttribute('message', 'Loading form...');
+				}
+				this._.lEle.setAttribute('mode', 'loading');
+				this._.lEle.style.display = '';
+				this._.ele.style.display = '';
+				this._.m = m;
+				this._.id = id;
+				this._.s = s || {};
+
+				TF._.act('filler', { action: 'start', mode: m, id: id });
+			},
+
+			commit: function () {
+				this._.iEle.contentWindow.postMessage({ cmd: 'saveFiller' }, "*");
+				TF._.act('filler', { action: 'commit', mode: this._.m, id: this._.id });
+			},
+			cancel: function () {
+				if (this._.ele) {
+					if (this._.dirty) {
+						TF.u.message.show('confirm-cancel', 'Discard Form', 'Are you sure you want to discard the current form?', {
+							action: function (a) {
+								if (a == 'confirm') TF.u.filler._.cancel();
+							}
+						});
+					} else this._.cancel();
+				}
+			}
+		}
+	},
+	forms: {},
+
+	// UI element definitions and helper functions
+	ui: {
+		// top level UI (e.g. the masthead)
+		main: {
+			_: {
+				ux: null,
+				d: {
+					id: null,
+					gotoList: false,
+					ux: null,
+					getIndx: function (id) {
+						var d = this.ux.getControl('REPORTCHOOSERVIEWBOX').data;
+						for (var i = 0; i < d.reports.defs.length; i++) {
+							if (d.reports.defs[i].name == id) {
+								return i;
+								break;
+							}
+						}
+						return null;
+					}
+				},
+				m: {
+					id: null,
+					ux: null
+				},
+				b: {
+					id: null,
+					ux: null
+				},
+				di: {
+					"adv": {
+						"include": function () {
+							return TF.state.ui.editing.json.forms;
+						},
+						"type": "frame",
+						"container": {
+							"collapse": { "allow": true, "initial": true },
+							"title": { "html": "Advanced" }
+						},
+						"items": [
+							{
+								"layout": "tf-button",
+								"type": "button",
+								"control": {
+									"html": "Edit JSON...",
+									"onClick": function () {
+										TF.u.code.editors.json.edit(this.data, this);
+									}
+								}
+							}
+						]
+					}
+				}
+			},
+			init: function (ux) {
+				setInterval(function () { ux.getControl('TRANSFORM_MASTHEAD').refresh(); }, 30000);
+				this._.vb = ux.getControl('TRANSFORM_MASTHEAD');
+				this._.p = ux.panelGet('TRANSFORM');
+			},
+			html: function (vb) {
+				var html = [];
+				const iconHome = A5.u.icon.html('svgIcon=#alpha-icon-home:icon');
+				const iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon');
+				const iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon');
+				const iconManage = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
+				const iconApps = A5.u.icon.html('svgIcon=#alpha-icon-appGrid:icon {width: 32px; height: 32px;}');
+
+				const iconNotification = A5.u.icon.html('svgIcon=#alpha-icon-bell:icon {width: 32px; height: 32px;}');
+				const iconDeveloper = A5.u.icon.html('svgIcon=#alpha-icon-docXMLSolid:icon {width: 32px; height: 32px;}');
+				const iconAccount = A5.u.icon.html('svgIcon=#alpha-icon-gear:icon {width: 32px; height: 32px;}');
+				const iconPerson = A5.u.icon.html('svgIcon=#alpha-icon-personSolid:icon {position: absolute; top: 0px; left: 4px; width: 52px; height: 52px;}');
+				const iconHelp = A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon {width: 32px; height: 32px;}');
+				const iconDot = A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}');
+
+
+				const sui = TF.state.ui;
+				const sl = TF.state.login;
+
+
+				const tab = sui.tab;
+				const allow = sl.account.member.ui.allow;
+				const dirty = sui.dirty;
+				const dock = sui.dock;
+				const idp = vb.contId + '.';
+
+				html.push('<div class="TFHeadLine"></div>');
+				html.push('<div class="TFHead">');
+				html.push('<div class="TFHeadLogo">');
+				html.push('<img src="TFLogo78x78.png" style="height: 100%;"/>');
+				html.push('</div>');
+				html.push('<div class="TFHeadTabs">');
+				html.push('<div id="' + idp + 'HOME" a5-item="tab:home" class="TFHeadTab TFHeadTabHome' + (tab == 'home' ? ' TFHeadTabSelected' : '') + '">' + iconHome + '<span class="TFHeadTabText">Home</span>&ZeroWidthSpace;</div>');
+				if (allow.dashboard) html.push('<div id="' + idp + 'DASHBOARD" a5-item="tab:dashboard" class="TFHeadTab TFHeadTabDashboard' + (tab == 'dashboard' ? ' TFHeadTabSelected' : '') + '">' + iconDashboard + '<span class="TFHeadTabText">Dashboard</span>&ZeroWidthSpace;' + (dirty.dashboard ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				if (allow.manage) html.push('<div id="' + idp + 'MANAGE" a5-item="tab:manage" class="TFHeadTab TFHeadTabManage' + (tab == 'manage' ? ' TFHeadTabSelected' : '') + '">' + iconManage + '<span class="TFHeadTabText">Manage</span>&ZeroWidthSpace;' + (dirty.manage ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				if (allow.design) html.push('<div id="' + idp + 'DESIGNER" a5-item="tab:designer" class="TFHeadTab TFHeadTabDesign' + (tab == 'designer' ? ' TFHeadTabSelected' : '') + '">' + iconFormDesign + '<span class="TFHeadTabText">Design</span>&ZeroWidthSpace;' + (dirty.designer ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
+				html.push('</div>');
+				html.push('<div class="TFHeadSettings">');
+				/*	
+				var n = vb.data.notifications;
+				var ii = null;
+				var now = Date.now();
+				for(var i=n.items.length-1;i>=0;i--){
+					ii = n.items[i];
+					if(ii.dismiss && ii.dismiss < now) n.items.splice(i,1);
+				}
+				
+				if(n.items.length > 0){
+					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices<div class="TFHeadButtonNotification">'+iconDot+'</div></div>');
+				} else{
+					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices</div>');
+				}
+				*/
+
+				html.push('<div id="' + idp + 'APPS" a5-item="docks:apps" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'apps' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconApps + '<br/>Apps</div>');
+				if (allow.developer) html.push('<div id="' + idp + 'DEVELOPER" a5-item="docks:developer" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'developer' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconDeveloper + '<br/>Configure</div>');
+				if (allow.account) html.push('<div id="' + idp + 'ACCOUNT" a5-item="docks:account" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'account' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconAccount + '<br/>Account</div>');
+				html.push('</div>');
+
+				html.push('<div a5-item="docks:user" class="TFHeadUser TFHeadButton' + (dock.active && dock.type == 'user' ? ' TFHeadUserActive' : '') + '">');
+				html.push(iconPerson + '<div class="TFHeadUserName">' + sl.user.name + '</div><div class="TFHeadUserAccount">' + sl.account.name + '</div>');
+
+				var lsDelta = (sl.expires - Date.now()) / 60000;
+				var lss = 'Good';
+				if (lsDelta <= 0) lss = 'Expired';
+				else if (lsDelta < 60) lss = 'Expiring';
+				vb.data.expiresStatus = lss.toLowerCase();
+				html.push('<div class="TFHeadLoginStatus' + lss + '" style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>');
+				html.push('</div>');
+				if (TF.state.ui.help.mode != 'pinned') {
+					html.push('<div id="' + idp + 'HELP" a5-item="help" class="TFHeadHelp TFHeadButton">');
+					html.push(iconHelp + '<br/>Help');
+					html.push('</div>');
+				}
+				html.push('</div>');
+
+
+				return html.join('');
+			},
+			action: function (a, d, f) {
+				var pp = 'TRANSFORM_MAIN_NAV:';
+				var vb = TF.ui.main._.vb;
+				var pUX = TF.ui.main._.ux;
+				if (a == 'home') {
+					vb.setTab('home');
+				} else if (a.indexOf('dashboard') == 0) {
+					var _d = TF.ui.main._.d;
+					var ux = _d.ux;
+					if (ux && !f) {
+						var s = pUX.sendMessageToChild('FORMDASHBOARD', { type: "query", cmd: "uistate" });
+						if (s.busy) {
+							TF.u.message.show('confirm-deny', 'Dashboard', 'The dashboard is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+								action: function (ba) {
+									if (ba == 'confirm') TF.ui.main.action(a, d, true);
+									else TF.ui.main._.vb.setTab('dashboard');
+								}
+							});
+							return false;
+						}
+					}
+					if (a == 'dashboard') {
+						if (d.id) {
+							if (ux) {
+								var id = _d.getIndx(d.id);
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
+							} else _d.id = d.id;
+							vb.setTab('dashboard');
+						}
+					} else if (a == 'dashboard-create') {
+						TF.u.message.show('confirm', 'Dashboard', 'Create new dashboard.');
+						vb.setTab('dashboard');
+					} else if (a == 'dashboard-manage') {
+						if (d.id) {
+							if (ux) {
+								var id = _d.getIndx(d.id);
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
+								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
+							} else _d.id = d.id;
+							_d.gotoList = true;
+							vb.setTab('dashboard');
+						}
+					}
+				} else if (a == 'manage') {
+					if (d.id) {
+						var _m = TF.ui.main._.m;
+						var ux = _m.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBROWSER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									TF.u.message.show('confirm-deny', 'Manager', 'The form manger is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') TF.ui.main.action(a, d, true);
+											else TF.ui.main._.vb.setTab('manage');
+										}
+									});
+									return false;
+								}
+							}
+
+							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "resetuistate" });
+							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "loadformtype", formid: d.id });
+						} else _m.id = d.id;
+						vb.setTab('manage');
+					}
+				} else if (a == 'form-design') {
+					if (d.id) {
+						var _b = TF.ui.main._.b;
+						var ux = _b.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') TF.ui.main.action(a, d, true);
+											else TF.ui.main._.vb.setTab('designer');
+										}
+									});
+									return false;
+								}
+							}
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "loadformtype", formid: d.id });
+						} else {
+							_b.id = d.id;
+							_b.mode = 'edit';
+						}
+						vb.setTab('designer');
+					}
+				} else if (a == 'form-create') {
+					var _b = TF.ui.main._.b;
+					if (d.create) {
+						var ux = _b.ux;
+						if (ux) {
+							if (!f) {
+								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
+								if (s.busy) {
+									TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
+										action: function (ba) {
+											if (ba == 'confirm') TF.ui.main.action(a, d, true);
+											else TF.ui.main._.vb.setTab('designer');
+										}
+									});
+									return false;
+								}
+							}
+							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
+							if (d.from == 'blank') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: '' });
+							else if (d.from == 'copy') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: d.id });
+							else if (d.from == 'template') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addtemplateformtype" });
+						} else {
+							_b.mode = 'create';
+							_b.from = d.from;
+							_b.id = d.id;
+						}
+						vb.setTab('designer');
+					} else {
+						if (!_b.t) {
+							_b.t = new A5.Transient({
+								theme: TF.theme,
+								content: {
+									type: 'html',
+									html: ''
+								},
+								layout: 'main',
+								layouts: {
+									'main': {
+										stretch: 'none',
+										animation: { show: { type: 'fade' }, hide: { type: 'fade' } },
+										location: 'flyout-center',
+										offset: { major: 4 }
+									}
+								},
+								onShow: function () {
+									var p = TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
+									p.lock('', true);
+								},
+								onHide: function () {
+									var p = TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
+									p.unlock();
+								}
+							});
+							var tEle = _b.t.getElement('top');
+							tEle.style.zIndex = '1000';
+							var id = _b.t.getElement('content').id;
+
+							_b.tVB = new A5.ViewBox(id, { mode: 'main' }, {
+								icons: {
+									ai: A5.u.icon.html('svgIcon=#alpha-icon-ai:icon'),
+									template: A5.u.icon.html('svgIcon=#alpha-icon-folderOpen:icon'),
+									copy: A5.u.icon.html('svgIcon=#alpha-icon-docDuplicate:icon'),
+									blank: A5.u.icon.html('svgIcon=#alpha-icon-docAdd:icon'),
+									children: A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
+								},
+								buttons: {
+									back: A5.buttons.html(id + '.COPY.BACK', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="back"'),
+									cancel: A5.buttons.html(id + '.CANCEL', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="cancel"'),
+								},
+								layout: 'main',
+								layouts: {
+									'main': {
+										type: 'static',
+										html: function () {
+											var html = [];
+											var idp = this.contId + '.';
+											var fStyle = ' style="display: flex; flex-direction: row; align-items: center;"';
+											html.push('<div class="TFTileAddMenu" style="display: flex; flex-direction: column;">');
+											var liEvnts = ' onmouseenter="A5.u.element.cls(this,\'+=listItemHover\')" onmouseleave="A5.u.element.cls(this,\'-=listItemHover\')"';
+											if (this.data.mode == 'copy') {
+												html.push('<div class="listItemTitle"' + fStyle + '>');
+												html.push(this.buttons.back);
+												html.push('<div>&nbsp;Select Form Type</div>')
+												html.push('</div>');
+												html.push('<div style="flex: 1 1 0%; overflow: auto;">');
+												var ft = TF.ui.home._.vb.data.forms.types;
+												var fti = null;
+												for (var i = 0; i < ft.length; i++) {
+													fti = ft[i];
+													html.push('<div id="' + idp + 'COPY.' + i + '" a5-item="create:' + fti.id + '" a5-value="copy" class="listItem"' + liEvnts + '>' + fti.name + '</div>');
+												}
+												html.push('</div>');
+
+											} else {
+
+												html.push('<div>');
+												html.push('<div class="listItemTitle"' + fStyle + '>');
+												html.push(this.buttons.cancel);
+												html.push('<div>&nbsp;Add Form Type</div>')
+												html.push('</div>');
+												if (TF._.beta()) {
+													html.push('<div id="' + idp + 'AI" a5-item="create" a5-value="ai" class="listItem"' + fStyle + liEvnts + '>' + this.icons.ai + '<div><span class="TFAIFont">AI</span> Form Builder &nbsp;&nbsp;<span class="TFFormItemDescData">BETA</span></div></div>');
+												}
+												html.push('<div id="' + idp + 'TEMPLATE" a5-item="create" a5-value="template" class="listItem"' + fStyle + liEvnts + '>' + this.icons.template + '<div>New from Template</div></div>');
+												html.push('<div id="' + idp + 'BLANK" a5-item="create" a5-value="blank" class="listItem"' + fStyle + liEvnts + '>' + this.icons.blank + '<div>Blank Form Type</div></div>');
+												html.push('<div id="' + idp + 'COPY" a5-item="copy" class="listItem"' + fStyle + liEvnts + '>' + this.icons.copy + '<div style="flex: 1 1 auto;">Copy Existing</div>' + this.icons.children + '</div>');
+												html.push('</div>');
+											}
+											html.push('</div>');
+											return html.join('');
+										}
+									}
+								},
+								items: {
+									'create': {
+										onClick: function (v, ia) {
+											if (v == 'blank') TF.ui.main.action('form-create', { create: true, from: 'blank' });
+											else if (v == 'template') TF.ui.main.action('form-create', { create: true, from: 'template' });
+											else if (v == 'copy') TF.ui.main.action('form-create', { create: true, from: 'copy', id: ia });
+											else if (v == 'ai') TF.ui.ai.form.start();
+											TF.ui.main._.b.t.hide();
+
+										}
+									},
+									'copy': {
+										onClick: function () {
+											this.data.mode = 'copy';
+											this.refresh();
+											TF.ui.main._.b.t.refresh();
+										}
+									},
+									'back': {
+										onClick: function () {
+											this.data.mode = 'main';
+											this.refresh();
+											TF.ui.main._.b.t.refresh();
+										}
+									},
+									'cancel': {
+										onClick: function () {
+											TF.ui.main._.b.t.hide();
+										}
+									}
+								}
+							});
+
+						}
+						_b.tVB.populate({ mode: 'main' });
+						_b.t.show(TF.ui.home._.vb.contId + '.FORMS.CREATE');
+					}
+				} else if (a == 'form-fill') {
+					TF.u.filler.start('create', d.id, {
+						onCommit: function (m, id, s) {
+							if (m == 'create') {
+								var vb = TF.ui.home._.vb;
+								var indx = -1;
+								var ft = vb.data.forms.types;
+								for (var i = 0; i < ft.length; i++) {
+									if (ft[i].id == id) {
+										indx = i;
+										break;
+									}
+								}
+								if (indx != -1) {
+									var ele = $(vb.contId + '.FORMS.' + indx + '.COUNT');
+									var count = String(ele.innerText).toNumber() + 1 || 1;
+									if (count > 99) count = '99+';
+									ele.innerText = count;
+									vb.badgeUpdated(vb.contId + '.FORMS.' + indx + '.COUNT', 1);
+								}
+							}
+						}
+					});
+				}
+				return true;
+			}
+		},
+		// AI
+		ai: {
+			form: {
+				_: { ele: false },
+				start: function () {
+					if (!this._.ele) {
+						var ele = document.createElement('div');
+						ele.id = 'TF.AI.FORM';
+						ele.className = 'TFModal';
+						A5.u.element.style(ele, 'display: none; z-index: 49;');
+						ele.innerHTML = [
+							'<div class="TFModalPanel" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;">',
+							'<div class="TFModalPanelHeader">',
+							'<div style="flex: 1 1 auto;"><span class="TFAIFont">AI</span> Form Builder</div>',
+							A5.buttons.html('TF.AI.FORM.SAVE', { theme: TF.theme, html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
+							A5.buttons.html('TF.AI.FORM.CLOSE', { theme: TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }, 'onclick="this.parentNode.parentNode.parentNode.style.display = \'none\';"'),
+							'</div>',
+							'<div id="TF.AI.FORM.BUILDER" style="flex: 1 1 auto"></div>',
+							'</div>'
+						].join('');
+						document.body.appendChild(ele);
+						this._.ele = ele;
+
+						A5.component.runGenericComponent({
+							dialog2Div: 'TF.AI.FORM.BUILDER',
+							dialog2Name: 'transformAIFormBuilder01',
+							type: 'dialog2',
+							alias: 'TF_AI_FB',
+							workingMessage: '<div class="TFWorkingMessage">Loading...</div>'
+						});
+						$e.add('TF.AI.FORM.SAVE', A5.d.evnts.click, function () {
+							TF.ui.ai.form._.ux
+							var pUX = TF.ui.main._.ux;
+							var cmds = pUX.sendMessageToChild('TF_AI_FB', { type: "action", cmd: "getDefinition" });
+							if (cmds) {
+								// DLG1_DlgObj.getControl('formslist')._data[0].formdata
+								TF.u.message.show('prompt-cancel', 'Save Form', 'Please enter the ID you would like to use for the form.', {
+									action: function (a, id) {
+										if (a == 'confirm') {
+											var fd = {
+												id: id,
+												version: 1,
+												display: {
+													name: id,
+													color: { main: '', text: '' },
+													icon: '',
+													templates: {
+														heading: '',
+														listing: '',
+														printing: ''
+													}
+												},
+												data: {
+													preview: {},
+													instance: {
+														init: '',
+														status: ''
+													}
+												},
+												settings: { generation: 2 },
+												security: { statusRoleGroup: '' },
+												tpl: { code: '' },
+												cmds: cmds
+											};
+											TF.u.message.show('wait', 'Creating Form', 'Please wait while the form is created.', { id: 'ai-form-save-wait' });
+											TF.request('update-form-defs', { create: [fd] }).then(function () {
+												TF.u.message.hide('ai-form-save-wait');
+												$('TF.AI.FORM').style.display = 'none';
+												TF.ui.home._.vb.getStructure();
+											}).catch(function () {
+												TF.u.message.hide('ai-form-save-wait');
+												TF.u.message.show('confirm', 'Error', 'Form was unable to be saved.');
+											});
+										}
+									}
+								})
+							}
+						});
+						$e.add(window, 'resize', function () { $e.execute('TF.AI.FORM.BUILDER', 'a5resize'); });
+					}
+					this._.ele.style.display = '';
+				},
+				builder: {
+					init: function (ux) {
+						TF.ui.ai.form._.ux = ux;
+						var pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'body');
+						var ele = $(pId);
+						var html = [
+							'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style=""></iframe></div>',
+							'<div class="TFAIBuilderPreviewShownHide" style="position: absolute; top: 5px; left: 5px;">',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.HIDE', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
+							'</div>'
+						];
+						ele.innerHTML = html.join('');
+						//'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style="" /></div>';
+						ele.className = 'TFAIBuilderPreview';
+						ele.parentNode.className = 'TFAIBuilderPreviewPanel';
+
+						ele = $('TF.AI.FORM.BUILDER.FILLER');
+						$e.add(ele, 'load', function (e, ux) {
+							var iEle = this;
+							if (typeof ux != 'undefined' && ux.f && typeof ux.f.fillerembedIFRAMELoaded != 'undefined') setTimeout(function () { ux.f.fillerembedIFRAMELoaded(iEle) }, 0);
+						}, ux);
+						pId = ux.panelGetId('AI_BUILDER_CHAT', 'footer');
+						html = [
+							'<div class="TFAIBuilderChatCmdBar" style="">',
+							'<div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.REVERT', { theme: TF.theme, layout: 'text icon', html: 'Revert', icon: 'svgIcon=#alpha-icon-triUpSolid:icon', style: 'text-align: right; width: 100%;' }),
+							'</div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.RESTORE', { theme: TF.theme, layout: 'text icon', html: 'Restore', icon: 'svgIcon=#alpha-icon-triDownSolid:icon', style: 'text-align: right; width: 100%;' }),
+							'</div>',
+							'</div>',
+							'<div style="flex: 1 1 auto;">',
+							'<textarea id="TF.AI.FORM.BUILDER.INPUT" class="edit" style="resize: none; width: 100%; height: 100%; box-sizing: border-box;" placeholder="Type your instructions here..." onkeydown="if(!event.shiftKey && event.key == \'Enter\' && this.value.trim() != \'\'){ $e.stopEvent(event); doCreateForm(); }"></textarea>',
+							'</div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.SEND', { theme: TF.theme, html: 'Send', icon: 'svgIcon=#alpha-icon-paperPlaneSolid:icon', style: 'height: 100%;' }, 'onclick="if($(\'TF.AI.FORM.BUILDER.INPUT\').value.trim() != \'\') doCreateForm();"'),
+							'</div>',
+							'</div>'
+						];
+						ele = $(pId);
+						ele.innerHTML = html.join('');
+						ele.className = 'TFDockFooter';
+
+						$e.add('TF.AI.FORM.BUILDER.REVERT', A5.d.evnts.click, ux.f.doRevert);
+						$e.add('TF.AI.FORM.BUILDER.RESTORE', A5.d.evnts.click, ux.f.doRestore);
+
+						var p = ux.panelGet('AI_BUILDER_CHAT');
+						p.setDisplay('footer', true);
+
+						pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'footer');
+						html = [
+							'<div style="display: flex; flex-direction: row; gap: 4px; padding: 4px;">',
+							'<div style="flex: 1 1 auto;"></div>',
+							'<div>',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.PHONE', { theme: TF.theme + ':subtle', html: 'Phone', icon: 'svgIcon=#alpha-icon-devicePhone:icon' }),
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.TABLET', { theme: TF.theme + ':subtle', html: 'Tablet', icon: 'svgIcon=#alpha-icon-deviceTablet:icon' }),
+							'&nbsp;',
+							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-arrowCounterClockwise:icon', 'id="TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON"') }),
+							'</div>',
+							'<div style="flex: 1 1 auto;"></div>',
+							'</div>'
+						];
+						ele = $(pId);
+						ele.innerHTML = html.join('');
+						ele.className = 'TFDockFooter';
+						p = ux.panelGet('AI_BUILDER_PREVIEW');
+						p.setDisplay('footer', true);
+
+						p = ux.panelGet('AI_BUILDER');
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.HIDE', A5.d.evnts.click, function (e, ci) {
+							ci.hideDock();
+						}, p);
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.PHONE', A5.d.evnts.click, function () {
+							var p = TF.ui.ai.form.builder.preview;
+							if (p.active.device != 'phone') {
+								p.active.device = 'phone';
+								p.refresh();
+							}
+						});
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.TABLET', A5.d.evnts.click, function () {
+							var p = TF.ui.ai.form.builder.preview;
+							if (p.active.device != 'tablet') {
+								p.active.device = 'tablet';
+								p.refresh();
+							}
+						});
+						$e.add('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', A5.d.evnts.click, function () {
+							var p = TF.ui.ai.form.builder.preview;
+							p.active.landscape = !p.active.landscape;
+							p.refresh();
+						});
+
+						TF.ui.ai.form._.p = ux.panelGet('AI_BUILDER');
+
+						ele = $('TF.AI.FORM.BUILDER.CHAT');
+						ele.style.position = 'absolute';
+						A5.u.element.setScroll(ele, 0, 10000);
+
+						this.preview.refresh();
+
+					},
+
+					preview: {
+						active: {
+							device: 'phone',
+							landscape: false
+						},
+						refresh: function () {
+							var p = TF.ui.ai.form._.p;
+
+							var pd = this.devices;
+							var pa = this.active;
+							var pSize = pd.phone;
+							var ele = $('TF.AI.FORM.BUILDER.FILLER').parentNode;
+							var bpEle = $('TF.AI.FORM.BUILDER.PREVIEW.PHONE');
+							var btEle = $('TF.AI.FORM.BUILDER.PREVIEW.TABLET');
+							var iEle = $('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON')
+							if (pa.device == 'tablet') {
+								pSize = pd.tablet;
+								A5.u.element.cls(btEle, '+=buttonPressed');
+								btEle.setAttribute('a5-pressed', 'true');
+								A5.u.element.cls(bpEle, '-=buttonPressed');
+								bpEle.setAttribute('a5-pressed', 'false');
+							} else {
+								A5.u.element.cls(bpEle, '+=buttonPressed');
+								bpEle.setAttribute('a5-pressed', 'true');
+								A5.u.element.cls(btEle, '-=buttonPressed');
+								btEle.setAttribute('a5-pressed', 'false');
+							}
+							if (pa.landscape) {
+								pSize = pSize.l;
+								ele.className = 'TFAIBuilderPreviewLandscape';
+								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(0deg); transition: transform 500ms;}');
+							} else {
+								pSize = pSize.p;
+								ele.className = 'TFAIBuilderPreviewPortrait';
+								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(90deg); transition: transform 500ms;}');
+							}
+
+							var sAdj = 20;
+							ele.style.maxHeight = (pSize.height + sAdj) + 'px';
+							ele.style.width = (pSize.width + sAdj) + 'px';
+
+							p.panels[1].size = '1064px'; //(pSize.width+sAdj+20)+'px';
+
+							p.refresh();
+						},
+						devices: {
+							phone: {
+								p: { width: 320, height: 600 },
+								l: { width: 600, height: 320 }
+							},
+							tablet: {
+								p: { width: 768, height: 1024 },
+								l: { width: 1024, height: 768 }
+							}
+						}
+					}
+				}
+			}
+		},
+
+		// help dock UI
+		help: {
+			_: { w: null },
+			setMode: function (mode) {
+				if (mode == TF.state.ui.help.mode) mode = 'docked';
+				var ux = TF.ui.main._.ux;
+				var uis = TF.state.ui;
+				var p = ux.panelGet('TRANSFORM');
+				var hp = p.getPanel('TRANSFORM_HELP');
+				var vb = ux.getControl('TRANSFORM_HELP');
+				if (mode == 'pinned') {
+					uis.help.mode = 'pinned';
+					hp.dock = '';
+					uis.dock.type = '';
+					uis.dock.active = false;
+					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
+					$(p.contId + '.DOCKOVERLAY').style.display = 'none';
+					//} else if(mode == 'float'){
+					//	uis.help.mode = 'float';
+					//	hp.show = false;
+					//	$(p.contId+'.DOCKOVERLAY').style.display = 'none';
+					//	this._.w = window.open('about:blank','TFHelp');
+					//	this._.w.onbeforeunload = function(){ this.opener.TF.ui.help._.w = null;}
+					//	p.hideDock();
+				} else {
+					uis.help.mode = 'docked';
+					hp.dock = 'collapse-after';
+					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
+				}
+				if (uis.help.mode != 'float' && this._.w) this._.w.close();
+				p.refresh();
+				vb.refresh();
+				TF.ui.main._.vb.refresh();
+			},
+			html: function (vb) {
+				var html = [];
+				html.push('<div class="TFHelpHeader">');
+				html.push(A5.buttons.html('TF.HELP.PIN', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: (TF.state.ui.help.mode == 'pinned' ? 'svgIcon=#alpha-icon-unpin:icon' : 'svgIcon=#alpha-icon-pin:icon') }, 'a5-item="mode:pinned"'));
+				html.push('<div style="flex: 1 1 auto;">');
+				html.push('<input class="editPrimary" style="width: 100%; box-sizing: border-box;" placeholder="Search help..."/>');
+				html.push('</div>');
+				html.push(A5.buttons.html('TF.HELP.SEARCH.DO', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-magGlass:icon' }, 'a5-item="search:execute"'));
+				html.push(A5.buttons.html('TF.HELP.SEARCH.CLEAR', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="search:clear"'));
+				html.push('</div>');
+				var ii = null;
+				var co = vb.data.contexts[vb.data.context];
+				if (co) {
+					html.push('<div class="TFHelpContext">');
+					html.push('<div class="TFHelpTitle">' + co.name + '</div>');
+					html.push('<div class="TFHelpGroupTitle">Videos</div>');
+					html.push('<div class="TFHelpGroup">');
+					for (var i = 0; i < co.videos.length; i++) {
+						ii = co.videos[i];
+						html.push('<div id="' + vb.contId + '.CV' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
+					}
+					html.push('</div>');
+					html.push('</div>');
+				}
+				html.push('<div class="TFHelpItem">Documentation</div>');
+				html.push('<div class="TFHelpItem">Release notes</div>');
+
+				html.push('<div class="TFHelpGroupTitle" id="' + vb.contId + '.V" a5-item="toggle:allVideos">All Videos</div>');
+				html.push('<div class="TFHelpGroup" style="' + (vb.data.show.allVideos ? '' : 'display: none; ') + 'overflow: hidden;">');
+				for (var c in vb.data.contexts) {
+					co = vb.data.contexts[c];
+					for (var i = 0; i < co.videos.length; i++) {
+						ii = co.videos[i];
+						html.push('<div id="' + vb.contId + '.V' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
+					}
+				}
+				html.push('</div>');
+
+				html.push('<div class="TFHelpExtra">Version ' + 2 + '</div>');
+
+				return html.join('');
+			}
+		},
+		// user dock UI
+		user: {
+			_: {},
+			init: function (ux) {
+				if (typeof TF.ui.user._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+					TF.u.panels.lockable(p);
+					ux.userPreferencesForm = new A5.FormBox(p.getPanelId('body'), TF.forms.userPreferences, {}, {
+						theme: TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								TF.ui.user._.h.setTabDirty('preferences', d.value);
+							}
+						}
+					});
+					var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+					TF.u.panels.lockable(p);
+					ux.userProfileForm = new A5.FormBox(p.getPanelId('body'), TF.forms.userProfile, {}, {
+						theme: TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								TF.ui.user._.h.setTabDirty('profile', d.value);
+							}
+						}
+					});
+
+					var p = ux.panelGet('TRANSFORM_USER');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+					TF.ui.user._.h = new A5.ViewBox(ele.id, {
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Preferences',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_USER_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+										p.lock('Loading preferences...');
+										TF.request('get-preferences', { type: 'user' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.userPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
+									if (t == 'commit') {
+										p.lock('Saving preferences...');
+										TF.request('set-preferences', { type: 'user', data: ux.userPreferencesForm.data }).then(function (d) {
+											ux.userPreferencesForm.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences...');
+										TF.request('get-preferences', { type: 'user' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.userPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.userPreferencesForm.setDirty(false);
+									}
+								}
+							},
+							{
+								html: 'Your Profile',
+								value: 'profile',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_USER_PROFILE');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+										p.lock('Loading profile...');
+										TF.request('get-profile', { type: 'user' }).then(function (d) {
+											ux.userProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_USER_PROFILE');
+									if (t == 'commit') {
+										p.lock('Saving profile...');
+										var fd = JSON.stringify(ux.userProfileForm.data);
+										TF.request('set-profile', { type: 'user', data: fd }).then(function (d) {
+											ux.userProfileForm.setDirty(false);
+											TF.state.login.user.name = ux.userProfileForm.data.name;
+											TF._.saveState(true);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading profile...');
+										TF.request('get-profile', { type: 'user' }).then(function (d) {
+											ux.userProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.userProfileForm.setDirty(false);
+									}
+								}
+							}
+						]
+					}, {
+						context: 'user',
+						setTabDirty: TF.u.docks.tabs.setTabDirty,
+						getTab: TF.u.docks.tabs.getTab,
+						icons: {
+							status: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}')
+						},
+						buttons: {
+							login: [
+								'<div style="display: flex; flex-direction: row;">',
+								A5.buttons.html('TFUserButtonConfirmLogin', { theme: TF.theme + ':confirm', html: 'Confirm Login', icon: 'svgIcon=#alpha-icon-checkShield:icon' }, 'a5-item="confirmLogin"'),
+								'<div style="flex: 1 1 auto;"></div>',
+								A5.buttons.html('TFUserButtonLogout', { theme: TF.theme + ':deny', html: 'Logout', icon: 'svgIcon=#alpha-icon-exit:icon' }, 'a5-item="logout"'),
+								'</div>'
+							].join(''),
+							edit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var html = [];
+									var d = this.data;
+									var hObj = ux.getControl('TRANSFORM_MASTHEAD');
+									var ed = TF.state.login.expires;
+									var es = hObj.data.expiresStatus;
+									var loginMsg = '';
+									var iconDot = this.icons.status;
+									var loginMsgCls = '';
+									if (es == 'good') {
+										if (ed.same('day')) {
+											loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('hh:mm') + '.';
+										} else if (ed.same('week')) {
+											loginMsg = iconDot + 'Login will expire ' + ed.toFormat('Weekday') + ' at ' + ed.toFormat('hh:mm') + '.';
+										} else {
+											loginMsg = iconDot + 'Login will expire on ' + ed.toFormat('Month d') + ' at ' + ed.toFormat('hh:mm') + '.';
+										}
+										loginMsgCls = 'TFUserLoginStatusMessageGood';
+									} else if (es == 'expiring') {
+										loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('h:mm') + '.';
+										loginMsgCls = 'TFUserLoginStatusMessageExpiring';
+									} else {
+										loginMsg = iconDot + 'Login has expired. You must re-confirm login.';
+										loginMsgCls = 'TFUserLoginStatusMessageExpired';
+									}
+
+									html.push('<div class="TFDockHeader">');
+									html.push(this.buttons.login);
+									html.push('<div class="' + loginMsgCls + '">' + loginMsg + '</div>');
+									html.push('</div>');
+									html.push(TF.u.docks.tabs.html(this.contId, d.tabs, d.tab));
+									return html.join('');
+								}
+							}
+						},
+						items: {
+							'confirmLogin': {
+								selectable: false,
+								onClick: function () {
+									TF.login('confirm');
+								}
+							},
+							'logout': {
+								selectable: false,
+								onClick: function () {
+									TF.logout();
+								}
+							},
+							'tab': TF.u.docks.tabs.items['tab'],
+							'tab-action': TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+				} else {
+					TF.ui.user._.h.refresh();
+				}
+				TF.ui.user._.h.getTab().onShow();
+			}
+		},
+
+		// account dock UI
+		account: {
+			_: {},
+			init: function (ux) {
+				if (typeof TF.ui.account._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+					TF.u.panels.lockable(p);
+					ux.accountPreferencesForm = new A5.FormBox(p.getPanelId('body'), TF.forms.accountPreferences, {}, {
+						theme: TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								TF.ui.account._.h.setTabDirty('preferences', d.value);
+							}
+						}
+					});
+					p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+					TF.u.panels.lockable(p);
+					ux.accountProfileForm = new A5.FormBox(p.getPanelId('body'), TF.forms.accountProfile, {}, {
+						theme: TF.theme,
+						item: {
+							label: { style: '' },
+							description: { style: '' }
+						},
+						onStateChange: function (t, d) {
+							if (t == 'isDirty') {
+								TF.ui.account._.h.setTabDirty('profile', d.value);
+							}
+						}
+					});
+					p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+					TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_ACCOUNT');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+					TF.ui.account._.h = new A5.ViewBox(ele.id, {
+						account: { rename: false },
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Preferences',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+										p.lock('Loading preferences...');
+										TF.request('get-preferences', { type: 'account' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.accountPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
+									if (t == 'commit') {
+										p.lock('Saving preferences...');
+										TF.request('set-preferences', { type: 'account', data: ux.accountPreferencesForm.data }).then(function (d) {
+											ux.accountPreferencesForm.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences...');
+										TF.request('get-preferences', { type: 'account' }).then(function (d) {
+											var fd = d.data;
+											if (typeof fd == 'string') fd = JSON.parse(d.data);
+											ux.accountPreferencesForm.populate(fd);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'discard') {
+										ux.accountPreferencesForm.setDirty(false);
+									}
+								}
+							},
+							{
+								html: 'Account Profile', value: 'profile',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_PROFILE');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+										p.lock('Loading profile...');
+										TF.request('get-profile', { type: 'account' }).then(function (d) {
+											ux.accountProfileForm.populate(d.data);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t, hide) {
+									if (t == 'commit') {
+										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
+										p.lock('Saving profile...');
+										var d = A5.u.object.clone(ux.accountProfileForm.data);
+										TF.request('set-profile', { type: 'account', data: d }).then(function () {
+											TF.state.login.account.name = d.name;
+											TF._.saveState(true);
+											p.unlock();
+											TF.ui.account._.h.setTabDirty('profile', false);
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										TF.ui.members.list._.l.getMembersData();
+									} else if (t == 'discard') {
+										TF.ui.account._.h.setTabDirty('profile', false);
+									}
+								}
+							},
+							{
+								html: 'Billing & Usage', value: 'billingAndUsage',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+									var p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
+									p.lock('Loading billing & usage...');
+									TF.request('get-plan', {}).then(function (d) {
+										ux.getControl('TRANSFORM_BILLING_USAGE').populate(d);
+										p.unlock();
+									}).catch(function () {
+										p.unlock();
+									});
+								}
+							},
+							{
+								html: 'Members', value: 'members', onShow: function () {
+									ux.panelSetActive('TRANSFORM_ACCOUNT_MEMBERS');
+									if (!this.dirty) {
+										var l = TF.ui.members.list._.l;
+										if (l) l.getMembersData();
+									}
+								},
+								action: function (t) {
+									var po = ux.getChildObject('members');
+									var p = po.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
+									if (t == 'commit') {
+										p.lock('Saving members...');
+										var d = TF.ui.members.list._.l.generateCRUD();
+										TF.request('update-members', d).then(function (d) {
+											TF.ui.members.list._.l.getMembersData();
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										TF.ui.members.list._.l.getMembersData();
+									} else if (t == 'discard') {
+										TF.ui.account._.h.setTabDirty('members', false);
+									}
+								}
+							}
+						]
+					}, {
+						context: 'account',
+						setTabDirty: TF.u.docks.tabs.setTabDirty,
+						getTab: TF.u.docks.tabs.getTab,
+						icons: {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
+						},
+						buttons: {
+							edit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									return TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
+								}
+							}
+						},
+						items: {
+							'tab': TF.u.docks.tabs.items['tab'],
+							'tab-action': TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+				} else {
+					TF.ui.account._.h.refresh();
+				}
+				TF.ui.account._.h.getTab().onShow();
+			}
+		},
+
+		members: {
+			init: function (ux) {
+				var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
+				TF.u.panels.lockable(p);
+			},
+			list: {
+				_: {},
+				init: function (ux, l) {
+					var html = [];
+					html.push('<div style="display: flex; flex-direction: row;">');
+					html.push('<div style="display: flex; flex-direction: row; width: 385px;">');
+					html.push(A5.buttons.html('TF.MEMBERS.SELECTALL', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+					html.push(A5.buttons.html('TF.MEMBERS.ADD', { theme: TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Add', icon: 'svgIcon=#alpha-icon-peopleAddSolid:icon' }));
+					html.push(A5.buttons.html('TF.MEMBERS.REMOVE', { theme: TF.theme + ':deny', style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Remove', icon: 'svgIcon=#alpha-icon-personXSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESTORE', { theme: TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Restore', icon: 'svgIcon=#alpha-icon-personInSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.SETROLES', { theme: TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Roles', icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITE', { theme: TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Resend Invite', icon: 'svgIcon=#alpha-icon-envelopeOut:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITECANCEL', { theme: TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Cancel Resend', icon: 'svgIcon=#alpha-icon-envelopeIn:icon' }));
+					html.push('</div>');
+					html.push(A5.buttons.html('TF.MEMBERS.EXPORT', { theme: TF.theme, className: 'button buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-export:icon' }));
+					html.push('<div style="width: 4px;"></div>');
+					html.push('<input id="TF.MEMBERS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+					html.push('<div style="width: 4px;"></div>');
+					html.push(A5.buttons.html('TF.MEMBERS.FILTER.CLEAR', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+					html.push(A5.buttons.html('TF.MEMBERS.SORT', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+					html.push('</div>');
+
+					//var ele = $('TF.MEMBERS.LISTHEADER');
+					var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS_LIST');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFPanelHeader';
+					ele.innerHTML = html.join('');
+
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+					$e.add('TF.MEMBERS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+					$e.add('TF.MEMBERS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
+					$e.add('TF.MEMBERS.SELECTALL', 'click', function (e, l) {
+						if (l.selection.length != 0) l.setValue(false);
+						else l.setValue({ select: 'all' });
+					}, l);
+					$e.add('TF.MEMBERS.ADD', 'click', function (e, l) { l.inviteMembers(); }, l);
+					$e.add('TF.MEMBERS.REMOVE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(true); }, l);
+					$e.add('TF.MEMBERS.RESTORE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(false); }, l);
+					$e.add('TF.MEMBERS.SETROLES', 'click', function (e, l) { if (!this.disabled) l.setRoles(); }, l);
+					$e.add('TF.MEMBERS.RESENDINVITE', 'click', function (e, l) { if (!this.disabled) l.resendInvite(true); }, l);
+					$e.add('TF.MEMBERS.RESENDINVITECANCEL', 'click', function (e, l) { if (!this.disabled) l.resendInvite(false); }, l);
+					$e.add('TF.MEMBERS.EXPORT', 'click', function () {
+						TF.ui.members.list._.ux.exportListData('members', {
+							data: 'listData',
+							exportType: 'excel',
+							action: 'download',
+							clientsidefilename: '',
+							maxRecords: -1,
+							onlyexportcolumnsinschema: true,
+							datatransformationjavascript: 'data.state = data._.state; if(data.invite.guid) data.link = location.origin+\'/transformAcceptInvite.a5w?mode=acceptInvite&uid=\'+urlencode(data.userId)+\'&invitationguid=\'+data.invite.guid; ',
+							schema: {
+								userId: { type: 'C', size: 30, columnHeading: 'User ID' },
+								name: { type: 'C', size: 20, columnHeading: 'User Name' },
+								roles: { type: 'C', size: 100, columnHeading: 'User Roles' },
+								state: { type: 'C', size: 20, columnHeading: 'Invitation State' },
+								link: { type: 'C', size: 20, columnHeading: 'Invitation Link' }
+							}
+						});
+					});
+
+					$e.add('TF.MEMBERS.EXPORT', 'mouseenter', function () {
+						TF.u.flyout.show(this, 'Export visible members to Excel...</div>', { direction: 'vertical-left' });
+					});
+					$e.add('TF.MEMBERS.EXPORT', 'mouseleave', function () { TF.u.flyout.hide(); });
+
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseenter', function () {
+						var html = [
+							'<div style="display: flex; flex-direction: row;">',
+							'<div style="align-self: center;">',
+							A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}'),
+							'</div>',
+							'<div class="TFFormItemExtra" style="max-width: 300px; white-space: wrap; text-align: justify;">',
+							'<div>',
+							'A prefix of <span class="TFFormItemDescData">roles:</span> will target the search to roles.',
+							'</div>',
+							'<div style="margin-top: 6px;">',
+							'A prefix of <span class="TFFormItemDescData">state:</span> will filter on the states ',
+							'<span class="TFFormItemDescData">dirty</span>, <span class="TFFormItemDescData">clean</span>, <span class="TFFormItemDescData">deleted</span>, <span class="TFFormItemDescData">pending</span>, <span class="TFFormItemDescData">expired</span>, <span class="TFFormItemDescData">unsent</span> and <span class="TFFormItemDescData">resend</span>.',
+							'</div>',
+							'<div style="margin-top: 6px;">',
+							'For <span class="TFFormItemDescData">roles:</span> and <span class="TFFormItemDescData">state:</span> multiple values are allowed using a <span class="TFFormItemDescData">,</span> as a separator.',
+							'</div>',
+							'</div>',
+							'</div>'
+						]
+						TF.u.flyout.show(this, html.join(''), { direction: 'vertical-right' });
+					});
+					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseleave', function () { TF.u.flyout.hide(); });
+
+					A5.u.element.cls(l.contId, 'TFMembersList TFMembersDragAllow');
+
+					p.setDisplay('header', true);
+					l.refreshToolbar();
+
+					l.sortMenu = new A5.Menu([
+						{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+						'-',
+						{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+						{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+						{ html: 'Date Added Ascending', value: 'invite.added:1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
+						{ html: 'Date Added Descending', value: 'invite.added:-1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
+						'-',
+						{ html: 'Unsaved', value: '_.isDirty:-1', icon: 'svgIcon=#alpha-icon-broom:icon' },
+						{ html: 'Pending Members', value: '_.sortP:1', icon: 'svgIcon=#alpha-icon-questionCircle:icon' },
+						{ html: 'Expired Members', value: '_.sortE:1', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }
+					], {
+						theme: TF.theme,
+						style: 'white-space: nowrap;',
+						onClick: function (i) {
+							var v = i.value.split(':');
+							var l = TF.ui.members.list._.l;
+							if (v.length > 1) {
+								var dir = v[1].toNumber();
+								l.setOrder([[v[0], dir]]);
+							} else l.setOrder(false);
+						}
+					});
+
+					this._.l = l;
+					this._.ux = ux;
+				}
+			},
+			invite: {
+				html: function (vb) {
+
+					var html = [];
+					var d = vb.data;
+					html.push('<div class="TFFormItemFlex" style="margin-top: 4px;">');
+					html.push('<div class="TFFormItemLabel">Create users without sending invitations</div>');
+					html.push('<div class="TFFormItemContent" style="display: inline-block; width: 60px;">');
+					html.push(A5.switches.html(vb.noInvite || false, { theme: TF.theme }, ' id="' + this.contId + '.NOINVITE" a5-item="noInvite"'));
+					html.push('</div>');
+					html.push('</div>');
+					if (Array.isArray(d) && d.length > 0) {
+						var di, rk, idp = null;
+						var rm = vb._rm;
+						html.push('<div id="' + vb.contId + '.LIST" style="display: grid; grid-template-columns: 150px 100px' + (vb.noInvite ? ' 100px' : '') + ' 1fr auto auto; grid-column-gap: 4px; row-gap: 4px; margin-top: 4px;">');
+						html.push('<div class="TFFormItemLabel">Email</div>');
+						html.push('<div class="TFFormItemLabel">Name</div>');
+						if (vb.noInvite) html.push('<div class="TFFormItemLabel">Password</div>');
+						html.push('<div class="TFFormItemLabel">Roles</div>');
+						html.push('<div class="TFFormItemLabel"></div>');
+						html.push('<div class="TFFormItemLabel"></div>');
+						var rolesBtn = A5.buttons.html(vb.contId + '.__I__.ROLES', { theme: TF.theme, icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, 'a5-item="setRoles:__I__"');
+						var remBtn = A5.buttons.html(vb.contId + '.__I__.REMOVE', { theme: TF.theme + ':deny', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="remove:__I__"');
+						var re = /__I__/g;
+						for (var i = 0; i < d.length; i++) {
+							di = d[i]
+							idp = vb.contId + '.' + i + '.';
+							html.push('<input id="' + idp + 'email" a5-value-from="' + i + ':email" value="' + di.email + '" spellcheck="false" class="edit' + (TF.u.re.email.test(di.email) ? '' : ' editError') + '" style="align-self: start;"/>');
+							html.push('<input id="' + idp + 'name" a5-value-from="' + i + ':name" value="' + di.name + '" placeholder="Display name..." spellcheck="false" class="edit' + (di.name.trim() != '' ? '' : ' editError') + '" style="align-self: start;"/>');
+							if (vb.noInvite) html.push('<input id="' + idp + 'pw" a5-value-from="' + i + ':pw" value="' + di.pw + '" ondblclick="this.select();" spellcheck="false" class="edit' + (di.pw != '' ? '' : ' editError') + '" style="align-self: start;"/>');
+							html.push('<div style="flex: 1 1 auto; align-self: center;">');
+							if (di.roles.length == 0) {
+								html.push('<div class="TFFormItemLabel">Click button to select roles...</div>');
+							} else {
+								for (var k = 0; k < di.roles.length; k++) {
+									rk = di.roles[k];
+									html.push('<div class="TFListDataBadge">' + (typeof rm[rk] == 'string' ? rm[rk] : rk) + '</div>');
+								}
+							}
+
+							html.push('</div>');
+							html.push(rolesBtn.replace(re, i));
+							html.push(remBtn.replace(re, i));
+						}
+						html.push('</div>');
+					}
+					html.push('<div style="margin-top: 4px; margin-bottom: 8px;">');
+					html.push('<textarea id="' + vb.contId + '.ADD" a5-value-from="add" onkeyup="if(event.key == \'Enter\'){this.dispatchEvent(new Event(\'change\',{bubbles: true}));}" class="edit" style="width: 100%; resize: none; box-sizing: border-box;" placeholder="Enter or paste email addresses..."></textarea>');
+					html.push('</div>');
+
+					html.push('<div class="TFFormNote">');
+					html.push('<p>');
+					html.push('You may use standard email formatting in the above input. ');
+					html.push('When entering a member by typing in above input, you must hit the ENTER key to add the member. ');
+					html.push('When pasting, you may enter multiple members with one member on each line. ');
+					html.push('</p>');
+					html.push('<p>');
+					html.push('You can select the roles to give each member by clicking the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-personDocSolid:icon') + '</span> button.');
+					html.push('</p>');
+					html.push('<p>');
+					html.push('Once you have entered the members you wish to add to the account you must press the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-peopleAddSolid:icon') + 'Add Members</span> button to add the members to the account.');
+					html.push('</p>');
+					html.push('</div>');
+					return html.join('');
+
+				}
+			},
+			roles: {
+				_: {},
+				select: function (ele, v, r, c) {
+					if (typeof this._.vb == 'undefined') {
+						this._.t = new A5.Transient({
+							theme: TF.theme,
+							content: {
+								type: 'html',
+								html: ''
+							},
+							layout: 'main',
+							layouts: {
+								'main': {
+									stretch: 'none',
+									location: ['dropdown-left', 'dropdown-right']
+								}
+							}
+						});
+						var tEle = this._.t.getElement('top');
+						tEle.style.zIndex = '1000';
+						var id = this._.t.getElement('content').id;
+						this._.vb = new A5.ViewBox(id, [], {
+							wrapper: {
+								allow: true,
+								html: [
+									'<div a5-layout-target="true" class="TFListSubtle" style="max-height: 200px; min-width: 200px;"></div>',
+									'<div class="windowButtons">',
+									'<div id="TF.MEMBERS.ROLES.MULTIPLE" style="display: flex; flex-direction: row; padding: 4px; padding-bottom: 0px;">',
+									A5.buttons.html('TF.MEMBERS.ROLES.ADD', { theme: TF.theme, html: 'Add', style: 'flex: 1 1 0%;' }, 'a5-item="done:add"'),
+									A5.buttons.html('TF.MEMBERS.ROLES.REMOVE', { theme: TF.theme + ':deny', html: 'Remove', style: 'flex: 1 1 0%;' }, 'a5-item="done:remove"'),
+									'</div>',
+									'<div style="display: flex; flex-direction: row; padding: 4px;">',
+									A5.buttons.html('TF.MEMBERS.ROLES.COMMIT', { theme: TF.theme, html: 'Set Roles', style: 'flex: 1 1 0%;' }, 'a5-item="done:set"'),
+									A5.buttons.html('TF.MEMBERS.ROLES.CANCEL', { theme: TF.theme + ':subtle', html: 'Cancel', style: 'flex: 1 1 0%;' }, 'a5-item="done:cancel"'),
+									'</div>',
+									'</div>'
+								].join('')
+
+							},
+							scroll: { axis: 'y' },
+							multiple: true,
+							selectionMode: 'additive',
+							allowNullDeselection: true,
+							allowTextSelection: false,
+							layout: 'main',
+							layouts: {
+								'main': {
+									type: 'template',
+									template: [
+										'<div id="' + id + '.{[count]}" a5-item="item" a5-value="{value}" class="listItem listItemSubtle" style="display: flex; flex-direction: row;">',
+										'<div style="align-self: center;">',
+										A5.u.icon.html('svgIcon=#alpha-icon-circle:icon TFCheckboxListUnselected'),
+										A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon TFCheckboxListSelected'),
+										'</div>',
+										'<div style="flex: 1 1 auto; align-self: center; padding-left: 4px;">',
+										'{html}',
+										'</div>',
+										'</div>'
+									].join('')
+								}
+							},
+							items: {
+								'item': {
+									selectable: true,
+									selectedClassName: 'listItemSelected'
+								},
+								'done': {
+									selectable: false,
+									onClick: function (v, ia) {
+										if (ia != 'cancel') this.commit(this.value, ia);
+										TF.ui.members.roles._.t.hide();
+									}
+								}
+							}
+						});
+					}
+					this._.vb.populate(r);
+					var s = { multiple: false };
+					if (!Array.isArray(v)) {
+						A5.u.object.assign(s, v);
+						v = [];
+					}
+
+					if (s.multiple) $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'flex';
+					else $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'none';
+
+					this._.vb.setValue(v);
+					this._.t.show(ele);
+					this._.vb.commit = c;
+				}
+			}
+		},
+
+		// dev dock UI
+		dev: {
+			_: { e: {} },
+			init: function (ux) {
+				if (typeof TF.ui.dev._.h == 'undefined') {
+					var p = ux.panelGet('TRANSFORM_DEVELOPER');
+					var ele = $(p.getPanelId('header'));
+					ele.className = 'TFDockPanelHeader';
+
+					TF.ui.dev._.h = new A5.ViewBox(ele.id, {
+						tab: 'preferences',
+						tabs: [
+							{
+								html: 'Settings',
+								value: 'preferences',
+								onShow: function () {
+									ux.panelSetActive('TRANSFORM_DEVELOPER_PREFERENCES');
+									if (!this.dirty) {
+										var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+										p.lock('Loading preferences JSON...');
+										TF.request('get-preferences', { type: 'developer' }).then(function (d) {
+											var v = d.data;
+											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+											TF.ui.dev._.e.p.setValue(v);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								},
+								action: function (t) {
+									var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+									if (t == 'commit') {
+										if (TF.u.code.lang.json.validate(TF.ui.dev._.e.p.value) !== true) {
+											TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+											return false;
+										}
+										p.lock('Saving preferences JSON...');
+										TF.request('set-preferences', { type: 'developer', data: JSON.parse(TF.ui.dev._.e.p.value) }).then(function (d) {
+											TF.ui.dev._.e.p.setDirty(false);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									} else if (t == 'cancel') {
+										p.lock('Loading preferences JSON...');
+										TF.request('get-preferences', { type: 'developer' }).then(function (d) {
+											var v = d.data;
+											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+											TF.ui.dev._.e.p.setValue(v);
+											p.unlock();
+										}).catch(function () {
+											p.unlock();
+										});
+									}
+								}
+							},
+							{
+								html: 'Permissions',
+								value: 'permissions',
+								onShow: function () {
+									ux._currentPermissions = null;
+									ux.panelSetActive('TRANSFORM_DEVELOPER_PERMISSIONS');
+									ux.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
+								},
+								action: function (t) {
+									var pUX = TF.ui.main._.ux;
+									if (t == 'commit') {
+										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "save" });
+									} else if (t == 'cancel') {
+										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
+									}
+								}
+							},
+							{
+								html: 'Dispatch Forms',
+								value: 'dispatch',
+								onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_DISPATCH_FORMS'); },
+							},
+							{
+								title: 'Actions',
+								color: '#fdd5b3',
+								items: [
+									{
+										html: 'Builder', value: 'onsubmit',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS');
+											if (!this.dirty) {
+												var po = ux.getChildObject('actionEditor');
+												if (po) po.getActions();
+											}
+										},
+										action: function (t) {
+											var p = TF.ui.dev.actions._.p;
+											if (t == 'commit') {
+												if (TF.u.code.lang.json.validate(TF.ui.dev.actions._.e.value) !== true) {
+													TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+													return false;
+												}
+												p.lock('Saving actions JSON...');
+												TF.request('set-preferences', { type: 'actions', data: JSON.parse(TF.ui.dev.actions._.e.value) }).then(function (d) {
+													TF.ui.dev.actions._.e.setDirty(false);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											} else if (t == 'cancel') {
+												var po = ux.getChildObject('actionEditor');
+												if (po) po.getActions();
+											}
+
+										}
+									},
+									{ html: 'Event Log', value: 'onsubmitLog', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS_LOG'); } }
+								]
+							},
+							{
+								title: 'Assets',
+								color: '#b0d6fd',
+								items: [
+									{
+										html: 'On Device', value: 'deviceAssets',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_ASSETS');
+											if (!this.dirty) {
+												if (typeof TF.ui.dev.assets.list._.l != 'undefined') TF.ui.dev.assets.list._.l.getAssetsData();
+											}
+										},
+										action: function (t) {
+											if (t == 'commit') {
+												TF.ui.dev.assets.list._.l.setAssetsData();
+											} else if (t == 'cancel') {
+												TF.ui.dev.assets.list._.l.getAssetsData();
+											}
+
+										}
+									},
+									{
+										html: 'Policies & Queues',
+										value: 'policiesAndQueues',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+											if (!this.dirty) {
+												var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+												p.lock('Loading policies & queues JSON...');
+												TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+													var v = d.data;
+													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+													TF.ui.dev._.e.pq.setValue(v);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											}
+										},
+										action: function (t) {
+											var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+											if (t == 'commit') {
+												if (TF.u.code.lang.json.validate(TF.ui.dev._.e.pq.value) !== true) {
+													TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
+													return false;
+												}
+												p.lock('Saving policies & queues JSON...');
+												TF.request('set-preferences', { type: 'device-assets-options', data: JSON.parse(TF.ui.dev._.e.pq.value) }).then(function (d) {
+													TF.ui.dev._.e.pq.setDirty(false);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											} else if (t == 'cancel') {
+												p.lock('Loading policies & queues JSON...');
+												TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
+													var v = d.data;
+													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
+													TF.ui.dev._.e.pq.setValue(v);
+													p.unlock();
+												}).catch(function () {
+													p.unlock();
+												});
+											}
+										}
+									}
+								]
+							},
+							{
+								title: 'Integrations',
+								items: [
+									{ html: 'API Keys', value: 'apiKeys', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_APIKEYS'); } },
+									{
+										html: 'Connected Apps', value: 'connectedApps',
+										onShow: function () {
+											ux.panelSetActive('TRANSFORM_DEVELOPER_APPS');
+											if (!this.dirty) {
+												if (typeof TF.ui.dev.apps.list._.l != 'undefined') TF.ui.dev.apps.list._.l.getConnectedAppsData();
+											}
+										},
+										action: function (t) {
+											if (t == 'commit') {
+												TF.ui.dev.apps.list._.l.setConnectedAppsData();
+											} else if (t == 'cancel') {
+												TF.ui.dev.apps.list._.l.getConnectedAppsData();
+											}
+										}
+									},
+									{ html: 'Zapier', value: 'zapier', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ZAPIER'); } },
+								]
+							}
+						]
+					}, {
+						context: 'configure',
+						setTabDirty: TF.u.docks.tabs.setTabDirty,
+						getTab: TF.u.docks.tabs.getTab,
+						icons: {
+							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
+						},
+						buttons: {
+							edit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
+							commit: A5.buttons.html('', { theme: TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
+							cancel: A5.buttons.html('', { theme: TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
+						},
+						layout: 'main',
+						layouts: {
+							'main': {
+								type: 'static',
+								html: function () {
+									var d = this.data;
+									return TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
+								}
+							}
+						},
+						items: {
+							'tab': TF.u.docks.tabs.items['tab'],
+							'tab-action': TF.u.docks.tabs.items['tab-action']
+						}
+					});
+					p.setDisplay('header', true);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
+					TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.PREFERENCES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					TF.ui.dev._.e.p = new TF.u.code.Editor('TF.DEV.PREFERENCES', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								TF.ui.dev._.h.setTabDirty('preferences', v);
+							}
+						}
+					});
+					ele = $(p.getPanelId('header'));
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The preferences are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=otheraccountsettings" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.PREFERENCES.VALIDATE', { theme: TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
+					html.push(A5.buttons.html('TF.DEV.PREFERENCES.REFORMAT', { theme: TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.PREFERENCES.VALIDATE', 'click', function (e) {
+						var json = TF.ui.dev._.e.p.value;
+						var res = TF.u.code.lang.json.validate(json);
+						if (res !== true) {
+							TF.u.message.show('confirm', 'Error', res.message);
+						}
+					});
+					$e.add('TF.DEV.PREFERENCES.REFORMAT', 'click', function (e) {
+						var json = TF.ui.dev._.e.p.value;
+						json = TF.u.code.lang.json.reformat(json);
+						TF.ui.dev._.e.p.setValue(json);
+					});
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_PERMISSIONS');
+					TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
+					TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.POLICIES_QUEUES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					TF.ui.dev._.e.pq = new TF.u.code.Editor('TF.DEV.POLICIES_QUEUES', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								TF.ui.dev._.h.setTabDirty('policiesAndQueues', v);
+							}
+						}
+					});
+					ele = $(p.getPanelId('header'));
+
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The policies & queues are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=ondevice%20assets%20policy" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.VALIDATE', { theme: TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
+					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.REFORMAT', { theme: TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.POLICIES_QUEUES.VALIDATE', 'click', function (e) {
+						var json = TF.ui.dev._.e.pq.value;
+						var res = TF.u.code.lang.json.validate(json);
+						if (res !== true) {
+							TF.u.message.show('confirm', 'Error', res.message);
+						}
+					});
+					$e.add('TF.DEV.POLICIES_QUEUES.REFORMAT', 'click', function (e) {
+						var json = TF.ui.dev._.e.pq.value;
+						json = TF.u.code.lang.json.reformat(json);
+						TF.ui.dev._.e.pq.setValue(json);
+					});
+
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+				} else {
+					TF.ui.dev._.h.refresh();
+				}
+				TF.ui.dev._.h.getTab().onShow();
+			},
+			assets: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
+					this._.p = p;
+					TF.u.panels.lockable(p);
+					var pId = p.getPanelId();
+					var ele = $(pId);
+					var fEle = document.createElement('div');
+					fEle.id = 'TF.ASSETS.FORM';
+					fEle.style.display = 'none';
+					fEle.style.zIndex = '5';
+					fEle.className = 'TFOverlayForm';
+					fEle.innerHTML = '<div id="TF.ASSETS.FORM.CONTENT" class="TFForm"></div>';
+					ele.appendChild(fEle);
+					this._.f = new A5.FormBox('TF.ASSETS.FORM.CONTENT', TF.forms.deviceAssets, {}, {
+						theme: TF.theme
+					});
+				},
+				getFoldersList: function () {
+					var d = this.list._.l._data;
+					var dtf = null;
+					var res = [];
+					for (var i = 0; i < d.length; i++) {
+						dtf = d[i].targetFolder;
+						if (typeof dtf == 'string' && dtf != '' && res.indexOf(dtf) == -1) res.push(dtf);
+					}
+					res.unshift({ "html": "[Top Level]", "value": "" });
+					return res;
+				},
+				list: {
+					_: {},
+					init: function (ux, l) {
+						var dev = TF.state.ui.editing.json.lists;
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px; padding-bottom: 2px;">');
+						html.push('<div class="TFFormItemLabel">Manifest source</div>');
+						html.push('<div id="TF.ASSETS.SRC"><button class="button" style="visibility: hidden;">Button</button></div>');
+						html.push('<input id="TF.ASSETS.SRC.URL" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Specify the URL of the JSON file..." spellcheck="false" />');
+						html.push('</div>');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push(A5.buttons.html('TF.ASSETS.SELECTALL', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+						html.push(A5.buttons.html('TF.ASSETS.ADD', { theme: TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.EDIT', { theme: TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.REMOVE', { theme: TF.theme + ':deny', html: 'Remove', icon: 'svgIcon=#alpha-icon-x:icon' }));
+						html.push(A5.buttons.html('TF.ASSETS.RESTORE', { theme: TF.theme, html: 'Restore', icon: 'svgIcon=#alpha-icon-docInSolid:icon' }));
+						html.push('</div>');
+						html.push('<div style="width: 4px;"></div>');
+						html.push('<input id="TF.ASSETS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." spellcheck="false" />');
+						html.push('<div style="width: 4px;"></div>');
+						html.push(A5.buttons.html('TF.ASSETS.FILTER.CLEAR', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.ASSETS.SORT', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+						if (dev) html.push(A5.buttons.html('TF.ASSETS.JSON.EDIT', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-dataJSON:icon' }))
+
+
+						html.push('</div>');
+
+						//var ele = $('TF.ASSETS.LISTHEADER');
+						var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
+						var ele = $(p.getPanelId('header'));
+						ele.className = 'TFPanelHeader';
+						ele.innerHTML = html.join('');
+
+						$e.add('TF.ASSETS.SRC.URL', 'change', function (e, l) {
+							var url = $('TF.ASSETS.SRC.URL').value;
+							l.getAssetsFromURL(url);
+							l.setDirty();
+						}, l);
+						$e.add('TF.ASSETS.SRC', 'click', function (e, l) {
+							var v = e.target.value;
+							if (l.source != v) {
+								l.source = v;
+								var iEle = $('TF.ASSETS.SRC.URL');
+								if (v == 'url') {
+									l._localData = [].concat(l._data);
+									l.populate([]);
+									iEle.style.visibility = '';
+									var url = $('TF.ASSETS.SRC.URL').value;
+									if (url != '') l.getAssetsFromURL(url);
+								} else {
+									l.populate(l._localData);
+									iEle.style.visibility = 'hidden';
+								}
+								l.setDirty();
+							}
+						}, l);
+						$e.add('TF.ASSETS.SELECTALL', 'click', function (e, l) {
+							if (l.selection.length != 0) l.setValue(false);
+							else l.setValue({ select: 'all' });
+						}, l);
+
+						$e.add('TF.ASSETS.ADD', 'click', function (e, l) {
+							$('TF.ASSETS.FORM').style.display = '';
+							TF.ui.dev.assets._.f.populate({
+								mode: 'add',
+								asset: {
+									type: 'file',
+									url: '',
+									version: 1,
+									targetFolder: ''
+								}
+							});
+						}, l);
+						$e.add('TF.ASSETS.EDIT', 'click', function (e, l) {
+							$('TF.ASSETS.FORM').style.display = '';
+							var d = l.selectionData[0];
+							TF.ui.dev.assets._.f.populate({
+								mode: 'edit',
+								asset: {
+									type: d.type,
+									url: d.url,
+									version: d.version,
+									targetFolder: (typeof d.targetFolder == 'string' ? d.targetFolder : '')
+								}
+							});
+						}, l);
+						$e.add('TF.ASSETS.REMOVE', 'click', function (e, l) {
+							l.removeAssets(true);
+						}, l);
+						$e.add('TF.ASSETS.RESTORE', 'click', function (e, l) {
+							l.removeAssets(false);
+						}, l);
+						$e.add('TF.ASSETS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.ASSETS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						$e.add('TF.ASSETS.SORT', 'click', function (e, l) { if (l.source == 'local') l.sortMenu.show('dropdown', this); }, l);
+						$e.add('TF.ASSETS.JSON.EDIT', 'click', function (e, l) {
+							if (l.source == 'local') {
+								var ld = l._data;
+								var d = [];
+								var di = null;
+								for (var i = 0; i < ld.length; i++) {
+									di = {};
+									A5.u.object.assign(di, ld[i], true, ['*key', '*renderIndex', '*value', '_']);
+									if (ld[i]._.deleted) di._ = { deleted: true, note: 'This asset has been marked for deletion. You can cancel this by setting the deleted property to false.' };
+									d.push(di);
+								}
+								TF.u.code.editors.json.edit(d, l);
+							}
+						}, l);
+						$e.add('TF.ASSETS.JSON.EDIT', 'mouseenter', function () { TF.u.flyout.show(this, 'Edit JSON...', {}) });
+						$e.add('TF.ASSETS.JSON.EDIT', 'mouseleave', function () { TF.u.flyout.hide() });
+
+
+						p.setDisplay('header', true);
+						l.refreshToolbar();
+
+						l.sortMenu = new A5.Menu([
+							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+							'-',
+							{ html: 'URL Ascending', value: 'url:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'URL Descending', value: 'url:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+							'-',
+							{ html: 'Type Ascending', value: 'type:1', icon: 'svgIcon=#alpha-icon-sortAmountAsc:icon' },
+							{ html: 'Type Descending', value: 'type:-1', icon: 'svgIcon=#alpha-icon-sortAmountDesc:icon' },
+							'-',
+							{ html: 'Version Ascending', value: 'version:1', icon: 'svgIcon=#alpha-icon-sortNumericAsc:icon' },
+							{ html: 'Version Descending', value: 'version:-1', icon: 'svgIcon=#alpha-icon-sortNumericDesc:icon' }
+						], {
+							theme: TF.theme,
+							style: 'white-space: nowrap;',
+							onClick: function (i) {
+								var v = i.value.split(':');
+								var l = TF.ui.dev.assets.list._.l;
+								if (v.length > 1) {
+									var dir = v[1].toNumber();
+									l.setOrder([[v[0], dir]]);
+								} else l.setOrder(false);
+							}
+						});
+
+						this._.l = l;
+					}
+				}
+			},
+			apps: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
+					this._.p = p;
+					TF.u.panels.lockable(p);
+					var pId = p.getPanelId();
+					var ele = $(pId);
+					var fEle = document.createElement('div');
+					fEle.id = 'TF.APPS.FORM';
+					fEle.style.display = 'none';
+					fEle.className = 'TFOverlayForm';
+					fEle.innerHTML = '<div id="TF.APPS.FORM.CONTENT" class="TFForm"></div>';
+					ele.appendChild(fEle);
+					this._.f = new A5.FormBox('TF.APPS.FORM.CONTENT', TF.forms.connectedApps, {}, {
+						theme: TF.theme
+					});
+				},
+				list: {
+					_: {},
+					init: function (ux, l) {
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push('<div style="display: flex; flex-direction: row;">');
+						html.push(A5.buttons.html('TF.APPS.SELECTALL', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
+						html.push(A5.buttons.html('TF.APPS.ADD', { theme: TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.APPS.EDIT', { theme: TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
+						html.push(A5.buttons.html('TF.APPS.REMOVE', { theme: TF.theme + ':deny', html: 'Delete', icon: 'svgIcon=#alpha-icon-x:icon' }));
+
+						html.push('</div>');
+						html.push('<div style="width: 4px;"></div>');
+						html.push('<input id="TF.APPS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+						html.push('<div style="width: 4px;"></div>');
+						html.push(A5.buttons.html('TF.APPS.FILTER.CLEAR', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.APPS.SORT', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
+						html.push('</div>');
+
+						var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
+						var ele = $(p.getPanelId('header'));
+						ele.className = 'TFPanelHeader';
+						ele.innerHTML = html.join('');
+
+						$e.add('TF.APPS.SELECTALL', 'click', function (e, l) {
+							if (l.selection.length != 0) l.setValue(false);
+							else l.setValue({ select: 'all' });
+						}, l);
+						$e.add('TF.APPS.ADD', 'click', function (e, l) {
+							$('TF.APPS.FORM').style.display = '';
+							var f = TF.ui.dev.apps._.f;
+							f.editMode = 'create';
+							f.populate({
+								name: '',
+								type: 'amazon-s3',
+								def: {}
+							});
+						}, l);
+						$e.add('TF.APPS.EDIT', 'click', function (e, l) {
+							$('TF.APPS.FORM').style.display = '';
+							var d = l.selectionData[0];
+							var f = TF.ui.dev.apps._.f;
+							f.editMode = 'edit';
+							f.populate({
+								name: d.name,
+								rename: d.name,
+								type: d.type,
+								def: (d.def ? A5.u.object.clone(d.def) : {})
+							});
+						}, l);
+						$e.add('TF.APPS.REMOVE', 'click', function (e, l) {
+							TF.u.message.show('confirm-cancel', 'Delete Connection', 'Are you sure you want to delete the specified connection?', {
+								action: function (a) {
+									if (a == 'confirm') {
+										TF.ui.dev.apps._.p.lock('Removing connection...');
+										var n = [];
+										var d = TF.ui.dev.apps.list._.l.selectionData;
+										for (var i = 0; i < d.length; i++) {
+											n.push(d[i].name);
+										}
+										TF.request('remove-connections', { names: n }).then(function (d) {
+											TF.ui.dev.apps.list._.l.populate(d, false);
+											TF.ui.dev.apps._.p.unlock();
+										}).catch(function () {
+											TF.ui.dev.apps._.p.unlock();
+										});
+									}
+								}
+							})
+						}, l);
+						$e.add('TF.APPS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.APPS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						$e.add('TF.APPS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
+
+
+						p.setDisplay('header', true);
+						l.refreshToolbar();
+
+						l.sortMenu = new A5.Menu([
+							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
+							'-',
+							{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+							'-',
+							{ html: 'Application Ascending', value: 'application:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
+							{ html: 'Application Descending', value: 'application:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
+						], {
+							theme: TF.theme,
+							style: 'white-space: nowrap;',
+							onClick: function (i) {
+								var v = i.value.split(':');
+								var l = TF.ui.dev.apps.list._.l;
+								if (v.length > 1) {
+									var dir = v[1].toNumber();
+									l.setOrder([[v[0], dir]]);
+								} else l.setOrder(false);
+							}
+						});
+
+						this._.l = l;
+					}
+				}
+			},
+			actions: {
+				_: {},
+				init: function (ux) {
+					var p = ux.panelGet('TRANSFORM_ACTIONS');
+					this._.p = p;
+					TF.u.panels.lockable(p);
+
+					p = ux.panelGet('TRANSFORM_ACTIONS_CODE');
+					TF.u.panels.lockable(p);
+					ele = $(p.getPanelId('body'));
+					ele.innerHTML = '<div id="TF.DEV.ACTIONS"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
+					TF.ui.dev.actions._.e = new TF.u.code.Editor('TF.DEV.ACTIONS', {
+						lang: 'json',
+						className: 'TFCodeEditor',
+						margin: {
+							show: true,
+							className: 'TFCodeEditorMargin'
+
+						},
+						onStateChange: function (t, v) {
+							if (t == 'dirty') {
+								if (TF.ui.dev._.h) TF.ui.dev._.h.setTabDirty('onsubmit', v);
+							}
+						},
+						onChange: function () {
+							clearTimeout(this.pto);
+							this.pto = setTimeout(function () {
+								var json = $('TF.DEV.ACTIONS.CODE').value;
+								var d = null;
+								try {
+									d = JSON.parse(json);
+								} catch (err) {
+									TF.ui.dev.actions.list._.l.jsonError(err);
+									return false;
+								}
+								if (Array.isArray(d)) {
+									TF.ui.dev.actions.list._.l.updateData(d);
+								}
+							}, 400);
+						}
+					});
+					ele = $(p.getPanelId('header'));
+					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
+					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The onsubmit actions are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=json%20syntax%20for%20onsubmit" target="_blank">here</a>.</div>');
+					html.push(A5.buttons.html('TF.DEV.ACTIONS.REFORMAT', { theme: TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
+					html.push('</div>');
+					ele.innerHTML = html.join('');
+					$e.add('TF.DEV.ACTIONS.REFORMAT', 'click', function (e, c) {
+						var json = TF.ui.dev.actions._.e.value;
+						json = TF.u.code.lang.json.reformat(json);
+						TF.ui.dev.actions._.e.setValue(json);
+					}, ux);
+					ele.className = 'TFPanelHeader';
+					p.setDisplay('header', true);
+				},
+				list: {
+					_: {},
+					icons: {
+						condition: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{fill: #2f83a8}')
+					},
+					init: function (ux, l) {
+						this._.l = l;
+						p = ux.panelGet('TRANSFORM_ACTIONS_LIST');
+						TF.u.panels.lockable(p);
+						ele = $(p.getPanelId('header'));
+						var html = [];
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.ADD', { theme: TF.theme, html: 'Add Action', icon: 'svgIcon=#alpha-icon-add:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.REMOVE', { theme: TF.theme + ':deny', className: 'button buttonDeny buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.UP', { theme: TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowUp:icon' }));
+						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.DOWN', { theme: TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowDown:icon' }));
+
+						ele.innerHTML = html.join('');
+						$e.add('TF.DEV.ACTIONS.MOVE.ADD', 'click', function (e, c) {
+							var m = TF.ui.dev.actions.list._.m;
+							if (m._data.length == 0) {
+								var a = c.actions;
+								var items = [];
+								for (var i = 0; i < a.length; i++) items.push({ html: a[i][0], value: i });
+								m.populate(items);
+							}
+							m.show('dropdown', this);
+						}, ux);
+						$e.add('TF.DEV.ACTIONS.MOVE.REMOVE', 'click', function (e) {
+							TF.u.message.show('confirm-cancel', 'Delete Action', 'Are you sure you would like to delete the selected action?', {
+								action: function (a) {
+									if (a == 'confirm') {
+										var json = TF.ui.dev.actions._.e.value;
+										var d = JSON.parse(json);
+										var l = TF.ui.dev.actions.list._.l;
+										var indx = l.selection[0];
+										d.splice(indx, 1);
+										json = JSON.stringify(d, '', '\t');
+										TF.ui.dev.actions._.e.setValue(json);
+										TF.ui.dev.actions._.e.setDirty(true);
+										l.setValue(false);
+									}
+								}
+							});
+						});
+						$e.add('TF.DEV.ACTIONS.MOVE.UP', 'click', function (e) {
+							var json = TF.ui.dev.actions._.e.value;
+							var d = JSON.parse(json);
+							var l = TF.ui.dev.actions.list._.l;
+							var indx = l.selection[0];
+							A5.u.array.move(d, indx, 'up');
+							json = JSON.stringify(d, '', '\t');
+							TF.ui.dev.actions._.e.setValue(json);
+							TF.ui.dev.actions._.e.setDirty(true);
+							l.setValue(indx - 1);
+						});
+						$e.add('TF.DEV.ACTIONS.MOVE.DOWN', 'click', function (e) {
+							var json = TF.ui.dev.actions._.e.value;
+							var d = JSON.parse(json);
+							var l = TF.ui.dev.actions.list._.l;
+							var indx = l.selection[0];
+							A5.u.array.move(d, indx, 'down');
+							json = JSON.stringify(d, '', '\t');
+							TF.ui.dev.actions._.e.setValue(json);
+							TF.ui.dev.actions._.e.setDirty(true);
+							l.setValue(indx + 1);
+						});
+						ele.className = 'TFPanelHeader';
+						p.setDisplay('header', true);
+						this._.m = new A5.Menu([], {
+							theme: TF.theme,
+							style: 'white-space: nowrap;',
+							iconColumn: { show: false },
+							onClick: function (i) {
+								var nd = A5.u.object.clone(ux.actions[i.value][2]);
+								var l = TF.ui.dev.actions.list._.l;
+								var json = TF.ui.dev.actions._.e.value;
+								var d = JSON.parse(json);
+								if (l.selection.length == 1) d.splice(l.selection[0], 0, nd);
+								else d.push(nd);
+								json = JSON.stringify(d, '', '\t');
+								TF.ui.dev.actions._.e.setValue(json);
+								TF.ui.dev.actions._.e.setDirty(true);
+							}
+						})
+					},
+					html: function (d) {
+						var html = [];
+						html.push('<div>');
+						html.push(d.actionName);
+						html.push('</div>');
+
+						if (Array.isArray(d.formIds)) {
+							html.push('<div>');
+							for (var i = 0; i < d.formIds.length; i++) {
+								html.push('<div class="TFListDataBadge">' + d.formIds[i] + '</div>');
+							}
+							html.push('</div>');
+						}
+
+						html.push('<div style="position: absolute; top: 3px; right: 5px; display: flex; flex-direction row; align-items: center; gap: 4px; font: 12px monospace;" onmouseenter="TF.u.flyout.show(this,\'' + (d.condition == 'none' ? 'Action is not conditioned' : 'Action has conditional logic') + '\',{direction: \'horizontal\'});" onmouseleave="TF.u.flyout.hide();">');
+						if (d.condition == 'none') {
+							html.push('<div style="opacity: .15">' + this.icons.condition + '</div>');
+						} else {
+							html.push('<div>' + d.condition.toUpperCase() + '</div>');
+							html.push(this.icons.condition);
+						}
+						html.push('</div>');
+						var ik = Object.keys(d.info);
+						var iki = null;
+						if (ik.length > 0) {
+							html.push('<table>');
+							for (var i = 0; i < ik.length; i++) {
+								iki = ik[i];
+								html.push('<tr>');
+								html.push('<td class="TFFormItemLabel" style="text-align: right; white-space: nowrap;">' + iki + '</td>');
+								html.push('<td>');
+								if (Array.isArray(d.info[iki])) html.push(d.info[iki].join(', '))
+								else html.push(d.info[iki]);
+								html.push('</td>');
+								html.push('</tr>');
+							}
+							html.push('</table>');
+						}
+						return html.join('');
+					}
+				},
+				log: {
+					_: {},
+					init: function (ux, l) {
+						var p = ux.panelGet('TRANSFORM_ACTIONS_LOG');
+						TF.u.panels.lockable(p);
+						ele = $(p.getPanelId('header'));
+						var html = [];
+						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">');
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.REFRESH', { theme: TF.theme, icon: 'svgIcon=#alpha-icon-refresh:icon', html: 'Refresh' }));
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.EXPORT', { theme: TF.theme, icon: 'svgIcon=#alpha-icon-export:icon', html: 'Export' }));
+						html.push('<div class="TFFormItemLabel" style="padding-left: 4px;">Group by</div>');
+						html.push('<div id="TF.ACTIONS.LOG.GROUP"></div>');
+						html.push('<input id="TF.ACTIONS.LOG.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.FILTER.CLEAR', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
+						html.push(A5.buttons.html('TF.ACTIONS.LOG.GROUP.TOGGLE', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-chevronDown:icon' }, 'a5-state="expanded"', 'disabled'));
+						html.push('</div>');
+						ele.innerHTML = html.join('');
+						$e.add('TF.ACTIONS.LOG.REFRESH', 'click', function (e, c) {
+							c.getActionsLogData();
+						}, ux);
+						$e.add('TF.ACTIONS.LOG.EXPORT', 'click', function (e, c) {
+							var obj = {
+								data: 'listData',
+								exportType: 'excel',
+								action: 'download',
+								clientsidefilename: 'log',
+								maxRecords: -1,
+								decryptfields: false,
+								onlyexportvisibilecolumns: false
+							};
+							c.exportListData('log', obj);
+						}, ux);
+
+						$e.add('TF.ACTIONS.LOG.GROUP.TOGGLE', 'click', function (e) {
+							var l = TF.ui.dev.actions.log._.l;
+							if (this.getAttribute('a5-state') == 'collapsed') {
+								l.setGroupCollapse(['all'], false);
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
+								this.setAttribute('a5-state', 'expanded');
+							} else {
+								l.setGroupCollapse(['all'], true);
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = 'rotate(-90deg)';
+								this.setAttribute('a5-state', 'collapsed');
+							}
+						});
+						$e.add('TF.ACTIONS.LOG.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
+						$e.add('TF.ACTIONS.LOG.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
+						this._.gb = new A5.ButtonList('TF.ACTIONS.LOG.GROUP', [
+							{ html: 'None', value: 'none' },
+							{ html: 'Action', value: 'action' },
+							{ html: 'Errors', value: 'errors' },
+							{ html: 'Form Type', value: 'form' },
+							{ html: 'Form Instance', value: 'instance' },
+							{ html: 'Date', value: 'date' },
+						], {
+							theme: TF.theme,
+							onClick: function () {
+								var v = this.value[0];
+								var l = TF.ui.dev.actions.log._.l;
+								var gb = false;
+								var bEle = $('TF.ACTIONS.LOG.GROUP.TOGGLE');
+
+								if (v == 'action') gb = { order: { actionName: 1 }, group: function (d) { return d.actionName; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Action:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'errors') gb = { order: { flagError: -1 }, group: function (d) { return '' + d.flagError; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;">' + (g == 'true' ? 'Errors' : 'Successful') + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'form') gb = { order: { formId: 1 }, group: function (d) { return d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Type:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'instance') gb = { order: { formInstanceId: 1 }, group: function (d) { return d.formInstanceId + ' of ' + d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Instance:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
+								else if (v == 'date') {
+									gb = {
+										order: { dateTime: -1 },
+										group: function (d) {
+											var dt = d.dateTime;
+											dt = dt.substr(0, 10);
+											return dt;
+										},
+										header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>On:</i> ' + g + '</div><div>{indicator}</div></div>'; } }
+									};
+								}
+								if (gb) {
+									l.layouts['Default'].group.auto = null;
+									gb.className = 'TFListGroup';
+									l.group.auto = [gb];
+									bEle.disabled = false;
+									A5.u.element.cls(bEle, '-=buttonDisabled');
+								} else {
+									l.group.auto = false;
+									bEle.disabled = true;
+									A5.u.element.cls(bEle, '+=buttonDisabled');
+								}
+
+								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
+								bEle.setAttribute('a5-state', 'expanded');
+								l.groupBy = v;
+								l.refresh();
+							}
+						});
+						this._.gb.setValue('none');
+						ele.className = 'TFPanelHeader';
+						p.setDisplay('header', true);
+
+						l.group.collapse.allow = 'title';
+						l.group.collapse.auto = false;
+						l.group.collapse.indicator.collapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
+						l.group.collapse.indicator.expand = A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon');
+						this._.l = l;
+					}
+				}
+			}
+		},
+
+		// home page UI
+		home: {
+			_: {},
+			init: function (vb, ux) {
+				var p = ux.panelGet('TRANSFORM_HOME');
+				TF.u.panels.lockable(p);
+				TF.ui.home._.vb = vb;
+				vb.getStructure();
+			},
+			html: function (vb, uxId) {
+				var html = [];
+				var sl = TF.state.login;
+				var bEle = $('TF.HOME.BLOCK');
+				if (sl.state != 'logged-in') {
+					bEle.setAttribute('login-state', (TF.state.login.state == 'logged-out' ? 'Login required...' : 'Login confirmation required...'));
+					bEle.style.display = '';
+				} else bEle.style.display = 'none';
+
+				var fd = vb.data.forms.types;
+				var dd = vb.data.dashboards.types;
+				var allow = TF.state.login.account.member.ui.allow;
+				var di = null;
+				var idp = vb.contId + '.';
+				// icons
+				var iconForm = A5.u.icon.html('svgIcon=#alpha-icon-doc:icon {width: 52px; height: 52px;}');
+				var iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon {width: 52px; height: 52px;}');
+				var iconFill = A5.u.icon.html('svgIcon=#alpha-icon-docEdit:icon');
+				var iconData = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
+				var iconFormStatus = A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon iconButton');
+				var iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon iconButton');
+				var iconX = A5.u.icon.html('svgIcon=#alpha-icon-xCircle:icon iconButton');
+				var iconGoto = A5.u.icon.html('svgIcon=#alpha-icon-chevronDblRight:icon');
+				var iconCollapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
+				var iconAdd = A5.u.icon.html('svgIcon=#alpha-icon-add:icon {width: 52px; height: 52px;}');
+
+				// flyout events
+				var getUX = uxId + '_DlgObj.getControl(\'' + vb.variableName + '\')';
+				var foEvnts = 'onmouseenter="' + getUX + '.showFlyout(this);" onmouseleave="' + getUX + '.hideFlyout();"';
+
+
+				// filter
+				var filter = function () { return true; };
+				if (!vb.filter) {
+					vb.filter = { text: '', state: 0 };
+					var iconFilter = A5.u.icon.html('svgIcon=#alpha-icon-x:icon iconButton', 'id="TF.HOME.FILTER.QSICON" a5-item="clearQuickSearch" flyout-type="tip:Clear quick search..." ' + foEvnts);
+					var iconCalendar = A5.u.icon.html('svgIcon=#alpha-icon-calendar:icon iconButton');
+
+					html.push('<div style="display: flex; align-items: center;">');
+					html.push('<div style="flex: 1 1 auto;">');
+					html.push('<input id="TF.HOME.FILTER.QS" placeholder="Quick search..." class="TFEdit edit" onkeyup="var vb = ' + getUX + '.quickSearch(this.value);" /> ');
+					html.push(iconFilter);
+					html.push('</div>');
+					html.push('<div>');
+					html.push(A5.buttons.html('TF.HOME.REFRESH', { theme: TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-refresh:icon' }, 'a5-item="refresh" flyout-type="tip:Refresh account data..." ' + foEvnts));
+					html.push('</div>');
+					html.push('</div>');
+					//html.push(iconCalendar);
+					$('TF.HOME.FILTER').innerHTML = html.join('');
+					html = [];
+
+					$e.add('TF.HOME.ALLTILES', 'scroll', function (e, c) {
+						var cs = A5.u.element.getScroll(this);
+						var ps = c._ps || 0;
+						if (ps == 0 && cs.top != 0) {
+							A5.u.element.cls(this.parentNode, '+=TFTilesBodyScrolled');
+						} else if (cs.top == 0 && ps != 0) {
+							A5.u.element.cls(this.parentNode, '-=TFTilesBodyScrolled');
+						}
+						c._ps = cs.top;
+					}, vb);
+				} else {
+					if (vb.filter.text != '') {
+						filter = function (t, i) {
+							if (i.name.toLowerCase().indexOf(vb.filter.text) == -1) return false;
+							return true;
+						}.bind(this);
+						//if(vb.filter.state != 1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filterOff:icon iconButton');
+						vb.filter.state = 1;
+					} else {
+						//if(vb.filter.state != -1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filter:icon iconButton');
+						vb.filter.state = -1;
+					}
+				}
+
+				// header
+				var mrat = '<span class="TFTilesFormInstCallout">form submit</span>';
+				var mra = 0;
+				var dt = null;
+				for (var i = 0; i < fd.length; i++) {
+					dt = new Date(fd[i].times.instance);
+					if (dt > mra) mra = dt;
+				}
+
+				html.push('<div class="TFTilesMainHeaderWelcome">Hello, ' + sl.user.name + '. Welcome to TransForm Central.</div>');
+				html.push('<div>');
+				html.push('You have <span class="TFTilesFormCallout">' + (fd.length == 0 ? 'No' : fd.length) + ' Form Type' + (fd.length != 1 ? 's' : '') + '</span>');
+				if (allow.dashboard) html.push(' and <span class="TFTilesDashboardCallout">' + (dd.length == 0 ? 'No' : dd.length) + ' Dashboard' + (dd.length != 1 ? 's' : '') + '</span>');
+				html.push('.');
+				if (Number(mra) > 0) html.push(' Last activity was a ' + mrat + ' on <span style="font-weight: bold;">' + (mra.same('year', new Date()) ? mra.toFormat('Month x') : mra.toFormat('Month x yyyy')) + '</span> at <span style="font-weight: bold;">' + mra.toFormat('0h:0m') + '</span>.');
+
+				// back to old
+				html.push('<div style="position: absolute; top: 10px; right: 10px; font-size: 12px;">');
+				html.push('<a href="#" onclick="localStorage.removeItem(\'A5.transform\'); if(event.ctrlKey || event.shiftKey) window.open(\'transFormCentralNew_FAST.a5w\'); else location.href = \'transFormCentralNew_FAST.a5w\';" oncontextmenu="$e.stopEvent(event);" class="link" flyout-type="tip:Revert to old TransForm Central..." ' + foEvnts + '>Revert</a>');
+				html.push('</div>');
+				html.push('</div>');
+
+				$('TF.HOME.HEADING').innerHTML = html.join('');
+				html = [];
+
+				// start form tiles
+				var canFill = TF.state.login.account.member.ui.allow.filler.web;
+				html.push('<div class="TFTileGroup"><div id="' + idp + 'FORMS" a5-item="groupToggle:forms" class="TFTileGroupTitle">Forms<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (TF.state.ui.home.forms.collapsed ? ' style="display: none;"' : '') + '><div>');
+				for (var i = 0; i < fd.length; i++) {
+					di = fd[i];
+					if (filter('form', di)) {
+						html.push('<div id="' + idp + 'FORM.' + i + '" class="TFTileFlip">');
+						html.push('<div class="TFTile TFTileForm TFTileFront">');
+						html.push('<div class="TFTileMain">');
+						html.push('<div><div class="TFTileIcon">' + (di.icon != '' ? di.icon : iconForm) + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px;"><span id="' + idp + 'FORM.' + i + '.TITLE" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div>');
+						html.push('<div class="TFTileToolbarTR">');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" flyout-type="form:status" flyout-tile="' + i + '" ' + foEvnts + ' a5-item="formStatus:' + i + '">' + iconFormStatus + '</div>');
+						html.push('</div>');
+						html.push('<div id="' + idp + 'FORM.' + i + '.DESIGN" class="TFTileToolbarBR" flyout-type="form:design" flyout-tile="' + i + '" ' + foEvnts + '>');
+						if (allow.design) html.push('<div id="' + idp + 'FORMS.' + i + '.DESIGN" a5-item="formDesign:' + di.id + '">' + iconFormDesign + '</div>');
+						html.push('</div>');
+						if (di.color) html.push('<div class="TFTileFormColor"><div style="background: ' + di.color + ';"></div></div>');
+						html.push('</div>');
+
+						if (di.allow.manage) html.push('<div id="' + idp + 'FORMS.' + i + '.VIEW" a5-item="formView:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">View Instances</div><div id="' + idp + 'FORMS.' + i + '.COUNT" class="TFTileBadge">' + (di.count > 99 ? '99+' : di.count) + '</div></div>');
+						if (canFill && di.allow.fill) html.push('<div id="' + idp + 'FORMS.' + i + '.FILL" a5-item="formFill:' + di.id + '" class="TFTileButton TFTileFormCreate">' + iconFill + '<div class="TFTileButtonText">Fill New Instance</div></div>');
+						html.push('</div>');
+						html.push('<div class="TFTileBack">');
+						html.push('<div class="TFTileFormBack">');
+						html.push('<div>');
+						html.push('<div class="TFTileToolbarTR">');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" a5-item="formStatus:' + i + '">' + iconX + '</div>');
+						html.push('</div>');
+						html.push('<div a5-item="formStatus:' + i + '" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px; text-align: center;"><span id="' + idp + 'FORM.' + i + '.TITLE.BACK" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div>');
+						html.push('</div>');
+						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS.LIST" style="display: flex; flex-direction: column; min-height: 100%; flex: 1 1 auto;"></div>');
+						html.push('</div>');
+						html.push('</div>');
+						html.push('</div>');
+					}
+				}
+				if (allow.design) {
+					html.push('<div id="' + idp + 'FORMS.CREATE" a5-item="formCreate" class="TFTileAdd TFTileForm"><div>' + iconAdd + '</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Form<br/>Type</div></div>');
+				}
+
+				html.push('</div></div></div>');
+				// end form tiles
+
+				// start dashboard tiles
+				if (A5.u.typeOf(dd) == 'array' && allow.dashboard) {
+					html.push('<div class="TFTileGroup"><div id="' + idp + 'DASHBORADS" a5-item="groupToggle:dashboards" class="TFTileGroupTitle">Dashboards<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (TF.state.ui.home.dashboards.collapsed ? ' style="display: none;"' : '') + '><div>');
+					for (var i = 0; i < dd.length; i++) {
+						di = dd[i];
+						if (filter('dashboard', di)) {
+							html.push('<div class="TFTile TFTileDash">');
+							html.push('<div class="TFTileMain"><div><div class="TFTileIcon">' + iconDashboard + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 20px;"><span id="' + idp + 'DASH.' + i + '.TITLE" flyout-type="dashboard:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div></div>');
+							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.VIEW" a5-item="dashboardView:' + di.id + '" class="TFTileButton TFTileDashGoto">' + iconGoto + '<div class="TFTileButtonText">Goto Dashboard</div></div>');
+							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.MANAGE" a5-item="dashboardManage:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">Linked Data</div></div>');
+							html.push('</div>');
+						}
+					}
+					//html.push('<div id="'+idp+'DASHBORADS.CREATE" a5-item="dashboardCreate" class="TFTileAdd TFTileDash"><div>'+iconAdd+'</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Dashboard</div></div>');
+					html.push('</div></div></div>');
+				}
+				// end dashboard tiles
+
+				// output HTML
+				html = html.join('');
+				return html;
+			},
+			forms: {
+				info: {
+					html: function (d) {
+						var info = d.info;
+						var html = [];
+						html.push('<div style="flex: 1 1 auto;">');
+						if (info.errors.count > 0) {
+							html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.count + '</div> Errors<br/>');
+							if (info.errors.missingRequired > 0) html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.missingRequired + '</div> Missing required values<br/>');
+						}
+						var sl = TF.state.login.account.permissions.statusesList;
+						var sli = null;
+						for (var i = 0; i < sl.length; i++) {
+							sli = sl[i];
+							if (typeof info.status[sli.statusID] == 'number' && info.status[sli.statusID] > 0) {
+								html.push('<div class="TFTileBadge TFTileBadgeStatus">' + (info.status[sli.statusID] > 99 ? '99+' : info.status[sli.statusID]) + '</div> ' + sli.display + '<br/>');
+							}
+						}
+						if (html.length == 0) html.push('<div>No statuses</div>');
+						html.push('</div>');
+						html.push('<div class="TFTileActivity"><div>Last activity:</div><div>' + info.times.instance + '</div></div>');
+						return html.join('');
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+
+;// ./src/util/declares.ts
+
+const _A5 = A5;
+const declares_TF = TF;
+const _$ = $;
+const _openNewPanel = openNewPanel;
+const _jQuery = jQuery;
+const _$u = (/* unused pure expression or super */ null && ($u));
+const _$e = $e;
+
+;// ./src/forms/ReactiveFormManager.ts
+
+class ReactiveForm {
+    constructor() {
+        this.symbol = Symbol();
+    }
+}
+class ReactiveFormManager {
+    constructor(root, containerId, obj, injectInto) {
+        this.inject = j => j;
+        this.root = root;
+        this.fragments = new Map();
+        this.containerId = containerId;
+        this.afterRender = [];
+        this.formDataUpdateRequests = {};
+        this.context = new Map();
+        this.obj = obj;
+        this.changed = false;
+        this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
+        if (injectInto)
+            this.inject = injectInto;
+        this.render(this.root);
+    }
+    static constructFormBox(cId) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const fb = new _A5.FormBox(cId, [], null, {
+            theme: 'Alpha',
+            item: {
+                label: { style: '' },
+                description: { style: '' }
+            },
+            onChange: () => { }
+        });
+        _A5.formBox.guides.controls['html'].handle = null;
+        return fb;
+    }
+    addRefreshCallback(callback) {
+        this.afterRender.push(callback);
+        return callback;
+    }
+    removeRefreshCallback(callback) {
+        this.afterRender = this.afterRender.filter(x => x != callback);
+    }
+    setContext(form, name, context) {
+        const existing = this.context.get(name);
+        if (existing !== undefined && existing.setBy == form.symbol) {
+            existing.context = context;
+        }
+        else {
+            this.context.set(name, { setBy: form.symbol, context });
+        }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+    getContext(name) {
+        return this.context.get(name)?.context;
+    }
+    setFormData(name, value) {
+        this.formDataUpdateRequests[name] = value;
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        if (this.formBox.data)
+            this.formBox.data[name] = value?.toString() ?? '';
+    }
+    getFormData(name) {
+        if (this.formBox.data)
+            return this.formBox.data[name];
+        return undefined;
+    }
+    render(form) {
+        const _render = (form) => {
+            const jsonForm = form.render(this);
+            if (!jsonForm)
+                return undefined;
+            const raw = resolve(jsonForm);
+            const fragment = this.fragments.get(form.symbol);
+            if (fragment) {
+                // We NEED fragment to point to the same obj in memory (i.e. can't just reassign to an empty object).
+                for (const key in fragment) {
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    if (Object.prototype.hasOwnProperty.call(fragment, key))
+                        delete fragment[key];
+                }
+                Object.assign(fragment, raw);
+            }
+            else {
+                this.fragments.set(form.symbol, raw);
+            }
+            return this.fragments.get(form.symbol);
+        };
+        const resolve = (j) => {
+            if (j.type == 'group') {
+                return {
+                    type: 'group',
+                    container: j.container,
+                    items: j.items.map(x => {
+                        if (x === undefined)
+                            return undefined;
+                        if (x instanceof ReactiveForm)
+                            return _render(x);
+                        return resolve(x);
+                    })
+                };
+            }
+            else if (j.type == 'html')
+                return j;
+            else
+                return j;
+        };
+        _render(form);
+        this.refresh();
+    }
+    rebuildFormBox() {
+        if (this.formBox.ctrls?.picker) {
+            this.formBox.ctrls.picker.destroy();
+        }
+        const activePickers = _A5.transients._.tci;
+        for (const key in activePickers) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            if (activePickers[key] == null)
+                delete activePickers[key];
+        }
+        _A5.transients._.t = _A5.transients._.t.filter(x => x in activePickers);
+        const container = _$(this.formBox.contId);
+        if (container) {
+            ReactiveFormManager.removeOldEventHandlers(container);
+            this.formBox.destroy();
+            this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
+        }
+    }
+    refresh() {
+        // Alpha pickers (dropdowns, date pickers, etc) do not immediately update upon selection. 
+        // Instead, they set a timeout and refresh after that. 
+        // If we rebuild the form immediately, then the definition will be replaced, *then* the old callback for the (deleted) picker 
+        // will be called, resulting in an error.
+        setTimeout(() => {
+            const frag = this.fragments.get(this.root.symbol);
+            if (!frag)
+                return;
+            const form = this.inject(frag);
+            this.hookIntoChangeEvents(form);
+            const oldFormData = Object.assign(this.formBox.data ?? {}, this.formDataUpdateRequests);
+            this.formDataUpdateRequests = {};
+            this.rebuildFormBox();
+            const oldRefresh = this.formBox.refresh.bind(this.formBox);
+            this.formBox.refresh = () => {
+                oldRefresh();
+                this.afterRender.forEach(f => { f(); });
+            };
+            this.formBox.load({ form: { items: [form] }, guides: ReactiveFormManager.guides }, oldFormData);
+        }, 1);
+    }
+    hookIntoChangeEvents(f) {
+        if (f.type == 'group')
+            f.items.forEach(i => { if (i)
+                this.hookIntoChangeEvents(i); });
+        else if (f.type == 'edit' || f.type == 'edit-picker' || f.type == 'checkbox' || f.type == 'picker') {
+            const oldChange = f.control?.onChange;
+            if (f.control === undefined)
+                f.control = { onChange: () => { } };
+            f.control.onChange = (d) => {
+                if (!this.changed) {
+                    this.changed = true;
+                    this.formBox.refresh();
+                }
+                if (oldChange)
+                    oldChange(d);
+            };
+        }
+    }
+    static removeOldEventHandlers(elem) {
+        // Alpha hooks its own event handlers into objects. 
+        // They are not all removed when the old form is destroyed. 
+        // If the old handlers are not removed, then (e.g.) clicking a button will 
+        // call the current onClick along with every single previous existing version of 
+        // that onclick function (which is not, I imagine, what you want to do.)
+        // Alpha also doesn't seem to have a way to remove all the event handlers. 
+        // We have to do them individually, and we need a handle to the function being called..
+        /*eslint-disable*/
+        const allEvents = _$e._e;
+        const toRemove = [];
+        allEvents.forEach(e => {
+            if (e[0] == elem) {
+                toRemove.push({ event: e[1], fn: e[2] });
+            }
+        });
+        toRemove.forEach(r => _$e.remove(elem, r.event, r.fn));
+        for (let i = 0; i < elem.childElementCount; i++) {
+            this.removeOldEventHandlers(elem.children[i]);
+        }
+        /*eslint-enable*/
+    }
+    isDirty() {
+        return this.changed;
+    }
+    setDirty(dirty) {
+        this.changed = dirty;
+    }
+    serialize() {
+        return this.root.serialize(this.formBox.data ?? {}).map(v => changeDetectionToRaw(v));
+    }
+    serializeWithChanges() {
+        return this.root.serialize(this.formBox.data ?? {});
+    }
+}
+ReactiveFormManager.guides = {
+    "layouts": {
+        "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
+        /*eslint-disable*/
+        "label-float-above": { draw: function (dObj) { const l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
+                return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
+            else
+                return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                    e = e[0].children[0].children[0];
+                    if (e && e.getAttribute('float-state') == '1') {
+                        var l = dObj.item.def.sys.item.layout.settings;
+                        e.setAttribute('float-state', '2');
+                        if (dObj.item.isNull) {
+                            if (l.style != '')
+                                _A5.u.element.style(e, '+=' + l.style);
+                            _A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
+                        }
+                    }
+                } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
+                    e = e[0].children[0].children[0];
+                    if (e && e.getAttribute('float-state') == '2') {
+                        var l = dObj.item.def.sys.item.layout.settings;
+                        e.setAttribute('float-state', '1');
+                        if (dObj.item.isNull) {
+                            if (l.style != '')
+                                _A5.u.element.style(e, '-=' + l.style);
+                            _A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
+                        }
+                    }
+                } } } },
+        /*eslint-enable*/
+    }
+};
+function changeDetectionToRaw(c) {
+    if ('raw' in c)
+        return c.raw;
+    else if ('keys' in c) {
+        const out = {};
+        for (const key in c.keys) {
+            out[key] = changeDetectionToRaw(c.keys[key]);
+        }
+        return out;
+    }
+    else {
+        return c.elements.map(x => changeDetectionToRaw(x));
+    }
+}
+
+;// ./src/list/listAction.ts
+
+
+
+
+
+function executeListAction(list, action, rowData, row) {
+    const flatIndex = row !== undefined ? list.listBox.getIndex(row)[0].index : undefined;
+    if (action.actionName == 'openDetailView') {
+        list.newDetailViewRecord(flatIndex !== undefined ? { tag: 'editExistingRecord', record: flatIndex } : { tag: 'newRecord' });
+    }
+    else if (action.actionName == 'openLinkedList') {
+        const tabTemplate = _A5.u.template.parse(action.tabName);
+        const templateData = {
+            list: list,
+            row: rowData
+        };
+        const filled = _A5.u.template.expand(templateData, { template: tabTemplate });
+        const filters = action.linkedColumns.map(linked => {
+            const template = _A5.u.template.parse(linked.value);
+            const data = { list: list, row: rowData };
+            const filled = _A5.u.template.expand(data, { template });
+            return {
+                columnName: [{ tag: 'object', key: linked.foreignCol }],
+                columnVal: { tag: 'value', value: filled },
+                connector: 'AND',
+                op: '=',
+            };
+        });
+        list.linkNewPanel(action.configurationName, filled, filters);
+    }
+    else if (action.actionName == 'openJSONSublist') {
+        if (row === undefined)
+            return;
+        const tabTemplate = _A5.u.template.parse(action.tabName);
+        const templateData = {
+            list: list,
+            row: rowData
+        };
+        const filled = _A5.u.template.expand(templateData, { template: tabTemplate });
+        const name = list.dataModel.getUniqueName(action.fromColumn);
+        if (!name)
+            return;
+        const path = list.dataController.getFlatRow(row)[name].path;
+        list.linkSublistToField(action.configurationName, filled, flatIndex ?? 0, path);
+    }
+}
+class ListActionEditor extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.data = data ?? { actionName: 'openDetailView' };
+    }
+    buildForm(m) {
+        if (this.data === undefined)
+            this.data = { actionName: 'openDetailView' };
+        let defaultSelected;
+        switch (this.data.actionName) {
+            case "openDetailView":
+                defaultSelected = 'Open Detail View';
+                break;
+            case "openLinkedList":
+                defaultSelected = 'Open Linked List';
+                break;
+            case "openJSONSublist":
+                defaultSelected = 'Open JSON Sub-list';
+                break;
+        }
+        this.form = new MultiForm({
+            options: ['Open Detail View', 'Open Linked List', 'Open JSON Sub-list'],
+            defaultOption: defaultSelected,
+            chooseForm: selected => {
+                if (selected == 'Open Detail View') {
+                    if (!this.data)
+                        this.data = { actionName: 'openDetailView' };
+                    const d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
+                    return new ObjectForm(d, {
+                        "actionName": () => new ConstForm("openDetailView")
+                    });
+                }
+                if (selected == 'Open JSON Sub-list')
+                    return this.jsonSublistForm(m, this.data);
+                return this.linkedListForm(m, this.data);
+            },
+            allowCollapse: false
+        });
+    }
+    jsonSublistForm(m, initialData) {
+        const ctx = m.getContext(ConfigContext.id);
+        if (!ctx)
+            throw new Error();
+        // eslint-disable-next-line @typescript-eslint/require-await
+        return new AsyncForm(async () => {
+            const data = (initialData && initialData.actionName == 'openJSONSublist')
+                ? initialData
+                : {
+                    actionName: 'openJSONSublist',
+                    configurationName: '',
+                    tabName: '',
+                    fromColumn: []
+                };
+            return new ObjectForm(data, {
+                "actionName": () => new ConstForm("openJSONSublist"),
+                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
+                "tabName": (data, i) => new ItemLabel(i, {
+                    label: "Tab Name",
+                    item: new TemplateHelper(data)
+                }),
+                "fromColumn": (data, i) => new ItemLabel(i, {
+                    label: "From Column",
+                    item: new ColumnSelector(data ?? [], dm => dm.allPaths(), false),
+                })
+            });
+        }, initialData);
+    }
+    linkedListForm(m, initialData) {
+        const ctx = m.getContext(ConfigContext.id);
+        if (!ctx)
+            throw new Error();
+        return new AsyncForm(
+        // eslint-disable-next-line @typescript-eslint/require-await
+        async () => {
+            const data = (initialData && initialData.actionName == 'openLinkedList') ? initialData : {
+                actionName: 'openLinkedList',
+                configurationName: '',
+                tabName: '',
+                linkedColumns: [],
+                makeFilter: true
+            };
+            return new ObjectForm(data, {
+                "actionName": () => new ConstForm("openLinkedList"),
+                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
+                "tabName": (data, i) => new ItemLabel(i, {
+                    label: "Tab Name",
+                    item: new TemplateHelper(data)
+                }),
+                "linkedColumns": (columns, i) => new ItemLabel(i, {
+                    label: "Filters",
+                    collapsed: true,
+                    enclosed: true,
+                    item: new ArrayForm(columns, (item, i) => new ItemLabel(i, {
+                        label: 'Filter',
+                        enclosed: true,
+                        collapsed: true,
+                        showDelete: true,
+                        item: new ObjectForm(item, {
+                            'foreignCol': (c, i) => new StringInput(i, "Foreign Column", c),
+                            'value': (c, i) => new ItemLabel(i, {
+                                label: 'Value',
+                                item: new TemplateHelper(c)
+                            })
+                        })
+                    }), () => ({ foreignCol: '', value: '' }))
+                }),
+            });
+        }, initialData);
+    }
+    render(m) {
+        if (this.form === undefined) {
+            this.buildForm(m);
+        }
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        if (!this.form) {
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        }
+        else
+            return this.form.serialize(formData);
+    }
+}
+
+;// ./src/list-configuration/ConfigForm.ts
+
+
+
+
+
+
+
+class ConfigContext {
+    constructor(viewEntireConfig, config, obj, model, nameSuggestor, list) {
+        this.viewEntireConfig = viewEntireConfig;
+        this.nameSuggestor = nameSuggestor;
+        this.config = config;
+        this.obj = obj;
+        this.dataModel = model;
+        this.list = list;
+    }
+}
+ConfigContext.id = "ConfigContext";
+class ConfigForm extends ReactiveForm {
+    constructor(config, showEntireConfig, obj, model, suggestor, list) {
+        super();
+        this.showEntireConfig = showEntireConfig;
+        this.obj = obj;
+        this.config = config;
+        this.dataModel = model;
+        this.nameSuggestor = suggestor;
+        this.list = list;
+        let subForm;
+        if (this.showEntireConfig) {
+            subForm = new ObjectForm(config, {
+                "name": data => new ConstForm(data),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', initialData: data }) }),
+                "dataSource": (dataSource, i) => new ItemLabel(i, {
+                    label: "Data Source",
+                    enclosed: true,
+                    collapsed: true,
+                    launchInTab: "tabs",
+                    item: new ConfigDataSource(dataSource)
+                }),
+                "mappings": (mappings, i) => new ItemLabel(i, {
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    label: "Mappings",
+                    item: new MappingsForm(mappings)
+                }),
+                "dataModel": (dm, i) => new ItemLabel(i, {
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    label: "Data Model",
+                    item: new DataModelForm(dm ?? model.model)
+                }),
+                "searchOptions": (ops, i) => new ItemLabel(i, {
+                    label: "Search Options",
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    item: new SearchOptionsForm(ops),
+                }),
+                "rowOptions": (data, i) => new ItemLabel(i, {
+                    enclosed: true,
+                    collapsed: true,
+                    label: 'Row Options',
+                    item: new ObjectForm(data ?? {}, {
+                        'multiSelect': (d, i) => new LabelBool('Multi-Select', d),
+                        'moveRows': (d, i) => new LabelBool('Move Rows', d)
+                    })
+                }),
+                "buttons": (data, i) => new ItemLabel(i, {
+                    label: "List Buttons",
+                    collapsed: true,
+                    enclosed: true,
+                    launchInTab: "tabs",
+                    item: new ListButtonsForm(data)
+                })
+            });
+        }
+        else {
+            subForm = new MappingsForm(config.mappings);
+        }
+        this.form = new TabForm("List Configuration", subForm, "tabs");
+    }
+    setDataModel(m) {
+        this.dataModel = m;
+        if (this.manager)
+            this.manager.render(this);
+    }
+    render(m) {
+        this.manager = m;
+        m.setContext(this, ConfigContext.id, new ConfigContext(this.showEntireConfig, this.config, this.obj, this.dataModel, this.nameSuggestor, this.list));
+        return {
+            type: 'group',
+            id: 'dynamic-form-config-form',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData).map(s => {
+            if ('keys' in s)
+                s.keys['version'] = { changed: false, raw: this.config.version };
+            return s;
+        });
+    }
+}
+class MappingsForm extends ReactiveForm {
+    constructor(mappings) {
+        super();
+        this.mappings = mappings;
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        // Data model hasn't been specified yet.
+        if (Object.keys(ctx.dataModel.model.keys).length == 0) {
+            return {
+                type: 'html',
+                control: {
+                    html: `
+                        <h2>No data model specified!</h2>
+                        <p>You can't specify mappings until you set up the data model. 
+                            Please go to the Data Model tab to define your data. </p>
+                    `
+                },
+                layout: '{content}',
+            };
+        }
+        if (this.form === undefined) {
+            this.form = new ArrayForm(this.mappings, (mapping, i) => {
+                const observer = new Observer();
+                const jsonTypeObserver = new Observer();
+                let collapsed = true;
+                return new ObserverForm(observer, mapping.fullPath, path => {
+                    const mapping = ctx.config.mappings.find(x => pathsEq(x.fullPath, path))
+                        ?? { fullPath: path };
+                    const dataModelObj = ctx.dataModel.find(path) ?? { tag: 'unknown' };
+                    return new ItemLabel(i, {
+                        label: DataModel.printPath(path),
+                        collapsed,
+                        onCollapse: c => collapsed = c,
+                        enclosed: true,
+                        showDelete: true,
+                        showMove: true,
+                        item: new ObjectForm(mapping, {
+                            "fullPath": (data, i) => new ItemLabel(i, {
+                                label: "Column",
+                                item: new ColumnSelector(data, dm => dm.allPaths(), false, newPath => observer.notify(newPath)),
+                            }),
+                            "displayName": (data, i) => new StringInput(i, "Display Name", data, true),
+                            "inList": data => new LabelBool("In List", data),
+                            "inDetailView": data => new LabelBool("In Detail View", data),
+                            "readOnly": ctx.viewEntireConfig
+                                ? data => new LabelBool("Read Only", data)
+                                : data => new ConstForm(data),
+                            "dateSettings": dataModelObj.tag == 'data' && dataModelObj.type == 'datetime'
+                                ? (d, i) => new ItemLabel(i, {
+                                    label: 'Date Settings',
+                                    collapsed: true,
+                                    enclosed: true,
+                                    item: new ObjectForm(d ?? {}, {
+                                        "clientFormat": (d, i) => new StringInput(i, "Client Format", d ?? DEFAULT_DATETIME_FMT, true)
+                                    })
+                                })
+                                : (d, i) => new ConstForm(d),
+                            "template": (d, i) => new StringInput(i, "Template", d, true),
+                            "width": (d, i) => new StringInput(i, "Width", d, true),
+                            "jsonEditorType": dataModelObj.tag == 'array' || dataModelObj.tag == 'object'
+                                ? (d, i) => new ItemLabel(i, {
+                                    label: "JSON Editor Type",
+                                    item: new DropdownForm({
+                                        defaultValue: d ?? 'text',
+                                        options: [{ text: 'Text', value: 'text' }, { text: 'List', value: 'list' }],
+                                    })
+                                })
+                                : (d, i) => new ConstForm(d),
+                            "jsonEditorListConfigName": (d, i) => new ObserverForm(jsonTypeObserver, mapping.jsonEditorType ?? 'text', type => {
+                                if ((dataModelObj.tag == 'array' || dataModelObj.tag == 'object') && type == 'list') {
+                                    let blankName = ctx.config.name + '_' + ctx.dataModel.getUniqueName(mapping);
+                                    return new StringInput(i, 'JSON Editor List Config Name', d ?? blankName);
+                                }
+                                return new ConstForm(d);
+                            }),
+                            "dropdownConfig": dataModelObj.tag == 'data' && dataModelObj.type == 'dropdown'
+                                ? (d, i) => new ItemLabel(i, {
+                                    label: 'Dropdown Config',
+                                    item: new MultiForm({
+                                        defaultOption: ('fromColumn' in (d ?? {})) ? 'Column' : 'Values',
+                                        options: ['Column', 'Values'],
+                                        chooseForm: chosen => chosen == 'Column'
+                                            ? new ObjectForm(d ?? { choices: [] }, {
+                                                "choices": (c, i) => new ItemLabel(i, {
+                                                    label: 'Choices',
+                                                    collapsed: true,
+                                                    enclosed: true,
+                                                    item: new ArrayForm(c, (choice, i) => new StringInput(i, "Choice", choice), () => "")
+                                                }),
+                                                "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                                            })
+                                            : new ObjectForm(d ?? { fromColumn: ctx.config.mappings[0]?.fullPath ?? [] }, {
+                                                "fromColumn": (d, i) => new ItemLabel(i, {
+                                                    label: 'From Column',
+                                                    item: new ColumnSelector(d, dm => dm.allPaths(), false)
+                                                }),
+                                                "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                                            })
+                                    })
+                                })
+                                : (d, i) => new ConstForm(d),
+                        })
+                    });
+                });
+            }, () => ({ fullPath: ctx.dataModel.topLevelPaths()[0] ?? [] }));
+        }
+        return {
+            type: 'group', items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: 'Load Mappings from Data Model',
+                        onClick: () => {
+                            if (ctx.list === undefined) {
+                                _A5.msgBox.show('Cannot Load', "The list hasn't been loaded yet. Set up the data source and save the config to the server.", "o", () => { });
+                            }
+                            else {
+                                _A5.msgBox.show('Load Mappings from Data Model', "This will remove any mappings you currently have.", "yn", () => {
+                                    const dm = ctx.list.dataModel;
+                                    const mappings = dm.allPaths()
+                                        .map(path => ({ p: path, m: dm.find(path) }))
+                                        .filter(({ m }) => m && m?.tag == 'data')
+                                        .map(({ p }) => {
+                                        let displayName = '';
+                                        const last = p[p.length - 1];
+                                        if (last.tag == 'object')
+                                            displayName = last.key;
+                                        return {
+                                            fullPath: p,
+                                            displayName,
+                                            inDetailView: true,
+                                            inList: false,
+                                        };
+                                    });
+                                    this.mappings = mappings;
+                                    ctx.config.mappings = mappings;
+                                    this.form = undefined;
+                                    m.render(this);
+                                });
+                            }
+                        },
+                    },
+                    sys: { isEmbedded: false },
+                },
+                this.form
+            ]
+        };
+    }
+    serialize(formData) {
+        if (this.form !== undefined)
+            return this.form.serialize(formData);
+        return (0,types.Ok)({ raw: this.mappings, changed: false });
+    }
+}
+class ForcedValueForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        data = data ?? { column: '', value: { tag: 'value', value: '' } };
+        this.form = new ObjectForm(data, {
+            "column": (d, i) => new ItemLabel(i, {
+                label: "Column",
+                //item: new ColumnSelector(d as string, true, model)
+                item: new ValueMapper(new ColumnSelector([{ tag: 'object', key: d }], dm => dm.allPaths().filter(x => x.length == 1), false), change => {
+                    if ('raw' in change) {
+                        return { raw: change.raw[0].key, changed: change.changed };
+                    }
+                    return change;
+                })
+            }),
+            "value": (d) => {
+                let data = d;
+                return new MultiForm({
+                    options: ['Value', 'XBasic Argument'],
+                    defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
+                    chooseForm: selected => {
+                        if (selected == 'Value') {
+                            if (data.tag == 'argument')
+                                data = { tag: 'value', value: '' };
+                            return new ObjectForm(data, {
+                                "tag": () => new ConstForm("value"),
+                                "value": (v, i) => new StringInput(i, "Value", v)
+                            });
+                        }
+                        else {
+                            if (data.tag == 'value')
+                                data = { tag: 'argument', value: '' };
+                            return new ObjectForm(data, {
+                                "tag": () => new ConstForm("argument"),
+                                "value": (v, i) => new StringInput(i, "Value", v)
+                            });
+                        }
+                    },
+                    allowCollapse: false,
+                });
+            }
+        });
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ConfigDataSource extends ReactiveForm {
+    constructor(dataSource) {
+        super();
+        this.cached = {};
+        let defaultItem;
+        if (dataSource.type == 'json') {
+            if ('endpoints' in dataSource)
+                defaultItem = 'API';
+            else
+                defaultItem = "Static JSON";
+        }
+        else {
+            if ('table' in dataSource)
+                defaultItem = 'SQL Table';
+            else
+                defaultItem = 'Custom SQL';
+        }
+        const onSelect = (option) => {
+            if (option in this.cached)
+                return this.cached[option];
+            const getInitValue = () => {
+                if (option == 'SQL Table') {
+                    if (dataSource.type == 'sql' && 'table' in dataSource)
+                        return dataSource;
+                    return { type: 'sql', table: '' };
+                }
+                if (option == 'Custom SQL') {
+                    if (dataSource.type == 'sql' && 'sql' in dataSource)
+                        return dataSource;
+                    return { type: 'sql', sql: '' };
+                }
+                if (option == 'API') {
+                    if (dataSource.type == 'json' && 'endpoints' in dataSource)
+                        return dataSource;
+                    return { type: 'json', endpoints: {} };
+                }
+                if (dataSource.type == 'json' && 'jsonData' in dataSource)
+                    return dataSource;
+                return { type: 'json', jsonData: '' };
+            };
+            const initValue = getInitValue();
+            const preprocess = {
+                'preprocess': (p, i) => new ItemLabel(i, {
+                    enabled: p !== undefined,
+                    label: 'Preprocess Function',
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                    item: new Input({ initialData: p, type: 'function', textarea: true })
+                })
+            };
+            const commonSqlOptions = {
+                'connectionString': (conn, i) => new ItemLabel(i, {
+                    enabled: conn !== undefined,
+                    label: 'Connection String',
+                    item: new Input({ initialData: conn, type: 'string' })
+                }),
+                "filters": (f, i) => new ItemLabel(i, {
+                    label: 'List Filters',
+                    enabled: f !== undefined,
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ListFiltersForm(f ?? [])
+                }),
+                "serverSort": (f, i) => new ItemLabel(i, {
+                    label: 'Server-side Sorting Options',
+                    enabled: f !== undefined,
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ServerSortForm(f)
+                }),
+                'paginate': (p, i) => new ItemLabel(i, {
+                    enabled: p !== undefined,
+                    label: "Pagination Options",
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ObjectForm(p ?? { pageSize: 20 }, {
+                        'pageSize': (size, i) => new ItemLabel(i, {
+                            label: 'Page Size',
+                            item: new Input({ initialData: size, type: 'number' })
+                        })
+                    })
+                }),
+                'forcedValues': (data, i) => new ItemLabel(i, {
+                    enabled: data !== undefined,
+                    label: "Forced Values",
+                    enclosed: true,
+                    collapsed: true,
+                    item: new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+                        label: "Forced Value",
+                        enclosed: true,
+                        collapsed: true,
+                        showDelete: true,
+                        item: new ForcedValueForm(item)
+                    }), () => ({ column: '', value: { tag: 'value', value: '' } }))
+                }),
+                ...preprocess
+            };
+            let form;
+            switch (option) {
+                case 'SQL Table': {
+                    form = new ObjectForm(initValue, {
+                        'type': () => new ConstForm('sql'),
+                        'table': (name, i) => new ItemLabel(i, { label: 'Table Name', item: new Input({ initialData: name, type: 'string' }) }),
+                        ...commonSqlOptions
+                    });
+                    break;
+                }
+                case 'Custom SQL':
+                    {
+                        form = new ObjectForm(initValue, {
+                            "type": () => new ConstForm('sql'),
+                            "sql": (data, i) => new ItemLabel(i, {
+                                label: 'SQL',
+                                item: new Input({ initialData: data, type: 'string', textarea: true })
+                            }),
+                            ...commonSqlOptions
+                        });
+                        break;
+                    }
+                    ;
+                case 'API':
+                    {
+                        const endpointNames = ['fetch', 'search', 'add', 'update', 'delete'];
+                        const endpoints = {};
+                        endpointNames.forEach(name => endpoints[name] = (data, i) => new ItemLabel(i, {
+                            label: "Endpoint for " + name,
+                            enclosed: true,
+                            enabled: data !== undefined,
+                            collapsed: true,
+                            item: new EndpointForm(data)
+                        }));
+                        form = new ObjectForm(initValue, {
+                            'type': () => new ConstForm('json'),
+                            'endpoints': (data, i) => new ItemLabel(i, {
+                                label: "Endpoints",
+                                enclosed: true,
+                                collapsed: true,
+                                item: new ObjectForm(data, endpoints)
+                            }),
+                            ...preprocess
+                        });
+                        break;
+                    }
+                    ;
+                case 'Static JSON':
+                    {
+                        form = new ObjectForm(initValue, {
+                            'type': () => new ConstForm('json'),
+                            'jsonData': (data, i) => new ItemLabel(i, {
+                                label: 'JSON Data',
+                                item: new CodeEditor({ data: data, lang: 'json' }),
+                            }),
+                            ...preprocess
+                        });
+                        break;
+                    }
+                    ;
+                default: throw new Error();
+            }
+            this.cached[option] = form;
+            return form;
+        };
+        this.form = new MultiForm({
+            options: ['SQL Table', 'Custom SQL', 'API', 'Static JSON'],
+            defaultOption: defaultItem,
+            chooseForm: onSelect
+        });
+    }
+    render() {
+        return {
+            type: 'group',
+            id: 'dynamic-form-data-source',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ListFiltersForm extends ReactiveForm {
+    constructor(filters) {
+        super();
+        this.form = new ArrayForm(filters, (filter, i) => new ItemLabel(i, {
+            label: "List Filter",
+            showDelete: true,
+            showMove: true,
+            enclosed: true,
+            item: new ObjectForm(filter, {
+                "columnName": (name, i) => new ItemLabel(i, { label: "Column Name", item: new ColumnSelector(name, dm => dm.topLevelPaths(), false) }),
+                "columnVal": (v) => {
+                    const val = v;
+                    return new MultiForm({
+                        options: ['Filter on Value', 'Filter on XBasic Argument'],
+                        defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
+                        chooseForm: selected => selected == 'Filter on Value'
+                            ? new ObjectForm(val, {
+                                "tag": () => new ConstForm("value"),
+                                "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ initialData: val, type: 'string' }) })
+                            })
+                            : new ObjectForm(val, {
+                                "tag": () => new ConstForm("arg"),
+                                "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ initialData: val, type: 'string' }) })
+                            })
+                    });
+                },
+                "connector": (c, i) => new ItemLabel(i, {
+                    label: "Connector",
+                    item: new DropdownForm({
+                        options: [{ text: 'And', value: 'AND' }, { text: 'Or', value: 'OR' }],
+                        defaultValue: c ?? 'AND',
+                    })
+                }),
+                "op": (op, i) => new ItemLabel(i, {
+                    label: "Operator", item: new DropdownForm({
+                        options: [{ text: "Equals", value: "=" },
+                            { text: "Not Equals", value: "<>" },
+                            { text: "Less Than", value: "<" },
+                            { text: "Less Than or Equal To", value: "<=" },
+                            { text: "Greater Than", value: ">" },
+                            { text: "Greater Than or Equal To", value: ">=" },
+                            { text: "Pattern", value: "LIKE" }],
+                        defaultValue: op
+                    })
+                }),
+                "quantifier": (q, i) => new ItemLabel(i, {
+                    label: "Quantifier",
+                    enabled: q !== undefined,
+                    item: new DropdownForm({
+                        options: [{ text: 'All', value: 'ALL' }, { text: 'Some', value: 'SOME' }],
+                        defaultValue: q ?? 'ALL',
+                    })
+                })
+            })
+        }), () => ({ columnName: [], columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
+    }
+    render() {
+        return {
+            type: 'group',
+            id: 'dynamic-form-list-filters',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ServerSortForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        data = data ?? [];
+        this.form = new ArrayForm(data, (item, i) => new ItemLabel(i, {
+            label: "Sort Parameter",
+            enclosed: true,
+            showMove: true,
+            showDelete: true,
+            collapsed: true,
+            item: new ObjectForm(item, {
+                "columnName": (name, i) => new ItemLabel(i, {
+                    label: 'Column to Sort By',
+                    item: new ValueMapper(new ColumnSelector([{ tag: 'object', key: name }], dm => dm.topLevelPaths(), false), change => {
+                        if ('raw' in change)
+                            return { raw: change.raw[0].key, changed: change.changed };
+                        return change;
+                    })
+                }),
+                "order": (name, i) => new ItemLabel(i, {
+                    label: 'Ordering', item: new DropdownForm({
+                        options: [{ text: 'Ascending', value: 'asc' }, { text: 'Descending', value: 'desc' }],
+                        defaultValue: name,
+                    })
+                })
+            })
+        }), () => ({ columnName: '', order: 'asc' }));
+    }
+    render() {
+        return {
+            type: 'group',
+            items: [this.form]
+        };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class EndpointForm extends ReactiveForm {
+    constructor(e) {
+        super();
+        e = e ?? { method: 'GET', endpoint: { tag: 'template', value: '' } };
+        const templateOrArgSelector = d => {
+            const data = d;
+            return new MultiForm({
+                options: ['Template', 'XBasic Argument'],
+                defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
+                chooseForm: selected => selected == 'Template'
+                    ? new ObjectForm(data, {
+                        "tag": () => new ConstForm("template"),
+                        "value": (data, i) => new ItemLabel(i, {
+                            label: "Template",
+                            item: new TemplateHelper(data)
+                        })
+                    })
+                    : new ObjectForm(data, {
+                        "tag": () => new ConstForm("argument"),
+                        "value": (data, i) => new ItemLabel(i, {
+                            label: "Argument",
+                            item: new Input({ initialData: data, type: 'string' })
+                        })
+                    })
+            });
+        };
+        this.form = new ObjectForm(e, {
+            "method": (m, i) => new ItemLabel(i, {
+                label: "HTTP Verb",
+                item: new DropdownForm({
+                    options: ['GET', 'POST', 'DELETE', 'PUT', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'].map(x => ({ text: x, value: x })),
+                    defaultValue: m,
+                })
+            }),
+            "endpoint": (ep, i) => new ItemLabel(i, {
+                label: "Endpoint",
+                collapsed: true,
+                enclosed: true,
+                item: templateOrArgSelector(ep)
+            }),
+            "headers": (headers, i) => new ItemLabel(i, {
+                label: "Headers",
+                enabled: headers !== undefined,
+                enclosed: true,
+                collapsed: true,
+                item: new ObjectForm(headers ?? {}, {}, {
+                    onAdd: (headerName, data, i) => new ItemLabel(i, {
+                        label: "Header " + headerName,
+                        enclosed: true,
+                        showMove: true,
+                        showDelete: true,
+                        item: templateOrArgSelector(data ?? { tag: 'template', value: '' })
+                    })
+                })
+            }),
+            "body": (b, i) => new ItemLabel(i, { label: 'Body', enabled: b !== undefined, item: new Input({ initialData: b, type: 'string', textarea: true }) })
+        });
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ListButtonsForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.form = new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
+            label: "Button",
+            enclosed: true,
+            collapsed: true,
+            showMove: true,
+            showDelete: true,
+            item: new ObjectForm(item, {
+                "columnTitle": (data, i) => new StringInput(i, "Column Title", data),
+                "title": (data, i) => new StringInput(i, "Title", data, true),
+                "icon": (data, i) => new StringInput(i, "Icon", data, true),
+                "onClick": (d, i) => {
+                    const data = d;
+                    return new ItemLabel(i, {
+                        label: "Click Action",
+                        collapsed: true,
+                        enclosed: true,
+                        item: new MultiForm({
+                            options: ["Javascript Function", "Javascript Action", "List Action"],
+                            defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
+                            chooseForm: selected => {
+                                if (selected == 'Javascript Function') {
+                                    const d = ('function' in data) ? data : { function: '() => {}' };
+                                    return new ObjectForm(d, {
+                                        "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
+                                    });
+                                }
+                                else if (selected == 'Javascript Action') {
+                                    const d = ('action' in data) ? data : { action: '' };
+                                    return new ObjectForm(d, {
+                                        "action": (data, i) => new StringInput(i, "Action Name", data)
+                                    });
+                                }
+                                else {
+                                    const d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
+                                    return new ObjectForm(d, {
+                                        "listAction": d => new ListActionEditor(d)
+                                    });
+                                }
+                            }
+                        })
+                    });
+                }
+            })
+        }), () => ({ columnTitle: '', onClick: { function: '() => {}' } }));
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class SearchOptionsForm extends ReactiveForm {
+    constructor(ops) {
+        super();
+        if (ops == undefined)
+            ops = {};
+        this.form = new ObjectForm(ops, {
+            "advancedSearch": data => new LabelBool("Advanced Search", data),
+            "serverSearch": data => new LabelBool("Server-side Search", data),
+            "onlyInclude": (data, i) => new ItemLabel(i, {
+                label: "Include columns in search",
+                enclosed: true,
+                collapsed: true,
+                enabled: data !== undefined,
+                item: new ArrayForm(data ?? [], (d, i) => new ItemLabel(i, {
+                    label: 'Column',
+                    item: new ColumnSelector(d ?? [], dm => dm.allPaths(), false)
+                }), () => []),
+            }),
+            "onlyExclude": (data, i) => new ItemLabel(i, {
+                label: "Exclude columns in search",
+                enabled: data !== undefined,
+                enclosed: true,
+                collapsed: true,
+                item: new ArrayForm(data ?? [], (d, i) => new ItemLabel(i, {
+                    label: 'Column',
+                    item: new ColumnSelector(d ?? [], dm => dm.allPaths(), false)
+                }), () => []),
+            })
+        });
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class EditTypeDropdown extends ReactiveForm {
+    constructor(data, onChange) {
+        super();
+        this.form = new DropdownForm({
+            options: [
+                { text: 'Text', value: 'text' },
+                { text: 'Dropdown', value: 'dropdown' },
+                { text: 'Datetime', value: 'datetime' },
+                { text: 'True/False', value: 'bool' },
+                { text: 'Number', value: 'number' },
+            ],
+            defaultValue: data ?? 'text',
+            onChange
+        });
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize() {
+        return this.form.serialize();
+    }
+}
+const DEFAULT_PROCESS = `
+// data is the raw data point, straight from the data source.
+//
+// serverTimeOffset is the time offset of the server from GMT.
+// This may be useful for Date/Time formatting.
+(data, serverTimeOffset) => {
+    return data;
+}`;
+const DEFAULT_UNPROCESS = `
+// data is the datapoint in the list. If \`preprocess\` is defined,
+// then this point will have already been transformed by that function.
+//
+// serverTimeOffset is the time offset of the server from GMT.
+// This may be useful for Date/Time formatting.
+(data, serverTimeOffset) => {
+    return data;
+}`;
+class DataModelForm extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.data = data;
+    }
+    constOptions() {
+        return {
+            "uniqueName": d => new ConstForm(d),
+            "nullable": d => new LabelBool("Nullable", d),
+            "optional": d => new LabelBool("Optional", d),
+            "preprocess": (d, i) => new ItemLabel(i, {
+                label: 'Preprocess Function',
+                enabled: d !== undefined,
+                collapsed: true,
+                enclosed: true,
+                item: new CodeEditor({
+                    data: d ?? DEFAULT_PROCESS,
+                    lang: 'js',
+                })
+            }),
+            "postprocess": (d, i) => new ItemLabel(i, {
+                label: 'Postprocess Function',
+                enabled: d !== undefined,
+                collapsed: true,
+                enclosed: true,
+                item: new CodeEditor({
+                    data: d ?? DEFAULT_UNPROCESS,
+                    lang: 'js',
+                })
+            }),
+        };
+    }
+    dmAny(o, path, suggestor) {
+        return new MultiForm({
+            label: path.length == 0 ? 'Data Root' : DataModel.printPath(path),
+            dropdownOnRight: true,
+            options: [
+                { text: 'Object', value: 'object' },
+                { text: 'Array', value: 'array' },
+                { text: 'Data', value: 'data' },
+                { text: 'Unknown', value: 'unknown' }
+            ],
+            defaultOption: o.tag,
+            chooseForm: (name) => {
+                switch (name) {
+                    case "object":
+                        if (o.tag == 'object')
+                            return this.dmObj(o, path, suggestor);
+                        return this.dmObj({ ...o, tag: 'object', keys: {} }, path, suggestor);
+                    case "array":
+                        if (o.tag == 'array')
+                            return this.dmArray(o, path, suggestor);
+                        return this.dmArray({
+                            ...o,
+                            tag: 'array',
+                            item: { tag: 'data', nullable: false, optional: false, type: 'text', uniqueName: suggestor.get([...path, { tag: 'array' }]) }
+                        }, path, suggestor);
+                    case "data":
+                        if (o.tag == 'data')
+                            return this.dmData(o, path);
+                        return this.dmData({
+                            ...o,
+                            tag: 'data',
+                            type: 'text',
+                        }, path);
+                    case "unknown":
+                        if (o.tag == 'unknown')
+                            return this.dmUnknown(o, path);
+                        return this.dmUnknown({ ...o, tag: 'unknown' }, path);
+                }
+            },
+        });
+    }
+    dmObj(o, path, suggestor) {
+        return new ObjectForm(o, {
+            "tag": d => new ConstForm(d),
+            "fromString": d => new LabelBool("From String?", d),
+            "keys": (d, i) => new ItemLabel(i, {
+                label: 'Object Keys',
+                enclosed: true,
+                collapsed: false,
+                item: new ObjectForm(d, {}, {
+                    onAdd: (name, data, i) => {
+                        let model = data ?? { tag: 'data', nullable: false, optional: false, uniqueName: suggestor.get([...path, { tag: 'object', key: name }]), type: 'text' };
+                        return new ItemLabel(i, {
+                            label: name,
+                            showDelete: true,
+                            item: this.dmAny(model, [...path, { tag: 'object', key: name }], suggestor)
+                        });
+                    },
+                })
+            }),
+            ...this.constOptions()
+        });
+    }
+    dmArray(o, path, suggestor) {
+        return new ObjectForm(o, {
+            "tag": d => new ConstForm(d),
+            "fromString": d => new LabelBool("From String?", d),
+            "item": (d, i) => new ItemLabel(i, {
+                label: 'Array Item',
+                enclosed: true,
+                collapsed: false,
+                item: this.dmAny(o.item, [...path, { tag: 'array' }], suggestor)
+            }),
+            ...this.constOptions()
+        });
+    }
+    dmData(d, path) {
+        return new ObjectForm(d, {
+            "tag": d => new ConstForm(d),
+            "type": (d, i) => new ItemLabel(i, {
+                label: "Edit Type",
+                item: new EditTypeDropdown(d),
+            }),
+            ...this.constOptions()
+        });
+    }
+    dmUnknown(d, path) {
+        return new ObjectForm(d, {
+            "tag": d => new ConstForm(d),
+            ...this.constOptions()
+        });
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        this.ctx = ctx;
+        if (this.form === undefined) {
+            this.form = this.dmAny(this.data, [], ctx.nameSuggestor);
+        }
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: 'Auto-Fill from Data',
+                        onClick: () => {
+                            if (ctx.list === undefined) {
+                                _A5.msgBox.show('Cannot Auto-Fill', 'The list datasource is not set up. Configure it, save globally, then try again.', 'o', () => { });
+                            }
+                            else {
+                                _A5.msgBox.show('Auto-Fill Data Model', 'This will remove any data model settings you currently have.', 'oc', answer => {
+                                    if (answer == "ok") {
+                                        ctx.list.reRender(true).then(() => {
+                                            ctx.dataModel = new DataModel({
+                                                rawRows: ctx.list.rawFetchedData,
+                                            });
+                                            this.data = ctx.dataModel.model;
+                                            this.form = this.dmAny(this.data, [], ctx.nameSuggestor);
+                                            m.render(this);
+                                        });
+                                    }
+                                });
+                            }
+                        },
+                    },
+                    sys: {
+                        isEmbedded: false
+                    }
+                },
+                this.form
+            ]
+        };
+    }
+    serialize(formData) {
+        if (this.form === undefined)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        return this.form.serialize(formData);
+    }
+}
+class StringInput extends ReactiveForm {
+    constructor(i, label, data, optional, multiLine) {
+        super();
+        this.form = new ItemLabel(i, {
+            label,
+            enabled: optional ? (data !== undefined) : undefined,
+            item: new Input({ initialData: data, type: 'string', textarea: multiLine })
+        });
+    }
+    render() {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ColumnSelector extends ReactiveForm {
+    constructor(data, getCols, showDisplay, onChange) {
+        super();
+        this.onChange = onChange;
+        this.showDisplay = showDisplay;
+        this.data = data;
+        this.getCols = getCols;
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        let dataCols = this.getCols(ctx.dataModel);
+        let names = dataCols.map((x, i) => {
+            let mapping = ctx.config.mappings.find(m => pathsEq(m.fullPath, x));
+            let unique = ctx.dataModel.getUniqueName(x);
+            let display = (this.showDisplay ? mapping?.displayName : unique) ?? unique;
+            return { text: display, value: i.toString() };
+        });
+        let defaultVal = dataCols.findIndex(x => pathsEq(x, this.data));
+        if (defaultVal == -1) {
+            defaultVal = 0;
+            if (dataCols.length > 0)
+                this.data = dataCols[0];
+        }
+        this.dropdown = new DropdownForm({
+            defaultValue: (defaultVal ?? 0).toString(),
+            options: names,
+            onChange: (n) => {
+                let newCol = dataCols[Number.parseInt(n)];
+                this.data = newCol;
+                if (this.onChange)
+                    this.onChange(this.data);
+            }
+        });
+        return { type: 'group', items: [this.dropdown] };
+    }
+    serialize() {
+        if (this.dropdown === undefined)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        return (0,types.Ok)({ changed: true, raw: this.data });
+    }
+}
+
+;// ./src/forms/formComponents.ts
+
+
+
+
+
+class TemplateHelper extends ReactiveForm {
+    constructor(data) {
+        super();
+        this.inputForm = new Input({ initialData: data, type: 'string', textarea: true });
+    }
+    render(m) {
+        const ctx = m.getContext(ConfigContext.id);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const colNames = ctx.config.mappings.map(x => ctx.dataModel.getUniqueName(x)).filter(x => x !== undefined);
+        return {
+            type: 'group',
+            items: [
+                this.inputForm,
+                {
+                    type: 'button',
+                    control: {
+                        html: `<p>Add Template Item</p>`,
+                        onClick: (_, btn) => {
+                            const popup = templateHelperHTML(this.inputForm, colNames, m);
+                            popup.style.position = 'absolute';
+                            const rect = btn.getBoundingClientRect();
+                            popup.style.left = `${(rect.width + 20).toString()}px`;
+                            popup.style.top = `0px`;
+                            btn.appendChild(popup);
+                            btn.addEventListener('blur', () => {
+                                // focusout happens before 
+                                // the click handler, apparently.
+                                setTimeout(() => {
+                                    popup.remove();
+                                }, 200);
+                            });
+                        }
+                    },
+                    sys: { isEmbedded: false },
+                }
+            ]
+        };
+    }
+    serialize(formData) {
+        return this.inputForm.serialize(formData);
+    }
+}
+function templateHelperHTML(form, colNames, m) {
+    const id = uuidv4();
+    const templateHelper = document.createElement('div');
+    templateHelper.id = id;
+    templateHelper.tabIndex = 0;
+    const makeItem = (text, onclick) => {
+        const d = document.createElement('div');
+        d.onmouseenter = () => {
+            d.style.backgroundColor = 'lightgray';
+        };
+        d.onmouseleave = () => {
+            d.style.backgroundColor = 'white';
+        };
+        d.style.margin = "";
+        d.innerHTML = `<p style="margin: 0px;">${text}</p>`;
+        d.style.padding = "0.5rem";
+        d.onclick = onclick;
+        return d;
+    };
+    templateHelper.style.color = 'black';
+    templateHelper.style.backgroundColor = 'white';
+    templateHelper.style.border = "1px solid black";
+    templateHelper.style.textAlign = "left";
+    templateHelper.style.width = "200px";
+    colNames.forEach(name => {
+        templateHelper.appendChild(makeItem('Add field ' + name, () => {
+            const curr = form.getValue(m)?.toString() ?? '';
+            form.setValue(m, curr + `{row["${name}"]}`);
+        }));
+    });
+    return templateHelper;
+}
+class ObjectForm extends ReactiveForm {
+    constructor(data, keymap, newKey) {
+        super();
+        this.data = data;
+        this.initialized = false;
+        this.id = uuidv4();
+        this.keyMap = keymap;
+        this.formMap = new Map();
+        this.changed = false;
+        this.newKey = newKey;
+    }
+    makeInteractor(key, m) {
+        const keyDynamic = (k) => !(k in this.keyMap);
+        const keyMaps = () => {
+            const idxToKey = {};
+            const keyToIdx = {};
+            let idx = 0;
+            for (const k of this.formMap.keys()) {
+                idxToKey[idx] = k;
+                keyToIdx[k] = idx;
+                idx += 1;
+            }
+            return [idxToKey, keyToIdx];
+        };
+        const swapKeys = (idx1, idx2) => {
+            const ordering = Array.from(this.formMap.keys()).map((k, idx) => ({
+                k,
+                i: idx == idx1 ? idx2 : (idx == idx2 ? idx1 : idx)
+            }));
+            ordering.sort((a, b) => a.i - b.i);
+            const newFormMap = new Map();
+            ordering.forEach(item => {
+                const x = this.formMap.get(item.k);
+                if (x)
+                    newFormMap.set(item.k, x);
+            });
+            this.formMap = newFormMap;
+            m.render(this);
+        };
+        return {
+            currentIndex: () => {
+                const [, keyToIdx] = keyMaps();
+                return keyToIdx[key];
+            },
+            canDelete: () => keyDynamic(key),
+            delete: () => {
+                this.formMap.delete(key);
+                m.render(this);
+            },
+            canMoveDown: () => {
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
+                if (idx >= this.formMap.size - 1)
+                    return false;
+                return true;
+            },
+            moveDown: () => {
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
+                swapKeys(idx, idx + 1);
+            },
+            canMoveUp: () => {
+                const [idxToKey, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
+                if (idx <= 0)
+                    return false;
+                if (!keyDynamic(idxToKey[idx - 1]))
+                    return false;
+                return true;
+            },
+            moveUp: () => {
+                const [, keyToIdx] = keyMaps();
+                const idx = keyToIdx[key];
+                swapKeys(idx, idx - 1);
+            }
+        };
+    }
+    initialize(m) {
+        this.initialized = true;
+        const seen = new Set();
+        for (const key in this.keyMap) {
+            seen.add(key);
+            const f = this.keyMap[key];
+            this.formMap.set(key, this.keyMap[key](this.data[key], this.makeInteractor(key, m)));
+        }
+        if (this.newKey) {
+            for (const key in this.data) {
+                if (seen.has(key))
+                    continue;
+                this.formMap.set(key, this.newKey.onAdd(key, this.data[key], this.makeInteractor(key, m)));
+            }
+        }
+    }
+    render(m) {
+        if (!this.initialized) {
+            this.initialize(m);
+        }
+        let newKeyBtn = undefined;
+        if (this.newKey) {
+            let keyInput;
+            const inputId = this.id + '_newKeyInput';
+            if (this.newKey.dropdownOptions) {
+                keyInput = {
+                    type: this.newKey.dropdownOptions.allowAny ? 'edit-picker' : 'picker',
+                    id: inputId,
+                    data: {
+                        from: inputId,
+                        ensure: true,
+                        blank: this.newKey.dropdownOptions.defaultOption,
+                        defaultValue: this.newKey.dropdownOptions.defaultOption
+                    },
+                    control: {
+                        data: {
+                            src: this.newKey.dropdownOptions.options,
+                            map: ['value', 'text']
+                        }
+                    },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
+                    }
+                };
+            }
+            else {
+                keyInput = {
+                    type: 'edit',
+                    id: inputId,
+                    data: {
+                        from: inputId,
+                        ensure: true
+                    },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
+                    }
+                };
+            }
+            newKeyBtn = {
+                type: 'group',
+                container: {
+                    className: 'dynamic-form-add-new-key',
+                    style: `;
+                        display: flex;
+                        flex-direction: row;
+                        gap: 1rem;
+                        padding: 0.5rem;
+                    `
+                },
+                items: [
+                    keyInput,
+                    {
+                        type: 'button',
+                        control: {
+                            html: _A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                            onClick: () => {
+                                const newName = m.getFormData(inputId);
+                                if (typeof newName == 'string' && newName !== '') {
+                                    if (this.formMap.has(newName)) {
+                                        displayErrorMessage(new types.ErrMsg("Key " + newName + " was already added."));
+                                    }
+                                    else {
+                                        if (this.newKey) {
+                                            const newForm = this.newKey.onAdd(newName, undefined, this.makeInteractor(newName, m));
+                                            this.formMap.set(newName, newForm);
+                                        }
+                                    }
+                                }
+                                m.setFormData(inputId, '');
+                                m.render(this);
+                            }
+                        },
+                        sys: { isEmbedded: false }
+                    }
+                ]
+            };
+        }
+        return {
+            type: 'group',
+            container: {
+                className: 'dynamic-form-object-group',
+                style: `; 
+                    display: flex; 
+                    flex-direction: column;
+                    gap: 1rem;
+                `
+            },
+            items: [...this.formMap.values(), newKeyBtn]
+        };
+    }
+    serialize(formData) {
+        if (!this.initialized)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        const keys = {};
+        for (const [k, v] of this.formMap.entries()) {
+            const s = v.serialize(formData);
+            if (s.isOk())
+                keys[k] = s.asOk();
+            else
+                return s;
+        }
+        return (0,types.Ok)({
+            keys,
+            changed: this.changed
+        });
+    }
+}
+class ArrayForm extends ReactiveForm {
+    constructor(data, item, onAdd) {
+        super();
+        this.item = item;
+        this.onAdd = onAdd;
+        this.initialized = false;
+        this.entries = [];
+        this.data = data;
+    }
+    makeEntry(elem, idx, m) {
+        const swap = (i1, i2) => {
+            if (i1 < 0 || i1 >= this.entries.length)
+                return;
+            if (i2 < 0 || i2 >= this.entries.length)
+                return;
+            const e1 = this.entries[i1];
+            const e2 = this.entries[i2];
+            e1.interactorCtx.index = i2;
+            e2.interactorCtx.index = i1;
+            this.entries[i2] = e1;
+            this.entries[i1] = e2;
+            m.render(this);
+        };
+        const ctx = {
+            index: idx
+        };
+        const interactor = {
+            currentIndex: () => ctx.index,
+            canDelete: () => true,
+            delete: () => {
+                this.entries = this.entries.filter(e => e.interactorCtx.index != ctx.index);
+                for (const entry of this.entries) {
+                    if (entry.interactorCtx.index > ctx.index)
+                        entry.interactorCtx.index -= 1;
+                }
+                m.render(this);
+            },
+            canMoveUp: () => ctx.index > 0,
+            moveUp: () => { swap(ctx.index, ctx.index - 1); },
+            canMoveDown: () => ctx.index < this.entries.length - 1,
+            moveDown: () => { swap(ctx.index, ctx.index + 1); }
+        };
+        return {
+            form: this.item(elem, interactor),
+            interactorCtx: ctx
+        };
+    }
+    render(m) {
+        if (!this.initialized) {
+            this.entries = this.data.map((elem, idx) => this.makeEntry(elem, idx, m));
+            this.initialized = true;
+        }
+        return {
+            type: 'group',
+            container: {
+                style: `
+                    display: flex; 
+                    flex-direction: column;
+                    padding: 0.5rem;
+                    gap: 0.5rem;
+                `
+            },
+            items: [
+                ...this.entries.map(e => e.form),
+                {
+                    type: 'group',
+                    items: [{
+                            type: 'button',
+                            control: {
+                                html: _A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                                onClick: () => {
+                                    const newItem = this.onAdd();
+                                    this.entries.push(this.makeEntry(newItem, this.entries.length, m));
+                                    m.render(this);
+                                }
+                            },
+                            sys: { isEmbedded: false }
+                        }],
+                    container: {
+                        className: 'dynamic-form-array-add-item-group'
+                    }
+                }
+            ]
+        };
+    }
+    serialize(formData) {
+        if (!this.initialized)
+            return (0,types.Ok)({ changed: false, raw: this.data });
+        const items = [];
+        for (const e of this.entries) {
+            const s = e.form.serialize(formData);
+            if (s.isOk())
+                items.push(s.asOk());
+            else
+                return s;
+        }
+        return (0,types.Ok)({
+            elements: items,
+            changed: items.reduce((a, b) => a || b.changed, false)
+        });
+    }
+}
+class ItemLabel extends ReactiveForm {
+    constructor(interactor, options) {
+        super();
+        this.options = options;
+        this.id = uuidv4();
+        this.interactor = interactor;
+    }
+    setLabel(l) {
+        this.options.label = l;
+    }
+    enabledCheck(m) {
+        if (this.options.enabled === undefined)
+            return undefined;
+        const enabled = {
+            id: this.id + '_enabled',
+            type: 'checkbox',
+            data: {
+                from: this.id + '_enabled',
+                blank: this.options.enabled
+            },
+            control: {
+                onChange: () => {
+                    this.options.enabled = !this.options.enabled;
+                    m.render(this);
+                }
+            },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
+            }
+        };
+        m.setFormData(this.id + '_enabled', this.options.enabled);
+        return enabled;
+    }
+    collapseBtn(m) {
+        if (this.options.collapsed === undefined)
+            return undefined;
+        const icon = this.options.collapsed ? 'chevronRight' : 'chevronDown';
+        return {
+            type: 'button',
+            disabled: () => !(this.options.enabled ?? true),
+            control: {
+                html: _A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
+                onClick: () => {
+                    this.options.collapsed = !this.options.collapsed;
+                    if (this.options.onCollapse)
+                        this.options.onCollapse(this.options.collapsed);
+                    m.render(this);
+                }
+            },
+            sys: { isEmbedded: false }
+        };
+    }
+    moveBtns(m) {
+        if (!(this.options.showMove ?? false))
+            return undefined;
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    disabled: () => !this.interactor.canMoveUp(),
+                    control: {
+                        html: _A5.u.icon.html('svgIcon=#alpha-icon-arrowUp:icon,24'),
+                        onClick: () => {
+                            this.interactor.moveUp();
+                            m.render(this);
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                },
+                {
+                    type: 'button',
+                    disabled: () => !this.interactor.canMoveDown(),
+                    control: {
+                        html: _A5.u.icon.html('svgIcon=#alpha-icon-arrowDown:icon,24'),
+                        onClick: () => {
+                            this.interactor.moveDown();
+                            m.render(this);
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                }
+            ]
+        };
+    }
+    deleteBtn(m) {
+        if (!(this.options.showDelete ?? false))
+            return undefined;
+        return {
+            type: 'button',
+            disabled: () => !this.interactor.canDelete(),
+            control: {
+                html: _A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                onClick: () => {
+                    this.interactor.delete();
+                    m.render(this);
+                }
+            },
+            sys: { isEmbedded: false }
+        };
+    }
+    render(m) {
+        const label = {
+            type: 'html',
+            control: {
+                html: `<p class="dynamic-form-simple-label">${this.options.label}</p>`
+            },
+            container: {
+                style: `;
+                    font-variant: all-petite-caps;
+                    font-weight: bold;
+                    color: #434343;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.5rem;
+                `
+            },
+            layout: '{content}'
+        };
+        let shouldDisplay = true;
+        if (this.options.collapsed ?? false)
+            shouldDisplay = false;
+        if (!(this.options.enabled ?? true))
+            shouldDisplay = false;
+        const labelGroup = {
+            type: 'group',
+            container: {
+                className: 'dynamic-form-item-group',
+                style: `;
+                            display: flex;
+                            flex-direction: row;
+                            gap: 0.5rem;
+                            align-items: center;
+                        `
+            },
+            items: [
+                this.enabledCheck(m),
+                this.collapseBtn(m),
+                !(this.options.labelRight ?? false) ? label : undefined,
+                this.deleteBtn(m),
+                this.moveBtns(m),
+                this.options.labelRight ? {
+                    type: 'group',
+                    items: [label],
+                    container: { style: 'margin-left: 1rem;' },
+                } : undefined
+            ]
+        };
+        const tabCtx = m.getContext(this.options.launchInTab ?? '');
+        const newTabLaunch = {
+            type: 'button',
+            control: {
+                html: `
+                    <div class="dynamic-form-open-nested" style="
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        gap: 0.5rem;
+                        cursor: pointer;
+                    >
+                        <p style="font-variant: all-petite-caps: font-weight: bold;"> Edit ${this.options.label} </p>
+                        ${_A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')}
+                    </div>
+                `,
+                onClick: () => {
+                    if (tabCtx)
+                        tabCtx.tabForm.pushTab(m, this.options.label, this.options.item);
+                },
+                style: 'color: black !important;'
+            },
+            sys: { isEmbedded: false }
+        };
+        const itemGroup = {
+            type: 'group',
+            items: [this.options.launchInTab
+                    ? newTabLaunch
+                    : this.options.item
+            ]
+        };
+        if (this.options.enclosed && labelGroup.container) {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            labelGroup.container.style += `
+                padding: 0.5rem;
+                border: 1px solid black;
+                background-color: lightgray;
+            `;
+            itemGroup.container = {
+                className: 'dynamic-form-label-item-group',
+                style: `
+                    padding: 0.5rem;
+                    border: 1px solid black;
+                `,
+            };
+        }
+        return {
+            type: 'group',
+            container: {
+                style: `; display: flex; flex-direction: column;`,
+                className: 'dynamic-form-item-group'
+            },
+            items: [
+                labelGroup,
+                shouldDisplay ? itemGroup : undefined
+            ]
+        };
+    }
+    serialize(formData) {
+        if (this.options.enabled ?? true) {
+            return this.options.item.serialize(formData);
+        }
+        return (0,types.Ok)({ changed: false, raw: undefined });
+    }
+}
+class LabelBool extends ReactiveForm {
+    constructor(label, value) {
+        super();
+        this.id = uuidv4();
+        this.label = label;
+        this.value = value ?? false;
+        this.changed = false;
+    }
+    render(m) {
+        return {
+            type: 'group',
+            container: {
+                style: `; display: flex; flex-direction: column;`,
+                className: 'dynamic-form-item-group'
+            },
+            items: [{
+                    type: 'group',
+                    container: {
+                        className: 'dynamic-form-item-group',
+                        style: `;
+                                display: flex;
+                                flex-direction: row;
+                                gap: 0.5rem;
+                                align-items: center;
+                            `
+                    },
+                    items: [
+                        {
+                            type: 'checkbox',
+                            id: this.id,
+                            data: {
+                                from: this.id,
+                                blank: this.value,
+                            },
+                            control: {
+                                onChange: () => {
+                                    this.value = !this.value;
+                                    this.changed = true;
+                                    m.setFormData(this.id, this.value);
+                                    m.render(this);
+                                }
+                            },
+                            sys: {
+                                isEmbedded: false,
+                                item: {
+                                    layout: {
+                                        handle: {}
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            type: 'html',
+                            control: {
+                                html: `<p class="dynamic-form-simple-label">${this.label}</p>`
+                            },
+                            container: {
+                                style: `;
+                                font-variant: all-petite-caps;
+                                font-weight: bold;
+                                color: #434343;
+                                display: flex;
+                                flex-direction: row;
+                                align-items: center;
+                                gap: 0.5rem;
+                            `
+                            },
+                            layout: '{content}'
+                        }
+                    ]
+                }]
+        };
+    }
+    serialize() {
+        return (0,types.Ok)({ changed: this.changed, raw: this.value });
+    }
+}
+class Input extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.id = uuidv4();
+        this.options = options;
+        this.changed = false;
+        let fromWorld = (x) => x;
+        let toWorld = (x) => (0,types.Ok)(x);
+        if (this.options.type == 'datetime' && this.options.initialData instanceof Date) {
+            fromWorld = x => x.toFormat(options.dateFmt ?? DEFAULT_DATETIME_FMT);
+            toWorld = x => {
+                if (typeof x === 'string') {
+                    const d = new Date();
+                    d.fromFormat(x, this.options.dateFmt ?? DEFAULT_DATETIME_FMT);
+                    return (0,types.Ok)(d);
+                }
+                return (0,types.Ok)(x);
+            };
+        }
+        this.converters = { fromWorld, toWorld };
+        this.data = this.converters.fromWorld(options.initialData);
+    }
+    render(m) {
+        let editType;
+        switch (this.options.type) {
+            case "function":
+            case "string":
+            case "number":
+                editType = 'edit';
+                break;
+            case "boolean":
+                editType = 'checkbox';
+                break;
+            case 'datetime':
+                editType = 'picker';
+                break;
+        }
+        const input = {
+            control: {
+                multiLine: this.options.textarea,
+                width: '100%',
+                style: '',
+                picker: (editType == 'picker') ? {
+                    type: 'date-time',
+                    format: this.options.dateFmt ?? DEFAULT_DATETIME_FMT
+                } : undefined,
+                behavior: (editType == 'picker') ? {
+                    show: {
+                        mode: ''
+                    }
+                } : undefined,
+                onChange: () => {
+                    this.changed = true;
+                },
+                onKeyDown: (_1, _2, e) => {
+                    this.changed = true;
+                    e.stopPropagation();
+                }
+            },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
+            },
+            id: this.id,
+            type: editType,
+            data: {
+                from: this.id,
+                ensure: true,
+                blank: this.data
+            },
+            container: {
+                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`,
+                className: "dynamic-form-simple-item"
+            },
+            readonly: () => this.options.readonly ?? false,
+        };
+        return input;
+    }
+    getValue(m) {
+        return m.getFormData(this.id);
+    }
+    setValue(m, data) {
+        m.setFormData(this.id, data);
+        m.render(this);
+    }
+    serialize(formData) {
+        const val = formData[this.id];
+        let jsonVal;
+        if (!(this.id in formData)) {
+            return (0,types.Ok)({ changed: false, raw: this.options.initialData });
+        }
+        switch (this.options.type) {
+            case "function":
+            case "string":
+                jsonVal = val;
+                break;
+            case "number":
+                jsonVal = parseFloat(val);
+                break;
+            case "boolean":
+                jsonVal = Boolean(val);
+                break;
+            case "datetime": {
+                const result = this.converters.toWorld(val);
+                if (result.isOk())
+                    jsonVal = result.asOk();
+                else
+                    return (0,types.Err)("There was an error parsing the date value.");
+            }
+        }
+        return (0,types.Ok)({
+            changed: this.changed,
+            raw: jsonVal
+        });
+    }
+}
+class MultiForm extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.cache = {};
+        this.activeOption = options.defaultOption;
+        this.label = options.label;
+        this.allowCollapse = options.allowCollapse ?? true;
+        this.collapsed = this.allowCollapse ? true : false;
+        this.id = uuidv4();
+        this.dropdownOptions = typeof options.options[0] == 'string'
+            ? options.options.map(x => ({ text: x, value: x }))
+            : options.options;
+        this.chooseForm = options.chooseForm;
+        this.onSelect = options.onSelect;
+        this.activeForm = this.chooseForm(this.activeOption, this);
+        this.dropdownOnRight = options.dropdownOnRight ?? false;
+    }
+    current() {
+        return this.activeForm;
+    }
+    render(m) {
+        const icon = this.collapsed ? 'chevronRight' : 'chevronDown';
+        const header = {
+            type: 'group',
+            items: [
+                this.allowCollapse ? {
+                    type: 'button',
+                    control: {
+                        html: _A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
+                        onClick: () => {
+                            this.collapsed = !this.collapsed;
+                            m.render(this);
+                        },
+                    },
+                    sys: { isEmbedded: false }
+                } : undefined,
+                this.label !== undefined ? {
+                    type: 'html',
+                    control: {
+                        html: this.label,
+                    },
+                    layout: '{content}'
+                } : undefined,
+                {
+                    type: 'picker',
+                    id: this.id,
+                    data: {
+                        from: this.id,
+                        ensure: true,
+                        blank: this.activeOption
+                    },
+                    sys: {
+                        isEmbedded: false,
+                        item: {
+                            layout: {
+                                handle: {}
+                            }
+                        }
+                    },
+                    control: {
+                        data: {
+                            src: this.dropdownOptions,
+                            map: ['value', 'text']
+                        },
+                        onChange: (change) => {
+                            if (change.item.data !== null && change.item.data !== undefined) {
+                                if (typeof change.item.data !== 'string')
+                                    return;
+                                this.activeOption = change.item.data;
+                                if (this.onSelect)
+                                    this.onSelect(this.activeOption, this);
+                                if (this.activeOption in this.cache) {
+                                    this.activeForm = this.cache[this.activeOption];
+                                }
+                                else {
+                                    this.activeForm = this.chooseForm(this.activeOption, this);
+                                    this.cache[this.activeOption] = this.activeForm;
+                                }
+                                m.render(this);
+                            }
+                        },
+                        style: this.dropdownOnRight ? 'margin-left: auto;' : undefined,
+                    },
+                }
+            ],
+            container: {
+                style: `;
+                    background-color: lightgray; 
+                    padding: 0.5rem; 
+                    border: 1px solid black;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.5rem;
+                `
+            }
+        };
+        return {
+            type: 'group',
+            items: [
+                header,
+                this.collapsed ? undefined : {
+                    type: 'group',
+                    items: [this.activeForm],
+                    container: {
+                        style: '; padding: .5rem; border: 1px solid black; '
+                    }
+                }
+            ],
+            container: {
+                className: 'dynamic-form-multiform-group'
+            }
+        };
+    }
+    serialize(formData) {
+        return this.activeForm.serialize(formData);
+    }
+}
+class DropdownForm extends ReactiveForm {
+    constructor(options) {
+        super();
+        this.id = uuidv4();
+        this.changed = false;
+        this.options = options;
+        this.currentOption = this.options.defaultValue;
+    }
+    render(m) {
+        return {
+            type: this.options.allowAny ? 'edit-picker' : 'picker',
+            id: this.id,
+            data: {
+                from: this.id,
+                ensure: true,
+                blank: this.currentOption,
+                defaultValue: this.currentOption
+            },
+            readonly: () => this.options.readonly ?? false,
+            control: {
+                data: {
+                    src: this.options.options,
+                    map: ['value', 'text']
+                },
+                picker: {
+                    data: {
+                        empty: {
+                            message: "No Items"
+                        }
+                    }
+                },
+                onChange: (change) => {
+                    if (change.item.data != undefined) {
+                        if (typeof change.item.data !== 'string')
+                            return;
+                        this.changed = true;
+                        this.currentOption = change.item.data;
+                        if (this.options.onChange)
+                            this.options.onChange(this.currentOption);
+                    }
+                    if (change.item.data == undefined) {
+                        m.setFormData(this.id, this.currentOption);
+                    }
+                },
+                width: '85%',
+            },
+            container: {
+                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}; max-width: 350px;`
+            },
+            sys: {
+                isEmbedded: false,
+                item: {
+                    layout: {
+                        handle: {}
+                    }
+                }
+            }
+        };
+    }
+    serialize() {
+        return (0,types.Ok)({ changed: true, raw: this.currentOption });
+    }
+}
+class ConstForm extends ReactiveForm {
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+    render() {
+        return undefined;
+    }
+    serialize() {
+        return (0,types.Ok)({ changed: false, raw: this.value });
+    }
+}
+class Observer {
+    constructor() {
+        this.watching = new Map();
+    }
+    onNotify(f) {
+        const id = uuidv4();
+        this.watching.set(id, f);
+        return id;
+    }
+    removeOnNotify(id) {
+        this.watching.delete(id);
+    }
+    notify(t) {
+        for (const f of this.watching.values()) {
+            f(t);
+        }
+    }
+}
+class ObserverForm extends ReactiveForm {
+    constructor(o, initial, makeForm) {
+        super();
+        this.observer = o;
+        this.form = makeForm(initial);
+        this.makeForm = makeForm;
+        this.fId = this.observer.onNotify(t => {
+            this.form = this.makeForm(t);
+            if (this.manager)
+                this.manager.render(this);
+        });
+    }
+    render(m) {
+        this.manager = m;
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class AsyncForm extends ReactiveForm {
+    constructor(form, defaultValue) {
+        super();
+        this.needInitialize = true;
+        this.defaultValue = defaultValue;
+        this.loader = form;
+    }
+    render(m) {
+        if (this.needInitialize) {
+            this.needInitialize = false;
+            okOrLog(this.loader().then(f => {
+                this.form = f;
+                m.render(this);
+            }));
+        }
+        if (this.form == undefined) {
+            return {
+                type: 'html',
+                control: {
+                    html: "<p>Loading...</p>"
+                },
+                layout: '{content}'
+            };
+        }
+        else {
+            return { type: 'group', items: [this.form] };
+        }
+    }
+    serialize(formData) {
+        if (this.form === undefined) {
+            return (0,types.Ok)({ changed: false, raw: this.defaultValue });
+        }
+        return this.form.serialize(formData);
+    }
+}
+class WithContext extends ReactiveForm {
+    constructor(name, ctx, form) {
+        super();
+        this.c = ctx;
+        this.form = form;
+        this.name = name;
+    }
+    render(m) {
+        m.setContext(this, this.name, this.c);
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class TabContext {
+    constructor(t) {
+        this.tabForm = t;
+    }
+}
+class TabForm extends ReactiveForm {
+    constructor(baseTabName, baseTab, name) {
+        super();
+        this.tabs = [{ name: baseTabName, tab: baseTab }];
+        this.name = name;
+    }
+    render(m) {
+        m.setContext(this, this.name, new TabContext(this));
+        const tabs = this.tabs.map((tab, index) => {
+            let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
+            if (index == this.tabs.length - 1) {
+                style += 'color: black; text-decoration: underline;';
+            }
+            else {
+                style += 'color: #4d4d4d !important;';
+            }
+            const t = {
+                type: 'button',
+                control: {
+                    html: `<p style="${style}">${tab.name}</p>`,
+                    onClick: () => { this.navigateToTab(m, index); },
+                    style: `display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;`
+                },
+                container: {
+                    className: 'dynamic-form-top-tab',
+                },
+                sys: { isEmbedded: false }
+            };
+            if (index < this.tabs.length - 1) {
+                t.control.html += _A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24');
+            }
+            return t;
+        });
+        const header = {
+            type: 'group',
+            items: tabs,
+            container: {
+                style: `
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-direction: row;
+                    justify-content: center;
+                    background-color: lightgray;
+                    padding: .3rem;
+                `
+            }
+        };
+        return {
+            type: 'group',
+            items: [
+                header,
+                { type: 'group', items: [this.tabs[this.tabs.length - 1].tab], container: { style: 'padding: 0.5rem' } }
+            ],
+            container: {
+                style: `;
+                    display: flex;
+                    flex-direction: column;
+                    outline: 1px solid black;
+                `
+            }
+        };
+    }
+    navigateToTab(m, index) {
+        if (index < 0 || index > this.tabs.length - 1)
+            return;
+        this.tabs = this.tabs.filter((_, i) => i <= index);
+        m.render(this);
+    }
+    pushTab(m, name, tab) {
+        this.tabs.push({ name, tab });
+        m.render(this);
+    }
+    serialize(formData) {
+        return this.tabs[0].tab.serialize(formData);
+    }
+}
+class Show extends ReactiveForm {
+    constructor(form, show) {
+        super();
+        this.form = form;
+        this.show = show;
+    }
+    render(m) {
+        if (this.show(m))
+            return { type: 'group', items: [this.form] };
+        return undefined;
+    }
+    serialize(formData) {
+        return this.form.serialize(formData);
+    }
+}
+class ValueMapper extends ReactiveForm {
+    constructor(form, mapper) {
+        super();
+        this.form = form;
+        this.mapper = mapper;
+    }
+    render(m) {
+        return { type: 'group', items: [this.form] };
+    }
+    serialize(formData) {
+        return this.form.serialize(formData).map(this.mapper);
+    }
+}
+class ButtonForm extends ReactiveForm {
+    constructor(label, onClick, data) {
+        super();
+        this.onClick = onClick;
+        this.data = data;
+        this.label = label;
+        this.changed = false;
+        this.form = {
+            type: 'button',
+            control: {
+                html: this.label,
+                onClick: () => this.onClick(this),
+            },
+            sys: { isEmbedded: false },
+        };
+    }
+    render(m) {
+        return this.form;
+    }
+    serialize(formData) {
+        return (0,types.Ok)({ changed: this.changed, raw: this.data });
+    }
+}
+class CodeEditor extends ReactiveForm {
+    constructor(props) {
+        super();
+        this.id = uuidv4();
+        this.props = props;
+        this.changed = false;
+        if (typeof this.props.data == 'string') {
+            this.converters = {
+                fromWorld: d => d,
+                toWorld: d => (0,types.Ok)(d),
+            };
+        }
+        else {
+            this.converters = {
+                fromWorld: d => JSON.stringify(d, null, ' '),
+                toWorld: d => safeJsonParse(d).mapErr(e => e.message).map(x => x)
+            };
+        }
+        this.data = this.converters.fromWorld(props.data);
+    }
+    render(m) {
+        const containerId = this.id + '_CONTAINER';
+        if (!this.editorElem) {
+            const displayEditor = () => {
+                if (!_$(this.id)) {
+                    return;
+                }
+                const editor = new declares_TF.u.code.Editor(this.id, {
+                    lang: this.props.lang
+                });
+                this.editorElem = document.getElementById(editor._.id);
+                editor.setValue(this.data);
+                const _this = this;
+                editor.onChange = function () {
+                    if (_this.props.readonly)
+                        return;
+                    m.setFormData(_this.id, this.value);
+                    _this.data = this.value;
+                    _this.changed = true;
+                    m.setDirty(true);
+                };
+            };
+            m.setFormData(this.id, this.data);
+            this.initializationCallback = m.addRefreshCallback(displayEditor);
+        }
+        else {
+            m.removeRefreshCallback(this.initializationCallback);
+        }
+        if (!this.reDisplayEditor) {
+            this.reDisplayEditor = m.addRefreshCallback(() => {
+                const elem = document.getElementById(containerId);
+                if (!elem) {
+                    m.removeRefreshCallback(this.reDisplayEditor);
+                    this.reDisplayEditor = undefined;
+                    return;
+                }
+                elem.innerHTML = "";
+                elem.appendChild(this.editorElem);
+            });
+        }
+        return {
+            type: 'html',
+            control: {
+                html: `
+                    <div id="${containerId}">
+                    <div class="dynamic-form-code-editor"
+                        id="${this.id}" 
+                        style="width: 80%; ${this.props.readonly ? 'pointer-events: none; cursor: not-allowed;' : ''}">
+                    </div>
+                    </div>
+                `
+            },
+            layout: '{content}',
+        };
+    }
+    serialize(formData) {
+        if (this.props.readonly || !(this.id in formData)) {
+            return (0,types.Ok)({ changed: false, raw: this.props.data });
+        }
+        const val = formData[this.id];
+        return this.converters.toWorld(val).map(raw => ({
+            changed: this.changed,
+            raw
+        }));
+    }
+}
+
+;// ./src/transformInterface.ts
+
+
+
+
+function transformAPI(path) {
+    return fetch('https://transform.alphasoftware.com/transformAPIVersion1.a5svc/' + path, {
+        method: 'GET',
+        headers: {
+            apikey: 'eed9a06d3e3148569a450361d91c3232_RDACFIDFIEI'
+        }
+    }).then(x => x.json());
+}
+function prepareTFList(obj, formId) {
+    return new Promise((resolve) => {
+        obj.ajaxCallback('', '', 'prepare_transform_form_list', '', 'formid=' + encodeURIComponent(formId), {
+            onComplete: () => {
+                resolve(obj.stateInfo.apiResult);
+            }
+        });
+    });
+}
+function initTFSelector(containerId, obj) {
+    const ptr = obj.getPointer(containerId);
+    if (!ptr)
+        throw new Error("Container " + containerId + " does not exist.");
+    const cId = ptr.id;
+    const dropdownItems = transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
+        .then(json => {
+        if (json.error) {
+            console.error(json.errorText);
+            return [];
+        }
+        return json.result.map(row => {
+            return {
+                text: `${row.formname} (${row.formid})`,
+                value: row.formid
+            };
+        });
+    });
+    let selected = '';
+    const form = new AsyncForm(async () => {
+        const items = await dropdownItems;
+        return new DropdownForm({
+            defaultValue: selected,
+            options: items,
+            onChange: x => selected = x
+        });
+    }, []);
+    new ReactiveFormManager(form, cId, obj, raw => {
+        return {
+            type: 'group',
+            items: [
+                raw,
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span> Load Form into List </span> `,
+                        onClick: () => {
+                            okOrLog(launch(selected, obj));
+                        },
+                    }
+                }
+            ]
+        };
+    });
+}
+async function launch(formId, obj) {
+    const prepareResult = await prepareTFList(obj, formId);
+    if ('err' in prepareResult) {
+        console.error(prepareResult.err);
+        return;
+    }
+    okOrLog(_openNewPanel({
+        obj: obj,
+        configName: formId,
+        listContainerId: 'LIST_CONTAINER',
+        searchContainerId: 'SEARCH_CONTAINER',
+        titleName: 'Form ' + formId,
+    }));
+}
+
+;// ./src/util/style.ts
+/* harmony default export */ const style = (`
+    body {
+        --json-punctuation:rgb(196, 26, 97);
+        --json-value:rgb(18, 119, 214);
+        --js-keyword: rgba(230, 53, 206, 1);
+        --js-string: rgba(204, 63, 7, 1);
+        --js-num: rgba(61, 206, 162, 1);
+        --js-comment: rgba(10, 180, 81, 1);
+        --js-op: black;
+    }
+
+    .TFCodeJSONBrackets, .TFCodeJSONSep, .TFCodeJSONBool {
+        color: var(--json-punctuation);
+    }
+    
+    .TFCodeJSONStr, .TFCodeJSONNum {
+        color: var(--json-value);
+    }
+
+    .op {
+        color: var(--js-op);
+    }
+
+    .keyword {
+        color: var(--js-keyword); 
+    }
+
+    .str {
+        color: var(--js-string);
+    }
+
+    .num { color: var(--js-num); }
+    .comment { color: var(--js-comment); }
+`);
+
 // EXTERNAL MODULE: ./node_modules/@sinclair/typebox/build/esm/system/policy.mjs
 var policy = __webpack_require__(297);
 // EXTERNAL MODULE: ./node_modules/@sinclair/typebox/build/esm/type/keyof/keyof-property-keys.mjs
@@ -6619,1507 +15550,125 @@ function Errors(...args) {
     return new ValueErrorIterator(iterator);
 }
 
-// EXTERNAL MODULE: ./src/types.ts
-var types = __webpack_require__(397);
-;// ./src/util.ts
+;// ./src/list/listUtils.ts
 
-function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
-}
-function safeJsonParse(s) {
-    try {
-        const json = JSON.parse(s);
-        return (0,types.Ok)(json);
-    }
-    catch (e) {
-        if (e instanceof SyntaxError) {
-            return (0,types.Err)(e);
+
+
+
+
+
+function makeObviousDefault(p, model) {
+    const segments = [];
+    model.pathTraverser(p, (_1, _2, m) => segments.push(m));
+    const makeDefault = (segments) => {
+        let top = segments.pop();
+        if (segments.length == 0) {
+            if (top.tag == 'data') {
+                switch (top.type) {
+                    case 'number': return 0;
+                    case 'text': return '';
+                    case 'dropdown': return '';
+                    case 'datetime': return new Date();
+                    case 'bool': return false;
+                }
+            }
+            else {
+                // Shouldn't ever get here anyway
+                return null;
+            }
         }
-        return (0,types.Err)(new SyntaxError("There was an unknown error parsing the json."));
-    }
-}
-function okOrLog(p) {
-    p.catch(e => displayErrorMessage(new types.MsgWithCtx("There was an unexpected error.", e)));
-}
-function displayErrorMessage(e) {
-    e.log();
-    /* eslint-disable */
-    let errContainer;
-    let existing = document.getElementById("list-config-error-container");
-    if (existing) {
-        existing.innerHTML = "";
-        errContainer = existing;
-    }
-    else {
-        errContainer = document.createElement('div');
-        document.body.append(errContainer);
-    }
-    let msgContainer = document.createElement('div');
-    msgContainer.style.marginBottom = "2rem";
-    let ok = document.createElement('button');
-    ok.innerText = "OK";
-    ok.onclick = () => {
-        errContainer.style.display = "none";
+        switch (top.tag) {
+            case 'object': {
+                let obj = {};
+                for (const key in top.keys) {
+                    obj[key] = makeDefault(segments);
+                }
+                return obj;
+            }
+            case 'array': return [];
+            case 'data': return null;
+        }
     };
-    msgContainer.innerHTML = e.show();
-    msgContainer.classList.add("error-message-content");
-    errContainer.append(msgContainer, ok);
-    errContainer.style.position = "absolute";
-    errContainer.style.top = "50%";
-    errContainer.style.left = "50%";
-    errContainer.style.transform = "translate(-50%, -50%)";
-    errContainer.style.zIndex = "5";
-    errContainer.style.display = "flex";
-    errContainer.style.backgroundColor = "white";
-    errContainer.style.flexDirection = "column";
-    errContainer.style.padding = "1rem";
-    errContainer.style.alignItems = "center";
-    errContainer.style.border = "2px solid red";
-    errContainer.style.fontSize = "1.3rem";
-    /* eslint-enable */
+    segments.reverse();
+    return makeDefault(segments);
 }
-
-;// ./src/reactiveForm.ts
-
-
-
-class ReactiveForm {
-    constructor() {
-        this.symbol = Symbol();
-    }
-}
-class ReactiveFormManager {
-    constructor(root, containerId, obj, injectInto) {
-        this.inject = j => j;
-        this.root = root;
-        this.fragments = new Map();
-        this.containerId = containerId;
-        this.afterRender = [];
-        this.formDataUpdateRequests = {};
-        this.context = new Map();
-        this.obj = obj;
-        this.changed = false;
-        this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
-        if (injectInto)
-            this.inject = injectInto;
-        this.render(this.root);
-    }
-    static constructFormBox(cId) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        const fb = new A5.FormBox(cId, [], null, {
-            theme: 'Alpha',
-            item: {
-                label: { style: '' },
-                description: { style: '' }
-            },
-            onChange: () => { }
-        });
-        A5.formBox.guides.controls['html'].handle = null;
-        return fb;
-    }
-    addRefreshCallback(callback) {
-        this.afterRender.push(callback);
-        return callback;
-    }
-    removeRefreshCallback(callback) {
-        this.afterRender = this.afterRender.filter(x => x != callback);
-    }
-    setContext(form, name, context) {
-        const existing = this.context.get(name);
-        if (existing !== undefined && existing.setBy == form.symbol) {
-            existing.context = context;
-        }
-        else {
-            this.context.set(name, { setBy: form.symbol, context });
-        }
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-    getContext(name) {
-        return this.context.get(name)?.context;
-    }
-    setFormData(name, value) {
-        this.formDataUpdateRequests[name] = value;
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        if (this.formBox.data)
-            this.formBox.data[name] = value?.toString() ?? '';
-    }
-    getFormData(name) {
-        if (this.formBox.data)
-            return this.formBox.data[name];
-        return undefined;
-    }
-    render(form) {
-        const _render = (form) => {
-            const jsonForm = form.render(this);
-            if (!jsonForm)
-                return undefined;
-            const raw = resolve(jsonForm);
-            const fragment = this.fragments.get(form.symbol);
-            if (fragment) {
-                // We NEED fragment to point to the same obj in memory (i.e. can't just reassign to an empty object).
-                for (const key in fragment) {
-                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                    if (Object.prototype.hasOwnProperty.call(fragment, key))
-                        delete fragment[key];
+function mappingToInput(list, dataModel, m, ops) {
+    const readonly = ops.forceReadonly || (m.readOnly && !ops.forceNoReadonly);
+    const modelType = dataModel.find(m.fullPath);
+    return (data, i) => {
+        let form;
+        if (modelType?.tag == 'data') {
+            if (modelType.type == 'dropdown' && m.dropdownConfig) {
+                const config = m.dropdownConfig;
+                let options;
+                if ('choices' in config) {
+                    options = config.choices.map(x => ({ text: x, value: x }));
                 }
-                Object.assign(fragment, raw);
-            }
-            else {
-                this.fragments.set(form.symbol, raw);
-            }
-            return this.fragments.get(form.symbol);
-        };
-        const resolve = (j) => {
-            if (j.type == 'group') {
-                return {
-                    type: 'group',
-                    container: j.container,
-                    items: j.items.map(x => {
-                        if (x === undefined)
-                            return undefined;
-                        if (x instanceof ReactiveForm)
-                            return _render(x);
-                        return resolve(x);
-                    })
-                };
-            }
-            else if (j.type == 'html')
-                return j;
-            else
-                return j;
-        };
-        _render(form);
-        this.refresh();
-    }
-    rebuildFormBox() {
-        if (this.formBox.ctrls?.picker) {
-            this.formBox.ctrls.picker.destroy();
-        }
-        const activePickers = A5.transients._.tci;
-        for (const key in activePickers) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            if (activePickers[key] == null)
-                delete activePickers[key];
-        }
-        A5.transients._.t = A5.transients._.t.filter(x => x in activePickers);
-        const container = $(this.formBox.contId);
-        if (container) {
-            ReactiveFormManager.removeOldEventHandlers(container);
-            this.formBox.destroy();
-            this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
-        }
-    }
-    refresh() {
-        // Alpha pickers (dropdowns, date pickers, etc) do not immediately update upon selection. 
-        // Instead, they set a timeout and refresh after that. 
-        // If we rebuild the form immediately, then the definition will be replaced, *then* the old callback for the (deleted) picker 
-        // will be called, resulting in an error.
-        setTimeout(() => {
-            const frag = this.fragments.get(this.root.symbol);
-            if (!frag)
-                return;
-            const form = this.inject(frag);
-            this.hookIntoChangeEvents(form);
-            const oldFormData = Object.assign(this.formBox.data ?? {}, this.formDataUpdateRequests);
-            this.formDataUpdateRequests = {};
-            this.rebuildFormBox();
-            const oldRefresh = this.formBox.refresh.bind(this.formBox);
-            this.formBox.refresh = () => {
-                oldRefresh();
-                this.afterRender.forEach(f => { f(); });
-            };
-            this.formBox.load({ form: { items: [form] }, guides: ReactiveFormManager.guides }, oldFormData);
-        }, 1);
-    }
-    hookIntoChangeEvents(f) {
-        if (f.type == 'group')
-            f.items.forEach(i => { if (i)
-                this.hookIntoChangeEvents(i); });
-        else if (f.type == 'edit' || f.type == 'edit-picker' || f.type == 'checkbox' || f.type == 'picker') {
-            const oldChange = f.control?.onChange;
-            if (f.control === undefined)
-                f.control = { onChange: () => { } };
-            f.control.onChange = (d) => {
-                if (!this.changed) {
-                    this.changed = true;
-                    this.formBox.refresh();
+                else {
+                    const s = new Set();
+                    list.dataController.getAllFlattenedRows().forEach(dataPoint => s.add(dataPoint[dataModel.getUniqueName(m)]));
+                    options = Array.from(s).map(x => ({ text: x, value: x }));
                 }
-                if (oldChange)
-                    oldChange(d);
-            };
-        }
-    }
-    static removeOldEventHandlers(elem) {
-        // Alpha hooks its own event handlers into objects. 
-        // They are not all removed when the old form is destroyed. 
-        // If the old handlers are not removed, then (e.g.) clicking a button will 
-        // call the current onClick along with every single previous existing version of 
-        // that onclick function (which is not, I imagine, what you want to do.)
-        // Alpha also doesn't seem to have a way to remove all the event handlers. 
-        // We have to do them individually, and we need a handle to the function being called..
-        /*eslint-disable*/
-        const allEvents = $e._e;
-        const toRemove = [];
-        allEvents.forEach(e => {
-            if (e[0] == elem) {
-                toRemove.push({ event: e[1], fn: e[2] });
-            }
-        });
-        toRemove.forEach(r => $e.remove(elem, r.event, r.fn));
-        for (let i = 0; i < elem.childElementCount; i++) {
-            this.removeOldEventHandlers(elem.children[i]);
-        }
-        /*eslint-enable*/
-    }
-    isDirty() {
-        return this.changed;
-    }
-    setDirty(dirty) {
-        this.changed = dirty;
-    }
-    serialize() {
-        return this.root.serialize(this.formBox.data ?? {}).map(v => changeDetectionToRaw(v));
-    }
-    serializeWithChanges() {
-        return this.root.serialize(this.formBox.data ?? {});
-    }
-}
-ReactiveFormManager.guides = {
-    "layouts": {
-        "flex-label": "<div style=\"display: flex; width: 100%;\"><div style=\"flex: 1 1;\">{label}</div><div >{content}</div></div>{error}{description}",
-        /*eslint-disable*/
-        "label-float-above": { draw: function (dObj) { const l = dObj.item.def.sys.item.layout.settings; if (dObj.item.isNull)
-                return '<div style="position: relative;"><div float-state="1" style="position: absolute; top: 0px; left: 0px; right: 0px; height: 100%;"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>';
-            else
-                return '<div style="position: relative;"><div float-state="2" style="position: absolute; top: -' + l.size + '; left: 0px; right: 0px; height: ' + l.size + ';' + l.style + '"><div style="position: absolute; top: 50%; transform: translate(0px,-50%);">{label}</div></div>{content}</div><div>{error}</div><div>{description}</div>'; }, settings: { size: '14px', style: '', duration: 300 }, handle: { focus: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                    e = e[0].children[0].children[0];
-                    if (e && e.getAttribute('float-state') == '1') {
-                        var l = dObj.item.def.sys.item.layout.settings;
-                        e.setAttribute('float-state', '2');
-                        if (dObj.item.isNull) {
-                            if (l.style != '')
-                                A5.u.element.style(e, '+=' + l.style);
-                            A5.u.element.transition(e, { from: { top: '0px', height: '100%' }, to: { top: '-' + l.size, height: l.size }, duration: l.duration });
-                        }
-                    }
-                } }, blur: function (dObj) { var e = this.getElements(dObj.item.path.def); if (e) {
-                    e = e[0].children[0].children[0];
-                    if (e && e.getAttribute('float-state') == '2') {
-                        var l = dObj.item.def.sys.item.layout.settings;
-                        e.setAttribute('float-state', '1');
-                        if (dObj.item.isNull) {
-                            if (l.style != '')
-                                A5.u.element.style(e, '-=' + l.style);
-                            A5.u.element.transition(e, { from: { top: '-' + l.size, height: l.size }, to: { top: '0px', height: '100%' }, duration: l.duration });
-                        }
-                    }
-                } } } },
-        /*eslint-enable*/
-    }
-};
-function changeDetectionToRaw(c) {
-    if ('raw' in c)
-        return c.raw;
-    else if ('keys' in c) {
-        const out = {};
-        for (const key in c.keys) {
-            out[key] = changeDetectionToRaw(c.keys[key]);
-        }
-        return out;
-    }
-    else {
-        return c.elements.map(x => changeDetectionToRaw(x));
-    }
-}
-class ObjectForm extends ReactiveForm {
-    constructor(data, keymap, newKey) {
-        super();
-        this.data = data;
-        this.initialized = false;
-        this.id = uuidv4();
-        this.keyMap = keymap;
-        this.formMap = new Map();
-        this.changed = false;
-        this.newKey = newKey;
-    }
-    makeInteractor(key, m) {
-        const keyDynamic = (k) => !(k in this.keyMap);
-        const keyMaps = () => {
-            const idxToKey = {};
-            const keyToIdx = {};
-            let idx = 0;
-            for (const k of this.formMap.keys()) {
-                idxToKey[idx] = k;
-                keyToIdx[k] = idx;
-                idx += 1;
-            }
-            return [idxToKey, keyToIdx];
-        };
-        const swapKeys = (idx1, idx2) => {
-            const ordering = Array.from(this.formMap.keys()).map((k, idx) => ({
-                k,
-                i: idx == idx1 ? idx2 : (idx == idx2 ? idx1 : idx)
-            }));
-            ordering.sort((a, b) => a.i - b.i);
-            const newFormMap = new Map();
-            ordering.forEach(item => {
-                const x = this.formMap.get(item.k);
-                if (x)
-                    newFormMap.set(item.k, x);
-            });
-            this.formMap = newFormMap;
-            m.render(this);
-        };
-        return {
-            currentIndex: () => {
-                const [, keyToIdx] = keyMaps();
-                return keyToIdx[key];
-            },
-            canDelete: () => keyDynamic(key),
-            delete: () => {
-                this.formMap.delete(key);
-                m.render(this);
-            },
-            canMoveDown: () => {
-                const [, keyToIdx] = keyMaps();
-                const idx = keyToIdx[key];
-                if (idx >= this.formMap.size - 1)
-                    return false;
-                return true;
-            },
-            moveDown: () => {
-                const [, keyToIdx] = keyMaps();
-                const idx = keyToIdx[key];
-                swapKeys(idx, idx + 1);
-            },
-            canMoveUp: () => {
-                const [idxToKey, keyToIdx] = keyMaps();
-                const idx = keyToIdx[key];
-                if (idx <= 0)
-                    return false;
-                if (!keyDynamic(idxToKey[idx - 1]))
-                    return false;
-                return true;
-            },
-            moveUp: () => {
-                const [, keyToIdx] = keyMaps();
-                const idx = keyToIdx[key];
-                swapKeys(idx, idx - 1);
-            }
-        };
-    }
-    initialize(m) {
-        this.initialized = true;
-        const seen = new Set();
-        for (const key in this.keyMap) {
-            seen.add(key);
-            const f = this.keyMap[key];
-            this.formMap.set(key, this.keyMap[key](this.data[key], this.makeInteractor(key, m)));
-        }
-        if (this.newKey) {
-            for (const key in this.data) {
-                if (seen.has(key))
-                    continue;
-                this.formMap.set(key, this.newKey.onAdd(key, this.data[key], this.makeInteractor(key, m)));
-            }
-        }
-    }
-    render(m) {
-        if (!this.initialized) {
-            this.initialize(m);
-        }
-        let newKeyBtn = undefined;
-        if (this.newKey) {
-            let keyInput;
-            const inputId = this.id + '_newKeyInput';
-            if (this.newKey.dropdownOptions) {
-                keyInput = {
-                    type: this.newKey.dropdownOptions.allowAny ? 'edit-picker' : 'picker',
-                    id: inputId,
-                    data: {
-                        from: inputId,
-                        ensure: true,
-                        blank: this.newKey.dropdownOptions.defaultOption,
-                        defaultValue: this.newKey.dropdownOptions.defaultOption
-                    },
-                    control: {
-                        data: {
-                            src: this.newKey.dropdownOptions.options,
-                            map: ['value', 'text']
-                        }
-                    },
-                    sys: {
-                        isEmbedded: false,
-                        item: {
-                            layout: {
-                                handle: {}
-                            }
-                        }
-                    }
-                };
-            }
-            else {
-                keyInput = {
-                    type: 'edit',
-                    id: inputId,
-                    data: {
-                        from: inputId,
-                        ensure: true
-                    },
-                    sys: {
-                        isEmbedded: false,
-                        item: {
-                            layout: {
-                                handle: {}
-                            }
-                        }
-                    }
-                };
-            }
-            newKeyBtn = {
-                type: 'group',
-                container: {
-                    className: 'dynamic-form-add-new-key',
-                    style: `;
-                        display: flex;
-                        flex-direction: row;
-                        gap: 1rem;
-                        padding: 0.5rem;
-                    `
-                },
-                items: [
-                    keyInput,
-                    {
-                        type: 'button',
-                        control: {
-                            html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
-                            onClick: () => {
-                                const newName = m.getFormData(inputId);
-                                if (typeof newName == 'string' && newName !== '') {
-                                    if (this.formMap.has(newName)) {
-                                        displayErrorMessage(new types.ErrMsg("Key " + newName + " was already added."));
-                                    }
-                                    else {
-                                        if (this.newKey) {
-                                            const newForm = this.newKey.onAdd(newName, undefined, this.makeInteractor(newName, m));
-                                            this.formMap.set(newName, newForm);
-                                        }
-                                    }
-                                }
-                                m.setFormData(inputId, '');
-                                m.render(this);
-                            }
-                        },
-                        sys: { isEmbedded: false }
-                    }
-                ]
-            };
-        }
-        return {
-            type: 'group',
-            container: {
-                className: 'dynamic-form-object-group',
-                style: `; 
-                    display: flex; 
-                    flex-direction: column;
-                    gap: 1rem;
-                `
-            },
-            items: [...this.formMap.values(), newKeyBtn]
-        };
-    }
-    serialize(formData) {
-        if (!this.initialized)
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        const keys = {};
-        for (const [k, v] of this.formMap.entries()) {
-            const s = v.serialize(formData);
-            if (s.isOk())
-                keys[k] = s.asOk();
-            else
-                return s;
-        }
-        return (0,types.Ok)({
-            keys,
-            changed: this.changed
-        });
-    }
-}
-class ArrayForm extends ReactiveForm {
-    constructor(data, item, onAdd) {
-        super();
-        this.item = item;
-        this.onAdd = onAdd;
-        this.initialized = false;
-        this.entries = [];
-        this.data = data;
-    }
-    makeEntry(elem, idx, m) {
-        const swap = (i1, i2) => {
-            if (i1 < 0 || i1 >= this.entries.length)
-                return;
-            if (i2 < 0 || i2 >= this.entries.length)
-                return;
-            const e1 = this.entries[i1];
-            const e2 = this.entries[i2];
-            e1.interactorCtx.index = i2;
-            e2.interactorCtx.index = i1;
-            this.entries[i2] = e1;
-            this.entries[i1] = e2;
-            m.render(this);
-        };
-        const ctx = {
-            index: idx
-        };
-        const interactor = {
-            currentIndex: () => ctx.index,
-            canDelete: () => true,
-            delete: () => {
-                this.entries = this.entries.filter(e => e.interactorCtx.index != ctx.index);
-                for (const entry of this.entries) {
-                    if (entry.interactorCtx.index > ctx.index)
-                        entry.interactorCtx.index -= 1;
-                }
-                m.render(this);
-            },
-            canMoveUp: () => ctx.index > 0,
-            moveUp: () => { swap(ctx.index, ctx.index - 1); },
-            canMoveDown: () => ctx.index < this.entries.length - 1,
-            moveDown: () => { swap(ctx.index, ctx.index + 1); }
-        };
-        return {
-            form: this.item(elem, interactor),
-            interactorCtx: ctx
-        };
-    }
-    render(m) {
-        if (!this.initialized) {
-            this.entries = this.data.map((elem, idx) => this.makeEntry(elem, idx, m));
-            this.initialized = true;
-        }
-        return {
-            type: 'group',
-            container: {
-                style: `
-                    display: flex; 
-                    flex-direction: column;
-                    padding: 0.5rem;
-                    gap: 0.5rem;
-                `
-            },
-            items: [
-                ...this.entries.map(e => e.form),
-                {
-                    type: 'group',
-                    items: [{
-                            type: 'button',
-                            control: {
-                                html: A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
-                                onClick: () => {
-                                    const newItem = this.onAdd();
-                                    this.entries.push(this.makeEntry(newItem, this.entries.length, m));
-                                    m.render(this);
-                                }
-                            },
-                            sys: { isEmbedded: false }
-                        }],
-                    container: {
-                        className: 'dynamic-form-array-add-item-group'
-                    }
-                }
-            ]
-        };
-    }
-    serialize(formData) {
-        if (!this.initialized)
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        const items = [];
-        for (const e of this.entries) {
-            const s = e.form.serialize(formData);
-            if (s.isOk())
-                items.push(s.asOk());
-            else
-                return s;
-        }
-        return (0,types.Ok)({
-            elements: items,
-            changed: items.reduce((a, b) => a || b.changed, false)
-        });
-    }
-}
-class ItemLabel extends ReactiveForm {
-    constructor(interactor, options) {
-        super();
-        this.options = options;
-        this.id = uuidv4();
-        this.interactor = interactor;
-    }
-    setLabel(l) {
-        this.options.label = l;
-    }
-    enabledCheck(m) {
-        if (this.options.enabled === undefined)
-            return undefined;
-        const enabled = {
-            id: this.id + '_enabled',
-            type: 'checkbox',
-            data: {
-                from: this.id + '_enabled',
-                blank: this.options.enabled
-            },
-            control: {
-                onChange: () => {
-                    this.options.enabled = !this.options.enabled;
-                    m.render(this);
-                }
-            },
-            sys: {
-                isEmbedded: false,
-                item: {
-                    layout: {
-                        handle: {}
-                    }
-                }
-            }
-        };
-        m.setFormData(this.id + '_enabled', this.options.enabled);
-        return enabled;
-    }
-    collapseBtn(m) {
-        if (this.options.collapsed === undefined)
-            return undefined;
-        const icon = this.options.collapsed ? 'chevronRight' : 'chevronDown';
-        return {
-            type: 'button',
-            disabled: () => !(this.options.enabled ?? true),
-            control: {
-                html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
-                onClick: () => {
-                    this.options.collapsed = !this.options.collapsed;
-                    m.render(this);
-                }
-            },
-            sys: { isEmbedded: false }
-        };
-    }
-    moveBtns(m) {
-        if (!(this.options.showMove ?? false))
-            return undefined;
-        return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    disabled: () => !this.interactor.canMoveUp(),
-                    control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-arrowUp:icon,24'),
-                        onClick: () => {
-                            this.interactor.moveUp();
-                            m.render(this);
-                        }
-                    },
-                    sys: { isEmbedded: false }
-                },
-                {
-                    type: 'button',
-                    disabled: () => !this.interactor.canMoveDown(),
-                    control: {
-                        html: A5.u.icon.html('svgIcon=#alpha-icon-arrowDown:icon,24'),
-                        onClick: () => {
-                            this.interactor.moveDown();
-                            m.render(this);
-                        }
-                    },
-                    sys: { isEmbedded: false }
-                }
-            ]
-        };
-    }
-    deleteBtn(m) {
-        if (!(this.options.showDelete ?? false))
-            return undefined;
-        return {
-            type: 'button',
-            disabled: () => !this.interactor.canDelete(),
-            control: {
-                html: A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
-                onClick: () => {
-                    this.interactor.delete();
-                    m.render(this);
-                }
-            },
-            sys: { isEmbedded: false }
-        };
-    }
-    render(m) {
-        const label = {
-            type: 'html',
-            control: {
-                html: `<p class="dynamic-form-simple-label">${this.options.label}</p>`
-            },
-            container: {
-                style: `;
-                    font-variant: all-petite-caps;
-                    font-weight: bold;
-                    color: #434343;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 0.5rem;
-                `
-            },
-            layout: '{content}'
-        };
-        let shouldDisplay = true;
-        if (this.options.collapsed ?? false)
-            shouldDisplay = false;
-        if (!(this.options.enabled ?? true))
-            shouldDisplay = false;
-        const labelGroup = {
-            type: 'group',
-            container: {
-                className: 'dynamic-form-item-group',
-                style: `;
-                            display: flex;
-                            flex-direction: row;
-                            gap: 0.5rem;
-                            align-items: center;
-                        `
-            },
-            items: [
-                this.enabledCheck(m),
-                this.collapseBtn(m),
-                !(this.options.labelRight ?? false) ? label : undefined,
-                this.deleteBtn(m),
-                this.moveBtns(m),
-                this.options.labelRight ? {
-                    type: 'group',
-                    items: [label],
-                    container: { style: 'margin-left: 1rem;' },
-                } : undefined
-            ]
-        };
-        const tabCtx = m.getContext(this.options.launchInTab ?? '');
-        const newTabLaunch = {
-            type: 'button',
-            control: {
-                html: `
-                    <div class="dynamic-form-open-nested" style="
-                        display: flex;
-                        flex-direction: row;
-                        align-items: center;
-                        gap: 0.5rem;
-                        cursor: pointer;
-                    >
-                        <p style="font-variant: all-petite-caps: font-weight: bold;"> Edit ${this.options.label} </p>
-                        ${A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')}
-                    </div>
-                `,
-                onClick: () => {
-                    if (tabCtx)
-                        tabCtx.tabForm.pushTab(m, this.options.label, this.options.item);
-                },
-                style: 'color: black !important;'
-            },
-            sys: { isEmbedded: false }
-        };
-        const itemGroup = {
-            type: 'group',
-            items: [this.options.launchInTab
-                    ? newTabLaunch
-                    : this.options.item
-            ]
-        };
-        if (this.options.enclosed && labelGroup.container) {
-            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            labelGroup.container.style += `
-                padding: 0.5rem;
-                border: 1px solid black;
-                background-color: lightgray;
-            `;
-            itemGroup.container = {
-                className: 'dynamic-form-label-item-group',
-                style: `
-                    padding: 0.5rem;
-                    border: 1px solid black;
-                `,
-            };
-        }
-        return {
-            type: 'group',
-            container: {
-                style: `; display: flex; flex-direction: column;`,
-                className: 'dynamic-form-item-group'
-            },
-            items: [
-                labelGroup,
-                shouldDisplay ? itemGroup : undefined
-            ]
-        };
-    }
-    serialize(formData) {
-        if (this.options.enabled ?? true) {
-            return this.options.item.serialize(formData);
-        }
-        return (0,types.Ok)({ changed: false, raw: undefined });
-    }
-}
-class LabelBool extends ReactiveForm {
-    constructor(label, value) {
-        super();
-        this.id = uuidv4();
-        this.label = label;
-        this.value = value ?? false;
-        this.changed = false;
-    }
-    render(m) {
-        return {
-            type: 'group',
-            container: {
-                style: `; display: flex; flex-direction: column;`,
-                className: 'dynamic-form-item-group'
-            },
-            items: [{
-                    type: 'group',
-                    container: {
-                        className: 'dynamic-form-item-group',
-                        style: `;
-                                display: flex;
-                                flex-direction: row;
-                                gap: 0.5rem;
-                                align-items: center;
-                            `
-                    },
-                    items: [
-                        {
-                            type: 'checkbox',
-                            id: this.id,
-                            data: {
-                                from: this.id,
-                                blank: this.value,
-                            },
-                            control: {
-                                onChange: () => {
-                                    this.value = !this.value;
-                                    this.changed = true;
-                                    m.setFormData(this.id, this.value);
-                                    m.render(this);
-                                }
-                            },
-                            sys: {
-                                isEmbedded: false,
-                                item: {
-                                    layout: {
-                                        handle: {}
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            type: 'html',
-                            control: {
-                                html: `<p class="dynamic-form-simple-label">${this.label}</p>`
-                            },
-                            container: {
-                                style: `;
-                                font-variant: all-petite-caps;
-                                font-weight: bold;
-                                color: #434343;
-                                display: flex;
-                                flex-direction: row;
-                                align-items: center;
-                                gap: 0.5rem;
-                            `
-                            },
-                            layout: '{content}'
-                        }
-                    ]
-                }]
-        };
-    }
-    serialize() {
-        return (0,types.Ok)({ changed: this.changed, raw: this.value });
-    }
-}
-class Input extends ReactiveForm {
-    constructor(options) {
-        super();
-        this.id = uuidv4();
-        this.options = options;
-        this.changed = false;
-        let fromWorld = (x) => x;
-        let toWorld = (x) => (0,types.Ok)(x);
-        if (this.options.type == 'datetime' && this.options.initialData instanceof Date) {
-            fromWorld = x => x.toFormat(options.dateFmt ?? DEFAULT_DATETIME_FMT);
-            toWorld = x => {
-                if (typeof x === 'string') {
-                    const d = new Date();
-                    d.fromFormat(x, this.options.dateFmt ?? DEFAULT_DATETIME_FMT);
-                    return (0,types.Ok)(d);
-                }
-                return (0,types.Ok)(x);
-            };
-        }
-        this.converters = { fromWorld, toWorld };
-        this.data = this.converters.fromWorld(options.initialData);
-    }
-    render(m) {
-        let editType;
-        switch (this.options.type) {
-            case "function":
-            case "string":
-            case "number":
-                editType = 'edit';
-                break;
-            case "boolean":
-                editType = 'checkbox';
-                break;
-            case 'datetime':
-                editType = 'picker';
-                break;
-        }
-        const input = {
-            control: {
-                multiLine: this.options.textarea,
-                width: '100%',
-                style: '',
-                picker: (editType == 'picker') ? {
-                    type: 'date-time',
-                    format: this.options.dateFmt ?? DEFAULT_DATETIME_FMT
-                } : undefined,
-                behavior: (editType == 'picker') ? {
-                    show: {
-                        mode: ''
-                    }
-                } : undefined,
-                onChange: () => {
-                    this.changed = true;
-                },
-                onKeyDown: (_1, _2, e) => {
-                    this.changed = true;
-                    e.stopPropagation();
-                }
-            },
-            sys: {
-                isEmbedded: false,
-                item: {
-                    layout: {
-                        handle: {}
-                    }
-                }
-            },
-            id: this.id,
-            type: editType,
-            data: {
-                from: this.id,
-                ensure: true,
-                blank: this.data
-            },
-            container: {
-                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`,
-                className: "dynamic-form-simple-item"
-            },
-            readonly: () => this.options.readonly ?? false,
-        };
-        return input;
-    }
-    getValue(m) {
-        return m.getFormData(this.id);
-    }
-    setValue(m, data) {
-        m.setFormData(this.id, data);
-        m.render(this);
-    }
-    serialize(formData) {
-        const val = formData[this.id];
-        let jsonVal;
-        if (!(this.id in formData)) {
-            return (0,types.Ok)({ changed: false, raw: this.options.initialData });
-        }
-        switch (this.options.type) {
-            case "function":
-            case "string":
-                jsonVal = val;
-                break;
-            case "number":
-                jsonVal = parseFloat(val);
-                break;
-            case "boolean":
-                jsonVal = Boolean(val);
-                break;
-            case "datetime": {
-                const result = this.converters.toWorld(val);
-                if (result.isOk())
-                    jsonVal = result.asOk();
-                else
-                    return (0,types.Err)("There was an error parsing the date value.");
-            }
-        }
-        return (0,types.Ok)({
-            changed: this.changed,
-            raw: jsonVal
-        });
-    }
-}
-class MultiForm extends ReactiveForm {
-    constructor(options) {
-        super();
-        this.cache = {};
-        this.activeOption = options.defaultOption;
-        this.allowCollapse = options.allowCollapse ?? true;
-        this.collapsed = this.allowCollapse ? true : false;
-        this.id = uuidv4();
-        this.dropdownOptions = options.options;
-        this.chooseForm = options.chooseForm;
-        this.onSelect = options.onSelect;
-        this.activeForm = this.chooseForm(this.activeOption, this);
-    }
-    current() {
-        return this.activeForm;
-    }
-    render(m) {
-        const icon = this.collapsed ? 'chevronRight' : 'chevronDown';
-        const header = {
-            type: 'group',
-            items: [
-                this.allowCollapse ? {
-                    type: 'button',
-                    control: {
-                        html: A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
-                        onClick: () => {
-                            this.collapsed = !this.collapsed;
-                            m.render(this);
-                        },
-                    },
-                    sys: { isEmbedded: false }
-                } : undefined,
-                {
-                    type: 'picker',
-                    id: this.id,
-                    data: {
-                        from: this.id,
-                        ensure: true,
-                        blank: this.activeOption
-                    },
-                    sys: {
-                        isEmbedded: false,
-                        item: {
-                            layout: {
-                                handle: {}
-                            }
-                        }
-                    },
-                    control: {
-                        data: {
-                            src: this.dropdownOptions.map(x => ({ text: x, value: x })),
-                            map: ['value', 'text']
-                        },
-                        onChange: (change) => {
-                            if (change.item.data !== null && change.item.data !== undefined) {
-                                if (typeof change.item.data !== 'string')
-                                    return;
-                                this.activeOption = change.item.data;
-                                if (this.onSelect)
-                                    this.onSelect(this.activeOption, this);
-                                if (this.activeOption in this.cache) {
-                                    this.activeForm = this.cache[this.activeOption];
-                                }
-                                else {
-                                    this.activeForm = this.chooseForm(this.activeOption, this);
-                                    this.cache[this.activeOption] = this.activeForm;
-                                }
-                                m.render(this);
-                            }
-                        }
-                    },
-                }
-            ],
-            container: {
-                style: `;
-                    background-color: lightgray; 
-                    padding: 0.5rem; 
-                    border: 1px solid black;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    gap: 0.5rem;
-                `
-            }
-        };
-        return {
-            type: 'group',
-            items: [
-                header,
-                this.collapsed ? undefined : {
-                    type: 'group',
-                    items: [this.activeForm],
-                    container: {
-                        style: '; padding: .5rem; border: 1px solid black; '
-                    }
-                }
-            ],
-            container: {
-                className: 'dynamic-form-multiform-group'
-            }
-        };
-    }
-    serialize(formData) {
-        return this.activeForm.serialize(formData);
-    }
-}
-class DropdownForm extends ReactiveForm {
-    constructor(options) {
-        super();
-        this.id = uuidv4();
-        this.changed = false;
-        this.options = options;
-        this.currentOption = this.options.defaultValue;
-    }
-    render(m) {
-        return {
-            type: this.options.allowAny ? 'edit-picker' : 'picker',
-            id: this.id,
-            data: {
-                from: this.id,
-                ensure: true,
-                blank: this.currentOption,
-                defaultValue: this.currentOption
-            },
-            readonly: () => this.options.readonly ?? false,
-            control: {
-                data: {
-                    src: this.options.options,
-                    map: ['value', 'text']
-                },
-                picker: {
-                    data: {
-                        empty: {
-                            message: "No Items"
-                        }
-                    }
-                },
-                onChange: (change) => {
-                    if (change.item.data != undefined) {
-                        if (typeof change.item.data !== 'string')
-                            return;
-                        this.changed = true;
-                        this.currentOption = change.item.data;
-                        if (this.options.onChange)
-                            this.options.onChange(this.currentOption);
-                    }
-                    if (change.item.data == undefined) {
-                        m.setFormData(this.id, this.currentOption);
-                    }
-                }
-            },
-            container: {
-                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`
-            },
-            sys: {
-                isEmbedded: false,
-                item: {
-                    layout: {
-                        handle: {}
-                    }
-                }
-            }
-        };
-    }
-    serialize() {
-        return (0,types.Ok)({ changed: true, raw: this.currentOption });
-    }
-}
-class ConstForm extends ReactiveForm {
-    constructor(value) {
-        super();
-        this.value = value;
-    }
-    render() {
-        return undefined;
-    }
-    serialize() {
-        return (0,types.Ok)({ changed: false, raw: this.value });
-    }
-}
-class Observer {
-    constructor() {
-        this.watching = new Map();
-    }
-    onNotify(f) {
-        const id = uuidv4();
-        this.watching.set(id, f);
-        return id;
-    }
-    removeOnNotify(id) {
-        this.watching.delete(id);
-    }
-    notify(t) {
-        for (const f of this.watching.values()) {
-            f(t);
-        }
-    }
-}
-class ObserverForm extends ReactiveForm {
-    constructor(o, initial, makeForm) {
-        super();
-        this.observer = o;
-        this.form = makeForm(initial);
-        this.makeForm = makeForm;
-        this.fId = this.observer.onNotify(t => {
-            this.form = this.makeForm(t);
-            if (this.manager)
-                this.manager.render(this);
-        });
-    }
-    render(m) {
-        this.manager = m;
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class AsyncForm extends ReactiveForm {
-    constructor(form, defaultValue) {
-        super();
-        this.needInitialize = true;
-        this.defaultValue = defaultValue;
-        this.loader = form;
-    }
-    render(m) {
-        if (this.needInitialize) {
-            this.needInitialize = false;
-            okOrLog(this.loader().then(f => {
-                this.form = f;
-                m.render(this);
-            }));
-        }
-        if (this.form == undefined) {
-            return {
-                type: 'html',
-                control: {
-                    html: "<p>Loading...</p>"
-                },
-                layout: '{content}'
-            };
-        }
-        else {
-            return { type: 'group', items: [this.form] };
-        }
-    }
-    serialize(formData) {
-        if (this.form === undefined) {
-            return (0,types.Ok)({ changed: false, raw: this.defaultValue });
-        }
-        return this.form.serialize(formData);
-    }
-}
-class WithContext extends ReactiveForm {
-    constructor(name, ctx, form) {
-        super();
-        this.c = ctx;
-        this.form = form;
-        this.name = name;
-    }
-    render(m) {
-        m.setContext(this, this.name, this.c);
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class TabContext {
-    constructor(t) {
-        this.tabForm = t;
-    }
-}
-class TabForm extends ReactiveForm {
-    constructor(baseTabName, baseTab, name) {
-        super();
-        this.tabs = [{ name: baseTabName, tab: baseTab }];
-        this.name = name;
-    }
-    render(m) {
-        m.setContext(this, this.name, new TabContext(this));
-        const tabs = this.tabs.map((tab, index) => {
-            let style = '; font-variant: all-petite-caps: font-weight: bold; cursor: pointer;';
-            if (index == this.tabs.length - 1) {
-                style += 'color: black; text-decoration: underline;';
-            }
-            else {
-                style += 'color: #4d4d4d !important;';
-            }
-            const t = {
-                type: 'button',
-                control: {
-                    html: `<p style="${style}">${tab.name}</p>`,
-                    onClick: () => { this.navigateToTab(m, index); },
-                    style: `display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;`
-                },
-                container: {
-                    className: 'dynamic-form-top-tab',
-                },
-                sys: { isEmbedded: false }
-            };
-            if (index < this.tabs.length - 1) {
-                t.control.html += A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24');
-            }
-            return t;
-        });
-        const header = {
-            type: 'group',
-            items: tabs,
-            container: {
-                style: `
-                    display: flex;
-                    gap: 0.5rem;
-                    flex-direction: row;
-                    justify-content: center;
-                    background-color: lightgray;
-                    padding: .3rem;
-                `
-            }
-        };
-        return {
-            type: 'group',
-            items: [
-                header,
-                { type: 'group', items: [this.tabs[this.tabs.length - 1].tab], container: { style: 'padding: 0.5rem' } }
-            ],
-            container: {
-                style: `;
-                    display: flex;
-                    flex-direction: column;
-                    outline: 1px solid black;
-                `
-            }
-        };
-    }
-    navigateToTab(m, index) {
-        if (index < 0 || index > this.tabs.length - 1)
-            return;
-        this.tabs = this.tabs.filter((_, i) => i <= index);
-        m.render(this);
-    }
-    pushTab(m, name, tab) {
-        this.tabs.push({ name, tab });
-        m.render(this);
-    }
-    serialize(formData) {
-        return this.tabs[0].tab.serialize(formData);
-    }
-}
-class Show extends ReactiveForm {
-    constructor(form, show) {
-        super();
-        this.form = form;
-        this.show = show;
-    }
-    render(m) {
-        if (this.show(m))
-            return { type: 'group', items: [this.form] };
-        return undefined;
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class CodeEditor extends ReactiveForm {
-    constructor(props) {
-        super();
-        this.id = uuidv4();
-        this.props = props;
-        this.changed = false;
-        if (typeof this.props.data == 'string') {
-            this.converters = {
-                fromWorld: d => d,
-                toWorld: d => (0,types.Ok)(d),
-            };
-        }
-        else {
-            this.converters = {
-                fromWorld: d => JSON.stringify(d, null, ' '),
-                toWorld: d => safeJsonParse(d).mapErr(e => e.message).map(x => x)
-            };
-        }
-        this.data = this.converters.fromWorld(props.data);
-    }
-    render(m) {
-        const containerId = this.id + '_CONTAINER';
-        if (!this.editorElem) {
-            const displayEditor = () => {
-                if (!$(this.id)) {
-                    return;
-                }
-                const editor = new TF.u.code.Editor(this.id, {
-                    lang: this.props.lang
+                form = new DropdownForm({
+                    defaultValue: data,
+                    options,
+                    allowAny: m.dropdownConfig.allowCustom,
+                    readonly
                 });
-                this.editorElem = document.getElementById(editor._.id);
-                editor.setValue(this.data);
-                const _this = this;
-                editor.onChange = function () {
-                    if (_this.props.readonly)
-                        return;
-                    m.setFormData(_this.id, this.value);
-                    _this.data = this.value;
-                    _this.changed = true;
-                    m.setDirty(true);
-                };
-            };
-            m.setFormData(this.id, this.data);
-            this.initializationCallback = m.addRefreshCallback(displayEditor);
+            }
+            else {
+                let ty = modelType.type;
+                if (ty == 'bool')
+                    ty = 'boolean';
+                else if (ty == 'text')
+                    ty = 'string';
+                form = new Input({
+                    initialData: data,
+                    type: ty,
+                    dateFmt: m.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
+                    readonly
+                });
+            }
         }
         else {
-            m.removeRefreshCallback(this.initializationCallback);
+            if (!ops.jsonAsText && m.jsonEditorType) {
+                const name = m.displayName ?? DataModel.printPath(m.fullPath);
+                const configName = m.jsonEditorListConfigName ?? list.config.name + '_' + name;
+                form = new ButtonForm('Open ' + name, (btnForm) => {
+                    list.openSublistFromNested(configName, name, btnForm.data, (newData, childList) => {
+                        btnForm.data = newData;
+                        if (ops.requestSave)
+                            ops.requestSave();
+                        childList.obj.refreshClientSideComputations(true);
+                        childList.recalculateButtons();
+                        childList.listBox.refresh(true);
+                    });
+                }, data ?? []);
+            }
+            else if (ops.jsonAsText) {
+                form = new Input({
+                    initialData: data,
+                    type: 'string',
+                    readonly
+                });
+            }
+            else {
+                form = new CodeEditor({
+                    data: data,
+                    lang: 'json',
+                    readonly
+                });
+            }
         }
-        if (!this.reDisplayEditor) {
-            this.reDisplayEditor = m.addRefreshCallback(() => {
-                const elem = document.getElementById(containerId);
-                if (!elem) {
-                    m.removeRefreshCallback(this.reDisplayEditor);
-                    this.reDisplayEditor = undefined;
-                    return;
-                }
-                elem.innerHTML = "";
-                elem.appendChild(this.editorElem);
-            });
-        }
-        return {
-            type: 'html',
-            control: {
-                html: `
-                    <div id="${containerId}">
-                    <div class="dynamic-form-code-editor"
-                        id="${this.id}" 
-                        style="width: 80%; ${this.props.readonly ? 'pointer-events: none; cursor: not-allowed;' : ''}">
-                    </div>
-                    </div>
-                `
-            },
-            layout: '{content}',
-        };
-    }
-    serialize(formData) {
-        if (this.props.readonly || !(this.id in formData)) {
-            return (0,types.Ok)({ changed: false, raw: this.props.data });
-        }
-        const val = formData[this.id];
-        return this.converters.toWorld(val).map(raw => ({
-            changed: this.changed,
-            raw
-        }));
-    }
+        return new ItemLabel(i, {
+            label: m.displayName ?? DataModel.printPath(m.fullPath),
+            item: form,
+            enabled: ops.forceOptional ? data !== undefined : undefined
+        });
+    };
 }
-
-;// ./src/listBuilder.ts
-
-
-
-
-
-
-const DEFAULT_DATETIME_FMT = "yyyy/MM/dd 0h:0m:0s.3";
+const listUtils_openNewPanel = openNewPanel;
+const _DYNAMIC_LIST_LOOKUP = DYNAMIC_LIST_LOOKUP;
 const LIST_NAME = 'DYNAMIC_LIST';
 const DETAIL_FORM_CONTAINER = 'EDITOR_CONTAINER';
 class ValidationError extends Error {
@@ -8159,18 +15708,12 @@ function validateMapping(mapping) {
         throw new ValidationError("Could not validate config -- check logs.", errors);
     return mapping;
 }
-function validateSchema(schema) {
-    const errors = [...Value.Errors(SchemaTypeSchema, schema)];
-    if (errors.length > 0)
-        throw new ValidationError("Could not validate schema -- check logs.", errors);
-    return schema;
-}
 function clone(t) {
     if (t instanceof Array)
-        return jQuery.extend(true, [], t);
-    return jQuery.extend(true, {}, t);
+        return _jQuery.extend(true, [], t);
+    return _jQuery.extend(true, {}, t);
 }
-async function listBuilder_fetch(obj, configName, endpoint) {
+async function listUtils_fetch(obj, configName, endpoint) {
     return new Promise((resolve) => {
         obj.ajaxCallback("", "", "fetch", "", `configName=${encodeURIComponent(configName)}`
             + (endpoint != undefined ? `&endpoint=${encodeURIComponent(endpoint)}` : ""), {
@@ -8184,7 +15727,7 @@ async function listBuilder_fetch(obj, configName, endpoint) {
 async function preFileInteraction(obj, list) {
     const oldGetListData = obj.getListDataAll;
     const rawData = list.dataController.getAllFlattenedRows();
-    const processed = list.dataBridge.processedToRawStayFlattened(rawData);
+    const processed = list.dataBridge.processedToRawStayFlattened(rawData, list.dataModel);
     if (processed.isOk() == false) {
         displayErrorMessage(new types.ErrMsg("There was an error processing the list data: " + processed.asErr()));
         return Promise.reject();
@@ -8192,8 +15735,30 @@ async function preFileInteraction(obj, list) {
     obj.getListDataAll = () => {
         return processed.asOk() ?? [];
     };
+    let mappingNames = [];
+    if (list.dataController.mappingInfo.isEntirelyTopLevel()) {
+        mappingNames = list.config.mappings.map(x => {
+            const unique = list.dataModel.getUniqueName(x);
+            return {
+                unique,
+                display: x.displayName ?? unique
+            };
+        });
+    }
+    else {
+        mappingNames = list.config.mappings
+            .filter(x => list.dataController.mappingInfo.pathIsDeeplyNested(x.fullPath))
+            .map(x => {
+            const unique = list.dataModel.getUniqueName(x);
+            return {
+                unique,
+                display: x.displayName ?? unique
+            };
+        });
+    }
     return new Promise((resolve) => {
-        obj.ajaxCallback("", "", "pre_file_upload", "", "", {
+        obj.ajaxCallback("", "", "pre_file_upload", "", `DYNAMIC_LIST_COLUMN_NAMES=${encodeURIComponent(JSON.stringify(mappingNames.map(x => x.unique)))}`
+            + `&DYNAMIC_LIST_COLUMN_DISPLAY_NAMES=${encodeURIComponent(JSON.stringify(mappingNames.map(x => x.display)))}`, {
             flagSaveListData: true,
             submitListData: true,
             onComplete: () => {
@@ -8220,11 +15785,1105 @@ async function postFileInteraction(obj) {
         });
     });
 }
+
+;// ./src/list/DynamicListSearch.ts
+
+
+
+
+
+
+class DynamicListSearch {
+    constructor(dynamicList, obj, contId) {
+        // Used in _match
+        this.searchMemoizationNeedsRebuild = false;
+        this.searchMemoization = {};
+        this.flatRowData = [];
+        this.list = dynamicList;
+        this.obj = obj;
+        const ptr = obj.getPointer(contId);
+        if (!ptr) {
+            throw new Error("Container ID " + contId + " does not point to a container.");
+        }
+        this.formContainerId = ptr.id;
+        this.resetForm();
+    }
+    resetForm() {
+        this.form = new ReactiveFormManager(this.buildForm(), this.formContainerId, this.obj, f => ({
+            type: 'group',
+            items: [
+                f,
+                this.makeButtons()
+            ]
+        }));
+    }
+    buildForm() {
+        let f;
+        let title;
+        if (this.list.config.searchOptions.advancedSearch) {
+            title = "Advanced Search";
+            f = this.buildAdvancedSearch();
+        }
+        else {
+            title = "List Search";
+            f = this.buildSimpleSearch();
+        }
+        return new TabForm(title, f, "search");
+    }
+    buildSimpleSearch() {
+        const keyMap = {};
+        for (const col of this.list.config.mappings) {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (this.list.config.searchOptions.onlyInclude.find(x => pathsEq(x, col.fullPath)) === undefined)
+                    continue;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.find(x => pathsEq(x, col.fullPath)) !== undefined)
+                    continue;
+            }
+            keyMap[this.list.dataModel.getUniqueName(col)] = (d, i) => {
+                let data = d; // ?? makeObviousDefault(col.fullPath, this.list.dataModel);
+                return mappingToInput(this.list, this.list.dataModel, col, {
+                    forceNoReadonly: true,
+                    forceOptional: true,
+                    jsonAsText: true
+                })(data, i);
+            };
+        }
+        return new ObjectForm({}, keyMap);
+    }
+    buildAdvancedSearch() {
+        const cols = this.list.config.mappings.filter(col => {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (this.list.config.searchOptions.onlyInclude.find(x => pathsEq(x, col.fullPath)) === undefined)
+                    return false;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.find(x => pathsEq(x, col.fullPath)) !== undefined)
+                    return false;
+            }
+            return true;
+        });
+        const arr = new ArrayForm([], (filter, i) => {
+            const colChangeObserver = new Observer();
+            return new ItemLabel(i, {
+                label: "Filter",
+                enclosed: true,
+                collapsed: false,
+                showDelete: true,
+                item: new ObjectForm(filter, {
+                    "columnName": (n, i) => new ItemLabel(i, {
+                        label: 'Column Name',
+                        item: new ColumnSelector(n, () => cols.map(x => x.fullPath), true, newName => { colChangeObserver.notify(newName); }),
+                    }),
+                    "columnVal": (n) => new ObserverForm(colChangeObserver, filter.columnName, (newCol) => {
+                        const mapping = cols.find(x => pathsEq(x.fullPath, newCol)) ?? { fullPath: newCol };
+                        const item = mappingToInput(this.list, this.list.dataModel, mapping, {
+                            forceNoReadonly: true,
+                            jsonAsText: true
+                        });
+                        return new ObjectForm(n, {
+                            "tag": () => new ConstForm("value"),
+                            "value": item
+                        });
+                    }),
+                    "connector": (c, cnI) => {
+                        if (i.currentIndex() == 0)
+                            return new ConstForm(c ?? "AND");
+                        return new ItemLabel(cnI, {
+                            label: "Connector",
+                            item: new DropdownForm({
+                                options: [{ text: "And", value: "AND" }, { text: "Or", value: "OR" }],
+                                defaultValue: c,
+                            })
+                        });
+                    },
+                    "op": (n, i) => new ObserverForm(colChangeObserver, filter.columnName, (newCol) => {
+                        const newMapping = this.list.dataModel.find(newCol);
+                        const ops = [{ text: 'Equal To', value: '=' }, { text: 'Not Equal To', value: '<>' }];
+                        if (newMapping?.tag == 'data' && newMapping?.type == 'text') {
+                            ops.push({ text: 'Starts With', value: 'x..' }, { text: 'Ends With', value: '..x' }, { text: 'Contains', value: '..x..' });
+                        }
+                        else if (newMapping?.tag === 'data') {
+                            ops.push({ text: 'Less Than', value: '<' }, { text: 'Greater Than', value: '>' }, { text: 'Less Than or Equal To', value: '<=' }, { text: 'Greater Than or Equal To', value: '>=' });
+                        }
+                        return new ItemLabel(i, {
+                            label: 'Operator',
+                            item: new DropdownForm({
+                                options: ops,
+                                defaultValue: n,
+                            })
+                        });
+                    }),
+                    "quantifier": (q, i) => new ObserverForm(colChangeObserver, filter.columnName, (path) => {
+                        const depthSpread = new Set();
+                        this.list.dataModel
+                            .allPaths()
+                            .forEach(p => depthSpread.add(this.list.dataModel.getNestingLevel(p)));
+                        const quantifiable = this.list.dataModel.getNestingLevel(path) > 0;
+                        const multiLevelData = depthSpread.size > 2;
+                        if (!quantifiable || !multiLevelData)
+                            return new ConstForm(undefined);
+                        return new ItemLabel(i, {
+                            label: "Quantifier",
+                            item: new DropdownForm({
+                                options: [{ text: 'All', value: 'ALL' }, { 'text': 'Some', value: 'SOME' }],
+                                defaultValue: q ?? 'ALL',
+                            })
+                        });
+                    })
+                })
+            });
+        }, () => ({ columnName: cols[0]?.fullPath ?? [], columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
+        return new WithContext(ConfigContext.id, new ConfigContext(false, this.list.config, this.list.obj, this.list.dataModel, undefined, this.list), arr);
+    }
+    makeButtons() {
+        const makeFilters = () => {
+            let filters = [];
+            const serializeResult = this.form.serialize();
+            if (serializeResult.isOk() == false) {
+                displayErrorMessage(new types.ErrMsg(serializeResult.asErr()));
+            }
+            const serialized = serializeResult.asOk();
+            if (this.list.config.searchOptions.advancedSearch) {
+                filters = serialized;
+                filters.forEach(f => {
+                    const m = this.list.dataModel.find(f.columnName);
+                    if (m?.tag === 'object' || m?.tag == 'array') {
+                        f.op = "..x..";
+                        f.type = 'json';
+                    }
+                });
+            }
+            else {
+                const data = serialized;
+                for (const key in data) {
+                    if (data[key] === undefined)
+                        continue;
+                    if (!(key in data))
+                        continue;
+                    const path = this.list.dataModel.reverseNameLookup(key);
+                    const schema = this.list.dataModel.find(path);
+                    const filter = {
+                        type: schema?.tag === 'data' ? schema.type : ((schema?.tag === 'object' || schema?.tag == 'array') ? 'json' : 'text'),
+                        columnName: path,
+                        columnVal: {
+                            tag: 'value',
+                            value: data[key],
+                        },
+                        op: "=",
+                        connector: "AND"
+                    };
+                    if (filter.type === 'json') {
+                        filter.op = '..x..';
+                    }
+                    filters.push(filter);
+                }
+            }
+            for (const f of filters) {
+                if (f.type === 'json')
+                    continue;
+                const dmType = this.list.dataModel.find(f.columnName);
+                const processed = this.list.dataBridge.unprocessPoint(dmType, f.columnVal.value);
+                if (processed.isOk()) {
+                    f.columnVal.value = processed.asOk();
+                }
+                else {
+                    return processed.map(() => []);
+                }
+            }
+            ;
+            return (0,types.Ok)(filters);
+        };
+        return {
+            type: 'group',
+            items: [
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-search-btn">Search</span>`,
+                        onClick: () => {
+                            makeFilters().match({
+                                ok: filters => this.doSearch(filters),
+                                err: e => {
+                                    displayErrorMessage(new types.ErrMsg(e));
+                                }
+                            });
+                        },
+                    },
+                    sys: { isEmbedded: false }
+                },
+                {
+                    type: 'button',
+                    control: {
+                        html: `<span class="dynamic-form-clear-btn">Clear</span>`,
+                        onClick: () => {
+                            this.clearSearch();
+                        }
+                    },
+                    sys: { isEmbedded: false }
+                },
+            ],
+            container: {
+                className: 'dynamic-search-buttons',
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 0.5rem;
+                `,
+            }
+        };
+    }
+    doSearch(filters) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+        (this.obj.stateInfo.onSearchCallbacks ?? []).forEach((f) => f(this));
+        const mode = this.serverOrClientSearch();
+        if (mode == 'serverside') {
+            this.serverSearch(filters);
+        }
+        else {
+            this.clientSearch(filters);
+        }
+        this.obj._functions.search.onSearch();
+        this.list.updateRecordCount();
+    }
+    clientSearch(filters) {
+        this.searchMemoizationNeedsRebuild = true;
+        const colLookup = {};
+        const allowQuantified = this.list.config.searchOptions.advancedSearch === true;
+        this.list.listBox.setFilter((data) => {
+            const flatKey = data['*key'];
+            const flatData = this.list.dataController.getFlatRow(flatKey);
+            data = {};
+            for (const key in flatData) {
+                data[key] = flatData[key].data;
+            }
+            let matches = true;
+            filters.forEach(query => {
+                const uniqueName = this.list.dataModel.getUniqueName(query.columnName);
+                let col;
+                if (uniqueName in colLookup)
+                    col = colLookup[uniqueName];
+                else {
+                    col = this.list.config.mappings.find(x => pathsEq(x.fullPath, query.columnName));
+                    colLookup[uniqueName] = col;
+                }
+                const val = query.columnVal.value;
+                const thisMatch = this._match(data, uniqueName, val, flatKey, {
+                    dateFormat: col.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
+                    quantifier: query.quantifier,
+                    op: query.op
+                }, allowQuantified);
+                if (query.connector === 'OR')
+                    matches = thisMatch || matches;
+                else
+                    matches = thisMatch && matches;
+            });
+            return matches;
+        });
+    }
+    serverSearch(filters) {
+        this.list.setFilterAndFetch(filters);
+    }
+    clearSearch() {
+        this.resetForm();
+        (this.obj.stateInfo.onClearSearchCallbacks ?? []).forEach((f) => { f(this); });
+        const mode = this.serverOrClientSearch();
+        if (mode == 'serverside') {
+            this.list.setFilterAndFetch([]);
+        }
+        else {
+            this.list.clearSearchFilters();
+        }
+        this.obj._functions.search.onClear();
+        this.list.updateRecordCount();
+    }
+    serverOrClientSearch() {
+        let mode = 'serverside';
+        if (!(this.list.config.searchOptions.serverSearch))
+            mode = 'clientside';
+        return mode;
+    }
+    _match(data, field, compareWith, flatIndex, obj, allowQuantified) {
+        const path = this.list.dataModel.reverseNameLookup(field);
+        if (!path)
+            return false;
+        const scheme = this.list.dataModel.find(path);
+        if (!scheme)
+            return false;
+        const matches = (data, field) => {
+            let rowValue = data[field];
+            const op = obj.op ?? '=';
+            let rowValDateStr = '';
+            let rowValDate = new Date();
+            let compareWithDate = new Date();
+            if (scheme.tag === 'data' && scheme.type == 'datetime') {
+                if (rowValue instanceof Date) {
+                    rowValDate = rowValue;
+                    rowValDateStr = rowValue.toFormat(obj.dateFormat);
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    rowValDateStr = rowValue?.toString() ?? '';
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    rowValDate.fromFormat(rowValue?.toString() ?? '', obj.dateFormat);
+                }
+                if (compareWith instanceof Date) {
+                    compareWithDate = compareWith;
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    compareWithDate.fromFormat(compareWith?.toString() ?? '', obj.dateFormat);
+                }
+            }
+            else if (scheme.tag === 'object' || scheme.tag == 'array') {
+                if (typeof rowValue !== 'string')
+                    rowValue = JSON.stringify(rowValue);
+                if (typeof compareWith !== 'string')
+                    compareWith = JSON.stringify(compareWith);
+            }
+            const cmpDate = scheme.tag === 'data' && scheme.type === 'datetime';
+            const cmpText = (scheme.tag === 'object' || scheme.tag == 'array') || (scheme.tag === 'data' && (scheme.type == 'dropdown' || scheme.type == 'text'));
+            switch (op) {
+                case '=': {
+                    if (cmpDate) {
+                        return compareWith == rowValDateStr;
+                    }
+                    return compareWith == rowValue;
+                }
+                case '<>': {
+                    if (cmpDate) {
+                        return compareWith != rowValDateStr;
+                    }
+                    return compareWith != rowValue;
+                }
+                case '<': {
+                    if (cmpDate) {
+                        return rowValDate < compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue < compareWith;
+                }
+                case '>': {
+                    if (cmpDate) {
+                        return rowValDate > compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue > compareWith;
+                }
+                case '<=': {
+                    if (cmpDate) {
+                        return rowValDate <= compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue <= compareWith;
+                }
+                case '>=': {
+                    if (cmpDate) {
+                        return rowValDate >= compareWithDate;
+                    }
+                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                        return false;
+                    return rowValue >= compareWith;
+                }
+                case 'x..': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).startsWith(compareWith.toString());
+                    }
+                    return false;
+                }
+                case '..x': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).endsWith(compareWith.toString());
+                    }
+                    return false;
+                }
+                case '..x..': {
+                    if (cmpText) {
+                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
+                            return false;
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        return (rowValue.toString()).includes(compareWith.toString());
+                    }
+                    return false;
+                }
+                default: {
+                    return true;
+                }
+            }
+        };
+        if (this.searchMemoizationNeedsRebuild) {
+            this.searchMemoizationNeedsRebuild = false;
+            this.searchMemoization = {};
+            this.flatRowData = this.list.dataController.getAllFlattenedRows();
+            this.flatRowData.forEach((data, index) => {
+                this.searchMemoization[index] = matches(data, field);
+            });
+        }
+        let flag;
+        let rawRow = this.list.dataController.originalIndexOf(flatIndex).asOk();
+        if (this.list.dataModel.getNestingLevel(path) == 0 || allowQuantified == false) {
+            flag = matches(data, field);
+        }
+        else {
+            if (obj.quantifier === 'ALL') {
+                // If every row belonging to this parent index matches,
+                // then we match.
+                let allMatch = true;
+                this.flatRowData.forEach((_, index) => {
+                    if (this.list.dataController.originalIndexOf(index).asOk() !== rawRow)
+                        return;
+                    allMatch = allMatch && this.searchMemoization[index];
+                });
+                flag = allMatch;
+            }
+            else {
+                // If *some* row belonging to the parent index matches,
+                // then we match
+                // let someMatch = false;
+                // this.flatRowData.forEach((_, index) => {
+                //     if (this.list.dataController.originalIndexOf(index).asOk() !== rawRow) return;
+                //     someMatch = someMatch || this.searchMemoization[index];
+                // })
+                // flag = someMatch;
+                // If we got to this point of quantification, then there must be some nested mapping.
+                // When searching existentially, we just want to show matching records.
+                // So we just return the search memo entry.
+                flag = this.searchMemoization[flatIndex] ?? false;
+            }
+        }
+        return flag;
+    }
+}
+
+;// ./src/list/DataBridge.ts
+
+
+
+// Convert raw data -> usable data
+// Usable data -> raw data
+class DataBridge {
+    constructor(config, serverTzOffset) {
+        this.serverTzOffset = serverTzOffset;
+        this.config = config;
+    }
+    setTzOffset(n) {
+        this.serverTzOffset = n;
+    }
+    // Imported data should already be aligned with the flattening scheme
+    processImportedData(data, model) {
+        debugger;
+        const dataCpy = clone(data);
+        dataCpy.forEach(point => {
+            if (typeof point === 'object' && point !== null) {
+                for (const key in point) {
+                    const path = model.reverseNameLookup(key);
+                    if (!path)
+                        continue;
+                    const dm = model.find(path);
+                    if (!dm)
+                        continue;
+                    const processResult = this.processPoint(dm, point[key]);
+                    if (processResult.asErr() !== undefined)
+                        return processResult;
+                    point[key] = processResult.asOk();
+                }
+            }
+        });
+        return (0,types.Ok)(dataCpy);
+    }
+    rawToProcessed(d, model) {
+        const data = clone(d);
+        for (let i = 0; i < data.length; i++) {
+            let result = this.processPoint(model.model, data[i]);
+            if (result.asErr() !== undefined)
+                return result;
+            data[i] = result.asOk();
+        }
+        return (0,types.Ok)(data);
+    }
+    processPoint(dm, point) {
+        if (dm.preprocess)
+            point = (0,types.stringReprToFn)(dm.preprocess)(point, this.serverTzOffset);
+        if (point === null && dm.nullable)
+            return (0,types.Ok)(null);
+        if (point === undefined && dm.optional)
+            return (0,types.Ok)(undefined);
+        if (dm.tag == 'object') {
+            if (dm.fromString && typeof point == 'string') {
+                let parsedResult = safeJsonParse(point);
+                if (parsedResult.asErr() !== undefined)
+                    return parsedResult;
+                point = parsedResult.asOk();
+            }
+            if (typeof point != 'object')
+                return (0,types.Err)(`Expected ${JSON.stringify(point)} to be an object.`);
+            for (const key in dm.keys) {
+                const keyModel = dm.keys[key];
+                const res = this.processPoint(keyModel, point[key]);
+                const err = res.asErr();
+                if (err === undefined)
+                    point[key] = res.asOk();
+                else
+                    return res;
+            }
+            return (0,types.Ok)(point);
+        }
+        else if (dm.tag == 'array') {
+            if (dm.fromString && typeof point == 'string') {
+                let parsedResult = safeJsonParse(point);
+                if (parsedResult.asErr() !== undefined)
+                    return parsedResult;
+                point = parsedResult.asOk();
+            }
+            if (!(point instanceof Array))
+                return (0,types.Err)(`Expected ${JSON.stringify(point)} to be an array.`);
+            let result = [];
+            point.forEach(x => {
+                let res = this.processPoint(dm.item, x);
+                if (res.asErr() !== undefined)
+                    return res;
+                result.push(res.asOk());
+            });
+            return (0,types.Ok)(result);
+        }
+        else if (dm.tag == 'data') {
+            if (dm.type == 'datetime' && dm.preprocess === undefined && typeof point === 'string') {
+                let date = new Date();
+                date.fromFormat(point, DEFAULT_DATETIME_FMT);
+                point = date;
+            }
+            return (0,types.Ok)(point);
+        }
+        else {
+            return (0,types.Ok)(point);
+        }
+    }
+    processedToRaw(d, dm) {
+        const data = clone(d);
+        for (let i = 0; i < data.length; i++) {
+            const res = this.unprocessPoint(dm.model, data[i]);
+            if (res.asErr() !== undefined) {
+                return res;
+            }
+            data[i] = res.asOk();
+        }
+        return (0,types.Ok)(data);
+    }
+    unprocessPoint(dm, point) {
+        if (dm.postprocess)
+            point = (0,types.stringReprToFn)(dm.postprocess)(point, this.serverTzOffset);
+        if (point === null && dm.nullable)
+            return (0,types.Ok)(null);
+        if (point === undefined && dm.optional)
+            return (0,types.Ok)(undefined);
+        if (dm.tag == 'object') {
+            if (typeof point != 'object')
+                return (0,types.Err)(`Expected ${JSON.stringify(point)} to be an object.`);
+            for (const key in dm.keys) {
+                const keyModel = dm.keys[key];
+                const res = this.unprocessPoint(keyModel, point[key]);
+                const err = res.asErr();
+                if (err === undefined)
+                    point[key] = res.asOk();
+                else
+                    return res;
+            }
+            if (dm.fromString && typeof point !== 'string') {
+                return (0,types.Ok)(JSON.stringify(point));
+            }
+            return (0,types.Ok)(point);
+        }
+        else if (dm.tag == 'array') {
+            if (!(point instanceof Array))
+                return (0,types.Err)(`Expected ${JSON.stringify(point)} to be an array.`);
+            let result = [];
+            point.forEach(x => {
+                let res = this.unprocessPoint(dm.item, x);
+                if (res.asErr() !== undefined)
+                    return res;
+                result.push(res.asOk());
+            });
+            if (dm.fromString && typeof point !== 'string') {
+                return (0,types.Ok)(JSON.stringify(result));
+            }
+            return (0,types.Ok)(result);
+        }
+        else if (dm.tag == 'data') {
+            if (point instanceof Date && dm.postprocess === undefined && dm.type === 'datetime') {
+                point = point.toFormat(DEFAULT_DATETIME_FMT);
+            }
+            return (0,types.Ok)(point);
+        }
+        else {
+            return (0,types.Ok)(point);
+        }
+    }
+    processedToRawStayFlattened(d, model) {
+        const data = clone(d);
+        for (let i = 0; i < data.length; i++) {
+            for (const key in data[i]) {
+                let path = model.reverseNameLookup(key);
+                if (path) {
+                    let scheme = model.find(path);
+                    const res = this.processPoint(scheme, data[i][key]);
+                    if (res.asErr() !== undefined)
+                        return res;
+                    data[i][key] = res.asOk();
+                }
+            }
+        }
+        return (0,types.Ok)(data);
+    }
+}
+
+;// ./src/list/DataMappingInfo.ts
+
+class DataMappingInfo {
+    constructor(model, config) {
+        this.dataModel = model;
+        if (config.mappings.length == 0) {
+            this.deepestNested = [];
+            return;
+        }
+        const deepestNest = config.mappings.map(x => model.getNestingLevel(x.fullPath))
+            .reduce((a, b) => Math.max(a, b));
+        if (deepestNest == 0) {
+            this.deepestNested = [];
+        }
+        else {
+            this.deepestNested = config.mappings
+                .filter(x => model.getNestingLevel(x.fullPath) == deepestNest)
+                .map(x => {
+                let dataPath = x.fullPath.map(segment => {
+                    if (segment.tag == 'object')
+                        return { tag: 'object', key: segment.key };
+                    else
+                        return { tag: 'array', index: 0 };
+                });
+                return { path: x.fullPath, dataPath };
+            });
+        }
+    }
+    pathIsDeeplyNested(p) {
+        return this.deepestNested.find(x => pathsEq(x.path, p)) !== undefined;
+    }
+    deeplyNestedPaths() {
+        return this.deepestNested;
+    }
+    isEntirelyTopLevel() {
+        return this.deepestNested.length == 0;
+    }
+}
+
+;// ./src/list/DataController.ts
+
+
+
+
+class DataController {
+    constructor(rawData, config, dataModel) {
+        this.rowExplosionInfo = new Map();
+        this.config = config;
+        this.rawData = rawData;
+        this.dataModel = dataModel;
+        this.mappingInfo = new DataMappingInfo(dataModel, config);
+        this.calculateFlattenedData();
+        this.rawDirtyRows = new Set();
+        this.rawDeletedRows = new Set();
+        this.rawInsertedRows = new Set();
+    }
+    isDirty() {
+        return this.rawInsertedRows.size > 0 || this.rawDeletedRows.size > 0 || this.rawDirtyRows.size > 0;
+    }
+    // Get non-flattened dirty rows
+    getDirtyRows() {
+        const out = {
+            toUpdate: this.rawData.filter((_, i) => this.rawDirtyRows.has(i)),
+            toDelete: this.rawData.filter((_, i) => this.rawDeletedRows.has(i)),
+            toInsert: this.rawData.filter((_, i) => this.rawInsertedRows.has(i) && !this.rawDeletedRows.has(i)),
+        };
+        return clone(out);
+    }
+    getAllFlattenedRows() {
+        return clone(this.flattenedData).map(x => DataController.unflattenPoint(x));
+    }
+    static unflattenPoint(f) {
+        const out = {};
+        for (const key in f)
+            out[key] = f[key].data;
+        return out;
+    }
+    getFlattenedRow(i) {
+        return DataController.unflattenPoint(this.flattenedData[i]);
+    }
+    getFlatRow(i) {
+        return this.flattenedData[i];
+    }
+    getRawRow(i) {
+        return this.rawData[i];
+    }
+    /// Delete deleted rows, set other rows clean. Return (copy of) data.
+    applyChanges() {
+        // No insertion keys ==> 1:1 mapping with flat data
+        // Insertion keys ==> literally cannot delete a top level row because 
+        // we only operate on sub-elements 
+        if (this.mappingInfo.isEntirelyTopLevel()) {
+            this.rawData = this.rawData.filter((_, i) => !this.rawDeletedRows.has(i));
+        }
+        this.rawDeletedRows.clear();
+        this.rawInsertedRows.clear();
+        this.rawDirtyRows.clear();
+        return clone(this.rawData);
+    }
+    length() {
+        return { raw: this.rawData.length, flattened: this.flattenedData.length };
+    }
+    rowMetadata(index) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return undefined;
+        }
+        return {
+            isDeleted: this.rawDeletedRows.has(idx),
+            isInserted: this.rawInsertedRows.has(idx),
+            isDirty: this.rawDirtyRows.has(idx)
+        };
+    }
+    getData(index, path) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return (0,types.Err)(void (0));
+        }
+        return (0,types.Ok)(this.chasePath(this.rawData[idx], path));
+    }
+    getAllRawData() {
+        return clone(this.rawData);
+    }
+    swapRows(rawIdx1, rawIdx2) {
+        const tmp = this.rawData[rawIdx1];
+        this.rawData[rawIdx1] = this.rawData[rawIdx2];
+        this.rawData[rawIdx2] = tmp;
+        this.rawDirtyRows.add(rawIdx1);
+        this.rawDirtyRows.add(rawIdx2);
+        this.calculateFlattenedData();
+    }
+    updateRows(items) {
+        items.forEach(({ index, newData }) => {
+            const relaventRow = this.flattenedData[index];
+            const unflattenedIndex = this.rowExplosionInfo.get(index);
+            if (unflattenedIndex === undefined) {
+                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
+                return;
+            }
+            for (const key in relaventRow) {
+                if (key in newData) {
+                    this.pathUpdate(this.rawData[unflattenedIndex], relaventRow[key].path, newData[key]);
+                }
+            }
+            this.rawDirtyRows.add(unflattenedIndex);
+        });
+        this.calculateFlattenedData();
+    }
+    // For if we're appending to a brand new item
+    newRowFromBlank(data) {
+        let parent = this.rawData[0];
+        this.mappingInfo.deeplyNestedPaths().forEach(({ path, dataPath }) => {
+            const k = this.dataModel.getUniqueName(path);
+            if (k in data) {
+                this.pathUpdate(parent, dataPath, data[k]);
+            }
+        });
+        this.rawDirtyRows.add(0);
+        this.calculateFlattenedData();
+    }
+    insertRows(data, indexIsRaw) {
+        if (this.mappingInfo.isEntirelyTopLevel()) {
+            data.forEach(x => {
+                const d = x.data;
+                const f = {};
+                for (const key in d) {
+                    f[key] = {
+                        path: [{ tag: 'object', key }],
+                        data: d[key]
+                    };
+                }
+                ;
+                this.rawData.push(d);
+                this.rawInsertedRows.add(this.rawData.length - 1);
+            });
+            this.calculateFlattenedData();
+            return;
+        }
+        if (this.flattenedData.length == 0) {
+            let rest = data.splice(1);
+            this.newRowFromBlank(data[0].data);
+            this.insertRows(rest, indexIsRaw);
+            return;
+        }
+        data.forEach(d => {
+            let originalRow;
+            if (indexIsRaw) {
+                originalRow = this.rawData[d.attachToIndex];
+                this.rawDirtyRows.add(d.attachToIndex);
+            }
+            else {
+                const rawIndex = this.rowExplosionInfo.get(d.attachToIndex);
+                if (rawIndex === undefined) {
+                    displayErrorMessage(new types.ErrMsg("The index " + rawIndex + " is out of range. This is a bug."));
+                    return;
+                }
+                originalRow = this.rawData[rawIndex];
+                this.rawDirtyRows.add(rawIndex);
+            }
+            let deeplyNestedExample = clone(this.mappingInfo.deeplyNestedPaths()[0].dataPath);
+            while (deeplyNestedExample.length > 0 && deeplyNestedExample[deeplyNestedExample.length - 1].tag != 'array')
+                deeplyNestedExample.pop();
+            deeplyNestedExample.pop();
+            let currArray = this.chasePath(originalRow, deeplyNestedExample);
+            const length = currArray.length;
+            for (const key in d.data) {
+                let path = this.dataModel.reverseNameLookup(key);
+                if (!path)
+                    continue;
+                if (this.mappingInfo.pathIsDeeplyNested(path) == false)
+                    continue;
+                const dataPath = path.map(x => x.tag == 'object' ? x : { tag: 'array', index: length });
+                this.pathUpdate(originalRow, dataPath, d.data[key]);
+            }
+        });
+        this.calculateFlattenedData();
+    }
+    originalIndexOf(index) {
+        const idx = this.rowExplosionInfo.get(index);
+        if (idx === undefined) {
+            return (0,types.Err)(void (0));
+        }
+        return (0,types.Ok)(idx);
+    }
+    deleteRows(indexes) {
+        if (this.mappingInfo.isEntirelyTopLevel()) {
+            indexes.forEach(i => {
+                this.rawDeletedRows.add(i);
+                this.rawInsertedRows.delete(i);
+            });
+        }
+        else {
+            indexes.forEach(i => {
+                const flatRow = this.flattenedData[i];
+                const rawIndex = this.rowExplosionInfo.get(i);
+                if (rawIndex === undefined) {
+                    displayErrorMessage(new types.ErrMsg("Index " + i + "can't be unflattened. This is a bug."));
+                    return;
+                }
+                const rawRow = this.rawData[rawIndex];
+                const deepestArrayPath = (p) => {
+                    for (let i = p.length - 1; i >= 0; i--) {
+                        if (p[i].tag == 'array')
+                            return p.slice(0, i + 1);
+                    }
+                };
+                const insertionKey = this.dataModel.getUniqueName(this.mappingInfo.deeplyNestedPaths()[0].path);
+                const pathToDelete = flatRow[insertionKey].path;
+                const arrayPart = deepestArrayPath(pathToDelete);
+                if (arrayPart === undefined)
+                    return;
+                const last = arrayPart[arrayPart.length - 1];
+                if (last.tag != 'array')
+                    return;
+                const idxToRemove = last.index;
+                const newArray = this.chasePath(rawRow, arrayPart.slice(0, arrayPart.length - 1));
+                if (!(newArray instanceof Array))
+                    return;
+                newArray.splice(idxToRemove, 1);
+                this.rawDirtyRows.add(rawIndex);
+                this.rowExplosionInfo.delete(i);
+            });
+        }
+        this.calculateFlattenedData();
+    }
+    chasePath(o, path) {
+        if (path.length == 0)
+            return o;
+        if (o === undefined || o === null)
+            return null;
+        if (path[0].tag == 'array')
+            return this.chasePath(o[path[0].index], path.slice(1));
+        return this.chasePath(o[path[0].key], path.slice(1));
+    }
+    // Get any raw rows that were not expanded
+    getFreeRows() {
+        const allShownRows = new Set(this.rowExplosionInfo.values());
+        return clone(this.rawData)
+            .map((x, i) => ({ index: i, row: x }))
+            .filter((_, i) => !allShownRows.has(i));
+    }
+    pathUpdate(o, path, data) {
+        path = clone(path);
+        if (path.length == 0)
+            return;
+        const front = path.splice(0, 1)[0];
+        const expectObj = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an object, but it is not.`);
+        const expectArr = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an array, but it is not.`);
+        if (path.length == 0) {
+            if (front.tag == 'object') {
+                if (o === null)
+                    o = {};
+                else if (typeof o != 'object') {
+                    displayErrorMessage(expectObj);
+                    return;
+                }
+                o[front.key] = data;
+            }
+            else {
+                if (!Array.isArray(o)) {
+                    displayErrorMessage(expectArr);
+                    return;
+                }
+                if (front.index >= o.length) {
+                    o.push(data);
+                }
+                else {
+                    o[front.index] = data;
+                }
+            }
+        }
+        else {
+            if (front.tag == 'object') {
+                if (typeof o != 'object' || o === null) {
+                    displayErrorMessage(expectObj);
+                    return;
+                }
+                if (o[front.key] == null || o[front.key] == undefined) {
+                    if (path[0].tag == 'object')
+                        o[front.key] = {};
+                    else
+                        o[front.key] = [];
+                }
+                this.pathUpdate(o[front.key], path, data);
+            }
+            else {
+                if (!Array.isArray(o)) {
+                    displayErrorMessage(expectArr);
+                    return;
+                }
+                if (o[front.index] == null || o[front.index] == undefined) {
+                    if (path[0].tag == 'object')
+                        o[front.index] = {};
+                    else
+                        o[front.index] = [];
+                }
+                this.pathUpdate(o[front.index], path, data);
+            }
+        }
+    }
+    calculateFlattenedData() {
+        const dataCpy = clone(this.rawData);
+        this.rowExplosionInfo = new Map();
+        this.flattenedData = [];
+        dataCpy.forEach((entry, index) => {
+            const currIdx = this.flattenedData.length;
+            const toInsert = this.flatten(entry);
+            for (let i = currIdx; i < currIdx + toInsert.length; i++) {
+                this.rowExplosionInfo.set(i, index);
+            }
+            this.flattenedData.push(...toInsert);
+        });
+    }
+    flatten(point) {
+        let leadsToNested = new Map();
+        let allNested = this.dataModel.allPaths()
+            .filter(x => this.dataModel.getNestingLevel(x) > 0)
+            .filter(x => this.config.mappings.find(m => pathsEq(m.fullPath, x)));
+        allNested.forEach(path => {
+            let subPath = [];
+            path.forEach(p => {
+                subPath.push(p);
+                leadsToNested.set(this.dataModel.getUniqueName(subPath), true);
+            });
+        });
+        const recurse = (point, model, dataPath) => {
+            if (model.tag == 'object') {
+                let constants = {};
+                let toExpand = [];
+                if (!(typeof point === 'object') || point === null)
+                    return [];
+                for (const key in model.keys) {
+                    if (key in point) {
+                        const subPath = [...dataPath, { tag: 'object', key }];
+                        if (!leadsToNested.get(model.keys[key].uniqueName)) {
+                            constants[model.keys[key].uniqueName] = { data: point[key], path: subPath };
+                        }
+                        else {
+                            toExpand.push(recurse(point[key], model.keys[key], subPath));
+                        }
+                    }
+                }
+                if (toExpand.length == 0)
+                    return [constants];
+                const cartesian = toExpand.reduce((a, b) => {
+                    const out = [];
+                    for (const elemA of a) {
+                        for (const elemB of b) {
+                            const bCpy = clone(elemB);
+                            Object.assign(bCpy, elemA);
+                            out.push(bCpy);
+                        }
+                    }
+                    return out;
+                });
+                cartesian.forEach(point => {
+                    let constCpy = clone(constants);
+                    Object.assign(point, constCpy);
+                });
+                return cartesian;
+            }
+            else if (model.tag == 'array') {
+                if (!(point instanceof Array))
+                    return [];
+                return point.flatMap((p, i) => recurse(p, model.item, [...dataPath, { tag: 'array', index: i }]));
+            }
+            else if (model.tag == 'data' || model.tag == 'unknown') {
+                return [{ [this.dataModel.getUniqueName(dataPath)]: { data: point, path: dataPath } }];
+            }
+            return [];
+        };
+        let flattened = recurse(point, this.dataModel.model, []);
+        return flattened;
+    }
+}
+
+;// ./src/list/DynamicList.ts
+
+
+
+
+
+
+
+
+
+
+
 class DynamicList {
     constructor() {
+        this.rawFetchedData = [];
         this.selectedRows = new Set();
         this.clickedRow = null;
         this.initialLoadComplete = false;
+        this._rowDragState = {
+            listItem: null,
+            moveToIdx: -1,
+        };
         this.permanentFilters = [];
         this.searchFilters = [];
         this.orderings = [];
@@ -8236,7 +16895,7 @@ class DynamicList {
         };
         this.containerId = '';
         this.id = 'list_' + uuidv4();
-        DYNAMIC_LIST_LOOKUP[this.id] = this;
+        _DYNAMIC_LIST_LOOKUP[this.id] = this;
     }
     destructor() {
         if (this.listBox.destroy)
@@ -8252,8 +16911,6 @@ class DynamicList {
             list.obj = ops.obj;
             list.prefetched = ops.prefetch;
             list.config = clone(ops.prefetch.config);
-            list.dataBridge = new DataBridge(list.config, ops.prefetch.serverTimeOffset);
-            list.dataController = new DataController([], list.config, ops.prefetch.schema);
             list.permissions = ops.permissions;
             ops.obj.stateInfo.configName = list.config.name;
             const ptr = ops.obj.getPointer(ops.containerId);
@@ -8276,6 +16933,18 @@ class DynamicList {
                 }
             }
             ops.obj.saveDynamicListEdits = () => list.saveDynamicListEdits();
+            let prefetchedData = [];
+            if (list.prefetched.data) {
+                if ('count' in list.prefetched.data)
+                    prefetchedData = list.prefetched.data.result;
+                else
+                    prefetchedData = list.prefetched.data;
+            }
+            list.dataModel = new DataModel({
+                rawRows: prefetchedData,
+                root: ops.prefetch.config.dataModel
+            });
+            list.uniqueNameToSafeName = list.safeNameMapping();
             list.buildList();
             resolve(list);
         })
@@ -8320,8 +16989,13 @@ class DynamicList {
             .then(() => { this.obj.runAction('Download Excel Template'); }));
     }
     uploadFileToList() {
-        const filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-        this.obj.stateInfo.currentFilters = filters;
+        const safeFiltersRes = safeServerFilters([...this.permanentFilters, ...this.searchFilters]);
+        const safeFilters = safeFiltersRes.asOk();
+        if (safeFilters === undefined) {
+            displayErrorMessage(new types.ErrMsg(safeFiltersRes.asErr()));
+            return;
+        }
+        this.obj.stateInfo.currentFilters = JSON.stringify(safeFilters);
         FILE_UPLOAD_STACK.length = 0;
         FILE_UPLOAD_STACK.push(this);
         okOrLog(preFileInteraction(this.obj, this)
@@ -8334,13 +17008,13 @@ class DynamicList {
                 const onDone = () => {
                     okOrLog(this.reRender(false).then(() => { this.recalculateButtons(); }));
                 };
-                this.dataBridge.processImportedData(uploadResult.ok).match({
+                this.dataBridge.processImportedData(uploadResult.ok, this.dataModel).match({
                     ok: data => {
                         const regularInsert = () => {
                             this.dataController.insertRows(data.map(x => ({ data: x, attachToIndex: 0 })), true);
                             onDone();
                         };
-                        if (this.dataController.mappingInfo.insertionKeys.length > 0) {
+                        if (this.dataController.mappingInfo.isEntirelyTopLevel() === false) {
                             this.showRowPicker({
                                 onUnneeded: regularInsert,
                                 onSelect: idx => {
@@ -8364,8 +17038,13 @@ class DynamicList {
         }));
     }
     downloadDataToFile() {
-        const filters = JSON.stringify([...this.permanentFilters, ...this.searchFilters]);
-        this.obj.stateInfo.currentFilters = filters;
+        const safeFiltersRes = safeServerFilters([...this.permanentFilters, ...this.searchFilters]);
+        const safeFilters = safeFiltersRes.asOk();
+        if (safeFilters === undefined) {
+            displayErrorMessage(new types.ErrMsg(safeFiltersRes.asErr()));
+            return;
+        }
+        this.obj.stateInfo.currentFilters = JSON.stringify(safeFilters);
         okOrLog(preFileInteraction(this.obj, this)
             .then(() => { this.obj.runAction('File Download'); }));
     }
@@ -8374,7 +17053,7 @@ class DynamicList {
         const override = this.onSaveOverride;
         if (override) {
             let data = this.dataController.applyChanges();
-            return this.dataBridge.processedToRaw(data).match({
+            this.dataBridge.processedToRaw(data, this.dataModel).match({
                 ok: data => {
                     const result = override(this, data);
                     if (result !== undefined) {
@@ -8385,10 +17064,7 @@ class DynamicList {
                         }).then(() => { });
                     }
                 },
-                err: e => {
-                    displayErrorMessage(new types.ErrMsg("There was an error processing the data: " + e));
-                    return Promise.reject();
-                }
+                err: e => Promise.resolve(displayErrorMessage(new types.ErrMsg(e)))
             });
         }
         const onComplete = async () => {
@@ -8403,9 +17079,9 @@ class DynamicList {
             this.recalculateButtons();
             await this.reRender(true);
         };
-        const processed = this.dataBridge.processedToRaw(toUpdate)
-            .flatMap(x => this.dataBridge.processedToRaw(toDelete).map(y => [x, y]))
-            .flatMap(([x, y]) => this.dataBridge.processedToRaw(toInsert).map(z => [x, y, z]));
+        const processed = this.dataBridge.processedToRaw(toUpdate, this.dataModel)
+            .flatMap(x => this.dataBridge.processedToRaw(toDelete, this.dataModel).map(y => [x, y]))
+            .flatMap(([x, y]) => this.dataBridge.processedToRaw(toInsert, this.dataModel).map(z => [x, y, z]));
         if (processed.isOk()) {
             [toUpdate, toDelete, toInsert] = processed.asOk();
         }
@@ -8455,7 +17131,7 @@ class DynamicList {
                 displayErrorMessage(new types.ErrMsg(msg));
                 return;
             }
-            const promises = allQueries.map(q => listBuilder_fetch(this.obj, this.config.name, q.endpoint).then(q.callback));
+            const promises = allQueries.map(q => listUtils_fetch(this.obj, this.config.name, q.endpoint).then(q.callback));
             await Promise.all(promises);
             return onComplete();
         }
@@ -8465,10 +17141,11 @@ class DynamicList {
     }
     buildSettings() {
         const allColumns = [];
-        if (this.config.multiSelect)
+        if (this.config.rowOptions?.moveRows)
+            allColumns.push(this.buildMoveColumn());
+        if (this.config.rowOptions?.multiSelect)
             allColumns.push(this.buildCheckboxColumn());
-        allColumns.push(...DataController.getDataMappings(this.config)
-            .map(x => this.buildColumnDefinition(x)));
+        allColumns.push(...this.config.mappings.map(x => this.buildColumnDefinition(x)).filter(x => x !== undefined));
         const items = {};
         const dialogId = this.obj.dialogId;
         this.config.buttons.forEach((b, i) => allColumns.push(this.buildColumnButton(b, i, items)));
@@ -8486,7 +17163,7 @@ class DynamicList {
                 }
                 const ele = document.getElementById(`${dialogId}.${LIST_NAME}.CHECKBOX${idx.toString()}`);
                 if (ele) {
-                    A5.u.icon.update(ele.children[0], src);
+                    _A5.u.icon.update(ele.children[0], src);
                 }
                 this.recalculateButtons();
             }
@@ -8538,8 +17215,8 @@ class DynamicList {
                     elem.classList.add(dirtyRowClass, dirtyStyle);
             },
             onListDraw(data) {
-                if (data.length == 0) {
-                    const content = $(this.contId + '.CONTENT');
+                if (data.length == 0 || listObj.dataController === undefined) {
+                    const content = _$(this.contId + '.CONTENT');
                     if (!content) {
                         console.error("Couldn't find element " + this.contId + '.CONTENT');
                         return;
@@ -8552,23 +17229,23 @@ class DynamicList {
                         </div>
                     `;
                 }
-                if (listObj.config.multiSelect === true) {
+                else if (listObj.config.rowOptions?.multiSelect === true) {
                     const allChecked = listObj.selectedRows.size == listObj.dataController.length().flattened;
                     let h;
                     if (allChecked) {
-                        h = A5.u.icon.html(this.__checkedImage);
+                        h = _A5.u.icon.html(this.__checkedImage);
                     }
                     else {
-                        h = A5.u.icon.html(this.__uncheckedImage);
+                        h = _A5.u.icon.html(this.__uncheckedImage);
                     }
                     const _id = listObj.obj.dialogId + '.' + LIST_NAME + '.CHECKBOXALL';
-                    const ele = $(_id);
+                    const ele = _$(_id);
                     if (ele)
                         ele.innerHTML = h;
                 }
             },
             setOrder: (order) => {
-                const origOrder = A5.ListBox.prototype.setOrder.bind(this.listBox);
+                const origOrder = _A5.ListBox.prototype.setOrder.bind(this.listBox);
                 if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
                     // Current page should be reset, otherwise we'll be looking at a seemingly 
                     // random slice of the data after a sort.
@@ -8584,16 +17261,8 @@ class DynamicList {
                     if (!colName)
                         this.orderings = [];
                     else {
-                        let colExists = false;
-                        try {
-                            DataController.lookupMapping(colName, this.config);
-                            colExists = true;
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        }
-                        catch (e) {
-                            colExists = false;
-                        }
-                        if (!colExists) {
+                        const model = this.dataModel.reverseNameLookup(colName);
+                        if (!model) {
                             origOrder(order);
                             return;
                         }
@@ -8737,46 +17406,39 @@ class DynamicList {
         };
         return defn;
     }
-    linkSublistToField(name, label, index, path) {
+    linkSublistToField(configName, label, index, path) {
         const onSave = (newData, childList) => {
             const dirty = this.dataController.isDirty();
-            this.dataBridge.rawToProcessed(newData).match({
-                ok: newData => {
-                    const updatedData = this.dataController.getFlattenedRow(index);
-                    this.dataController.pathUpdate(updatedData, path, newData);
-                    this.dataController.updateRows([{ index, newData: updatedData }]);
-                    const rest = () => {
-                        this.obj.refreshClientSideComputations(true);
-                        this.recalculateButtons();
-                        this.listBox.refresh(true);
-                        this.dataController.getData(index, path).match({
-                            ok: newData => {
-                                if (Array.isArray(newData)) {
-                                    childList.setData(newData, this.dataBridge.serverTzOffset);
-                                }
-                                childList.reRender(false);
-                            },
-                            err: v => {
-                                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
-                            }
-                        });
-                    };
-                    if (dirty) {
-                        A5.msgBox.show("Sync Parent?", "The parent list has other edits. Sync those edits to the server?", "yn", (answer) => {
-                            if (answer == 'yes')
-                                okOrLog(this.saveDynamicListEdits());
-                            else
-                                rest();
-                        });
+            const updatedData = this.dataController.getFlattenedRow(index);
+            this.dataController.pathUpdate(updatedData, path, newData);
+            this.dataController.updateRows([{ index, newData: updatedData }]);
+            const rest = () => {
+                this.obj.refreshClientSideComputations(true);
+                this.recalculateButtons();
+                this.listBox.refresh(true);
+                this.dataController.getData(index, path).match({
+                    ok: newData => {
+                        if (Array.isArray(newData)) {
+                            childList.setData(newData, this.dataBridge.serverTzOffset);
+                        }
+                        childList.reRender(false);
+                    },
+                    err: v => {
+                        displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
                     }
-                    else {
-                        okOrLog(this.saveDynamicListEdits().then(rest));
-                    }
-                },
-                err: e => {
-                    displayErrorMessage(new types.ErrMsg("There was an error processing the child lists' data: " + e));
-                }
-            });
+                });
+            };
+            if (dirty) {
+                _A5.msgBox.show("Sync Parent?", "The parent list has other edits. Sync those edits to the server?", "yn", (answer) => {
+                    if (answer == 'yes')
+                        okOrLog(this.saveDynamicListEdits());
+                    else
+                        rest();
+                });
+            }
+            else {
+                okOrLog(this.saveDynamicListEdits().then(rest));
+            }
         };
         this.dataController.getData(index, path).match({
             ok: nestedData => {
@@ -8790,14 +17452,14 @@ class DynamicList {
                     const msg = `
                         <p>The field ${pathName} is not an array. Please ensure the following: </p>
                         <ul>
-                            <li> "${pathName}" is declared as a DATA MAPPING with data type JSON </li>
+                            <li> "${pathName}" is in the Data Mapping with type JSON </li>
                             <li> The JSON data in "${pathName}" <em>is</em> actually an array, and not an object or value </li>
                         </ul>
                     `;
                     displayErrorMessage(new types.ErrMsg(msg));
                 }
                 else {
-                    this.openSublistFromNested(name, label, nestedData, onSave);
+                    this.openSublistFromNested(configName, label, nestedData, onSave);
                 }
             },
             err: v => {
@@ -8806,7 +17468,7 @@ class DynamicList {
         });
     }
     launchNewPanel(configName, titleName, filters = []) {
-        okOrLog(openNewPanel({
+        okOrLog(listUtils_openNewPanel({
             configName: configName,
             filters: filters,
             listContainerId: 'LIST_CONTAINER',
@@ -8816,7 +17478,7 @@ class DynamicList {
         }));
     }
     linkNewPanel(configName, titleName, filters) {
-        okOrLog(openNewPanel({
+        okOrLog(listUtils_openNewPanel({
             configName: configName,
             listContainerId: 'LIST_CONTAINER',
             searchContainerId: 'SEARCH_CONTAINER',
@@ -8826,7 +17488,7 @@ class DynamicList {
         }));
     }
     showRowPicker(ops) {
-        if (this.dataController.mappingInfo.insertionKeys.length == 0) {
+        if (this.dataController.mappingInfo.isEntirelyTopLevel()) {
             ops.onUnneeded();
             return;
         }
@@ -8867,19 +17529,22 @@ class DynamicList {
         body.appendChild(title);
         body.appendChild(listContainer);
         modal.appendChild(body);
-        const displayableMapping = (m) => {
-            if (m.tag == 'data')
-                return m;
-            if (m.tag == 'array')
-                return null;
-            if (m.tag == 'nested')
-                return displayableMapping(m.mapping);
-            return displayableMapping(m.item);
-        };
-        const cols = this.config.mappings
-            .map(displayableMapping)
-            .filter(x => x != null)
-            .map(m => this.buildColumnDefinition(m));
+        let cols = this.config.mappings
+            .filter(m => this.dataModel.getNestingLevel(m.fullPath) == 0)
+            .map(m => this.buildColumnDefinition(m))
+            .filter(x => x !== undefined);
+        if (cols.length == 0) {
+            cols = [{
+                    show: true,
+                    header: {
+                        html: 'Row'
+                    },
+                    data: {
+                        template: `<span>{[countOneBased]}</span>`
+                    },
+                    width: 'flex(1)'
+                }];
+        }
         const settings = {
             theme: this.obj.styleName,
             allParentLists: [],
@@ -8897,7 +17562,7 @@ class DynamicList {
             },
         };
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        const l = new A5.ListBox(listContainer.id, [], settings);
+        const l = new _A5.ListBox(listContainer.id, [], settings);
         l.populate(this.dataController.getAllRawData());
     }
     updateRecordCount() {
@@ -8915,24 +17580,26 @@ class DynamicList {
         const buildForm = () => {
             const makeForm = () => { this.buildDetailViewForm(x); };
             const openForm = () => { this.obj.runAction('Navigate Detail View'); };
-            A5.executeThisThenThat(makeForm, openForm);
+            _A5.executeThisThenThat(makeForm, openForm);
         };
-        if (x.tag == 'newRecord' && this.dataController.mappingInfo.insertionKeys.length > 0) {
+        if (x.tag == 'newRecord' && this.dataController.mappingInfo.isEntirelyTopLevel() === false) {
             const html = `<div id="dynamic-list-row-selector-${this.id}"></div>`;
             const dd = document.createElement('select');
-            A5.msgBox.show("Select a row to add to", html, 'o', () => {
+            _A5.msgBox.show("Select a row to add to", html, 'o', () => {
                 const v = Number.parseInt(dd.value);
                 if (!Number.isNaN(v)) {
-                    x = { tag: 'appendToBlankArray', rawRow: v };
+                    x = { tag: 'appendToRawRow', rawRow: v };
                     buildForm();
                 }
             });
             this.dataController.getFreeRows().forEach(({ row, index }) => {
                 const opt = document.createElement('option');
-                const descriptor = DataController
-                    .getDataMappings(this.config)
+                const descriptor = this.config.mappings
                     .filter(x => x.inList)
-                    .map(x => row[x.flattenedName])
+                    .map(x => {
+                    const name = this.dataModel.getUniqueName(x);
+                    return name !== undefined ? row[name] : undefined;
+                })
                     .filter(x => typeof x === 'string')
                     .join(' | ');
                 opt.innerText = descriptor;
@@ -8975,7 +17642,7 @@ class DynamicList {
             addRow.onClick = () => {
                 this.showRowPicker({
                     onUnneeded: () => { this.newDetailViewRecord({ tag: 'newRecord' }); },
-                    onSelect: idx => { this.newDetailViewRecord({ tag: 'appendToBlankArray', rawRow: idx }); }
+                    onSelect: idx => { this.newDetailViewRecord({ tag: 'appendToRawRow', rawRow: idx }); }
                 });
             };
         }
@@ -8992,16 +17659,7 @@ class DynamicList {
         }
     }
     makeGroupingSettings() {
-        const isNestedArr = (m) => {
-            if (m.tag == 'array')
-                return m;
-            else if (m.tag == 'object')
-                return isNestedArr(m.item);
-            else if (m.tag == 'nested')
-                return isNestedArr(m.mapping);
-            return null;
-        };
-        const arrays = this.config.mappings.filter(isNestedArr);
+        const arrays = this.config.mappings.filter(m => this.dataModel.getNestingLevel(m.fullPath) > 0);
         if (arrays.length == 0)
             return { auto: [] };
         return {
@@ -9018,7 +17676,7 @@ class DynamicList {
                         return '';
                     },
                     header: {
-                        className: `A5ListGroupHeaders ${A5.themes._t.Alpha.listbox.base.item.titleClassName}`,
+                        className: `A5ListGroupHeaders ${_A5.themes._t.Alpha.listbox.base.item.titleClassName}`,
                         html: (group, data) => {
                             const num = data[0]['*key'];
                             if (typeof num == 'number') {
@@ -9035,8 +17693,8 @@ class DynamicList {
                     collapse: {
                         allow: 'indicator',
                         indicator: {
-                            collapse: A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon'),
-                            expand: A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
+                            collapse: _A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon'),
+                            expand: _A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
                         },
                     },
                 }
@@ -9045,10 +17703,16 @@ class DynamicList {
         };
     }
     buildColumnDefinition(mapping) {
-        const name = mapping.flattenedName;
-        let template = '{' + name + '}';
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            template = `{${name}:date("${mapping?.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT}")}`;
+        const name = this.dataModel.getUniqueName(mapping);
+        const modelItem = this.dataModel.find(mapping.fullPath);
+        if (name === undefined || modelItem === undefined) {
+            console.warn(`There was an issue creating a column definition for the mapping ${DataModel.printPath(mapping.fullPath)}`);
+            return undefined;
+        }
+        const safeName = this.uniqueNameToSafeName.get(name) ?? name;
+        let template = '{' + safeName + '}';
+        if (modelItem.tag == 'data' && modelItem.type == 'datetime') {
+            template = `{${safeName}:date("${mapping?.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT}")}`;
         }
         if (mapping.template)
             template = mapping.template;
@@ -9062,7 +17726,7 @@ class DynamicList {
             },
             width: mapping.width ?? 'flex(1)',
             resize: true,
-            order: name,
+            order: safeName,
         };
     }
     buildColumnButton(button, btnNumber, items) {
@@ -9128,10 +17792,111 @@ class DynamicList {
             order: false,
         };
     }
+    rowDrag(elem, e, key) {
+        if (this._rowDragState.listItem == null)
+            return;
+        const listContent = document.getElementById(this.listBox.contId + '.CONTENT');
+        const my = e.y;
+        let closestElem = this._rowDragState.listItem;
+        let closestDist = Number.MAX_SAFE_INTEGER;
+        let closestIdx = 0;
+        let direction = 1;
+        for (let i = 0; i < listContent.children.length; i++) {
+            const child = listContent.children[i];
+            let bb = child.getBoundingClientRect();
+            if (Math.abs(my - bb.bottom) < closestDist) {
+                closestIdx = i;
+                closestElem = child;
+                closestDist = Math.abs(my - bb.bottom);
+                direction = 1;
+            }
+            if (Math.abs(my - bb.top) < closestDist) {
+                closestIdx = i;
+                closestDist = Math.abs(my - bb.top);
+                closestElem = child;
+                direction = -1;
+            }
+        }
+        if (direction == -1) {
+            listContent.insertBefore(this._rowDragState.listItem, closestElem);
+            this._rowDragState.moveToIdx = closestIdx;
+        }
+        else {
+            this._rowDragState.moveToIdx = closestIdx;
+            const after = closestElem?.nextElementSibling;
+            if (after) {
+                listContent.insertBefore(this._rowDragState.listItem, after);
+            }
+            else {
+                listContent.appendChild(this._rowDragState.listItem);
+            }
+        }
+    }
+    rowDragStart(elem, e, key) {
+        if (this.dataController.mappingInfo.isEntirelyTopLevel() == false) {
+            alert('Row Dragging is only for non-flattened lists!');
+            return;
+        }
+        e.dataTransfer.setDragImage(document.getElementById(this.obj.dialogId + '.' + LIST_NAME + '.MOVE_IMG'), 0, 0);
+        let parent = elem.parentElement;
+        while (!parent.classList.contains('listItem')) {
+            parent = parent.parentElement;
+        }
+        this._rowDragState.listItem = parent;
+        this._rowDragState.moveToIdx = key;
+        parent.style.border = '1px solid #0df';
+    }
+    rowDragEnd(elem, e, key) {
+        if (this._rowDragState.listItem) {
+            this._rowDragState.listItem.style.border = 'none';
+            let newIdx = this._rowDragState.moveToIdx;
+            if (newIdx < 0)
+                newIdx = 0;
+            if (newIdx >= this.dataController.length().raw)
+                newIdx = this.dataController.length().raw;
+            this.dataController.swapRows(key, newIdx);
+            this.reRender(false);
+            this.recalculateButtons();
+            this._rowDragState.listItem = null;
+        }
+    }
+    buildMoveColumn() {
+        const id = this.obj.dialogId + '.' + LIST_NAME;
+        const icon = `<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+            <svg width="24px" height="24px" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M9.5 8C10.3284 8 11 7.32843 11 6.5C11 5.67157 10.3284 5 9.5 5C8.67157 5 8 5.67157 8 6.5C8 7.32843 8.67157 8 9.5 8ZM9.5 14C10.3284 14 11 13.3284 11 12.5C11 11.6716 10.3284 11 9.5 11C8.67157 11 8 11.6716 8 12.5C8 13.3284 8.67157 14 9.5 14ZM11 18.5C11 19.3284 10.3284 20 9.5 20C8.67157 20 8 19.3284 8 18.5C8 17.6716 8.67157 17 9.5 17C10.3284 17 11 17.6716 11 18.5ZM15.5 8C16.3284 8 17 7.32843 17 6.5C17 5.67157 16.3284 5 15.5 5C14.6716 5 14 5.67157 14 6.5C14 7.32843 14.6716 8 15.5 8ZM17 12.5C17 13.3284 16.3284 14 15.5 14C14.6716 14 14 13.3284 14 12.5C14 11.6716 14.6716 11 15.5 11C16.3284 11 17 11.6716 17 12.5ZM15.5 20C16.3284 20 17 19.3284 17 18.5C17 17.6716 16.3284 17 15.5 17C14.6716 17 14 17.6716 14 18.5C14 19.3284 14.6716 20 15.5 20Z" fill="#121923"/>
+            </svg>`;
+        const dragImg = document.createElement('div');
+        dragImg.style.display = 'none';
+        dragImg.id = id + '.MOVE_IMG';
+        document.body.appendChild(dragImg);
+        const template = `
+            <div
+                style="display: inline-block;"
+                id="${id + '.MOVE_{*key}'}"
+                draggable="true"
+                ondragstart="DYNAMIC_LIST_LOOKUP['${this.id}'].rowDragStart(this, event, {*key})"
+                ondragend="DYNAMIC_LIST_LOOKUP['${this.id}'].rowDragEnd(this, event, {*key})"
+                ondrag="DYNAMIC_LIST_LOOKUP['${this.id}'].rowDrag(this, event, {*key})"
+            >
+                ${icon}
+            </div>
+        `;
+        return {
+            header: {
+                html: ''
+            },
+            data: {
+                template: template.replace(/(\r\n|\n|\r|\t)/gm, ""),
+                style: 'text-align: left; text-overflow: clip !important; white-space: normal !important;'
+            },
+            width: '50px'
+        };
+    }
     buildCheckboxColumn() {
         const id = this.obj.dialogId + '.' + LIST_NAME;
-        const checked = A5.u.icon.html("svgIcon=#alpha-icon-checkCircle:icon,24");
-        const unchecked = A5.u.icon.html("svgIcon=#alpha-icon-circle:icon,24");
+        const checked = _A5.u.icon.html("svgIcon=#alpha-icon-checkCircle:icon,24");
+        const unchecked = _A5.u.icon.html("svgIcon=#alpha-icon-circle:icon,24");
         const template = `
             <div 
                 style="display: inline-block;" 
@@ -9168,7 +17933,7 @@ class DynamicList {
                 const d = this.dataController.getFlattenedRow(r);
                 for (const key in d) {
                     if (key in selectedData && selectedData[key] !== d[key]) {
-                        selectedData[key] = makeObviousDefault(DataController.lookupMapping(key, this.config));
+                        selectedData[key] = makeObviousDefault(this.dataModel.reverseNameLookup(key), this.dataModel);
                     }
                     else {
                         selectedData[key] = d[key];
@@ -9178,46 +17943,28 @@ class DynamicList {
         }
         else if (addInfo.tag == 'newRecord') {
             selectedData = {};
-            this.config.mappings.forEach(m => A5.u.object.assign(selectedData, makeObviousDefault(m)));
+            this.config.mappings.forEach(m => _A5.u.object.assign(selectedData, makeObviousDefault(m.fullPath, this.dataModel)));
         }
         else if (addInfo.tag == 'newRecordInRow') {
             selectedData = this.dataController.getFlattenedRow(addInfo.row);
-            this.dataController.mappingInfo.insertionKeys.forEach(k => {
-                selectedData[k] = makeObviousDefault(DataController.lookupMapping(k, this.config));
+            this.dataController.mappingInfo.deeplyNestedPaths().forEach(k => {
+                selectedData[this.dataModel.getUniqueName(k.path)] = makeObviousDefault(k.path, this.dataModel);
             });
-            this.config.mappings.forEach(m => A5.u.object.assign(selectedData, makeObviousDefault(m)));
+            this.config.mappings.forEach(m => _A5.u.object.assign(selectedData, makeObviousDefault(m.fullPath, this.dataModel)));
         }
         else {
             selectedData = {};
-            const origRow = this.dataController.getRawRow(addInfo.rawRow);
-            const fillData = (m, p) => {
-                if (m.tag == 'data') {
-                    if (p.length == 0)
-                        p = [{ tag: 'object', key: m.flattenedName }];
-                    if (this.dataController.mappingInfo.insertionKeys.includes(m.flattenedName)) {
-                        selectedData[m.flattenedName] = makeObviousDefault(m);
-                    }
-                    else {
-                        const chased = this.dataController.chasePath(origRow, p);
-                        if (chased !== undefined && chased !== null)
-                            selectedData[m.flattenedName] = chased;
-                    }
+            const rawRow = this.dataController.getRawRow(addInfo.rawRow);
+            this.dataController.mappingInfo.deeplyNestedPaths().forEach(({ path }) => {
+                selectedData[this.dataModel.getUniqueName(path)] = makeObviousDefault(path, this.dataModel);
+            });
+            this.config.mappings.forEach(mapping => {
+                const uniqueName = this.dataModel.getUniqueName(mapping);
+                if (uniqueName in rawRow) {
+                    selectedData[uniqueName] = rawRow[uniqueName];
                 }
-                else if (m.tag == 'nested')
-                    fillData(m.mapping, [{ tag: 'object', key: m.key }]);
-                else if (m.tag == 'array')
-                    fillData(m.item, [...p, { tag: 'array', index: 0 }]);
-                else
-                    fillData(m.item, [...p, { tag: 'object', key: m.key }]);
-            };
-            this.config.mappings.forEach(m => { fillData(m, []); });
+            });
         }
-        const form = flatRowInputForm(this, d => !(d.inDetailView ?? false), d => {
-            const i = this.dataController.mappingInfo.insertionKeys;
-            if (i.length == 0)
-                return false;
-            return !i.includes(d.flattenedName);
-        })(selectedData);
         const saveOps = {};
         if (addInfo.tag == 'editExistingRecord') {
             saveOps.onDelete = [addInfo.record];
@@ -9241,10 +17988,23 @@ class DynamicList {
         }
         else {
             saveOps.onDelete = [];
-            saveOps.onNew = { tag: 'appendToBlankArray', rawRow: addInfo.rawRow };
+            saveOps.onNew = { tag: 'appendToRawRow', rawRow: addInfo.rawRow };
             saveOps.onSave = { tag: 'insertRaw', rawRow: addInfo.rawRow };
         }
-        const bottomButtons = this.makeDetailContextButtons(saveOps);
+        const { bottomButtons, doSave } = this.makeDetailContextButtons(saveOps);
+        const keyMap = {};
+        this.config.mappings.forEach(m => {
+            if (!m.inDetailView)
+                return;
+            keyMap[this.dataModel.getUniqueName(m)] = mappingToInput(this, this.dataModel, m, {
+                forceReadonly: this.dataController.mappingInfo.isEntirelyTopLevel()
+                    ? false
+                    : !this.dataController.mappingInfo.pathIsDeeplyNested(m.fullPath),
+                baseOnly: true,
+                requestSave: doSave
+            });
+        });
+        const form = new ObjectForm(selectedData, keyMap);
         const container = this.obj.getPointer(DETAIL_FORM_CONTAINER);
         const id = container ? container.id : '';
         this.detailView = new ReactiveFormManager(form, id, this.obj, objForm => ({
@@ -9267,10 +18027,10 @@ class DynamicList {
         const doDelete = () => {
             if (this.listBox.customization?.confirmDeleteWarning) {
                 const c = this.listBox.customization.confirmDeleteWarning;
-                A5.msgBox.show(c.title, c.message, "OC", (action) => {
+                _A5.msgBox.show(c.title, c.message, "oc", (action) => {
                     if (action === 'ok') {
                         this.dataController.deleteRows(options.onDelete);
-                        this.listBox.populate(this.dataController.getAllFlattenedRows());
+                        this.listBox.populate(this.flatRowToListSafeRow());
                         this.obj.refreshClientSideComputations(true);
                         this.recalculateButtons();
                     }
@@ -9326,7 +18086,7 @@ class DynamicList {
             else {
                 this.dataController.insertRows([{ data: d, attachToIndex: options.onSave.rawRow }], true);
             }
-            this.listBox.populate(this.dataController.getAllFlattenedRows());
+            this.listBox.populate(this.flatRowToListSafeRow());
             this.recalculateButtons();
             this.detailView?.setDirty(false);
             this.detailView?.refresh();
@@ -9334,61 +18094,63 @@ class DynamicList {
         this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doDelete;
         this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doSave;
         return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    control: {
-                        html: `
+            bottomButtons: {
+                type: 'group',
+                items: [
+                    {
+                        type: 'button',
+                        control: {
+                            html: `
                         <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
+                            ${_A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
                             <p>Save</p>
                         </div>
                         `,
-                        onClick: () => { this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                            onClick: () => { this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                        },
+                        sys: { isEmbedded: false },
+                        disabled: () => this.detailView?.isDirty() === false
                     },
-                    sys: { isEmbedded: false },
-                    disabled: () => this.detailView?.isDirty() === false
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `
+                    {
+                        type: 'button',
+                        control: {
+                            html: `
                         <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
+                            ${_A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
                             <p>Delete</p>
                         </div>
                         `,
-                        onClick: () => { this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                            onClick: () => { this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST(); }
+                        },
+                        sys: { isEmbedded: false }
                     },
-                    sys: { isEmbedded: false }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `
+                    {
+                        type: 'button',
+                        control: {
+                            html: `
                         <div style="${divStyle}">
-                            ${A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
+                            ${_A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
                             <p>New Record</p>
                         </div>
                         `,
-                        onClick: () => {
-                            this.recalculateButtons();
-                            this.newDetailViewRecord(options.onNew);
-                        }
+                            onClick: () => {
+                                this.recalculateButtons();
+                                this.newDetailViewRecord(options.onNew);
+                            }
+                        },
+                        sys: { isEmbedded: false }
                     },
-                    sys: { isEmbedded: false }
-                },
-            ],
-            container: {
-                style: '; display: flex; flex-direction: row; gap: 1rem;'
-            }
+                ],
+                container: {
+                    style: '; display: flex; flex-direction: row; gap: 1rem;'
+                }
+            }, doSave, doDelete
         };
     }
-    openSublistFromNested(name, label, data, onSave) {
+    openSublistFromNested(configName, label, data, onSave) {
         const newSchema = {
             version: this.config.version,
-            name: name,
+            name: configName,
             dataSource: {
                 type: 'json',
                 jsonData: JSON.stringify(data)
@@ -9401,7 +18163,7 @@ class DynamicList {
             obj: this.obj,
             listContainerId: "LIST_CONTAINER",
             searchContainerId: "SEARCH_CONTAINER",
-            configName: name,
+            configName: configName,
             titleName: label,
             fallbackConfig: newSchema,
             otherProps: {
@@ -9411,20 +18173,7 @@ class DynamicList {
                 dataOverride: data,
             }
         };
-        okOrLog(openNewPanel(ops));
-    }
-    makeFilterFromSelected(colName, foreignColName) {
-        let thisVal = '';
-        if (this.listBox.selectionData.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-            thisVal = this.listBox.selectionData[0][colName]?.toString() ?? 'null';
-        }
-        return [{
-                columnName: foreignColName,
-                columnVal: { tag: "value", value: thisVal.toString() },
-                connector: 'AND',
-                op: '='
-            }];
+        okOrLog(listUtils_openNewPanel(ops));
     }
     setData(rawData, serverTzOffset) {
         let rawDataRows;
@@ -9457,10 +18206,13 @@ class DynamicList {
             console.log(e);
             rawDataRows = [];
         }
-        this.dataBridge.setTzOffset(serverTzOffset);
-        this.dataBridge.rawToProcessed(rawDataRows).match({
+        this.dataModel = new DataModel({ rawRows: rawDataRows, root: this.config.dataModel });
+        this.rawFetchedData = rawDataRows;
+        this.uniqueNameToSafeName = this.safeNameMapping();
+        this.dataBridge = new DataBridge(this.config, this.prefetched.serverTimeOffset);
+        this.dataBridge.rawToProcessed(rawDataRows, this.dataModel).match({
             ok: processedRows => {
-                this.dataController = new DataController(processedRows, this.config, this.prefetched.schema);
+                this.dataController = new DataController(processedRows, this.config, this.dataModel);
                 if (this.listBox._state == undefined)
                     this.listBox._state = { page: 0, pageCount: 0, pageSize: 0, recordCount: 0 };
                 this.listBox._state.recordCount = this.dataController.length().flattened;
@@ -9477,20 +18229,16 @@ class DynamicList {
         // This is the fix
         this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
         const allFilters = [...this.permanentFilters, ...this.searchFilters];
+        let filters = JSON.stringify(allFilters);
         if (this.config.dataSource.type == 'sql') {
-            for (const filter of allFilters) {
-                if (this.dataController.mappingInfo.insertionKeys.includes(filter.columnName)) {
-                    const errMsg = `
-                        <p> One of your columns, <b>'${filter.columnName}'</b>, is nested inside a list column. </p>
-                        <p> You cannot do a server-side search using this column, and you cannot filter results based on it. </p>
-                        <p> You need to remove the column from your search or remove it from your filter. </p>
-                    `;
-                    displayErrorMessage(new types.ErrMsg(errMsg));
-                    return Promise.resolve(this);
-                }
+            let safeFiltersRes = safeServerFilters(allFilters);
+            let safeFilters = safeFiltersRes.asOk();
+            if (safeFilters === undefined) {
+                displayErrorMessage(new types.ErrMsg(safeFiltersRes.asErr()));
+                return Promise.resolve(this);
             }
+            filters = JSON.stringify(safeFilters);
         }
-        const filters = JSON.stringify(allFilters);
         let paginate = '';
         if ('paginate' in this.config.dataSource && this.config.dataSource.paginate) {
             const page = this.listBox._state?.page ?? 1;
@@ -9554,7 +18302,7 @@ class DynamicList {
                     }
                 });
             }
-            this.setData(data, this.dataBridge.serverTzOffset);
+            this.setData(data, this.prefetched.serverTimeOffset);
             return Promise.resolve(this);
         }
         else {
@@ -9565,7 +18313,7 @@ class DynamicList {
             else {
                 endpoint = "search";
             }
-            return listBuilder_fetch(this.obj, this.config.name, endpoint)
+            return listUtils_fetch(this.obj, this.config.name, endpoint)
                 .then((json) => {
                 if ('err' in json) {
                     displayErrorMessage(new types.ErrMsg(json.err));
@@ -9576,8 +18324,37 @@ class DynamicList {
             });
         }
     }
+    safeNameMapping() {
+        let toSafeName = new Map();
+        this.config.mappings.forEach(m => {
+            let dm = this.dataModel.find(m.fullPath);
+            if (!dm)
+                return;
+            let preferredName = dm.uniqueName.replace(/[\W]/g, '_');
+            let i = 1;
+            let currName = preferredName;
+            while (toSafeName.has(currName)) {
+                currName = currName + '_' + i;
+                i += 1;
+            }
+            toSafeName.set(dm.uniqueName, currName);
+        });
+        return toSafeName;
+    }
+    flatRowToListSafeRow() {
+        let rows = this.dataController.getAllFlattenedRows();
+        let out = [];
+        rows.forEach(row => {
+            let newRow = {};
+            for (const key in row) {
+                newRow[this.uniqueNameToSafeName.get(key) ?? key] = row[key];
+            }
+            out.push(newRow);
+        });
+        return out;
+    }
     populateListBox() {
-        this.listBox.populate(this.dataController.getAllFlattenedRows());
+        this.listBox.populate(this.flatRowToListSafeRow());
         for (const f of this.onRender) {
             f();
         }
@@ -9586,1939 +18363,23 @@ class DynamicList {
         this.updateRecordCount();
         if (this.listBox._refreshStateMessages)
             this.listBox._refreshStateMessages();
+        let listContainer = document.getElementById(this.listBox.contId);
+        listContainer.ondragover = e => {
+            e.preventDefault();
+        };
     }
     buildList() {
-        // this.listBox = new A5.ListBox(this.containerId, [], this.settings);
-        // this.listBox._hostComponentId = this.obj.dialogId;
-        // this.listBox._listSystemOnClickPopulateJSONForm = (rowNum: number) => { };
-        // window[this.obj.dialogId + '.V.R1.' + this.listBox.listVariableName + 'Obj'] = this.listBox;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-        this.listBox = new A5.ListBox(this.containerId, [], this.buildSettings());
+        this.listBox = new _A5.ListBox(this.containerId, [], this.buildSettings());
         this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
     }
 }
-class DataController {
-    constructor(rawData, config, rawSchema) {
-        this.rowExplosionInfo = new Map();
-        this.config = config;
-        this.rawData = rawData;
-        this.mappingInfo = DataController.collectMappingInfo(this.config);
-        this.buildSchema(rawSchema);
-        this.calculateFlattenedData();
-        this.rawDirtyRows = new Set();
-        this.rawDeletedRows = new Set();
-        this.rawInsertedRows = new Set();
-    }
-    static lookupMapping(name, config) {
-        const searchRec = (m) => {
-            if (m.tag == 'data' && m.flattenedName == name)
-                return m;
-            else if (m.tag == 'data')
-                return null;
-            else
-                return searchRec(m.item);
-        };
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data' && mapping.flattenedName == name)
-                return mapping;
-            else if (mapping.tag == 'nested') {
-                const tmp = searchRec(mapping.mapping);
-                if (tmp)
-                    return tmp;
-            }
-        }
-        throw new Error("No mapping " + name);
-    }
-    static getDetailViewMappings(config) {
-        const traverse = (s) => {
-            if (s.tag == 'data' && s.inDetailView)
-                return s;
-            else if (s.tag == 'array' || s.tag == 'object')
-                return traverse(s.item);
-            return null;
-        };
-        const out = [];
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data' && mapping.inDetailView)
-                out.push({ mapping, key: mapping.flattenedName });
-            else if (mapping.tag == 'nested') {
-                const x = traverse(mapping.mapping);
-                if (x)
-                    out.push({ mapping: x, key: mapping.key });
-            }
-        }
-        return out;
-    }
-    static getDataMappings(config) {
-        const traverse = (s) => {
-            if (s.tag == 'data')
-                return s;
-            return traverse(s.item);
-        };
-        return config.mappings.map(x => x.tag == 'nested' ? traverse(x.mapping) : x);
-    }
-    static getSearchableColumns(config) {
-        const traverse = (m, quantifiable, key) => {
-            if (m.tag == 'data') {
-                const name = m.flattenedName;
-                return {
-                    displayName: m.displayName ?? name,
-                    columnName: name,
-                    quantifiable: quantifiable,
-                    editType: m.editType ?? 'text',
-                    mapping: m
-                };
-            }
-            else if (m.tag == 'array') {
-                return traverse(m.item, true, key);
-            }
-            else {
-                return traverse(m.item, quantifiable, m.key);
-            }
-        };
-        const arr = [];
-        for (const mapping of config.mappings) {
-            if (mapping.tag == 'data') {
-                arr.push({
-                    displayName: mapping.displayName ?? mapping.flattenedName,
-                    columnName: mapping.flattenedName,
-                    quantifiable: false,
-                    editType: mapping.editType ?? 'text',
-                    mapping: mapping
-                });
-            }
-            else {
-                const x = traverse(mapping.mapping, false, mapping.key);
-                arr.push(x);
-            }
-        }
-        return arr;
-    }
-    isDirty() {
-        return this.rawInsertedRows.size > 0 || this.rawDeletedRows.size > 0 || this.rawDirtyRows.size > 0;
-    }
-    // Get non-flattened dirty rows
-    getDirtyRows() {
-        const out = {
-            toUpdate: this.rawData.filter((_, i) => this.rawDirtyRows.has(i)),
-            toDelete: this.rawData.filter((_, i) => this.rawDeletedRows.has(i)),
-            toInsert: this.rawData.filter((_, i) => this.rawInsertedRows.has(i) && !this.rawDeletedRows.has(i)),
-        };
-        return clone(out);
-    }
-    getAllFlattenedRows() {
-        return clone(this.flattenedData).map(x => DataController.unflattenPoint(x));
-    }
-    static unflattenPoint(f) {
-        const out = {};
-        for (const key in f)
-            out[key] = f[key].data;
-        return out;
-    }
-    getFlattenedRow(i) {
-        return DataController.unflattenPoint(this.flattenedData[i]);
-    }
-    getRawRow(i) {
-        return this.rawData[i];
-    }
-    /// Delete deleted rows, set other rows clean. Return (copy of) data.
-    applyChanges() {
-        // No insertion keys ==> 1:1 mapping with flat data
-        // Insertion keys ==> literally cannot delete a top level row because 
-        // we only operate on sub-elements 
-        if (this.mappingInfo.insertionKeys.length == 0) {
-            this.rawData = this.rawData.filter((_, i) => !this.rawDeletedRows.has(i));
-        }
-        this.rawDeletedRows.clear();
-        this.rawInsertedRows.clear();
-        this.rawDirtyRows.clear();
-        return clone(this.rawData);
-    }
-    length() {
-        return { raw: this.rawData.length, flattened: this.flattenedData.length };
-    }
-    rowMetadata(index) {
-        const idx = this.rowExplosionInfo.get(index);
-        if (idx === undefined) {
-            return undefined;
-        }
-        return {
-            isDeleted: this.rawDeletedRows.has(idx),
-            isInserted: this.rawInsertedRows.has(idx),
-            isDirty: this.rawDirtyRows.has(idx)
-        };
-    }
-    getData(index, path) {
-        const idx = this.rowExplosionInfo.get(index);
-        if (idx === undefined) {
-            return (0,types.Err)(void (0));
-        }
-        return (0,types.Ok)(this.chasePath(this.rawData[idx], path));
-    }
-    getAllRawData() {
-        return clone(this.rawData);
-    }
-    updateRows(items) {
-        items.forEach(({ index, newData }) => {
-            const relaventRow = this.flattenedData[index];
-            const unflattenedIndex = this.rowExplosionInfo.get(index);
-            if (unflattenedIndex === undefined) {
-                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
-                return;
-            }
-            for (const key in relaventRow) {
-                if (key in newData) {
-                    this.pathUpdate(this.rawData[unflattenedIndex], relaventRow[key].path, newData[key]);
-                }
-            }
-            this.rawDirtyRows.add(unflattenedIndex);
-        });
-        this.calculateFlattenedData();
-    }
-    // For if we're appending to a brand new item
-    newRowFromBlank(data) {
-        let parent = this.rawData[0];
-        for (let i = 0; i < this.mappingInfo.insertionKeys.length; i++) {
-            const k = this.mappingInfo.insertionKeys[i];
-            const p = this.mappingInfo.insertionPaths[i];
-            if (k in data) {
-                this.pathUpdate(parent, p, data[k]);
-            }
-        }
-        this.rawDirtyRows.add(0);
-        this.calculateFlattenedData();
-    }
-    insertRows(data, indexIsRaw) {
-        if (this.mappingInfo.insertionKeys.length == 0) {
-            data.forEach(x => {
-                const d = x.data;
-                const f = {};
-                for (const key in d) {
-                    f[key] = {
-                        path: [{ tag: 'object', key }],
-                        data: d[key]
-                    };
-                }
-                ;
-                this.rawData.push(d);
-                this.rawInsertedRows.add(this.rawData.length - 1);
-            });
-            this.calculateFlattenedData();
-            return;
-        }
-        if (this.flattenedData.length == 0) {
-            let rest = data.splice(1);
-            this.newRowFromBlank(data[0].data);
-            this.insertRows(rest, indexIsRaw);
-            return;
-        }
-        data.forEach(d => {
-            let relaventRow;
-            let originalRow;
-            const rawIndex = this.rowExplosionInfo.get(d.attachToIndex);
-            if (rawIndex === undefined) {
-                displayErrorMessage(new types.ErrMsg("The index " + rawIndex + " is out of range. This is a bug."));
-                return;
-            }
-            if (indexIsRaw) {
-                relaventRow = this.flattenedData[rawIndex];
-                originalRow = this.rawData[d.attachToIndex];
-                this.rawDirtyRows.add(d.attachToIndex);
-            }
-            else {
-                relaventRow = this.flattenedData[d.attachToIndex];
-                originalRow = this.rawData[rawIndex];
-                this.rawDirtyRows.add(rawIndex);
-            }
-            const seenArrays = [];
-            const getNewIndex = (p) => {
-                const existingArr = this.chasePath(originalRow, p);
-                // Want to insert
-                if (existingArr === null) {
-                    const newArr = [];
-                    seenArrays.push([newArr, 0]);
-                    this.pathUpdate(originalRow, p, newArr);
-                    return (0,types.Ok)(0);
-                }
-                if (!Array.isArray(existingArr)) {
-                    return (0,types.Err)(void (0));
-                }
-                for (const [arr, idx] of seenArrays) {
-                    if (Object.is(arr, existingArr))
-                        return (0,types.Ok)(idx);
-                }
-                seenArrays.push([existingArr, existingArr.length]);
-                return (0,types.Ok)(existingArr.length);
-            };
-            const pathStr = (p) => p.map(x => {
-                if (x.tag == 'object')
-                    return x.key;
-                return '[...]';
-            }).join('.');
-            for (const key in d.data) {
-                if (this.mappingInfo.insertionKeys.includes(key)) {
-                    const path = relaventRow[key].path;
-                    for (let i = path.length - 1; i >= 0; i--) {
-                        const curr = path[i];
-                        if (curr.tag == 'array') {
-                            getNewIndex(path.slice(0, i)).match({
-                                ok: i => { curr.index = i; },
-                                err: () => {
-                                    displayErrorMessage(new types.ErrMsg(`
-                                        The datapoint ${JSON.stringify(d.data)} is misconfigured in the list settings.
-                                        The configured path (${pathStr(path)}) indicates an array at depth ${i}. The datapoint
-                                        does not have this array.
-                                    `));
-                                }
-                            });
-                            break;
-                        }
-                    }
-                    this.pathUpdate(originalRow, path, d.data[key]);
-                }
-            }
-        });
-        this.calculateFlattenedData();
-    }
-    originalIndexOf(index) {
-        const idx = this.rowExplosionInfo.get(index);
-        if (idx === undefined) {
-            return (0,types.Err)(void (0));
-        }
-        return (0,types.Ok)(idx);
-    }
-    deleteRows(indexes) {
-        if (Object.keys(this.mappingInfo.nested).length == 0) {
-            indexes.forEach(i => {
-                this.rawDeletedRows.add(i);
-                this.rawInsertedRows.delete(i);
-            });
-        }
-        else {
-            indexes.forEach(i => {
-                const flatRow = this.flattenedData[i];
-                const rawIndex = this.rowExplosionInfo.get(i);
-                if (rawIndex === undefined) {
-                    displayErrorMessage(new types.ErrMsg("Index " + i + "can't be unflattened. This is a bug."));
-                    return;
-                }
-                const rawRow = this.rawData[rawIndex];
-                const deepestArrayPath = (p) => {
-                    for (let i = p.length - 1; i >= 0; i--) {
-                        if (p[i].tag == 'array')
-                            return p.slice(0, i + 1);
-                    }
-                };
-                const insertionKey = this.mappingInfo.insertionKeys[0];
-                const pathToDelete = flatRow[insertionKey].path;
-                const arrayPart = deepestArrayPath(pathToDelete);
-                if (arrayPart === undefined)
-                    return;
-                const last = arrayPart[arrayPart.length - 1];
-                if (last.tag != 'array')
-                    return;
-                const idxToRemove = last.index;
-                const newArray = this.chasePath(rawRow, arrayPart.slice(0, arrayPart.length - 1));
-                if (!(newArray instanceof Array))
-                    return;
-                newArray.splice(idxToRemove, 1);
-                this.rawDirtyRows.add(rawIndex);
-                this.rowExplosionInfo.delete(i);
-            });
-        }
-        this.calculateFlattenedData();
-    }
-    chasePath(o, path) {
-        if (path.length == 0)
-            return o;
-        if (o === undefined || o === null)
-            return null;
-        if (path[0].tag == 'array')
-            return this.chasePath(o[path[0].index], path.slice(1));
-        return this.chasePath(o[path[0].key], path.slice(1));
-    }
-    // Get any raw rows that were not expanded
-    getFreeRows() {
-        const allShownRows = new Set(this.rowExplosionInfo.values());
-        return clone(this.rawData)
-            .map((x, i) => ({ index: i, row: x }))
-            .filter((_, i) => !allShownRows.has(i));
-    }
-    pathUpdate(o, path, data) {
-        path = clone(path);
-        if (path.length == 0)
-            return;
-        const front = path.splice(0, 1)[0];
-        const expectObj = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an object, but it is not.`);
-        const expectArr = new types.ErrMsg(`The data in the configuration is misconfigured. Datapoint ${JSON.stringify(o)} should be an array, but it is not.`);
-        if (path.length == 0) {
-            if (front.tag == 'object') {
-                if (o === null)
-                    o = {};
-                else if (typeof o != 'object') {
-                    displayErrorMessage(expectObj);
-                    return;
-                }
-                o[front.key] = data;
-            }
-            else {
-                if (!Array.isArray(o)) {
-                    displayErrorMessage(expectArr);
-                    return;
-                }
-                if (front.index >= o.length) {
-                    o.push(data);
-                }
-                else {
-                    o[front.index] = data;
-                }
-            }
-        }
-        else {
-            if (front.tag == 'object') {
-                if (typeof o != 'object' || o === null) {
-                    displayErrorMessage(expectObj);
-                    return;
-                }
-                if (o[front.key] == null || o[front.key] == undefined) {
-                    if (path[0].tag == 'object')
-                        o[front.key] = {};
-                    else
-                        o[front.key] = [];
-                }
-                this.pathUpdate(o[front.key], path, data);
-            }
-            else {
-                if (!Array.isArray(o)) {
-                    displayErrorMessage(expectArr);
-                    return;
-                }
-                if (o[front.index] == null || o[front.index] == undefined) {
-                    if (path[0].tag == 'object')
-                        o[front.index] = {};
-                    else
-                        o[front.index] = [];
-                }
-                this.pathUpdate(o[front.index], path, data);
-            }
-        }
-    }
-    calculateFlattenedData() {
-        const dataCpy = clone(this.rawData);
-        this.rowExplosionInfo = new Map();
-        this.flattenedData = [];
-        dataCpy.forEach((entry, index) => {
-            const currIdx = this.flattenedData.length;
-            const toInsert = this.flatten(entry);
-            for (let i = currIdx; i < currIdx + toInsert.length; i++) {
-                this.rowExplosionInfo.set(i, index);
-            }
-            this.flattenedData.push(...toInsert);
-        });
-    }
-    static collectMappingInfo(c) {
-        const nestedGroups = {};
-        const nonNested = {};
-        const toMerged = (n) => {
-            if (n.tag == 'array')
-                return { tag: 'array', item: toMerged(n.item) };
-            if (n.tag == 'object')
-                return { tag: 'object', keys: { [n.key]: toMerged(n.item) } };
-            return n;
-        };
-        const merge = (a, b) => {
-            if (a.tag == 'object' && b.tag == 'object') {
-                const allKeys = Array.from(new Set([...Object.keys(a.keys), ...Object.keys(b.keys)]));
-                const out = {};
-                allKeys.forEach(key => {
-                    if (key in a.keys && key in b.keys)
-                        out[key] = merge(a.keys[key], b.keys[key]);
-                    else if (key in a.keys)
-                        out[key] = a.keys[key];
-                    else
-                        out[key] = b.keys[key];
-                });
-                return { tag: 'object', keys: out };
-            }
-            else if (b.tag == 'array' && a.tag == 'array') {
-                return { tag: 'array', item: merge(a.item, b.item) };
-            }
-            throw new Error("Nested mappings do not share a similar structure.");
-        };
-        c.mappings.forEach(m => {
-            if (m.tag == 'nested') {
-                if (!(m.key in nestedGroups))
-                    nestedGroups[m.key] = toMerged(m.mapping);
-                else
-                    nestedGroups[m.key] = merge(nestedGroups[m.key], toMerged(m.mapping));
-            }
-            else {
-                nonNested[m.flattenedName] = m;
-            }
-        });
-        let deepest = 0;
-        let keysToInsertFrom = [];
-        let insertionPaths = [];
-        const findDeepest = (m, depth, foundArray, path) => {
-            if (m.tag == 'data') {
-                if (!foundArray)
-                    return;
-                if (depth == deepest) {
-                    keysToInsertFrom.push(m.flattenedName);
-                    insertionPaths.push(path);
-                }
-                if (depth > deepest) {
-                    keysToInsertFrom = [m.flattenedName];
-                    insertionPaths = [path];
-                    deepest = depth;
-                }
-            }
-            else if (m.tag == 'object') {
-                for (const key in m.keys) {
-                    findDeepest(m.keys[key], depth, foundArray, [...path, { tag: 'object', key }]);
-                }
-            }
-            else {
-                findDeepest(m.item, depth + 1, true, [...path, { tag: 'array', index: 0 }]);
-            }
-        };
-        Object.entries(nestedGroups).forEach(([k, m]) => { findDeepest(m, deepest, false, [{ tag: 'object', key: k }]); });
-        return {
-            nested: nestedGroups,
-            regular: nonNested,
-            insertionKeys: keysToInsertFrom,
-            insertionPaths
-        };
-    }
-    flatten(point) {
-        const dataOut = [];
-        const recurse = (constants, path, current, rest) => {
-            if (current.tag == 'data') {
-                const item = this.chasePath(point, path);
-                if (item === undefined) {
-                    return;
-                }
-                constants[current.flattenedName] = { data: item, path };
-                if (rest.length == 0)
-                    dataOut.push(clone(constants));
-                else {
-                    const [newPath, newCurrent] = rest.splice(0, 1)[0];
-                    recurse(constants, newPath, newCurrent, rest);
-                }
-            }
-            else if (current.tag == 'object') {
-                const keyArr = Object.keys(current.keys);
-                const newRest = keyArr.map(k => [[...path, { tag: 'object', key: k }], current.keys[k]]);
-                if (newRest.length == 0) {
-                    if (rest.length == 0)
-                        return;
-                    const [newPath, newCurr] = rest.splice(0, 1)[0];
-                    recurse(constants, newPath, newCurr, rest);
-                }
-                else {
-                    const [newPath, newCurr] = newRest.splice(0, 1)[0];
-                    rest = [...newRest, ...rest];
-                    recurse(constants, newPath, newCurr, rest);
-                }
-            }
-            else {
-                const item = this.chasePath(point, path);
-                if (!(item instanceof Array)) {
-                    return;
-                }
-                for (let i = 0; i < item.length; i++) {
-                    recurse(constants, [...path, { tag: 'array', index: i }], current.item, rest);
-                }
-            }
-        };
-        const constants = {};
-        Object.values(this.mappingInfo.regular).forEach(n => {
-            constants[n.flattenedName] = { data: point[n.flattenedName], path: [{ tag: 'object', key: n.flattenedName }] };
-        });
-        const toSearch = Object.entries(this.mappingInfo.nested).map(([key, mapping]) => [
-            [{ tag: 'object', key }],
-            mapping
-        ]);
-        if (toSearch.length == 0)
-            return [constants];
-        const [startPath, startMapping] = toSearch.splice(0, 1)[0];
-        recurse(constants, startPath, startMapping, toSearch);
-        return dataOut;
-    }
-    buildSchemaFromRawSchema(s) {
-        let schema = { tag: 'object', keys: {} };
-        const alphaToJs = (a) => {
-            switch (a.toLowerCase()) {
-                case 'c': return 'string';
-                case 'l': return 'boolean';
-                case 'n': return 'number';
-                default: return 'any';
-            }
-        };
-        for (const col of s.jsonOutput.column) {
-            const colSchema = {
-                tag: 'rawData',
-                jsType: alphaToJs(col.alphaType)
-            };
-            schema.keys[col.name] = colSchema;
-        }
-        return schema;
-    }
-    buildSchema(rawSchema) {
-        const mergeSchemas = (s1, s2) => {
-            if (s1.tag == 'array' && s2.tag == 'array') {
-                return { tag: 'array', elem: mergeSchemas(s1.elem, s2.elem) };
-            }
-            else if (s1.tag == 'object' && s2.tag == 'object') {
-                const allKeys = Array.from(new Set([...Object.keys(s1.keys), ...Object.keys(s2.keys)]));
-                const output = {};
-                allKeys.forEach(key => {
-                    if (!(key in s1.keys)) {
-                        output[key] = s2.keys[key];
-                    }
-                    else if (!(key in s2.keys)) {
-                        output[key] = s1.keys[key];
-                    }
-                    else {
-                        output[key] = mergeSchemas(s1.keys[key], s2.keys[key]);
-                    }
-                });
-                return { tag: 'object', keys: output };
-            }
-            else if (s1.tag == 'rawData' && s2.tag == 'rawData') {
-                return { tag: 'rawData', jsType: s1.jsType == s2.jsType ? s1.jsType : 'any' };
-            }
-            return { tag: 'unknown' };
-        };
-        const buildFromInstance = (dataPoint) => {
-            if (dataPoint instanceof Array) {
-                if (dataPoint.length == 0)
-                    return { tag: 'array', elem: { tag: 'unknown' } };
-                return { tag: 'array', elem: dataPoint.map(buildFromInstance).reduce(mergeSchemas) };
-            }
-            else if (dataPoint === null) {
-                return { tag: 'rawData', jsType: 'null' };
-            }
-            else if (typeof dataPoint === 'object') {
-                const keys = {};
-                for (const key in dataPoint) {
-                    keys[key] = buildFromInstance(dataPoint[key]);
-                }
-                return { tag: 'object', keys };
-            }
-            else {
-                let jsType = 'any';
-                switch (typeof dataPoint) {
-                    case 'string':
-                        jsType = 'string';
-                        break;
-                    case 'number':
-                    case 'bigint':
-                        jsType = 'number';
-                        break;
-                    case 'boolean':
-                        jsType = 'boolean';
-                        break;
-                    case 'symbol':
-                    case 'function':
-                    case 'object':
-                    case 'undefined':
-                        jsType = 'any';
-                        break;
-                }
-                return { tag: 'rawData', jsType };
-            }
-        };
-        if (this.rawData.length == 0) {
-            if (rawSchema)
-                this.schema = this.buildSchemaFromRawSchema(rawSchema);
-            else
-                this.schema = { tag: 'unknown' };
-        }
-        else {
-            this.schema = this.rawData.map(buildFromInstance).reduce(mergeSchemas);
-        }
-    }
-}
-function flatRowInputForm(list, exclude, readonly) {
-    exclude = exclude ?? (() => false);
-    readonly = readonly ?? (() => false);
-    const rows = [];
-    const recurse = (m) => {
-        if (m.tag == 'data' && !exclude(m))
-            rows.push(m);
-        else if (m.tag == 'array' || m.tag == 'object')
-            recurse(m.item);
-        else if (m.tag == 'nested')
-            recurse(m.mapping);
-    };
-    list.config.mappings.forEach(recurse);
-    const keymap = {};
-    rows.forEach(r => keymap[r.flattenedName] = mappingToInput(list, r, {
-        forceReadonly: readonly(r),
-    }));
-    return data => new ObjectForm(data, keymap);
-}
-function mappingToInput(list, m, ops) {
-    return (data, i) => {
-        const dataMapping = (d, data) => {
-            const readonly = ops.forceReadonly || (d.readOnly && !ops.forceNoReadonly);
-            if (d.editType == 'dropdown' && d.dropdownConfig) {
-                const config = d.dropdownConfig;
-                let options;
-                if ('choices' in config) {
-                    options = config.choices.map(x => ({ text: x, value: x }));
-                }
-                else {
-                    const s = new Set();
-                    list.dataController.getAllFlattenedRows().forEach(data => s.add(data[config.fromColumn]));
-                    options = Array.from(s).map(x => ({ text: x, value: x }));
-                }
-                return new DropdownForm({
-                    defaultValue: data,
-                    options,
-                    allowAny: d.dropdownConfig.allowCustom,
-                    readonly
-                });
-            }
-            else {
-                let ty = 'string';
-                switch (d.editType ?? 'text') {
-                    case 'number':
-                        ty = 'number';
-                        break;
-                    case 'text':
-                        ty = 'string';
-                        break;
-                    case 'time':
-                    case 'datetime':
-                        ty = 'datetime';
-                        break;
-                    case 'bool':
-                        ty = 'boolean';
-                        break;
-                }
-                if (d.jsonConfig && ops.jsonAsText) {
-                    return new Input({
-                        initialData: data,
-                        type: 'string',
-                        readonly
-                    });
-                }
-                if (d.jsonConfig && d.jsonConfig.editorType == 'form') {
-                    return jsonDefnToInput(d.jsonConfig.definition, [d.flattenedName], false, false)(data, i);
-                }
-                if (d.editType === 'json') {
-                    return new CodeEditor({ data: data, lang: 'json' });
-                }
-                return new Input({
-                    initialData: data,
-                    type: ty,
-                    dateFmt: d.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
-                    readonly
-                });
-            }
-        };
-        let dataForm;
-        const defaultData = data ?? makeObviousDefault(m);
-        let label;
-        if (m.tag == 'data') {
-            dataForm = dataMapping(m, defaultData);
-            label = m.displayName ?? m.flattenedName;
-        }
-        else {
-            let tmp = m.mapping;
-            while (tmp.tag != 'data') {
-                tmp = tmp.item;
-            }
-            dataForm = dataMapping(tmp, defaultData);
-            label = tmp.displayName ?? tmp.flattenedName;
-        }
-        return new ItemLabel(i, {
-            label,
-            item: dataForm,
-            enabled: ops.forceOptional ? (data !== undefined) : undefined,
-        });
-    };
-}
-function jsonDefnToInput(json, keys, move, del) {
-    return (data, i) => {
-        let inner;
-        if (json.tag == 'object') {
-            let keymap = {};
-            for (const key in json.keys) {
-                keymap[key] = jsonDefnToInput(json.keys[key], [...keys, key], true, false);
-            }
-            inner = new ObjectForm(data, keymap);
-        }
-        else if (json.tag == 'array') {
-            inner = new ArrayForm(data, jsonDefnToInput(json.item, [...keys, '[...]'], true, true), () => makeObviousJsonDefault(json.item, false));
-        }
-        else if (json.tag == 'data') {
-            inner = new Input({
-                initialData: data,
-                type: json.dataType,
-            });
-        }
-        else {
-            inner = new CodeEditor({ data: data, lang: 'json' });
-        }
-        return new ItemLabel(i, {
-            label: keys.join('.'),
-            item: inner,
-            enclosed: json.tag == 'object' || json.tag == 'array',
-            collapsed: (json.tag == 'object' || json.tag == 'array') ? true : undefined,
-            showMove: move,
-            showDelete: del,
-        });
-    };
-}
-function makeObviousDefault(m) {
-    let mapping;
-    if (m.tag == 'data')
-        mapping = m;
-    else {
-        const traverse = (s) => {
-            if (s.tag == 'data')
-                return s;
-            return traverse(s.item);
-        };
-        if (m.tag == 'nested')
-            mapping = traverse(m.mapping);
-        else
-            mapping = traverse(m);
-    }
-    switch (mapping.editType ?? 'text') {
-        case "number":
-            return 0;
-        case "bool":
-            return false;
-        case "time":
-        case "datetime":
-            return new Date();
-        case "text":
-        case "dropdown":
-            return '';
-        case 'json': {
-            return makeObviousJsonDefault(mapping.jsonConfig?.definition ?? { tag: 'data', dataType: 'string' }, false);
-        }
-    }
-}
-function makeObviousJsonDefault(j, fillArray) {
-    if (j.tag == 'data') {
-        switch (j.dataType) {
-            case 'string': return '';
-            case 'number': return 0;
-            case 'boolean': return false;
-        }
-    }
-    else if (j.tag == 'array') {
-        if (fillArray)
-            return [makeObviousJsonDefault(j.item, fillArray)];
-        return [];
-    }
-    else if (j.tag == 'object') {
-        const defaultVal = {};
-        for (const key in j.keys) {
-            defaultVal[key] = makeObviousJsonDefault(j.keys[key], fillArray);
-        }
-        return defaultVal;
-    }
-    else
-        return "";
-}
-// Convert raw data -> usable data
-// Usable data -> raw data
-class DataBridge {
-    constructor(config, serverTzOffset) {
-        this.serverTzOffset = serverTzOffset;
-        this.config = config;
-        this.dateConverters = {};
-        this.numConverters = {};
-        this.boolConverters = {};
-        this.jsonConverters = {};
-    }
-    setTzOffset(n) {
-        this.serverTzOffset = n;
-    }
-    processDate(key, date, conversionFn, deconversionFn) {
-        if (key in this.dateConverters) {
-            return this.dateConverters[key].process(date);
-        }
-        const dateIsStr = typeof date === 'string';
-        const converter = {
-            process: (date) => {
-                const defaultConverter = `
-                        (date, serverTimeOffset) => {
-                            if (typeof date === "string") {
-                                let dateObj = new Date();
-                                dateObj.fromFormat(date, "${DEFAULT_DATETIME_FMT}");
-                                date = dateObj;
-                            }
-                            return date;
-                        }
-                    `;
-                const f = (0,types.stringReprToFn)(conversionFn ?? defaultConverter);
-                return (0,types.Ok)(f(date, this.serverTzOffset));
-            },
-            unprocess: (date) => {
-                const defaultUnconverter = `
-                    (date, serverTimeOffset) => {
-                        // This function is being generated at runtime. The condition here is really 'if (typeof date == "string")',
-                        // where 'date' is the property coming directly from the datasource. If the date *is* a string, it must
-                        // be converted back to a string. Otherwise, we'll leave it.
-                        if (${dateIsStr}) {
-                            return date.toFormat("${DEFAULT_DATETIME_FMT}");
-                        }
 
-                        return date;
-                    }
-                `;
-                const f = (0,types.stringReprToFn)(deconversionFn ?? defaultUnconverter)(date, this.serverTzOffset);
-                return (0,types.Ok)(f);
-            }
-        };
-        this.dateConverters[key] = converter;
-        return converter.process(date);
-    }
-    unprocessDate(key, date) {
-        if (key in this.dateConverters)
-            return this.dateConverters[key].unprocess(date);
-        return date;
-    }
-    processBool(key, b) {
-        if (key in this.boolConverters)
-            return this.boolConverters[key].process(b);
-        if (typeof b == 'string') {
-            this.boolConverters[key] = {
-                process: n => (0,types.Ok)($u.s.toBool(n)),
-                unprocess: n => n.toString()
-            };
-            return (0,types.Ok)($u.s.toBool(b));
-        }
-        else if (b)
-            return (0,types.Ok)(true);
-        return (0,types.Ok)(false);
-    }
-    unprocessBool(key, b) {
-        if (key in this.boolConverters)
-            return this.boolConverters[key].unprocess(b);
-        return b;
-    }
-    processNum(key, n) {
-        if (key in this.numConverters)
-            return this.numConverters[key].process(n);
-        if (typeof n == 'string') {
-            this.numConverters[key] = {
-                process: n => (0,types.Ok)($u.s.toNum(n)),
-                unprocess: n => n.toString()
-            };
-            return (0,types.Ok)($u.s.toNum(n));
-        }
-        else if (typeof n === 'number') {
-            return (0,types.Ok)(n);
-        }
-        return (0,types.Err)("Can't convert " + JSON.stringify(n) + " to a number.");
-    }
-    unprocessNum(key, n) {
-        if (key in this.numConverters)
-            return this.numConverters[key].unprocess(n);
-        return n;
-    }
-    processJSON(key, data) {
-        if (key in this.jsonConverters)
-            return this.jsonConverters[key].process(data);
-        if (typeof data == 'string' || data == null) {
-            this.jsonConverters[key] = {
-                process: d => {
-                    let mapping;
-                    try {
-                        mapping = DataController.lookupMapping(key, this.config);
-                    }
-                    catch (e) {
-                        return safeJsonParse(d).mapErr(e => e.message);
-                    }
-                    const schema = mapping.jsonConfig;
-                    if ((d == null || d == '') && schema) {
-                        return (0,types.Ok)(makeObviousDefault(mapping));
-                    }
-                    if (typeof d != 'string') {
-                        // Tested above that data is a string or null, so we're good here.
-                        throw new Error();
-                    }
-                    const parsed = safeJsonParse(d).asOk();
-                    if (parsed === undefined) {
-                        return (0,types.Err)("Couldn't parse JSON data " + JSON.stringify(d));
-                    }
-                    const schemaErrors = [];
-                    const checkSchema = (s, data) => {
-                        if (s.tag == 'any')
-                            return;
-                        else if (s.tag == 'array') {
-                            if (!(data instanceof Array))
-                                schemaErrors.push("Data is not an array.");
-                            else
-                                data.forEach(x => { checkSchema(s.item, x); });
-                        }
-                        else if (s.tag == 'object') {
-                            if (typeof data !== 'object' || data == null)
-                                schemaErrors.push('Data is not an object');
-                            else {
-                                for (const key in s.keys) {
-                                    if (!(key in data))
-                                        schemaErrors.push('Data does not have key ' + key);
-                                    else
-                                        checkSchema(s.keys[key], data[key]);
-                                }
-                            }
-                        }
-                        else {
-                            if (typeof data != s.dataType)
-                                schemaErrors.push('Data type ' + typeof data + " does not match the type in the schema, which is " + s.dataType);
-                        }
-                    };
-                    if (schema)
-                        checkSchema(schema.definition, parsed);
-                    if (schemaErrors.length > 0) {
-                        return (0,types.Err)(schemaErrors.join('\n'));
-                    }
-                    return (0,types.Ok)(parsed);
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                },
-                unprocess: d => {
-                    if (typeof d == 'object')
-                        return JSON.stringify(d);
-                    return d;
-                }
-            };
-            return this.jsonConverters[key].process(data);
-        }
-        return (0,types.Ok)(data);
-    }
-    unprocessJSON(key, data) {
-        if (key in this.jsonConverters)
-            return this.jsonConverters[key].unprocess(data);
-        return data;
-    }
-    // Imported data should already be aligned with the flattening scheme
-    processImportedData(data) {
-        const dataCpy = clone(data);
-        for (const point of dataCpy) {
-            for (const mapping of DataController.getDataMappings(this.config)) {
-                if (!(mapping.flattenedName in point)) {
-                    point[mapping.flattenedName] = makeObviousDefault(mapping);
-                }
-                else {
-                    const res = this._processPoint(point[mapping.flattenedName], mapping);
-                    if (res.isOk()) {
-                        point[mapping.flattenedName] = res.asOk();
-                    }
-                    else {
-                        return res.map(() => []);
-                    }
-                }
-            }
-        }
-        return (0,types.Ok)(dataCpy);
-    }
-    rawToProcessed(d) {
-        const data = clone(d);
-        for (const x of data) {
-            const seenNested = new Set();
-            for (const mapping of this.config.mappings) {
-                if (mapping.tag == 'data' && mapping.flattenedName in x) {
-                    const item = this._processPoint(x[mapping.flattenedName], mapping);
-                    if (item.isOk()) {
-                        x[mapping.flattenedName] = item.asOk();
-                    }
-                    else {
-                        return item.map(() => []);
-                    }
-                }
-                else if (mapping.tag == 'nested' && mapping.key in x) {
-                    if (seenNested.has(mapping.key))
-                        continue;
-                    seenNested.add(mapping.key);
-                    const item = this._processSubMapping(x[mapping.key], mapping.mapping, mapping.key);
-                    if (item.isOk()) {
-                        x[mapping.key] = item.asOk();
-                    }
-                    else {
-                        return item.map(() => []);
-                    }
-                }
-            }
-        }
-        ;
-        return (0,types.Ok)(data);
-    }
-    processedToRaw(d) {
-        const data = clone(d);
-        for (const x of data) {
-            const seenNested = new Set();
-            for (const mapping of this.config.mappings) {
-                if (mapping.tag == 'data' && mapping.flattenedName in x) {
-                    const item = this._unprocessPoint(x[mapping.flattenedName], mapping);
-                    if (item.isOk())
-                        x[mapping.flattenedName] = item.asOk();
-                    else {
-                        return item.map(() => []);
-                    }
-                }
-                else if (mapping.tag == 'nested' && mapping.key in x) {
-                    if (seenNested.has(mapping.key))
-                        continue;
-                    seenNested.add(mapping.key);
-                    const item = this._unprocessSubmapping(x[mapping.key], mapping.mapping, mapping.key);
-                    if (item.isOk())
-                        x[mapping.key] = item.asOk();
-                    else
-                        return item.map(() => []);
-                }
-            }
-        }
-        ;
-        return (0,types.Ok)(data);
-    }
-    processedToRawStayFlattened(d) {
-        const nameToDataMapping = {};
-        const rec = (m) => {
-            if (m.tag == 'data')
-                nameToDataMapping[m.flattenedName] = m;
-            else if (m.tag == 'nested')
-                rec(m.mapping);
-            else
-                rec(m.item);
-        };
-        this.config.mappings.forEach(rec);
-        const data = clone(d);
-        for (const x of data) {
-            for (const [name, mapping] of Object.entries(nameToDataMapping)) {
-                if (name in x) {
-                    const item = this._unprocessPoint(x[name], mapping);
-                    if (item.isOk())
-                        x[name] = item.asOk();
-                    else
-                        return item.map(() => []);
-                }
-            }
-        }
-        ;
-        return (0,types.Ok)(data);
-    }
-    _processPoint(point, mapping) {
-        const name = mapping.flattenedName;
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            return this.processDate(name, point, mapping.dateSettings?.fromServer, mapping.dateSettings?.toServer);
-        }
-        else if (mapping.editType == 'bool' && typeof point == 'string') {
-            return this.processBool(name, point);
-        }
-        else if (mapping.editType == 'number' && typeof point == 'string') {
-            return this.processNum(name, point);
-        }
-        else if (mapping.editType == 'json') {
-            return this.processJSON(name, point);
-        }
-        return (0,types.Ok)(point);
-    }
-    _processSubMapping(point, mapping, key) {
-        if (point === null)
-            return (0,types.Ok)(null);
-        if (mapping.tag == 'data')
-            return this._processPoint(point, mapping);
-        else if (mapping.tag == 'array') {
-            const jsonResult = this.processJSON(key, point);
-            if (jsonResult.isOk())
-                point = jsonResult.asOk();
-            else
-                return jsonResult;
-            if (!(point instanceof Array))
-                return (0,types.Err)("Point " + JSON.stringify(point) + " is not an array");
-            for (let i = 0; i < point.length; i++) {
-                const item = this._processSubMapping(point[i], mapping.item, key + '_ARRAY_ITEM_');
-                if (item.isOk())
-                    point[i] = item.asOk();
-                else
-                    return item;
-            }
-            return (0,types.Ok)(point);
-        }
-        else {
-            const jsonResult = this.processJSON(key, point);
-            if (jsonResult.isOk())
-                point = jsonResult.asOk();
-            else
-                return jsonResult;
-            if (typeof point !== 'object' || point == null || Array.isArray(point)) {
-                return (0,types.Err)("Either the list is misconfigured, or the point " + JSON.stringify(point) + " should be an object");
-            }
-            if (mapping.key in point) {
-                const item = this._processSubMapping(point[mapping.key], mapping.item, key + '.' + mapping.key);
-                if (item.isOk())
-                    point[mapping.key] = item.asOk();
-                else
-                    return item;
-            }
-            return (0,types.Ok)(point);
-        }
-    }
-    _unprocessPoint(point, mapping) {
-        if (point == null)
-            return (0,types.Ok)(null);
-        const name = mapping.flattenedName;
-        if (mapping.editType == 'datetime' || mapping.editType == 'time') {
-            if (!(point instanceof Date))
-                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a date.");
-            return (0,types.Ok)(this.unprocessDate(name, point));
-        }
-        else if (mapping.editType == 'bool') {
-            if (typeof point !== 'boolean')
-                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a boolean.");
-            return (0,types.Ok)(this.unprocessBool(name, point));
-        }
-        else if (mapping.editType == 'number') {
-            if (typeof point !== 'number')
-                return (0,types.Err)("Point " + JSON.stringify(point) + " is not a number.");
-            return (0,types.Ok)(this.unprocessNum(name, point));
-        }
-        else if (mapping.editType == 'json') {
-            return (0,types.Ok)(this.unprocessJSON(name, point));
-        }
-        return (0,types.Ok)(point);
-    }
-    _unprocessSubmapping(point, sub, key) {
-        if (point === null)
-            return (0,types.Ok)(null);
-        if (sub.tag == 'data')
-            return this._unprocessPoint(point, sub);
-        else if (sub.tag == 'array') {
-            if (!(point instanceof Array)) {
-                return (0,types.Err)("Either the list is misconfigured, or the point " + JSON.stringify(point) + " should be an array");
-            }
-            for (let i = 0; i < point.length; i++) {
-                const item = this._unprocessSubmapping(point[i], sub.item, key + '_ARRAY_ITEM_');
-                if (item.isOk())
-                    point[i] = item.asOk();
-                else
-                    return item;
-            }
-            return (0,types.Ok)(this.unprocessJSON(key, point));
-        }
-        else {
-            if (typeof point !== 'object' || Array.isArray(point)) {
-                return (0,types.Err)(`Either the list is misconfigured, or the datapoint ${JSON.stringify(point)} should be an object.`);
-            }
-            if (sub.key in point) {
-                const item = this._unprocessSubmapping(point[sub.key], sub.item, key + '.' + sub.key);
-                if (item.isOk())
-                    point[sub.key] = item.asOk();
-                else
-                    return item;
-            }
-            return (0,types.Ok)(this.unprocessJSON(key, point));
-        }
-    }
-}
-class DynamicListSearch {
-    constructor(dynamicList, obj, contId) {
-        // Used in _match
-        this.searchMemoizationNeedsRebuild = false;
-        this.searchMemoization = {};
-        this.flatRowData = [];
-        this.list = dynamicList;
-        this.obj = obj;
-        const ptr = obj.getPointer(contId);
-        if (!ptr) {
-            throw new Error("Container ID " + contId + " does not point to a container.");
-        }
-        this.formContainerId = ptr.id;
-        this.resetForm();
-    }
-    resetForm() {
-        this.form = new ReactiveFormManager(this.buildForm(), this.formContainerId, this.obj, f => ({
-            type: 'group',
-            items: [
-                f,
-                this.makeButtons()
-            ]
-        }));
-    }
-    buildForm() {
-        let f;
-        let title;
-        if (this.list.config.searchOptions.advancedSearch) {
-            title = "Advanced Search";
-            f = this.buildAdvancedSearch();
-        }
-        else {
-            title = "List Search";
-            f = this.buildSimpleSearch();
-        }
-        return new TabForm(title, f, "search");
-    }
-    buildSimpleSearch() {
-        const cols = DataController.getSearchableColumns(this.list.config);
-        const keyMap = {};
-        for (const col of cols) {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (!this.list.config.searchOptions.onlyInclude.includes(col.columnName))
-                    continue;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.includes(col.columnName))
-                    continue;
-            }
-            keyMap[col.columnName] = mappingToInput(this.list, col.mapping, {
-                forceNoReadonly: true,
-                forceOptional: true,
-                jsonAsText: true
-            });
-        }
-        return new ObjectForm({}, keyMap);
-    }
-    buildAdvancedSearch() {
-        const cols = DataController.getSearchableColumns(this.list.config).filter(x => {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (!this.list.config.searchOptions.onlyInclude.includes(x.columnName))
-                    return false;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.includes(x.columnName))
-                    return false;
-            }
-            return true;
-        });
-        const arr = new ArrayForm([], (filter, i) => {
-            const colChangeObserver = new Observer();
-            return new ItemLabel(i, {
-                label: "Filter",
-                enclosed: true,
-                collapsed: false,
-                showDelete: true,
-                item: new ObjectForm(filter, {
-                    "columnName": (n, i) => new ItemLabel(i, {
-                        label: 'Column Name',
-                        item: new ColumnSelector(n, false, newName => { colChangeObserver.notify(newName); }),
-                    }),
-                    "columnVal": (n) => new ObserverForm(colChangeObserver, filter.columnName, (newName) => {
-                        const mapping = cols.find(x => x.columnName == newName)?.mapping ?? { flattenedName: newName, tag: 'data' };
-                        const item = mappingToInput(this.list, mapping, {
-                            forceNoReadonly: true,
-                            jsonAsText: true
-                        });
-                        return new ObjectForm(n, {
-                            "tag": () => new ConstForm("value"),
-                            "value": item
-                        });
-                    }),
-                    "connector": (c, cnI) => {
-                        if (i.currentIndex() == 0)
-                            return new ConstForm(c ?? "AND");
-                        return new ItemLabel(cnI, {
-                            label: "Connector",
-                            item: new DropdownForm({
-                                options: [{ text: "And", value: "AND" }, { text: "Or", value: "OR" }],
-                                defaultValue: c,
-                            })
-                        });
-                    },
-                    "op": (n, i) => new ObserverForm(colChangeObserver, filter.columnName, (newName) => {
-                        const editType = cols.find(x => x.columnName == newName)?.editType ?? 'text';
-                        const ops = [{ text: 'Equal To', value: '=' }, { text: 'Not Equal To', value: '<>' }];
-                        if (editType == 'text') {
-                            ops.push({ text: 'Starts With', value: 'x..' }, { text: 'Ends With', value: '..x' }, { text: 'Contains', value: '..x..' });
-                        }
-                        else {
-                            ops.push({ text: 'Less Than', value: '<' }, { text: 'Greater Than', value: '>' }, { text: 'Less Than or Equal To', value: '<=' }, { text: 'Greater Than or Equal To', value: '>=' });
-                        }
-                        return new ItemLabel(i, {
-                            label: 'Operator',
-                            item: new DropdownForm({
-                                options: ops,
-                                defaultValue: n,
-                            })
-                        });
-                    }),
-                    "quantifier": (q, i) => new ObserverForm(colChangeObserver, filter.columnName, (name) => {
-                        const quantifiable = cols.find(c => c.columnName == name)?.quantifiable ?? false;
-                        if (!quantifiable)
-                            return new ConstForm(undefined);
-                        return new ItemLabel(i, {
-                            label: "Quantifier",
-                            item: new DropdownForm({
-                                options: [{ text: 'All', value: 'ALL' }, { 'text': 'Some', value: 'SOME' }],
-                                defaultValue: q ?? 'ALL',
-                            })
-                        });
-                    })
-                })
-            });
-        }, () => ({ columnName: cols[0]?.columnName ?? '', columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
-        return new WithContext(ConfigContext.id, new ConfigContext(false, this.list.config, this.list.obj), arr);
-    }
-    makeButtons() {
-        const makeFilters = () => {
-            let filters = [];
-            const serializeResult = this.form.serialize();
-            if (serializeResult.isOk() == false) {
-                displayErrorMessage(new types.ErrMsg(serializeResult.asErr()));
-            }
-            const serialized = serializeResult.asOk();
-            if (this.list.config.searchOptions.advancedSearch) {
-                filters = serialized;
-                filters.forEach(f => {
-                    const m = DataController.lookupMapping(f.columnName, this.list.config);
-                    if (m.editType === 'json') {
-                        f.op = "..x..";
-                        f.type = 'json';
-                    }
-                });
-            }
-            else {
-                const data = serialized;
-                for (const key in data) {
-                    if (data[key] === undefined)
-                        continue;
-                    if (!(key in data))
-                        continue;
-                    const filter = {
-                        type: DataController.lookupMapping(key, this.list.config).editType,
-                        columnName: key,
-                        columnVal: {
-                            tag: 'value',
-                            value: data[key],
-                        },
-                        op: "=",
-                        connector: "AND"
-                    };
-                    if (filter.type === 'json') {
-                        filter.op = '..x..';
-                    }
-                    filters.push(filter);
-                }
-            }
-            for (const f of filters) {
-                if (f.type === 'json')
-                    continue;
-                const processed = this.list.dataBridge.processedToRaw([{ [f.columnName]: f.columnVal.value }]);
-                if (processed.isOk()) {
-                    f.columnVal.value = processed.asOk()[0][f.columnName];
-                }
-                else {
-                    return processed.map(() => []);
-                }
-            }
-            ;
-            return (0,types.Ok)(filters);
-        };
-        return {
-            type: 'group',
-            items: [
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span class="dynamic-form-search-btn">Search</span>`,
-                        onClick: () => {
-                            makeFilters().match({
-                                ok: filters => this.doSearch(filters),
-                                err: e => {
-                                    displayErrorMessage(new types.ErrMsg(e));
-                                }
-                            });
-                        },
-                    },
-                    sys: { isEmbedded: false }
-                },
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span class="dynamic-form-clear-btn">Clear</span>`,
-                        onClick: () => {
-                            this.clearSearch();
-                        }
-                    },
-                    sys: { isEmbedded: false }
-                },
-            ],
-            container: {
-                className: 'dynamic-search-buttons',
-                style: `
-                    display: flex;
-                    flex-direction: row;
-                    gap: 0.5rem;
-                `,
-            }
-        };
-    }
-    doSearch(filters) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-        (this.obj.stateInfo.onSearchCallbacks ?? []).forEach((f) => f(this));
-        const mode = this.serverOrClientSearch();
-        if (mode == 'serverside') {
-            this.serverSearch(filters);
-        }
-        else {
-            this.clientSearch(filters);
-        }
-        this.obj._functions.search.onSearch();
-        this.list.updateRecordCount();
-    }
-    clientSearch(filters) {
-        this.searchMemoizationNeedsRebuild = true;
-        const colLookup = {};
-        const allowQuantified = this.list.config.searchOptions.advancedSearch === true;
-        this.list.listBox.setFilter((data) => {
-            let matches = true;
-            filters.forEach(query => {
-                let col;
-                if (query.columnName in colLookup)
-                    col = colLookup[query.columnName];
-                else {
-                    col = DataController.lookupMapping(query.columnName, this.list.config);
-                    colLookup[query.columnName] = col;
-                }
-                const val = query.columnVal.value;
-                const thisMatch = this._match(data, query.columnName, val, {
-                    dateFormat: col.dateSettings?.clientFormat ?? DEFAULT_DATETIME_FMT,
-                    type: col.editType ?? 'text',
-                    quantifier: query.quantifier,
-                    op: query.op
-                }, allowQuantified);
-                if (query.connector === 'OR')
-                    matches = thisMatch || matches;
-                else
-                    matches = thisMatch && matches;
-            });
-            return matches;
-        });
-    }
-    serverSearch(filters) {
-        this.list.setFilterAndFetch(filters);
-    }
-    clearSearch() {
-        this.resetForm();
-        (this.obj.stateInfo.onClearSearchCallbacks ?? []).forEach((f) => { f(this); });
-        const mode = this.serverOrClientSearch();
-        if (mode == 'serverside') {
-            this.list.setFilterAndFetch([]);
-        }
-        else {
-            this.list.clearSearchFilters();
-        }
-        this.obj._functions.search.onClear();
-        this.list.updateRecordCount();
-    }
-    serverOrClientSearch() {
-        let mode = 'serverside';
-        if (!(this.list.config.searchOptions.serverSearch))
-            mode = 'clientside';
-        return mode;
-    }
-    _match(data, field, compareWith, obj, allowQuantified) {
-        const matches = (data, field) => {
-            let rowValue = data[field];
-            const op = obj.op ?? '=';
-            let rowValDateStr = '';
-            let rowValDate = new Date();
-            let compareWithDate = new Date();
-            if (obj.type == 'datetime' || obj.type == 'time') {
-                if (rowValue instanceof Date) {
-                    rowValDate = rowValue;
-                    rowValDateStr = rowValue.toFormat(obj.dateFormat);
-                }
-                else {
-                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                    rowValDateStr = rowValue?.toString() ?? '';
-                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                    rowValDate.fromFormat(rowValue?.toString() ?? '', obj.dateFormat);
-                }
-                if (compareWith instanceof Date) {
-                    compareWithDate = compareWith;
-                }
-                else {
-                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                    compareWithDate.fromFormat(compareWith?.toString() ?? '', obj.dateFormat);
-                }
-            }
-            else if (obj.type === 'json') {
-                if (typeof rowValue !== 'string')
-                    rowValue = JSON.stringify(rowValue);
-                if (typeof compareWith !== 'string')
-                    compareWith = JSON.stringify(compareWith);
-            }
-            const cmpDate = obj.type == 'datetime' || obj.type == 'time';
-            const cmpText = obj.type == 'dropdown' || obj.type == 'text' || obj.type == 'json';
-            switch (op) {
-                case '=': {
-                    if (cmpDate) {
-                        return compareWith == rowValDateStr;
-                    }
-                    return compareWith == rowValue;
-                }
-                case '<>': {
-                    if (cmpDate) {
-                        return compareWith != rowValDateStr;
-                    }
-                    return compareWith != rowValue;
-                }
-                case '<': {
-                    if (cmpDate) {
-                        return rowValDate < compareWithDate;
-                    }
-                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                        return false;
-                    return rowValue < compareWith;
-                }
-                case '>': {
-                    if (cmpDate) {
-                        return rowValDate > compareWithDate;
-                    }
-                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                        return false;
-                    return rowValue > compareWith;
-                }
-                case '<=': {
-                    if (cmpDate) {
-                        return rowValDate <= compareWithDate;
-                    }
-                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                        return false;
-                    return rowValue <= compareWith;
-                }
-                case '>=': {
-                    if (cmpDate) {
-                        return rowValDate >= compareWithDate;
-                    }
-                    if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                        return false;
-                    return rowValue >= compareWith;
-                }
-                case 'x..': {
-                    if (cmpText) {
-                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                            return false;
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                        return (rowValue.toString()).startsWith(compareWith.toString());
-                    }
-                    return false;
-                }
-                case '..x': {
-                    if (cmpText) {
-                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                            return false;
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                        return (rowValue.toString()).endsWith(compareWith.toString());
-                    }
-                    return false;
-                }
-                case '..x..': {
-                    if (cmpText) {
-                        if (rowValue === null || rowValue === undefined || compareWith === null || compareWith === undefined)
-                            return false;
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                        return (rowValue.toString()).includes(compareWith.toString());
-                    }
-                    return false;
-                }
-                default: {
-                    return true;
-                }
-            }
-        };
-        if (this.searchMemoizationNeedsRebuild) {
-            this.searchMemoizationNeedsRebuild = false;
-            this.searchMemoization = {};
-            this.flatRowData = this.list.dataController.getAllFlattenedRows();
-            this.flatRowData.forEach((data, index) => {
-                this.searchMemoization[index] = matches(data, field);
-            });
-        }
-        const topLevel = this.list.config.mappings.filter(x => x.tag == 'data').map(x => x.flattenedName);
-        let flag;
-        if (topLevel.includes(field) || allowQuantified == false) {
-            flag = matches(data, field);
-        }
-        else {
-            const row = data['*key'];
-            const unflattenedIndex = this.list.dataController.originalIndexOf(row).asOk();
-            if (unflattenedIndex === undefined)
-                return false;
-            if (obj.quantifier === 'ALL') {
-                // If every row belonging to this parent index matches,
-                // then we match.
-                let allMatch = true;
-                this.flatRowData.forEach((_, index) => {
-                    if (this.list.dataController.originalIndexOf(index).asOk() !== unflattenedIndex)
-                        return;
-                    allMatch = allMatch && this.searchMemoization[index];
-                });
-                flag = allMatch;
-            }
-            else {
-                // If *some* row belonging to the parent index matches,
-                // then we match
-                let someMatch = false;
-                this.flatRowData.forEach((_, index) => {
-                    if (this.list.dataController.originalIndexOf(index).asOk() !== unflattenedIndex)
-                        return;
-                    someMatch = someMatch || this.searchMemoization[index];
-                });
-                flag = someMatch;
-            }
-        }
-        return flag;
-    }
-}
-
-;// ./src/formComponents.ts
+;// ./src/list-configuration/ListInitializer.ts
 
 
 
 
-class TemplateHelper extends ReactiveForm {
-    constructor(data) {
-        super();
-        this.inputForm = new Input({ initialData: data, type: 'string', textarea: true });
-    }
-    render(m) {
-        const ctx = m.getContext(ConfigContext.id);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const colNames = DataController.getDataMappings(ctx.config).map(x => x.flattenedName);
-        return {
-            type: 'group',
-            items: [
-                this.inputForm,
-                {
-                    type: 'button',
-                    control: {
-                        html: `<p>Add Template Item</p>`,
-                        onClick: (_, btn) => {
-                            const popup = templateHelperHTML(this.inputForm, colNames, m);
-                            popup.style.position = 'absolute';
-                            const rect = btn.getBoundingClientRect();
-                            popup.style.left = `${(rect.width + 20).toString()}px`;
-                            popup.style.top = `0px`;
-                            btn.appendChild(popup);
-                            btn.addEventListener('blur', () => {
-                                // focusout happens before 
-                                // the click handler, apparently.
-                                setTimeout(() => {
-                                    popup.remove();
-                                }, 200);
-                            });
-                        }
-                    },
-                    sys: { isEmbedded: false },
-                }
-            ]
-        };
-    }
-    serialize(formData) {
-        return this.inputForm.serialize(formData);
-    }
-}
-function templateHelperHTML(form, colNames, m) {
-    const id = uuidv4();
-    const templateHelper = document.createElement('div');
-    templateHelper.id = id;
-    templateHelper.tabIndex = 0;
-    const makeItem = (text, onclick) => {
-        const d = document.createElement('div');
-        d.onmouseenter = () => {
-            d.style.backgroundColor = 'lightgray';
-        };
-        d.onmouseleave = () => {
-            d.style.backgroundColor = 'white';
-        };
-        d.style.margin = "";
-        d.innerHTML = `<p style="margin: 0px;">${text}</p>`;
-        d.style.padding = "0.5rem";
-        d.onclick = onclick;
-        return d;
-    };
-    templateHelper.style.color = 'black';
-    templateHelper.style.backgroundColor = 'white';
-    templateHelper.style.border = "1px solid black";
-    templateHelper.style.textAlign = "left";
-    templateHelper.style.width = "200px";
-    colNames.forEach(name => {
-        templateHelper.appendChild(makeItem('Add field ' + name, () => {
-            const curr = form.getValue(m)?.toString() ?? '';
-            form.setValue(m, curr + `{row["${name}"]}`);
-        }));
-    });
-    return templateHelper;
-}
-
-;// ./src/listAction.ts
-
-
-
-
-
-function executeListAction(list, action, rowData, row) {
-    const flatIndex = row !== undefined ? list.listBox.getIndex(row)[0].index : undefined;
-    if (action.actionName == 'openDetailView') {
-        list.newDetailViewRecord(flatIndex !== undefined ? { tag: 'editExistingRecord', record: flatIndex } : { tag: 'newRecord' });
-    }
-    else if (action.actionName == 'openLinkedList') {
-        const tabTemplate = A5.u.template.parse(action.tabName);
-        const templateData = {
-            list: list,
-            row: rowData
-        };
-        const filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        const filters = action.linkedColumns.map(linked => {
-            const template = A5.u.template.parse(linked.value);
-            const data = { list: list, row: rowData };
-            const filled = A5.u.template.expand(data, { template });
-            return {
-                columnName: linked.foreignCol,
-                columnVal: { tag: 'value', value: filled },
-                connector: 'AND',
-                op: '=',
-            };
-        });
-        list.linkNewPanel(action.configurationName, filled, filters);
-    }
-    else {
-        const tabTemplate = A5.u.template.parse(action.tabName);
-        const templateData = {
-            list: list,
-            row: rowData
-        };
-        const filled = A5.u.template.expand(templateData, { template: tabTemplate });
-        list.linkSublistToField(action.configurationName, filled, flatIndex ?? 0, [{ tag: 'object', key: action.fromColumn }]);
-    }
-}
-class ListActionEditor extends ReactiveForm {
-    constructor(data) {
-        super();
-        this.data = data ?? { actionName: 'openDetailView' };
-    }
-    buildForm(m) {
-        if (this.data === undefined)
-            this.data = { actionName: 'openDetailView' };
-        let defaultSelected;
-        switch (this.data.actionName) {
-            case "openDetailView":
-                defaultSelected = 'Open Detail View';
-                break;
-            case "openLinkedList":
-                defaultSelected = 'Open Linked List';
-                break;
-            case "openJSONSublist":
-                defaultSelected = 'Open JSON Sub-list';
-                break;
-        }
-        this.form = new MultiForm({
-            options: ['Open Detail View', 'Open Linked List', 'Open JSON Sub-list'],
-            defaultOption: defaultSelected,
-            chooseForm: selected => {
-                if (selected == 'Open Detail View') {
-                    if (!this.data)
-                        this.data = { actionName: 'openDetailView' };
-                    const d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
-                    return new ObjectForm(d, {
-                        "actionName": () => new ConstForm("openDetailView")
-                    });
-                }
-                if (selected == 'Open JSON Sub-list')
-                    return this.jsonSublistForm(m, this.data);
-                return this.linkedListForm(m, this.data);
-            },
-            allowCollapse: false
-        });
-    }
-    jsonSublistForm(m, initialData) {
-        const ctx = m.getContext(ConfigContext.id);
-        if (!ctx)
-            throw new Error();
-        // eslint-disable-next-line @typescript-eslint/require-await
-        return new AsyncForm(async () => {
-            const data = (initialData && initialData.actionName == 'openJSONSublist') ? initialData : {
-                actionName: 'openJSONSublist',
-                configurationName: '',
-                tabName: '',
-                fromColumn: ''
-            };
-            return new ObjectForm(data, {
-                "actionName": () => new ConstForm("openJSONSublist"),
-                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
-                "tabName": (data, i) => new ItemLabel(i, {
-                    label: "Tab Name",
-                    item: new TemplateHelper(data)
-                }),
-                "fromColumn": (data, i) => new ItemLabel(i, {
-                    label: "From Column",
-                    item: new DropdownForm({
-                        options: DataController.getDataMappings(ctx.config).map(x => ({ text: x.flattenedName, value: x.flattenedName })),
-                        defaultValue: data,
-                        allowAny: true
-                    })
-                })
-            });
-        }, initialData);
-    }
-    linkedListForm(m, initialData) {
-        const ctx = m.getContext(ConfigContext.id);
-        if (!ctx)
-            throw new Error();
-        return new AsyncForm(
-        // eslint-disable-next-line @typescript-eslint/require-await
-        async () => {
-            const data = (initialData && initialData.actionName == 'openLinkedList') ? initialData : {
-                actionName: 'openLinkedList',
-                configurationName: '',
-                tabName: '',
-                linkedColumns: [],
-                makeFilter: true
-            };
-            return new ObjectForm(data, {
-                "actionName": () => new ConstForm("openLinkedList"),
-                "configurationName": (data, i) => new StringInput(i, "Configuration Name", data),
-                "tabName": (data, i) => new ItemLabel(i, {
-                    label: "Tab Name",
-                    item: new TemplateHelper(data)
-                }),
-                "linkedColumns": (columns, i) => new ItemLabel(i, {
-                    label: "Filters",
-                    collapsed: true,
-                    enclosed: true,
-                    item: new ArrayForm(columns, (item, i) => new ItemLabel(i, {
-                        label: 'Filter',
-                        enclosed: true,
-                        collapsed: true,
-                        showDelete: true,
-                        item: new ObjectForm(item, {
-                            'foreignCol': (c, i) => new StringInput(i, "Foreign Column", c),
-                            'value': (c, i) => new ItemLabel(i, {
-                                label: 'Value',
-                                item: new TemplateHelper(c)
-                            })
-                        })
-                    }), () => ({ foreignCol: '', value: '' }))
-                }),
-            });
-        }, initialData);
-    }
-    render(m) {
-        if (this.form === undefined) {
-            this.buildForm(m);
-        }
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        if (!this.form) {
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        }
-        else
-            return this.form.serialize(formData);
-    }
-}
-
-;// ./src/listConfiguration.ts
 
 
 
@@ -11536,85 +18397,6 @@ function batchFetch(obj, configName, filters) {
             }
         });
     });
-}
-class FlatNameSuggestor {
-    constructor(mappings) {
-        this.reservedNames = new Set();
-        this.paths = {};
-        this.init(mappings);
-    }
-    init(mappings) {
-        const traverse = (s, path) => {
-            if (s.tag == "data") {
-                this.setName(path, s.flattenedName);
-            }
-            else if (s.tag == 'object') {
-                traverse(s.item, [...path, s.key]);
-            }
-            else {
-                traverse(s.item, path);
-            }
-        };
-        for (const mapping of mappings) {
-            if (mapping.tag == 'data') {
-                this.setName([mapping.flattenedName], mapping.flattenedName);
-            }
-            else {
-                traverse(mapping.mapping, [mapping.key]);
-            }
-        }
-    }
-    lookup(path) {
-        let curr = this.paths;
-        for (let i = 0; i < path.length; i++) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            if (typeof curr == 'object' && path[i] in curr)
-                curr = curr[path[i]];
-            else
-                return undefined;
-        }
-        if (typeof curr == 'string')
-            return curr;
-        return undefined;
-    }
-    set(path, value) {
-        let curr = this.paths;
-        for (let i = 0; i < path.length - 1; i++) {
-            if (typeof curr != 'object')
-                throw new Error('Bad path: ' + JSON.stringify(path));
-            if (!(path[i] in curr))
-                curr[path[i]] = {};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            curr = curr[path[i]];
-        }
-        if (typeof curr != 'object')
-            throw new Error('Bad path: ' + JSON.stringify(path));
-        const last = path[path.length - 1];
-        curr[last] = value;
-    }
-    suggestName(starter) {
-        const s = starter ?? "property";
-        if (!this.reservedNames.has(s))
-            return s;
-        let idx = 1;
-        let curr = s + '_' + idx.toString();
-        while (this.reservedNames.has(curr)) {
-            idx += 1;
-            curr = s + '_' + idx.toString();
-        }
-        return curr;
-    }
-    nameExists(name) {
-        return this.reservedNames.has(name);
-    }
-    setName(path, name) {
-        if (path.length == 0)
-            throw new Error("Empty path");
-        if (this.nameExists(name))
-            throw new Error("Name " + name + " already exists");
-        this.reservedNames.add(name);
-        this.set(path, name);
-    }
 }
 function requestListConfig(obj, configName) {
     configName = encodeURIComponent(configName);
@@ -11659,6 +18441,14 @@ function tryRecoverConfig(config, editFullConfig, configName) {
 }
 class ListInitializer {
     constructor(ops) {
+        // Override until I can get Nikos to fix this
+        if (ops.filters) {
+            ops.filters.forEach(f => {
+                if (typeof f.columnName === 'string') {
+                    f.columnName = [{ tag: 'object', key: f.columnName }];
+                }
+            });
+        }
         ops.embeddedList = ops.embeddedList ?? ops.obj;
         ops.embeddedSearch = ops.embeddedSearch ?? ops.obj;
         ops.embeddedSearch._functions.search = {
@@ -11713,6 +18503,7 @@ class ListInitializer {
         }
         else {
             this.prefetched = fetchResponse.ok;
+            this.prefetched.config.mappings = this.prefetched.config.mappings.filter(x => Object.keys(x).length > 0);
             await this.initializeList();
         }
         this.options.obj.getDynamicList = () => this.list;
@@ -11731,7 +18522,6 @@ class ListInitializer {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
                 otherProperties: this.options.otherProps
             });
-            this.schema = this.list.dataController.schema;
             if (!this.options.embeddedSearch) {
                 throw new Error('Embedded list is null');
             }
@@ -11744,7 +18534,7 @@ class ListInitializer {
                 displayErrorMessage(err);
             }
             else if (err instanceof Error) {
-                displayErrorMessage(new types.ErrMsg(err.message));
+                displayErrorMessage(new types.MsgWithCtx(err.message, err));
             }
             else {
                 displayErrorMessage(new types.ErrMsg("There was a fatal error while initializing the list (check logs). Please fix the configuration and reload."));
@@ -11790,7 +18580,7 @@ class ListInitializer {
             if (!this.options.embeddedList || !this.options.embeddedSearch)
                 return;
             this.list.destructor();
-            const prefetchCopy = jQuery.extend(true, {}, this.prefetched);
+            const prefetchCopy = _jQuery.extend(true, {}, this.prefetched);
             this.list = await DynamicList.makeDynamicList({
                 obj: this.options.embeddedList,
                 prefetch: prefetchCopy,
@@ -11800,7 +18590,6 @@ class ListInitializer {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
                 otherProperties: this.options.otherProps
             });
-            this.schema = this.list.dataController.schema;
             this.search = new DynamicListSearch(this.list, this.options.embeddedSearch, this.options.searchContainerId ?? 'LIST_CONTAINER');
             this.configFormManager.render(this.configForm);
             alert('Changes applied locally.');
@@ -11818,13 +18607,10 @@ class ListInitializer {
             throw new Error('Config is not an object.');
         }
         if ('name' in config) {
-            // Throws error if names clash
-            new FlatNameSuggestor(config.mappings);
             validateConfig(config);
         }
         else {
             const c = config;
-            new FlatNameSuggestor(c);
             c.forEach(m => validateMapping(m));
         }
     }
@@ -11881,7 +18667,16 @@ class ListInitializer {
     }
     ;
     remakeConfig() {
-        this.configForm = new ConfigForm(this.prefetched.config, this.perms.editFullConfig, this.options.obj, this.schema);
+        let dm = this.list?.dataModel ?? new DataModel({ rawRows: this.prefetched.data ?? [] });
+        let nameSet = [];
+        dm.traverse({
+            default: () => null,
+            processArray: (a, p) => nameSet.push([p, a.uniqueName]),
+            processData: (a, p) => nameSet.push([p, a.uniqueName]),
+            processObject: (a, p) => nameSet.push([p, a.uniqueName]),
+            processUnknown: (a, p) => nameSet.push([p, a.uniqueName]),
+        });
+        this.configForm = new ConfigForm(this.prefetched.config, this.perms.editFullConfig, this.options.obj, this.list?.dataModel ?? new DataModel({ rawRows: [], root: this.prefetched.config.dataModel }), new FlatNameSuggestor(nameSet), this.list);
         const ptr = this.options.obj.getPointer("CONFIG_CONTAINER");
         if (!ptr)
             return;
@@ -11921,6925 +18716,8 @@ class ListInitializer {
 function initialize(ops) {
     new ListInitializer(ops);
 }
-class ConfigContext {
-    constructor(viewEntireConfig, config, obj) {
-        this.viewEntireConfig = viewEntireConfig;
-        this.config = config;
-        this.obj = obj;
-    }
-}
-ConfigContext.id = "ConfigContext";
-class ConfigForm extends ReactiveForm {
-    constructor(config, showEntireConfig, obj, schema) {
-        super();
-        this.showEntireConfig = showEntireConfig;
-        this.obj = obj;
-        this.config = config;
-        let subForm;
-        if (this.showEntireConfig) {
-            subForm = new ObjectForm(config, {
-                "name": data => new ConstForm(data),
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', initialData: data }) }),
-                "dataSource": (dataSource, i) => new ItemLabel(i, {
-                    label: "Data Source",
-                    enclosed: true,
-                    collapsed: true,
-                    launchInTab: "tabs",
-                    item: new ConfigDataSource(dataSource)
-                }),
-                "mappings": (mappings, i) => new ItemLabel(i, {
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    label: "Mappings",
-                    item: new MappingsForm(schema && schema.tag == 'object' ? schema : undefined, mappings)
-                }),
-                "searchOptions": (ops, i) => new ItemLabel(i, {
-                    label: "Search Options",
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    item: new SearchOptionsForm(ops),
-                }),
-                "multiSelect": data => new LabelBool("Multiple Row Selection", data),
-                "buttons": (data, i) => new ItemLabel(i, {
-                    label: "List Buttons",
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    item: new ListButtonsForm(data)
-                })
-            });
-        }
-        else {
-            subForm = new MappingsForm(schema && schema.tag == 'object' ? schema : undefined, config.mappings);
-        }
-        this.form = new TabForm("List Configuration", subForm, "tabs");
-    }
-    render(m) {
-        m.setContext(this, ConfigContext.id, new ConfigContext(this.showEntireConfig, this.config, this.obj));
-        return {
-            type: 'group',
-            id: 'dynamic-form-config-form',
-            items: [this.form]
-        };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData).map(s => {
-            if ('keys' in s)
-                s.keys['version'] = { changed: false, raw: this.config.version };
-            return s;
-        });
-    }
-}
-class ForcedValueForm extends ReactiveForm {
-    constructor(data) {
-        super();
-        data = data ?? { column: '', value: { tag: 'value', value: '' } };
-        this.form = new ObjectForm(data, {
-            "column": (d, i) => new ItemLabel(i, {
-                label: "Column",
-                item: new ColumnSelector(d, true)
-            }),
-            "value": (d) => {
-                let data = d;
-                return new MultiForm({
-                    options: ['Value', 'XBasic Argument'],
-                    defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
-                    chooseForm: selected => {
-                        if (selected == 'Value') {
-                            if (data.tag == 'argument')
-                                data = { tag: 'value', value: '' };
-                            return new ObjectForm(data, {
-                                "tag": () => new ConstForm("value"),
-                                "value": (v, i) => new StringInput(i, "Value", v)
-                            });
-                        }
-                        else {
-                            if (data.tag == 'value')
-                                data = { tag: 'argument', value: '' };
-                            return new ObjectForm(data, {
-                                "tag": () => new ConstForm("argument"),
-                                "value": (v, i) => new StringInput(i, "Value", v)
-                            });
-                        }
-                    },
-                    allowCollapse: false,
-                });
-            }
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class ConfigDataSource extends ReactiveForm {
-    constructor(dataSource) {
-        super();
-        this.cached = {};
-        let defaultItem;
-        if (dataSource.type == 'json') {
-            if ('endpoints' in dataSource)
-                defaultItem = 'API';
-            else
-                defaultItem = "Static JSON";
-        }
-        else {
-            if ('table' in dataSource)
-                defaultItem = 'SQL Table';
-            else
-                defaultItem = 'Custom SQL';
-        }
-        const onSelect = (option) => {
-            if (option in this.cached)
-                return this.cached[option];
-            const getInitValue = () => {
-                if (option == 'SQL Table') {
-                    if (dataSource.type == 'sql' && 'table' in dataSource)
-                        return dataSource;
-                    return { type: 'sql', table: '' };
-                }
-                if (option == 'Custom SQL') {
-                    if (dataSource.type == 'sql' && 'sql' in dataSource)
-                        return dataSource;
-                    return { type: 'sql', sql: '' };
-                }
-                if (option == 'API') {
-                    if (dataSource.type == 'json' && 'endpoints' in dataSource)
-                        return dataSource;
-                    return { type: 'json', endpoints: {} };
-                }
-                if (dataSource.type == 'json' && 'jsonData' in dataSource)
-                    return dataSource;
-                return { type: 'json', jsonData: '' };
-            };
-            const initValue = getInitValue();
-            const preprocess = {
-                'preprocess': (p, i) => new ItemLabel(i, {
-                    enabled: p !== undefined,
-                    label: 'Preprocess Function',
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-                    item: new Input({ initialData: p, type: 'function', textarea: true })
-                })
-            };
-            const commonSqlOptions = {
-                'connectionString': (conn, i) => new ItemLabel(i, {
-                    enabled: conn !== undefined,
-                    label: 'Connection String',
-                    item: new Input({ initialData: conn, type: 'string' })
-                }),
-                "filters": (f, i) => new ItemLabel(i, {
-                    label: 'List Filters',
-                    enabled: f !== undefined,
-                    enclosed: true,
-                    collapsed: true,
-                    item: new ListFiltersForm(f ?? [])
-                }),
-                "serverSort": (f, i) => new ItemLabel(i, {
-                    label: 'Server-side Sorting Options',
-                    enabled: f !== undefined,
-                    enclosed: true,
-                    collapsed: true,
-                    item: new ServerSortForm(f)
-                }),
-                'paginate': (p, i) => new ItemLabel(i, {
-                    enabled: p !== undefined,
-                    label: "Pagination Options",
-                    enclosed: true,
-                    collapsed: true,
-                    item: new ObjectForm(p ?? { pageSize: 20 }, {
-                        'pageSize': (size, i) => new ItemLabel(i, {
-                            label: 'Page Size',
-                            item: new Input({ initialData: size, type: 'number' })
-                        })
-                    })
-                }),
-                'forcedValues': (data, i) => new ItemLabel(i, {
-                    enabled: data !== undefined,
-                    label: "Forced Values",
-                    enclosed: true,
-                    collapsed: true,
-                    item: new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
-                        label: "Forced Value",
-                        enclosed: true,
-                        collapsed: true,
-                        showDelete: true,
-                        item: new ForcedValueForm(item)
-                    }), () => ({ column: '', value: { tag: 'value', value: '' } }))
-                }),
-                ...preprocess
-            };
-            let form;
-            switch (option) {
-                case 'SQL Table': {
-                    form = new ObjectForm(initValue, {
-                        'type': () => new ConstForm('sql'),
-                        'table': (name, i) => new ItemLabel(i, { label: 'Table Name', item: new Input({ initialData: name, type: 'string' }) }),
-                        ...commonSqlOptions
-                    });
-                    break;
-                }
-                case 'Custom SQL':
-                    {
-                        form = new ObjectForm(initValue, {
-                            "type": () => new ConstForm('sql'),
-                            "sql": (data, i) => new ItemLabel(i, {
-                                label: 'SQL',
-                                item: new Input({ initialData: data, type: 'string', textarea: true })
-                            }),
-                            ...commonSqlOptions
-                        });
-                        break;
-                    }
-                    ;
-                case 'API':
-                    {
-                        const endpointNames = ['fetch', 'search', 'add', 'update', 'delete'];
-                        const endpoints = {};
-                        endpointNames.forEach(name => endpoints[name] = (data, i) => new ItemLabel(i, {
-                            label: "Endpoint for " + name,
-                            enclosed: true,
-                            enabled: data !== undefined,
-                            collapsed: true,
-                            item: new EndpointForm(data)
-                        }));
-                        form = new ObjectForm(initValue, {
-                            'type': () => new ConstForm('json'),
-                            'endpoints': (data, i) => new ItemLabel(i, {
-                                label: "Endpoints",
-                                enclosed: true,
-                                collapsed: true,
-                                item: new ObjectForm(data, endpoints)
-                            }),
-                            ...preprocess
-                        });
-                        break;
-                    }
-                    ;
-                case 'Static JSON':
-                    {
-                        form = new ObjectForm(initValue, {
-                            'type': () => new ConstForm('json'),
-                            'jsonData': (data, i) => new ItemLabel(i, {
-                                label: 'JSON Data',
-                                item: new CodeEditor({ data: data, lang: 'json' }),
-                            }),
-                            ...preprocess
-                        });
-                        break;
-                    }
-                    ;
-                default: throw new Error();
-            }
-            this.cached[option] = form;
-            return form;
-        };
-        this.form = new MultiForm({
-            options: ['SQL Table', 'Custom SQL', 'API', 'Static JSON'],
-            defaultOption: defaultItem,
-            chooseForm: onSelect
-        });
-    }
-    render() {
-        return {
-            type: 'group',
-            id: 'dynamic-form-data-source',
-            items: [this.form]
-        };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class ListFiltersForm extends ReactiveForm {
-    constructor(filters) {
-        super();
-        this.form = new ArrayForm(filters, (filter, i) => new ItemLabel(i, {
-            label: "List Filter",
-            showDelete: true,
-            showMove: true,
-            enclosed: true,
-            item: new ObjectForm(filter, {
-                "columnName": (name, i) => new ItemLabel(i, { label: "Column Name", item: new ColumnSelector(name, true) }),
-                "columnVal": (v) => {
-                    const val = v;
-                    return new MultiForm({
-                        options: ['Filter on Value', 'Filter on XBasic Argument'],
-                        defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
-                        chooseForm: selected => selected == 'Filter on Value'
-                            ? new ObjectForm(val, {
-                                "tag": () => new ConstForm("value"),
-                                "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ initialData: val, type: 'string' }) })
-                            })
-                            : new ObjectForm(val, {
-                                "tag": () => new ConstForm("arg"),
-                                "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ initialData: val, type: 'string' }) })
-                            })
-                    });
-                },
-                "connector": (c, i) => new ItemLabel(i, {
-                    label: "Connector",
-                    item: new DropdownForm({
-                        options: [{ text: 'And', value: 'AND' }, { text: 'Or', value: 'OR' }],
-                        defaultValue: c ?? 'AND',
-                    })
-                }),
-                "op": (op, i) => new ItemLabel(i, {
-                    label: "Operator", item: new DropdownForm({
-                        options: [{ text: "Equals", value: "=" },
-                            { text: "Not Equals", value: "<>" },
-                            { text: "Less Than", value: "<" },
-                            { text: "Less Than or Equal To", value: "<=" },
-                            { text: "Greater Than", value: ">" },
-                            { text: "Greater Than or Equal To", value: ">=" },
-                            { text: "Pattern", value: "LIKE" }],
-                        defaultValue: op
-                    })
-                }),
-                "quantifier": (q, i) => new ItemLabel(i, {
-                    label: "Quantifier",
-                    enabled: q !== undefined,
-                    item: new DropdownForm({
-                        options: [{ text: 'All', value: 'ALL' }, { text: 'Some', value: 'SOME' }],
-                        defaultValue: q ?? 'ALL',
-                    })
-                })
-            })
-        }), () => ({ columnName: '', columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
-    }
-    render() {
-        return {
-            type: 'group',
-            id: 'dynamic-form-list-filters',
-            items: [this.form]
-        };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class ServerSortForm extends ReactiveForm {
-    constructor(data) {
-        super();
-        data = data ?? [];
-        this.form = new ArrayForm(data, (item, i) => new ItemLabel(i, {
-            label: "Sort Parameter",
-            enclosed: true,
-            showMove: true,
-            showDelete: true,
-            collapsed: true,
-            item: new ObjectForm(item, {
-                "columnName": (name, i) => new ItemLabel(i, { label: 'Column to Sort By', item: new ColumnSelector(name, true) }),
-                "order": (name, i) => new ItemLabel(i, {
-                    label: 'Ordering', item: new DropdownForm({
-                        options: [{ text: 'Ascending', value: 'asc' }, { text: 'Descending', value: 'desc' }],
-                        defaultValue: name,
-                    })
-                })
-            })
-        }), () => ({ columnName: '', order: 'asc' }));
-    }
-    render() {
-        return {
-            type: 'group',
-            items: [this.form]
-        };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class EndpointForm extends ReactiveForm {
-    constructor(e) {
-        super();
-        e = e ?? { method: 'GET', endpoint: { tag: 'template', value: '' } };
-        const templateOrArgSelector = d => {
-            const data = d;
-            return new MultiForm({
-                options: ['Template', 'XBasic Argument'],
-                defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
-                chooseForm: selected => selected == 'Template'
-                    ? new ObjectForm(data, {
-                        "tag": () => new ConstForm("template"),
-                        "value": (data, i) => new ItemLabel(i, {
-                            label: "Template",
-                            item: new TemplateHelper(data)
-                        })
-                    })
-                    : new ObjectForm(data, {
-                        "tag": () => new ConstForm("argument"),
-                        "value": (data, i) => new ItemLabel(i, {
-                            label: "Argument",
-                            item: new Input({ initialData: data, type: 'string' })
-                        })
-                    })
-            });
-        };
-        this.form = new ObjectForm(e, {
-            "method": (m, i) => new ItemLabel(i, {
-                label: "HTTP Verb",
-                item: new DropdownForm({
-                    options: ['GET', 'POST', 'DELETE', 'PUT', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'].map(x => ({ text: x, value: x })),
-                    defaultValue: m,
-                })
-            }),
-            "endpoint": (ep, i) => new ItemLabel(i, {
-                label: "Endpoint",
-                collapsed: true,
-                enclosed: true,
-                item: templateOrArgSelector(ep)
-            }),
-            "headers": (headers, i) => new ItemLabel(i, {
-                label: "Headers",
-                enabled: headers !== undefined,
-                enclosed: true,
-                collapsed: true,
-                item: new ObjectForm(headers ?? {}, {}, {
-                    onAdd: (headerName, data, i) => new ItemLabel(i, {
-                        label: "Header " + headerName,
-                        enclosed: true,
-                        showMove: true,
-                        showDelete: true,
-                        item: templateOrArgSelector(data ?? { tag: 'template', value: '' })
-                    })
-                })
-            }),
-            "body": (b, i) => new ItemLabel(i, { label: 'Body', enabled: b !== undefined, item: new Input({ initialData: b, type: 'string', textarea: true }) })
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-const getMappingFullPath = (m) => {
-    const rec = (m) => {
-        if (m.tag == 'data')
-            return [];
-        if (m.tag == 'array')
-            return ['[...]', ...rec(m.item)];
-        if (m.tag == 'object')
-            return [m.key, ...rec(m.item)];
-        else
-            return [m.key, ...rec(m.mapping)];
-    };
-    const path = rec(m);
-    if (path.length == 0)
-        return [m.flattenedName];
-    return path;
-};
-class MappingsForm extends ReactiveForm {
-    constructor(schema, mappings) {
-        super();
-        this.schema = schema;
-        const defaultDataMapping = {
-            tag: 'data',
-            flattenedName: schema && Object.keys(schema).length > 0 ? Object.keys(schema.keys)[0] : ''
-        };
-        this.form = new ArrayForm(mappings, (mapping, i) => {
-            const nameChangeObserver = new Observer();
-            const makeDataMappingForm = (m) => {
-                if (m.tag != 'data')
-                    m = defaultDataMapping;
-                return new DataMappingForm({
-                    fullPath: [],
-                    onChangePath: nameChangeObserver,
-                    isTopLevel: true,
-                    schema: schema?.keys[m.flattenedName],
-                    flatNameOptions: Object.keys(schema?.keys ?? []),
-                    mapping: m
-                });
-            };
-            const item = new MultiForm({
-                options: ['Nested Mapping', 'Data Mapping'],
-                defaultOption: (mapping.tag == 'nested' ? 'Nested Mapping' : 'Data Mapping'),
-                chooseForm: (selected) => {
-                    if (selected == 'Data Mapping') {
-                        return makeDataMappingForm(mapping);
-                    }
-                    else {
-                        return new MappingFormNestedObject(mapping, nameChangeObserver, this.schema);
-                    }
-                },
-                onSelect: (selected, multiForm) => {
-                    setTimeout(() => {
-                        const item = multiForm.current();
-                        if (item instanceof MappingFormNestedObject) {
-                            nameChangeObserver.notify(getMappingFullPath(item.mapping));
-                        }
-                        else if (item instanceof DataMappingForm) {
-                            nameChangeObserver.notify([item.options.mapping.flattenedName]);
-                        }
-                    }, 10);
-                },
-                allowCollapse: false
-            });
-            const itemLabel = new ItemLabel(i, {
-                label: 'New Mapping',
-                collapsed: true,
-                enclosed: true,
-                showDelete: true,
-                showMove: true,
-                labelRight: true,
-                item
-            });
-            return new ObserverForm(nameChangeObserver, getMappingFullPath(mapping), newFullPath => {
-                itemLabel.setLabel(newFullPath.length > 0 ? ('Mappings for ' + newFullPath.join('.')) : 'New Mapping');
-                return itemLabel;
-            });
-        }, () => defaultDataMapping);
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-function makeMappingDefaults(schema, key) {
-    if (!schema || schema.tag == 'rawData' || schema.tag == 'unknown')
-        return ({ tag: 'data', flattenedName: key });
-    if (schema.tag == 'array')
-        return ({ tag: 'array', item: makeMappingDefaults(schema.elem, key) });
-    else {
-        const key = Object.keys(schema.keys)[0] ?? '';
-        return ({
-            tag: 'object',
-            key,
-            item: makeMappingDefaults(schema.keys[key], key)
-        });
-    }
-}
-class ListButtonsForm extends ReactiveForm {
-    constructor(data) {
-        super();
-        this.form = new ArrayForm(data ?? [], (item, i) => new ItemLabel(i, {
-            label: "Button",
-            enclosed: true,
-            collapsed: true,
-            showMove: true,
-            showDelete: true,
-            item: new ObjectForm(item, {
-                "columnTitle": (data, i) => new StringInput(i, "Column Title", data),
-                "title": (data, i) => new StringInput(i, "Title", data, true),
-                "icon": (data, i) => new StringInput(i, "Icon", data, true),
-                "onClick": (d, i) => {
-                    const data = d;
-                    return new ItemLabel(i, {
-                        label: "Click Action",
-                        collapsed: true,
-                        enclosed: true,
-                        item: new MultiForm({
-                            options: ["Javascript Function", "Javascript Action", "List Action"],
-                            defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
-                            chooseForm: selected => {
-                                if (selected == 'Javascript Function') {
-                                    const d = ('function' in data) ? data : { function: '() => {}' };
-                                    return new ObjectForm(d, {
-                                        "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
-                                    });
-                                }
-                                else if (selected == 'Javascript Action') {
-                                    const d = ('action' in data) ? data : { action: '' };
-                                    return new ObjectForm(d, {
-                                        "action": (data, i) => new StringInput(i, "Action Name", data)
-                                    });
-                                }
-                                else {
-                                    const d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
-                                    return new ObjectForm(d, {
-                                        "listAction": d => new ListActionEditor(d)
-                                    });
-                                }
-                            }
-                        })
-                    });
-                }
-            })
-        }), () => ({ columnTitle: '', onClick: { function: '() => {}' } }));
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class SearchOptionsForm extends ReactiveForm {
-    constructor(ops) {
-        super();
-        if (ops == undefined)
-            ops = {};
-        this.form = new ObjectForm(ops, {
-            "advancedSearch": data => new LabelBool("Advanced Search", data),
-            "serverSearch": data => new LabelBool("Server-side Search", data),
-            "onlyInclude": (data, i) => new ItemLabel(i, {
-                label: "Include columns in search",
-                enclosed: true,
-                collapsed: true,
-                enabled: data !== undefined,
-                item: new ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
-            }),
-            "onlyExclude": (data, i) => new ItemLabel(i, {
-                label: "Exclude columns in search",
-                enabled: data !== undefined,
-                enclosed: true,
-                collapsed: true,
-                item: new ArrayForm(data ?? [], (d, i) => new StringInput(i, "Column Name", d), () => ""),
-            })
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class MappingFormNestedObject extends ReactiveForm {
-    constructor(mapping, pathChange, schema) {
-        super();
-        this.cache = {};
-        this.schema = schema;
-        this.pathChange = pathChange;
-        let selectedKey;
-        if (mapping.tag == 'nested')
-            this.mapping = mapping;
-        else {
-            if (schema) {
-                selectedKey = Object.entries(schema.keys)
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    .filter(([_, v]) => v.tag == 'object' || v.tag == 'array')
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    .map(([k, v]) => k)[0] ?? '';
-                this.mapping = {
-                    tag: 'nested',
-                    key: selectedKey,
-                    mapping: makeMappingDefaults(schema.keys[selectedKey], selectedKey)
-                };
-            }
-            else {
-                selectedKey = '';
-                this.mapping = {
-                    tag: 'nested',
-                    key: selectedKey,
-                    mapping: { tag: 'data', flattenedName: '' }
-                };
-            }
-        }
-    }
-    render() {
-        if (this.form === undefined) {
-            const observer = new Observer();
-            const availableKeys = Object.entries(this.schema?.keys ?? {})
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .filter(([k, v]) => v.tag == 'object' || v.tag == 'array')
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .map(([k, v]) => ({ text: k, value: k }));
-            this.form = new ObjectForm(this.mapping, {
-                "tag": () => new ConstForm("nested"),
-                "key": (key, i) => new ItemLabel(i, {
-                    label: "Key",
-                    item: new DropdownForm({
-                        options: availableKeys,
-                        defaultValue: key,
-                        allowAny: true,
-                        onChange: newKey => {
-                            this.mapping.key = newKey;
-                            this.mapping.mapping = makeMappingDefaults(this.schema?.tag == 'object' ? this.schema.keys[newKey] : undefined, newKey);
-                            observer.notify(newKey);
-                            const nested = getMappingFullPath(this.mapping.mapping);
-                            const newName = [newKey];
-                            if (nested.length > 0)
-                                newName.push(...nested);
-                            this.pathChange.notify(newName);
-                        }
-                    })
-                }),
-                "mapping": () => new ObserverForm(observer, this.mapping.key, newKey => {
-                    if (newKey in this.cache)
-                        return this.cache[newKey];
-                    const form = new NestedMappingForm(this.mapping.mapping, newKey, [newKey], this.pathChange, this.schema?.keys[newKey]);
-                    this.cache[newKey] = form;
-                    return form;
-                })
-            });
-        }
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        if (this.form === undefined)
-            return (0,types.Ok)({ changed: false, raw: this.mapping });
-        return this.form.serialize(formData);
-    }
-}
-class DataMappingForm extends ReactiveForm {
-    constructor(options) {
-        super();
-        this.options = options;
-        this.availableDropdownColumns = [];
-        this.form = null;
-    }
-    render(m) {
-        const context = m.getContext(ConfigContext.id);
-        if (!context)
-            throw new Error();
-        this.availableDropdownColumns.length = 0;
-        DataController.getDataMappings(context.config).forEach(m => this.availableDropdownColumns.push({ text: m.displayName ?? m.flattenedName, value: m.flattenedName }));
-        if (this.form == null) {
-            const flatName = (data, i) => {
-                let item;
-                if (this.options.flatNameOptions) {
-                    item = new DropdownForm({
-                        options: this.options.flatNameOptions.map(x => ({ text: x, value: x })),
-                        defaultValue: data,
-                        onChange: (newKey) => {
-                            const path = this.options.fullPath.length > 0 ? this.options.fullPath : [newKey];
-                            this.options.onChangePath.notify(path);
-                        }
-                    });
-                }
-                else {
-                    item = new Input({ initialData: data, type: 'string', readonly: this.options.readonlyFlatName });
-                }
-                return new ItemLabel(i, {
-                    label: this.options.flatNameOptions ? 'Column Name' : 'Flattened Column Name',
-                    item
-                });
-            };
-            const editTypeObserver = new Observer();
-            const dropdownConfig = (data, i) => new ItemLabel(i, {
-                label: "Dropdown Config",
-                collapsed: true,
-                enabled: data !== undefined,
-                enclosed: true,
-                item: new MultiForm({
-                    options: ['Static Choices', 'Select From Column'],
-                    defaultOption: data === undefined ? 'Static Choices' : ('choices' in data ? 'Static Choices' : 'Select From Column'),
-                    chooseForm: selected => selected == 'Static Choices'
-                        ? new ObjectForm(data ?? { choices: [] }, {
-                            "choices": data => new ArrayForm(data, (item, i) => new StringInput(i, "Dropdown Choice", item, false), () => ""),
-                            "allowCustom": data => new LabelBool("Allow Custom Value", data)
-                        })
-                        : new ObjectForm(data ?? { fromColumn: this.availableDropdownColumns[0]?.value ?? '' }, {
-                            "fromColumn": (data, i) => new ItemLabel(i, {
-                                label: "From Column",
-                                item: new DropdownForm({
-                                    options: this.availableDropdownColumns,
-                                    defaultValue: data,
-                                    allowAny: true
-                                })
-                            })
-                        })
-                })
-            });
-            const dropdownConfigObserver = (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
-                if (type == 'dropdown')
-                    return dropdownConfig(data, i);
-                return new ConstForm(undefined);
-            });
-            const defaultDateConverter = `(date, serverTimeOffset) => {
-    if (typeof date === "string") {
-        let dateObj = new Date();
-        dateObj.fromFormat(date, "${DEFAULT_DATETIME_FMT}");
-        date = dateObj;
-    }
-    return date;
-}`;
-            const defaultDateDeconverter = `(date, serverTimeOffset) => {
-    return date.toFormat("${DEFAULT_DATETIME_FMT}");
-}`;
-            const keyMap = {
-                "tag": () => new ConstForm("data"),
-                "displayName": (data, i) => new StringInput(i, "Display Name", data, true),
-                "readOnly": (data) => new Show(new LabelBool("Read-Only", data), () => context.viewEntireConfig),
-                "flattenedName": flatName,
-                "inList": d => new LabelBool("In List", d),
-                "inDetailView": d => new LabelBool("In Detail View", d),
-                "editType": (data, i) => new ItemLabel(i, {
-                    label: "Data Type",
-                    enabled: data !== undefined,
-                    item: new EditTypeDropdown(data, newItem => { editTypeObserver.notify(newItem); }),
-                }),
-                "dateSettings": (data, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
-                    if (type == 'datetime' || type == 'time')
-                        return new ItemLabel(i, {
-                            label: 'Date Settings',
-                            enabled: data !== undefined,
-                            enclosed: true,
-                            collapsed: true,
-                            item: new ObjectForm(data ?? {}, {
-                                "fromServer": (data, i) => new ItemLabel(i, {
-                                    label: 'Conversion from Server',
-                                    enclosed: true,
-                                    collapsed: false,
-                                    enabled: data !== undefined,
-                                    item: new CodeEditor({
-                                        data: data ?? defaultDateConverter,
-                                        lang: 'js'
-                                    })
-                                }),
-                                "toServer": (data, i) => new ItemLabel(i, {
-                                    label: 'Conversion to Server',
-                                    enclosed: true,
-                                    collapsed: false,
-                                    enabled: data !== undefined,
-                                    item: new CodeEditor({
-                                        data: data ?? defaultDateDeconverter,
-                                        lang: 'js'
-                                    })
-                                }),
-                                "clientFormat": (data, i) => new StringInput(i, "Client Format", data, true)
-                            })
-                        });
-                    return new ConstForm(undefined);
-                }),
-                "template": (data, i) => new StringInput(i, "Template", data, true),
-                "width": (data, i) => new StringInput(i, "Width", data, true),
-                "jsonConfig": (d, i) => new ObserverForm(editTypeObserver, this.options.mapping.editType ?? 'text', type => {
-                    let data = d;
-                    if (type !== 'json')
-                        return new ConstForm(undefined);
-                    if (data === undefined)
-                        data = { editorType: 'form', definition: { tag: 'any' } };
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                    if (data.editorType === undefined)
-                        data.editorType = 'form';
-                    return new ItemLabel(i, {
-                        label: "JSON Config",
-                        collapsed: true,
-                        enclosed: true,
-                        item: new ObjectForm(data, {
-                            "editorType": (data, i) => new ItemLabel(i, {
-                                label: "Editor Type",
-                                item: new DropdownForm({
-                                    options: [{ text: 'Text Editor', value: 'text' }, { text: 'Form', value: 'form' }],
-                                    defaultValue: data,
-                                })
-                            }),
-                            "definition": (data, i) => new ItemLabel(i, {
-                                item: new JSONFieldForm(data),
-                                label: "JSON Definition"
-                            })
-                        })
-                    });
-                }),
-                "dropdownConfig": (data, i) => dropdownConfigObserver(data, i)
-            };
-            this.form = new ObjectForm(this.options.mapping, keyMap);
-        }
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        if (this.form == null)
-            return (0,types.Ok)({ changed: false, raw: this.options.mapping });
-        return this.form.serialize(formData);
-    }
-}
-class JSONFieldForm extends ReactiveForm {
-    constructor(data) {
-        super();
-        if (data === undefined)
-            data = { tag: 'any' };
-        const defaultOption = (data.tag == 'array') ? 'JSON Array' : (data.tag == 'data' ? 'JSON Value' : (data.tag == 'object' ? 'JSON Object' : 'Any Value'));
-        this.form = new MultiForm({
-            options: ['JSON Object', 'JSON Array', 'JSON Value', 'Any Value'],
-            defaultOption,
-            chooseForm: select => {
-                if (select == 'JSON Object') {
-                    const defaultData = (data.tag == 'object') ? data : { tag: 'object', keys: {} };
-                    return new ObjectForm(defaultData, {
-                        "tag": () => new ConstForm("object"),
-                        "keys": (keys) => new ObjectForm(keys, {}, {
-                            onAdd: (name, data, i) => {
-                                data = data ?? { tag: 'data', dataType: 'string' };
-                                return new ItemLabel(i, {
-                                    label: `Key "${name}"`,
-                                    showDelete: true,
-                                    showMove: true,
-                                    item: new JSONFieldForm(data)
-                                });
-                            }
-                        })
-                    });
-                }
-                else if (select == 'JSON Array') {
-                    const defaultData = (data.tag == 'array') ? data : { tag: 'array', item: { tag: 'data', dataType: 'string' } };
-                    return new ObjectForm(defaultData, {
-                        "tag": () => new ConstForm("array"),
-                        "item": (item, i) => new ItemLabel(i, {
-                            label: "Item Definition",
-                            item: new JSONFieldForm(item)
-                        })
-                    });
-                }
-                else if (select == 'JSON Value') {
-                    const defaultData = (data.tag == 'data') ? data : { tag: 'data', dataType: 'string' };
-                    return new ObjectForm(defaultData, {
-                        "tag": () => new ConstForm("data"),
-                        "dataType": (data, i) => new ItemLabel(i, {
-                            label: 'Data Type',
-                            item: new DropdownForm({
-                                options: [
-                                    { text: 'String', value: 'string' }, { text: 'Number', value: 'number' }, { text: 'True/False', value: 'boolean' }
-                                ],
-                                defaultValue: data,
-                            })
-                        })
-                    });
-                }
-                else {
-                    const defaultData = (data.tag == 'object') ? data : { tag: 'any' };
-                    return new ObjectForm(defaultData, {
-                        "tag": () => new ConstForm("any"),
-                    });
-                }
-            }
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class NestedMappingForm extends ReactiveForm {
-    constructor(n, key, fullPath, pathChange, schema) {
-        super();
-        this.objectKeyCache = {};
-        this.mapping = n;
-        this.schema = schema;
-        this.key = key;
-        this.fullPath = fullPath;
-        this.pathChange = pathChange;
-        let defaultOption;
-        switch (n.tag) {
-            case "object":
-                defaultOption = 'Object Mapping';
-                break;
-            case "array":
-                defaultOption = 'Array Mapping';
-                break;
-            case "data":
-                defaultOption = 'Data Mapping';
-                break;
-        }
-        this.form = new MultiForm({
-            options: ['Array Mapping', 'Object Mapping', 'Data Mapping'],
-            defaultOption: defaultOption,
-            chooseForm: select => {
-                if (select == 'Data Mapping')
-                    return this.dataNested();
-                else if (select == 'Array Mapping')
-                    return this.arrayNested();
-                return this.objectNested();
-            },
-            allowCollapse: false
-        });
-    }
-    objectNested() {
-        let defaultMapping;
-        let availableKeys = [];
-        if (this.mapping.tag == 'object') {
-            defaultMapping = this.mapping;
-        }
-        else {
-            if (this.schema?.tag == 'object') {
-                const k = Object.keys(this.schema.keys)[0] ?? '';
-                defaultMapping = {
-                    tag: 'object',
-                    key: k,
-                    item: makeMappingDefaults(this.schema.keys[k], k)
-                };
-            }
-            else {
-                defaultMapping = {
-                    tag: 'object',
-                    key: '',
-                    item: makeMappingDefaults(undefined, '')
-                };
-            }
-        }
-        if (this.schema?.tag == 'object') {
-            availableKeys = Object.keys(this.schema.keys).map(x => ({ text: x, value: x }));
-        }
-        else {
-            availableKeys = [];
-        }
-        const observer = new Observer();
-        return new ObjectForm(defaultMapping, {
-            "tag": () => new ConstForm("object"),
-            "key": (k, i) => new ItemLabel(i, {
-                label: "Key",
-                item: new DropdownForm({
-                    options: availableKeys,
-                    defaultValue: k,
-                    allowAny: true,
-                    onChange: newKey => {
-                        observer.notify(newKey);
-                        const schema = (this.schema?.tag == 'object') ? this.schema.keys[newKey] : undefined;
-                        const nested = makeMappingDefaults(schema, newKey);
-                        const rest = getMappingFullPath(nested);
-                        this.pathChange.notify([...this.fullPath, newKey, ...(rest.length > 1 ? rest : [])]);
-                    }
-                })
-            }),
-            "item": (itemMapping, i) => new ObserverForm(observer, defaultMapping.key, key => {
-                const schema = (this.schema?.tag == 'object') ? this.schema.keys[key] : undefined;
-                const nested = makeMappingDefaults(schema, key);
-                if (key in this.objectKeyCache)
-                    return this.objectKeyCache[key];
-                const form = new ItemLabel(i, {
-                    label: "Definition for" + [...this.fullPath, key].join('.'),
-                    item: new NestedMappingForm(key == defaultMapping.key ? itemMapping : nested, key, [...this.fullPath, key], this.pathChange, schema)
-                });
-                this.objectKeyCache[key] = form;
-                return form;
-            })
-        });
-    }
-    dataNested() {
-        const mapping = (this.mapping.tag == 'data') ? this.mapping : { tag: 'data', flattenedName: this.key };
-        return new DataMappingForm({
-            fullPath: this.fullPath,
-            onChangePath: this.pathChange,
-            mapping,
-            schema: this.schema,
-            readonlyFlatName: true
-        });
-    }
-    arrayNested() {
-        const nested = (this.schema?.tag == 'array') ? makeMappingDefaults(this.schema.elem, this.key) : { tag: 'data', flattenedName: '' };
-        const mapping = (this.mapping.tag == 'array') ? this.mapping : { tag: 'array', item: nested };
-        return new ObjectForm(mapping, {
-            "tag": () => new ConstForm("array"),
-            "item": (item, i) => new ItemLabel(i, {
-                label: "Definition for " + [...this.fullPath, '[...]'].join('.'),
-                item: new NestedMappingForm(item, this.key, [...this.fullPath, '[...]'], this.pathChange, this.schema?.tag == 'array' ? this.schema.elem : undefined)
-            })
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class EditTypeDropdown extends ReactiveForm {
-    constructor(data, onChange) {
-        super();
-        this.form = new DropdownForm({
-            options: [
-                { text: 'Text', value: 'text' },
-                { text: 'Dropdown', value: 'dropdown' },
-                { text: 'Time', value: 'time' },
-                { text: 'Datetime', value: 'datetime' },
-                { text: 'True/False', value: 'bool' },
-                { text: 'Number', value: 'number' },
-                { text: 'JSON', value: 'json' },
-            ],
-            defaultValue: data ?? 'text',
-            onChange
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize() {
-        return this.form.serialize();
-    }
-}
-class StringInput extends ReactiveForm {
-    constructor(i, label, data, optional, multiLine) {
-        super();
-        this.form = new ItemLabel(i, {
-            label,
-            enabled: optional ? (data !== undefined) : undefined,
-            item: new Input({ initialData: data, type: 'string', textarea: multiLine })
-        });
-    }
-    render() {
-        return { type: 'group', items: [this.form] };
-    }
-    serialize(formData) {
-        return this.form.serialize(formData);
-    }
-}
-class ColumnSelector extends ReactiveForm {
-    constructor(data, onlyTopLevel, onChange) {
-        super();
-        this.onChange = onChange;
-        this.data = data;
-        this.onlyTopLevel = onlyTopLevel;
-    }
-    render(m) {
-        const ctx = m.getContext(ConfigContext.id);
-        if (!ctx)
-            throw new Error("Column Selector needs ConfigContext.");
-        if (this.dropdown == undefined) {
-            let options = [];
-            if (this.onlyTopLevel) {
-                options = ctx.config.mappings
-                    .filter(x => x.tag == 'data')
-                    .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
-            }
-            else {
-                options = DataController.getDataMappings(ctx.config)
-                    .map(x => ({ text: x.displayName ?? x.flattenedName, value: x.flattenedName }));
-            }
-            this.dropdown = new DropdownForm({
-                options,
-                defaultValue: this.data,
-                allowAny: true,
-                onChange: this.onChange
-            });
-        }
-        return { type: 'group', items: [this.dropdown] };
-    }
-    serialize() {
-        if (this.dropdown === undefined)
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        return this.dropdown.serialize();
-    }
-}
-
-;// ./src/transformInterface.ts
-
-
-function transformAPI(path) {
-    return fetch('https://transform.alphasoftware.com/transformAPIVersion1.a5svc/' + path, {
-        method: 'GET',
-        headers: {
-            apikey: 'eed9a06d3e3148569a450361d91c3232_RDACFIDFIEI'
-        }
-    }).then(x => x.json());
-}
-function prepareTFList(obj, formId) {
-    return new Promise((resolve) => {
-        obj.ajaxCallback('', '', 'prepare_transform_form_list', '', 'formid=' + encodeURIComponent(formId), {
-            onComplete: () => {
-                resolve(obj.stateInfo.apiResult);
-            }
-        });
-    });
-}
-function initTFSelector(containerId, obj) {
-    const ptr = obj.getPointer(containerId);
-    if (!ptr)
-        throw new Error("Container " + containerId + " does not exist.");
-    const cId = ptr.id;
-    const dropdownItems = transformAPI('GetListOfFormDefinitionsForAccount?includeFormDefinitions=false')
-        .then(json => {
-        if (json.error) {
-            console.error(json.errorText);
-            return [];
-        }
-        return json.result.map(row => {
-            return {
-                text: `${row.formname} (${row.formid})`,
-                value: row.formid
-            };
-        });
-    });
-    let selected = '';
-    const form = new AsyncForm(async () => {
-        const items = await dropdownItems;
-        return new DropdownForm({
-            defaultValue: selected,
-            options: items,
-            onChange: x => selected = x
-        });
-    }, []);
-    new ReactiveFormManager(form, cId, obj, raw => {
-        return {
-            type: 'group',
-            items: [
-                raw,
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span> Load Form into List </span> `,
-                        onClick: () => {
-                            okOrLog(launch(selected, obj));
-                        },
-                    }
-                }
-            ]
-        };
-    });
-}
-async function launch(formId, obj) {
-    const prepareResult = await prepareTFList(obj, formId);
-    if ('err' in prepareResult) {
-        console.error(prepareResult.err);
-        return;
-    }
-    okOrLog(openNewPanel({
-        obj: obj,
-        configName: formId,
-        listContainerId: 'LIST_CONTAINER',
-        searchContainerId: 'SEARCH_CONTAINER',
-        titleName: 'Form ' + formId,
-    }));
-}
-
-;// ./src/tfc.js
-const tfc_TF = {
-	theme: 'Alpha',
-	url: 'tfc.a5w',
-	_: {
-		saveState: function (refresh) {
-			var sl = tfc_TF.state.login;
-			localStorage.setItem('A5TFState', JSON.stringify(sl));
-			if (refresh) {
-				if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
-				if (typeof tfc_TF.ui.user._.h != 'undefined') tfc_TF.ui.user._.h.refresh();
-				if (typeof tfc_TF.ui.account._.h != 'undefined') tfc_TF.ui.account._.h.refresh();
-				if (typeof tfc_TF.ui.home._.vb != 'undefined') tfc_TF.ui.home._.vb.getStructure();
-			}
-		},
-		act: function (t, d) {
-			// t: navigate, login, logout
-			tfc_TF.state.login.activity.unshift({ type: t, data: d, at: Date.now() });
-		},
-		beta: function () {
-			return location.hostname != 'transform.alphasoftware.com';
-		},
-		r: {
-			t: {
-				'login': { method: 'GET' },
-				'login-confirm': { method: 'GET' },
-				'login-two-factor': { method: 'GET' },
-				'login-account': { method: 'GET' },
-				'login-reset-pw': { method: 'GET' },
-				'login-forgot-pw': { method: 'GET' },
-				'login-check-user': { method: 'GET' },
-				'login-create-user': { method: 'GET' },
-				'login-create-account': { method: 'GET' },
-				'login-confirm-user': { method: 'GET' },
-
-				'get-preferences': { method: 'GET' },
-				'set-preferences': { method: 'POST' },
-				'get-profile': { method: 'GET' },
-				'set-profile': { method: 'POST' },
-
-				'get-log': { method: 'GET' },
-				'update-log': { method: 'GET' },
-
-
-				'get-api-keys': { method: 'GET' },
-				'create-api-key': { method: 'GET' },
-				'revoke-api-key': { method: 'GET' },
-				'remove-api-key': { method: 'GET' },
-
-				'get-members': { method: 'GET' },
-				'update-members': { method: 'POST' },
-
-				'get-connections': { method: 'GET' },
-				'authenticate-connection': { method: 'GET' },
-				'create-connection': { method: 'POST' },
-				'update-connection': { method: 'POST' },
-				'remove-connections': { method: 'GET' },
-
-				'get-plan': { method: 'GET' },
-				'update-plan': { method: 'POST' },
-
-				'get-structure': { method: 'GET' },
-
-				'get-form-info': { method: 'GET' },
-
-				'get-form-defs': { method: 'POST' },
-				'update-form-defs': { method: 'POST' },
-
-			},
-			i: {},
-			e: { // errors
-				pd: { // permission-denied
-					'generic': { title: 'Permission Denied', text: 'You do not have permission to do the requested action on this account.' }
-				},
-				lad: { // login-account-denied
-					'generic': { title: 'Account Error', text: 'You cannot login to the selected account. Please contact your account administrator to fix the issue.' },
-					'user-count': { title: 'Account Error', text: 'The account you are trying to log into has exceeded the licensed user count. Please contact your account administrator to fix the issue.' },
-				},
-				id: { // invalid-data
-					'plan-key': {
-						'exists': { title: 'Key', text: 'The key that you entered is already in use.' },
-						'invalid': { title: 'Key', text: 'The key that you entered is not valid.' }
-					}
-				}
-			}
-		},
-		l: {
-			ra: [],
-			i: function () { // login initialize
-				var s = tfc_TF.state;
-				var sl = s.login;
-				var sJSON = localStorage.getItem('A5TFState');
-				if (sJSON) {
-					try {
-						var lss = JSON.parse(sJSON);
-						A5.u.object.assign(sl, lss);
-						if (typeof sl.expires == 'string') sl.expires = new Date(sl.expires);
-						if (sl.expires.getFullYear() == NaN) sl.expires = new Date();
-						if (sl.expires <= Date.now() && sl.state != 'logged-out') {
-							sl.state = 'login-expired';
-						}
-						if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
-					} catch (e) {
-						//console.log('couldn\'t restore state from storage');
-					}
-				}
-
-				var args = location.href.split('?');
-				args.shift();
-				args = args.join('?').split('&');
-				var arg = null;
-				var argsObj = {};
-				for (var i = 0; i < args.length; i++) {
-					arg = args[i].split('=');
-					if (arg.length == 2) argsObj[arg[0].trim()] = arg[1].trim();
-				}
-
-				if (argsObj.mode == 'dev') {
-					s.ui.editing.json.forms = true;
-					s.ui.editing.json.lists = true;
-				} else if (argsObj.mode == 'create-account' || argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
-					sl.mode = { type: argsObj.mode };
-					if (argsObj.mode == 'confirm-invite' || argsObj.mode == 'code-reset-pw') {
-						if (typeof argsObj.code == 'string') sl.mode.code = argsObj.code;
-						else sl.mode = null;
-					}
-				}
-				// page interval
-				setInterval(function () {
-					// activity log
-					var a = tfc_TF.state.login.activity;
-					if (Array.isArray(a)) {
-						var al = a.length;
-						if (al != 0) {
-							tfc_TF.request('update-log', { type: 'activity', log: a }).then(function () {
-								if (tfc_TF.state.login.activity.length == al) tfc_TF.state.login.activity = [];
-								else tfc_TF.state.login.activity.splice(0, al);
-							});
-						}
-					}
-				}, 60000);
-				tfc_TF._.l.initialized = true;
-			},
-			d: function (d, c) { // login done - set variables
-				var s = tfc_TF.state;
-				var sl = s.login;
-				sl.state = 'logged-in';
-				sl.mode = null;
-				sl.expires = new Date(d.expires);
-				if (sl.expires.getFullYear() == NaN) {
-					sl.expires = new Date();
-					sl.state = 'login-expired';
-				}
-
-				if (A5.u.typeOf(d.user) == 'object') {
-					A5.u.object.assign(d.user, {
-						id: null, // logged in user ID (email)
-						name: null // logged in user name
-					}, true);
-					sl.user = d.user;
-				}
-				if (A5.u.typeOf(d.account) == 'object') {
-					A5.u.object.assign(d.account, {
-						id: null, // account ID
-						name: null, // selected account name
-						member: {
-							roles: null,
-							ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
-						}, // information about logged in user relative to account
-						permissions: {} // account permissions
-					}, true);
-					sl.account = d.account;
-				}
-
-				var slam = sl.account.member;
-				slam.ui = {
-					allow: {
-						design: (slam.roles.indexOf('FormDesigner') != -1),
-						manage: (slam.roles.indexOf('ManagementConsole') != -1),
-						dashboard: (slam.roles.indexOf('ManagementConsole') != -1),
-						filler: {
-							web: (slam.roles.indexOf('browseruser') != -1),
-							mobile: (slam.roles.indexOf('user') != -1)
-						},
-						account: (slam.roles.indexOf('AccountAdmin') != -1),
-						developer: (slam.roles.indexOf('AccountAdmin') != -1)
-					}
-				}
-				if (typeof tfc_TF.ui.main._.vb != 'undefined') tfc_TF.ui.main._.vb.refresh();
-				this.ele.style.display = 'none';
-				tfc_TF._.saveState(true);
-				var ra = this.ra;
-				var ri, args = null;
-				for (var i = 0; i < ra.length; i++) {
-					ri = tfc_TF._.r.i[ra[i]];
-					if (typeof ri != 'undefined') {
-						args = ['type=' + ri.type];
-						if (typeof ri.data == 'object' && ri.data) args.push('data=' + urlencode(JSON.stringify(ri.data)));
-						args.push('token=' + (tfc_TF.state.login.token ? urlencode(tfc_TF.state.login.token) : ""));
-						args = args.join('&');
-						ri.xhr.open('POST', tfc_TF.url);
-						ri.xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-						ri.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
-						ri.xhr.overrideMimeType('text/html; charset=UTF-8');
-						ri.xhr.send(args);
-					}
-				}
-				this.ra = [];
-				// clear data
-				tfc_TF.u.filler._.route.m = false;
-				tfc_TF.u.filler._.route.q = false;
-				var m_ = tfc_TF.ui.main._;
-				// reset ui
-				if (c) {
-					// need to update JWT on loaded UXs
-					var ux = m_.ux;
-					if (m_.d.ux) ux.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
-					if (m_.m.ux) ux.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
-					if (m_.b.ux) ux.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "updatejwtusertoken", newjwtusertoken: sl.token });
-				} else {
-					// diff user/account - reset all
-					var p = m_.ux.panelGet('TRANSFORM_MAIN_NAV');
-					m_.vb.setTab('home');
-
-					// TFIFrameLoading
-					if (m_.d.ux) { // dash
-						m_.d.ux._destroy();
-						m_.d.ux = null;
-						delete p.state._render['TRANSFORM_DASHBOARD'];
-						var pc = m_.ux.panelGet('TRANSFORM_DASHBOARD');
-						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
-					}
-					if (m_.m.ux) { // manage
-						m_.m.ux._destroy();
-						m_.m.ux = null;
-						delete p.state._render['TRANSFORM_MANAGE'];
-						var pc = m_.ux.panelGet('TRANSFORM_MANAGE');
-						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
-					}
-					if (m_.b.ux) { // designer
-						m_.b.ux._destroy();
-						m_.b.ux = null;
-						delete p.state._render['TRANSFORM_DESIGN'];
-						var pc = m_.ux.panelGet('TRANSFORM_DESIGN');
-						A5.u.element.cls($(pc.getPanelId('body')).children[0], 'TFIFrameLoading');
-					}
-				}
-
-				if (tfc_TF.u.filler._.iEle) tfc_TF.u.filler._.iEle.src = '';
-
-				var l = tfc_TF.state.login;
-				tfc_TF._.act('login', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
-			},
-			a: function (t) { // login actions
-				var f = this.f;
-				var fd = f.data;
-				if (t == 'login') {
-					var id = fd.userId;
-					tfc_TF.request('login', {
-						userId: id,
-						pw: fd.pw
-					}).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						tfc_TF.state.login.user.id = id;
-						if (d.step == 'done') _l.d(d, false);
-						else if (d.step == 'account') {
-							l.state = 'logging-in';
-							_l.f.accounts = d.accounts;
-							tfc_TF.login('account');
-						} else if (d.step == 'two-factor') {
-							l.state = 'logging-in';
-							_l.f.tfSentTo = d.sentTo;
-							tfc_TF.login('two-factor');
-						}
-					}).catch(function (d) {
-						if (d.error == 'login-id-pw') {
-							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
-						}
-					});
-				} else if (t == 'confirm') {
-					tfc_TF.request('login-confirm', {
-						userId: tfc_TF.state.login.user.id,
-						account: tfc_TF.state.login.account.id,
-						pw: fd.confirmPW,
-					}).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						if (d.step == 'done') _l.d(d, true);
-						else if (d.step == 'two-factor') {
-							l.state = 'logging-in';
-							_l.f.tfSentTo = d.sentTo;
-							tfc_TF.login('two-factor');
-						}
-					}).catch(function (d) {
-						if (d.error == 'login-id-pw') {
-							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
-						}
-					});
-				} else if (t == 'account') {
-					tfc_TF.request('login-account', {
-						account: fd.account,
-					}).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						if (d.step == 'done') _l.d(d, false);
-						else if (d.step == 'two-factor') {
-							_l.f.tfSentTo = d.sentTo;
-							tfc_TF.login('two-factor');
-						}
-					});
-				} else if (t == 'forgot-pw') {
-					var id = fd.userId;
-					tfc_TF.request('login-forgot-pw', { userId: id }).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						tfc_TF.state.login.user.id = id;
-						tfc_TF.login('code-reset-pw');
-					}).catch(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						tfc_TF.state.login.user.id = id;
-						tfc_TF.login('code-reset-pw');
-					});
-				} else if (t == 'reset-pw') {
-					var d = {
-						method: 'pw',
-						newPW: fd.newPW1
-					}
-					if (fd.state == 'code-reset-pw') {
-						d.method = 'code'
-						d.code = fd.fpCode;
-					} else d.oldPW = fd.currentPW;
-					tfc_TF.request('login-reset-pw', d).then(function (d) {
-						tfc_TF.u.message.show('confirm', 'Password Changed', 'Your password was reset.');
-						if (d.step == 'login') tfc_TF.login();
-						else {
-							var _l = tfc_TF._.l;
-							var l = tfc_TF.state.login;
-							if (d.token) l.token = d.token;
-							if (d.step == 'done') _l.d(d, false);
-						}
-
-					}).catch(function (d) {
-						if (d.error == 'login-code') {
-							if (d.type == 'used') tfc_TF.u.message.show('confirm', 'Error', 'The code has already been used. Please request a new code to be sent.');
-							else if (d.type == 'expired') tfc_TF.u.message.show('confirm', 'Error', 'The code has expired. Please request a new code to be sent.');
-							else if (d.type == 'invalid') tfc_TF.u.message.show('confirm', 'Error', 'Invalid code. Please correct or request a new code to be sent.');
-						} else tfc_TF.u.message.show('confirm', 'Error', 'Could not reset password.');
-					});
-				} else if (t == 'tf-submit') {
-					tfc_TF.request('login-two-factor', {
-						type: 'submit',
-						code: fd.tfCode,
-						sentTo: f.tfSentTo
-					}).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						if (d.step == 'done') _l.d(d, false);
-					}).catch(function (d) {
-						if (d.error == 'login-code') {
-							tfc_TF.u.message.show('confirm', 'Error', 'Invalid two-factor authentication code. Please try again.');
-						}
-					});;
-				} else if (t == 'tf-resend') {
-					tfc_TF.request('login-two-factor', {
-						type: 'resend',
-						method: arguments[1]
-					}).then(function (d) {
-						var _l = tfc_TF._.l;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						_l.f.tfSentTo = d.sentTo;
-						_l.f.refresh();
-						A5.u.element.cls('TF.LOGIN.TWO-FACTOR.MSG', '+=TFElementIndicate');
-					});
-				} else if (t == 'tf-resend-choose') {
-					tfc_TF.u.message.show('choice-cancel', 'Choose method', 'Choose how you would like to perform your two-factor authentication.', {
-						options: [
-							{ html: 'Email', value: 'email' },
-							{ html: 'SMS', value: 'sms' },
-							{ html: 'Authenticator App', value: 'app' }
-						],
-						action: function (t) {
-							if (t == 'email' || t == 'sms' || t == 'app') tfc_TF._.l.a('tf-resend', t);
-						}
-					});
-				} else if (t == 'create-pw') {
-					tfc_TF.request('login-check-user', { userId: fd.userId }).then(function (d) {
-						var f = tfc_TF._.l.f;
-						f.data.exists = d.exists;
-						f.data.state = 'create-user-pw';
-						f.refresh();
-					}).catch(function () {
-
-					});
-				} else if (t == 'create-user-pw') {
-					tfc_TF.request('login-create-user', {
-						userId: fd.userId,
-						firstName: fd.firstName,
-						lastName: fd.lastName,
-						company: fd.company,
-						phone: fd.phone,
-						agree: {
-							tos: fd.readTOS,
-							pp: fd.readPP,
-							email: fd.allowEmail
-						}
-					}).then(function (d) {
-						var f = tfc_TF._.l.f;
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						f.data.state = 'create-account';
-						f.refresh();
-					}).catch(function () {
-						if (d.error == 'login-id-pw') {
-							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
-						}
-					});
-				} else if (t == 'create-account') {
-					tfc_TF.request('login-create-user', {
-						account: fd.account
-					}).then(function (d) {
-						var l = tfc_TF.state.login;
-						if (d.token) l.token = d.token;
-						if (d.step == 'done') _l.d(d, true);
-					}).catch(function () {
-						if (d.error == 'login-id-pw') {
-							tfc_TF.u.message.show('confirm', 'Error', 'Invalid email or password.');
-						}
-					});
-				}
-
-			},
-			c: function () { // login create UI
-				if (!this.ele) {
-					var id = 'TF.LOGIN';
-					var idP = 'TF.LOGIN.PANEL';
-					var ele = document.createElement('div');
-					ele.id = id;
-					ele.className = 'TFLogin';
-					A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom:0px; z-index: 49;');
-					ele.innerHTML = '<div id="' + idP + '" class="TFLoginPanel"></div>';
-					document.body.appendChild(ele);
-					this.ele = ele;
-					this.f = new A5.FormBox(idP, {
-						form: {
-							items: [
-								{ // LOGIN PANEL
-									"type": "group",
-									"id": "login",
-									"include": function () {
-										return this.data.state == 'login';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginHeader">What will you TransForm today?</div>'
-													].join('');
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit",
-													"layout": "tf-simple",
-													"data": {
-														"from": "userId",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
-															if (v == '') {
-																return 'You must enter a valid email address.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Email" },
-														"behavior": {
-															"edit": {
-																"type": "email",
-																"autocomplete": "email"
-															}
-														}
-													}
-												},
-												{
-													"type": "edit-password",
-													"layout": "tf-simple",
-													"data": {
-														"from": "pw",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'login') return;
-															if (v == '') {
-																return 'You must enter your password.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Password" },
-														"onKeyUp": function (dObj, ele, e) {
-															if (e.key == 'Enter') {
-																if (this.validate()) tfc_TF._.l.a('login');
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "button",
-											"layout": "tf-simple",
-											"control": {
-												"theme": tfc_TF.theme + ":primary",
-												"html": "Sign In",
-												"style": "width: 100%;",
-												"width": "100%",
-												"onClick": function () {
-													if (this.validate()) tfc_TF._.l.a('login');
-												}
-											}
-										},
-										{
-											"type": "html",
-											"container": { "className": "TFLoginFooter" },
-											"control": {
-												"html": function () {
-
-													var html = [
-														'<div style="font-size: 90%;">',
-														'With sign in, you agree to the ',
-														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_terms_of_service" target="_blank">Terms of Service</a> ',
-														'and ',
-														'<a class="link" onclick="$e.stopPropagation(event);" href="https://server.alphasoftware.com/transform_privacy_policy" target="_blank">Privacy Policy</a>.',
-														'</div>',
-														'<div>',
-														'<a class="link" href="#" onclick="TF.login(\'forgot-pw\');">Forgot password?</a>',
-														'</div>',
-														'<div style="font-size: 90%;">',
-														'or',
-														'</div>',
-														'<div>',
-														'<a class="link" href="#" onclick="TF.login(\'create-user\');">Create a new user & account.</a>',
-														'</div>'
-													].join('');
-													return html;
-												}
-											}
-										}
-									]
-								},
-								{ // CREATE USER PANEL
-									"type": "group",
-									"id": "create-user",
-									"include": function () {
-										return this.data.state == 'create-user';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginHeader">Step 1: Register Email Address</div>'
-													].join('');
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": {
-														"from": "userId",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
-															if (v == '') {
-																return 'You must enter a valid email address.';
-															}
-														}
-													},
-													"label": { "text": "Email" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Email" },
-														"behavior": {
-															"edit": {
-																"type": "email",
-																"autocomplete": "email"
-															}
-														}
-													}
-												},
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": {
-														"from": "firstname",
-														"required": true,
-													},
-													"label": { "text": "First Name" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "First Name" }
-													}
-												},
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": {
-														"from": "lastname",
-														"required": true,
-													},
-													"label": { "text": "Last Name" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Last Name" }
-													}
-												},
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": { "from": "company" },
-													"label": { "text": "Company" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Company" }
-													}
-												},
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": { "from": "phone" },
-													"label": { "text": "Phone" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Phone" }
-													}
-												},
-												{
-													"type": "checkbox",
-													"layout": "tf-simple",
-													"data": { "from": "readTOS" },
-													"container": { "style": "cursor: default;" },
-													"control": { "html": " I agree to Alpha TransForm <a href=\"https://server.alphasoftware.com/transform_terms_of_service\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Terms of Service</a>." },
-												},
-												{
-													"type": "checkbox",
-													"layout": "tf-simple",
-													"data": { "from": "readPP" },
-													"container": { "style": "cursor: default;" },
-													"control": { "html": " I have read and understand the <a href=\"https://server.alphasoftware.com/transform_privacy_policy\" target=\"_blank\" class=\"link\" onclick=\"$e.stopPropagation(event);\">Private Policy</a>." },
-												},
-												{
-													"type": "checkbox",
-													"layout": "tf-simple",
-													"data": { "from": "allowEmail" },
-													"container": { "style": "cursor: default;" },
-													"control": { "html": " You may send emails about new features, info, and offers." },
-												},
-												{
-													"type": "group",
-													"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
-													"items": [
-														{
-															"type": "button",
-															"layout": "tf-simple",
-															"control": {
-																"theme": tfc_TF.theme + ":subtle",
-																"html": "Cancel",
-																"style": "width: 100%;",
-																"width": "100%",
-																"onClick": function () {
-																	tfc_TF.state.login.mode = null;
-																	tfc_TF.login();
-																}
-															}
-														},
-														{
-															"type": "button",
-															"layout": "tf-simple",
-															"control": {
-																"theme": tfc_TF.theme + ":primary",
-																"html": "Next",
-																"style": "width: 100%;",
-																"width": "100%",
-																"onClick": function () {
-																	if (this.validate()) {
-																		if (!this.data.readTOS || !this.data.readPP) {
-																			tfc_TF.u.message.show('confirm', 'Error', 'You must read and agree to both the terms of service and private policy,');
-																		} else tfc_TF._.l.a('create-pw');
-																	}
-																}
-															}
-														}
-													]
-												}
-											]
-										}
-									]
-								},
-								{ // CREATE USER PASSWORD PANEL
-									"type": "group",
-									"id": "create-pw",
-									"include": function () {
-										return this.data.state == 'create-user-pw';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginHeader">',
-														(this.data.exists ? 'Step 2: Enter Password' : 'Step 2: Create Password'),
-														'</div>'
-													].join('');
-
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"data": {
-														"from": "pw",
-														"required": true,
-														"validate": function (p, v, d) { if (v == '') return 'You must enter a password.'; }
-													},
-													"label": { "text": "Password" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Password" },
-														"behavior": { "edit": { "autocomplete": "password" } }
-													}
-												},
-												{
-													"type": "edit",
-													"layout": "tf-label-above",
-													"include": function () {
-														return !this.data.exists;
-													},
-													"data": {
-														"from": "confirmPW",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state == 'create-user-pw') {
-																if (v == '') return 'You must enter a password.';
-																else if (v != this.data.pw) return 'Passwords do not match.';
-															}
-														}
-													},
-													"label": { "text": "Confirm Password" },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Password" },
-														"behavior": { "edit": { "autocomplete": "password" } }
-													}
-												}
-											]
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRow TFLoginVerticalSpace" },
-											"items": [
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Back",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															this.data.state = 'create-user';
-															this.refresh();
-														}
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"include": function () { return this.data.exists },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"html": "Login",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (this.validate()) tfc_TF._.l.a('create-user-pw');
-														}
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"include": function () { return !this.data.exists },
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"html": "Create User",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (this.validate()) tfc_TF._.l.a('create-user-pw');
-														}
-													}
-												}
-											]
-										}
-									]
-								},
-								{ // CREATE ACCOUNT PANEL
-									"type": "group",
-									"id": "create-account",
-									"include": function () {
-										return this.data.state == 'create-account';
-									},
-									"items": [
-
-									]
-								},
-								{ // CONFIRM LOGIN PANEL
-									"type": "group",
-									"id": "confirm",
-									"include": function () {
-										return this.data.state == 'confirm';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var ls = tfc_TF.state.login.state;
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginConfirmMsg">',
-														(ls == 'login-expired' ? 'Session has expired. Please confirm login for: ' : 'Confirm login for: '),
-														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
-														'<br/>Account: <strong>' + tfc_TF.state.login.account.name + ' <span style="font-family: monospace; font-size: 10px;">(' + tfc_TF.state.login.account.id + ')</span></strong>',
-														'</div>'
-													].join('');
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit-password",
-													"layout": "tf-simple",
-													"data": {
-														"from": "confirmPW",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'confirm') return;
-															if (v == '') {
-																return 'You must enter your password.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Password" },
-														"onKeyUp": function (dObj, ele, e) {
-															if (e.key == 'Enter') {
-																if (this.validate()) tfc_TF._.l.a('confirm');
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "button",
-											"layout": "tf-simple",
-											"control": {
-												"theme": tfc_TF.theme + ":primary",
-												"html": "Confirm Login",
-												"style": "width: 100%;",
-												"width": "100%",
-												"onClick": function () {
-													if (this.validate()) tfc_TF._.l.a('confirm');
-												}
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRowSpaced TFLoginVerticalSpace" },
-											"items": [
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Logout",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () { tfc_TF.logout(); }
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Cancel",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () { $('TF.LOGIN').style.display = 'none'; }
-													}
-												},
-											]
-										}
-
-									]
-								},
-								{ // FORGOT PASSWORD PANEL
-									"type": "group",
-									"id": "forgot-pw",
-									"include": function () {
-										return this.data.state == 'forgot-pw';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginPWMsg">',
-														'Enter your email and press the "Send Code" button. ',
-														'A reset password code will be sent to your email. ',
-														'</div>'
-													].join('');
-													return html;
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit",
-													"layout": "tf-simple",
-													"data": {
-														"from": "userId",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (['login', 'create-user', 'forgot-pw'].indexOf(this.data.state) == -1) return;
-															if (v == '') {
-																return 'You must enter a valid email address.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Email" },
-														"behavior": {
-															"edit": {
-																"type": "email",
-																"autocomplete": "email"
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRow" },
-											"items": [
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Cancel",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (tfc_TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
-															else tfc_TF.login();
-														}
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"html": "Send Code",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (this.validate()) tfc_TF._.l.a('forgot-pw');
-														}
-													}
-												}
-											]
-										}
-									]
-								},
-								{ // RESET PASSWORD PANEL
-									"type": "group",
-									"id": "reset-pw",
-									"include": function () {
-										return this.data.state == 'reset-pw' || this.data.state == 'force-reset-pw' || this.data.state == 'code-reset-pw';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginPWMsg">',
-														(this.data.state == 'force-reset-pw' ? 'You must reset ' : 'Reset '),
-														'the password for: ',
-														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
-														'</div>'
-													].join('');
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit-password",
-													"include": function () {
-														return this.data.state == 'reset-pw';
-													},
-													"layout": "tf-simple",
-													"data": {
-														"from": "currentPW",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'reset-pw') return;
-															if (v == '') {
-																return 'You must enter your current password.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Current password" }
-													}
-												},
-												{
-													"type": "edit",
-													"include": function () { return this.data.state == 'code-reset-pw'; },
-													"layout": "tf-simple",
-													"data": {
-														"from": "fpCode",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'code-reset-pw') return;
-															if (v == '') {
-																return 'You must enter the code that was emailed to you.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"style": "text-align: center;",
-														"placeholder": { "text": "Code" }
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"include": function () {
-														return this.data.state == 'code-reset-pw';
-													},
-													"container": { "style": "text-align: right;" },
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Send New Code",
-														"style": "",
-														"width": "",
-														"onClick": function () { this.data.userId = tfc_TF.state.login.user.id; tfc_TF._.l.a('forgot-pw'); }
-													}
-												},
-												{
-													"type": "edit-password",
-													"layout": "tf-simple",
-													"data": {
-														"from": "newPW1",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state.indexOf('reset-pw') == -1) return;
-															if (v == '') {
-																return 'You must enter a new password.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "New password" }
-													}
-												},
-												{
-													"type": "edit-password",
-													"layout": "tf-simple",
-													"data": {
-														"from": "newPW2",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state.indexOf('reset-pw') == -1) return;
-															if (v == '') {
-																return 'You must enter a new password.';
-															} else if (v != d.newPW1) {
-																return 'Your passwords do not match.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"placeholder": { "text": "Confirm new password" },
-														"onKeyUp": function (dObj, ele, e) {
-															if (e.key == 'Enter') {
-																if (this.validate()) tfc_TF._.l.a('reset-pw');
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRow" },
-											"items": [
-												{
-													"type": "button",
-													"include": function () {
-														return this.data.state != 'force-reset-pw';
-													},
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Cancel",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (tfc_TF.state.login.state == 'logged-in') $('TF.LOGIN').style.display = 'none';
-															else tfc_TF.login();
-														}
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"html": "Change Password",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (this.validate()) tfc_TF._.l.a('reset-pw');
-														}
-													}
-												}
-											]
-										}
-									]
-								},
-								{ // ACCOUNT PANEL
-									"type": "group",
-									"id": "account",
-									"include": function () {
-										return this.data.state == 'account';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div class="TFLoginAccountMsg">Logged in as: ',
-														'<strong>' + tfc_TF.state.login.user.id + '</strong>',
-														'<br />',
-														'Please select the TransForm account you wish to use.',
-														'</div>'
-													].join('');
-													return html;
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "list",
-													"layout": "tf-simple",
-													"data": {
-														"from": "account",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'account') return;
-															if (v == '') {
-																return 'You must chose an account.';
-															}
-														}
-													},
-													"control": {
-														"onDblClick": function () {
-															if (this.validate()) tfc_TF._.l.a('account');
-														},
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"content": {
-															"style": "max-height: 120px; overflow: auto; text-align: left;"
-														},
-														"data": {
-															"src": function () {
-																return { src: this.accounts };
-															}
-														},
-														"layout": "main",
-														"layouts": {
-															"main": {
-																"item": {
-																	"html": '<div style="display: flex; flex-direction: row; align-items: center;"><div style="flex: 1 1 auto;">{name}</div><div style="font-size: 10px;">({id})</div></div>',
-																	"value": "id"
-																}
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRow" },
-											"items": [
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Logout",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () { tfc_TF.login(); }
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"html": "Select Account",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () {
-															if (this.validate()) tfc_TF._.l.a('account');
-														}
-													}
-												}
-											]
-										}
-									]
-								},
-								{ // TWO-FACTOR PANEL
-									"type": "group",
-									"id": "two-factor",
-									"include": function () {
-										return this.data.state == 'two-factor';
-									},
-									"items": [
-										{
-											"type": "html",
-											"layout": "tf-simple",
-											"control": {
-												"html": function () {
-													var method = this.tfSentTo;
-													var msg = '';
-													if (method == 'app') msg = 'Use the authenticator application to finish login.';
-													else if (method == 'sms') msg = 'Enter the authentication code you\'ve received via SMS.';
-													else if (method == 'email') msg = 'Enter the authentication code you\'ve received via email.';
-													var html = [
-														'<div style="text-align: center;"><img src="TFLoginLogo.png"></div>',
-														'<div id="TF.LOGIN.TWO-FACTOR.MSG" class="TFLoginTwoFactorMsg">' + msg + '</div>'
-													].join('');
-													return html
-												},
-												"width": "100%"
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginFields" },
-											"items": [
-												{
-													"type": "edit",
-													"layout": "tf-simple",
-													"data": {
-														"from": "tfCode",
-														"required": true,
-														"validate": function (p, v, d) {
-															if (this.data.state != 'two-factor') return;
-															if (v == '') {
-																return 'You must must enter the authentication code you received via email or SMS.';
-															}
-														}
-													},
-													"control": {
-														"theme": tfc_TF.theme + ":primary",
-														"width": "100%",
-														"style": "text-align: center;",
-														"placeholder": { "text": "Authentication code" },
-														"onKeyUp": function (dObj, ele, e) {
-															if (e.key == 'Enter') {
-																if (this.validate()) tfc_TF._.l.a('tf-submit');
-															}
-														}
-													}
-												}
-											]
-										},
-										{
-											"type": "button",
-											"layout": "tf-simple",
-											"container": { "className": "TFLoginVerticalSpace" },
-											"control": {
-												"theme": tfc_TF.theme + ":primary",
-												"html": "Submit Code",
-												"style": "width: 100%;",
-												"width": "100%",
-												"onClick": function () {
-													if (this.validate()) tfc_TF._.l.a('tf-submit');
-												}
-											}
-										},
-										{
-											"type": "group",
-											"container": { "className": "TFLoginButtonRowSpaced" },
-											"items": [
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Resend code",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () { tfc_TF._.l.a('tf-resend', 'default'); }
-													}
-												},
-												{
-													"type": "button",
-													"layout": "tf-simple",
-													"control": {
-														"theme": tfc_TF.theme + ":subtle",
-														"html": "Use a different method",
-														"style": "width: 100%;",
-														"width": "100%",
-														"onClick": function () { tfc_TF._.l.a('tf-resend-choose', 'default'); }
-													}
-												}
-											]
-										},
-										{
-											"type": "button",
-											"layout": "tf-simple",
-											"container": { "style": "text-align: left;" },
-											"control": {
-												"theme": tfc_TF.theme + ":subtle",
-												"html": "Logout",
-												"onClick": function () { tfc_TF.login(); }
-											}
-										}
-									]
-								},
-								{
-									"type": "html",
-									"include": function () {
-										var s = this.data.state;
-										return s == 'login' || s == 'create-user';
-									},
-									"container": { "className": "TFLoginCopyright" },
-									"control": {
-										"html": function () {
-											var d = new Date();
-											return '&copy; Copyright ' + d.getFullYear() + ' Alpha Software Corporation.<br/>All Rights Reserved.';
-										}
-									}
-								}
-							]
-						}
-					}, {}, {
-						theme: tfc_TF.theme
-					});
-				}
-			}
-		}
-
-	},
-
-
-	// current state
-	state: {
-		login: {
-			state: 'logged-out',
-			mode: null,
-			expires: null,
-			token: null,
-			user: {
-				id: null, // logged in user ID (email)
-				name: null // logged in user name
-			},
-			account: {
-				id: null, // account ID
-				name: null, // selected account name
-				member: {
-					roles: null,
-					ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false, filler: { web: false, mobile: false } } }
-				}, // information about logged in user relative to account
-				permissions: {} // account permissions
-			},
-			activity: []
-		},
-		ui: {
-			tab: 'home',
-			dirty: {
-				dashboard: false,
-				manage: false,
-				design: false
-			},
-			dock: {
-				type: '',
-				active: false
-			},
-			help: {
-				mode: 'docked'
-			},
-			home: {
-				forms: { collapsed: false },
-				dashboards: { collapsed: false }
-			},
-			editing: {
-				json: {
-					forms: false
-				}
-			}
-		}
-	},
-
-	init: function () {
-		if (typeof A5.formBox != 'undefined') {
-			A5.u.object.assign(A5.formBox.guides.layouts, {
-				"tf-label-flex": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
-				"tf-label-above": "<div class=\"TFFormItem\"><div class=\"TFFormItemLabel\">{label}</div><div class=\"TFFormItemContent\">{content}</div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
-				"tf-button": "<div class=\"TFFormItem\"><div class=\"TFFormItemFlex\"><div class=\"TFFormItemLabel\">&nbsp;</div><div class=\"TFFormItemContent\">{content}</div></div><div class=\"TFFormItemExtra\">{error}{description}</div></div>",
-				"tf-simple": "{content}{error}"
-			});
-		}
-		if (!this._.l.initialized) this._.l.i();
-	},
-
-	// login/out
-	login: function () {
-		var type = typeof arguments[0] == 'string' ? arguments[0] : 'login';
-		var ls = this.state.login.state;
-		var d = {
-			state: '',
-			userId: '',
-			pw: '',
-			confirmPW: '',
-			currentPW: '',
-			newPW1: '',
-			newPW2: '',
-			account: '',
-			tfCode: '',
-			fpCode: ''
-		}
-		if (type != 'forgot-pw' && type != 'create-user' && type != 'code-reset-pw') {
-			if (ls == 'login-expired') {
-				if (type != 'confirm') type = 'login';
-			} else if (ls != 'logged-in' && ls != 'logging-in') type = 'login';
-
-			var lm = this.state.login.mode;
-			if (lm) {
-				if (lm.type == 'create-account') type = 'create-user';
-				else if (lm.type == 'confirm-user') type = 'create-user';
-				else if (lm.type == 'code-reset-pw') {
-					type = lm.type;
-					d.fpCode = lm.code;
-				}
-			}
-		}
-
-
-		// make old create user get opened
-		if (!tfc_TF._.beta() && type == 'create-user') {
-			window.open('CreateAccount.html');
-			return false;
-		}
-
-		d.state = type;
-		var l = this._.l;
-		l.c();
-		l.f.populate(d);
-		l.ele.style.display = '';
-		if (type == 'confirm' || type == 'reset-pw') A5.u.element.cls(l.ele, '+=TFLoginTrans');
-		else A5.u.element.cls(l.ele, '-=TFLoginTrans');
-	},
-	logout: function () {
-		tfc_TF.u.message.show('confirm-cancel', 'Logout', 'Are you sure you want to logout?', {
-			action: function (v) {
-				if (v == 'confirm') {
-					var l = tfc_TF.state.login;
-					tfc_TF._.act('logout', { user: l.user, account: { name: l.account.name, id: l.account.id }, token: l.token });
-					A5.u.object.assign(tfc_TF.state.login, {
-						state: 'logged-out',
-						expires: null,
-						token: null,
-						user: {
-							name: null,
-							id: null,
-						},
-						account: {
-							id: null,
-							name: null,
-							member: {
-								roles: null,
-								ui: { allow: { design: false, manage: false, dashboard: false, account: false, developer: false } }
-							},
-							permissions: {}
-						},
-						activity: []
-					});
-					tfc_TF._.saveState();
-					location.href = location.href;
-				}
-			}
-		});
-	},
-
-	// request
-	request: function (type, data) {
-		return new Promise(function (resolve, reject) {
-			const td = tfc_TF._.r.t[type];
-			if (typeof td == 'undefined') {
-				// error - not a valid type
-				reject({ error: 'request-type', type: type });
-			} else {
-				const url = tfc_TF.url;
-				const uid = Date.now();
-
-				var args = ['type=' + type];
-				if (typeof data == 'object' && data) args.push('data=' + urlencode(JSON.stringify(data)));
-				args.push('token=' + (tfc_TF.state.login.token ? urlencode(tfc_TF.state.login.token) : ""));
-				args = args.join('&')
-				const xhr = new XMLHttpRequest();
-				xhr.open('POST', url);
-				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
-				xhr.overrideMimeType('text/html; charset=UTF-8');
-				xhr.onload = function () {
-					// server response
-					if (xhr.status >= 200 && xhr.status < 300) {
-						try {
-							// parse JSON response
-							var res = JSON.parse(xhr.response);
-						} catch (err) {
-							// error - response not JSON
-							reject({ error: 'request-response', type: 'json-parse', data: err });
-							delete tfc_TF._.r.i[uid];
-						}
-						if (res) {
-							if (!res.success) {
-								// problem on server
-								if (res.data?.error == 'login-expired') {
-									tfc_TF.state.login.state = 'login-expired';
-									tfc_TF.login('confirm');
-									tfc_TF._.l.ra.push(uid);
-								} else if (res.data?.error == 'login-required') {
-									tfc_TF.state.login.state = 'logged-out';
-									tfc_TF.login();
-									tfc_TF._.l.ra.push(uid);
-								} else {
-									reject(res.data);
-									delete tfc_TF._.r.i[uid];
-									if (res.data?.error == 'custom') tfc_TF.u.message.show('confirm', res.data.message.title, res.data.message.text, { icon: 'warning' });
-									else if (res.data?.error == 'permission-denied' || res.data?.error == 'invalid-data' || res.data?.error == 'login-account-denied') {
-										var msg = null;
-										var ed = tfc_TF._.r.e;
-										if (res.data.error == 'permission-denied') msg = ed.pd.generic;
-										else if (res.data.error == 'login-account-denied') {
-											msg = ed.lad.generic;
-											if (typeof ed.lad[res.data?.type] == 'object') msg = ed.lad[res.data.type];
-											tfc_TF.login();
-										} else {
-											// get the type
-											var edt = A5.u.object.get(ed.id, res.data?.type);
-											// get the issue
-											if (edt) msg = A5.u.object.get(edt, res.data?.issue);
-										}
-										if (msg) tfc_TF.u.message.show('confirm', msg.title, msg.text, { icon: 'warning' });
-									}
-								}
-							} else {
-								resolve(res.data);
-								delete tfc_TF._.r.i[uid];
-							}
-						}
-					} else {
-						// no success on server - preform resend?
-					}
-				};
-				xhr.onerror = function (err) {
-					// callback error
-					reject({ error: 'request-response', type: 'server', data: err });
-					delete tfc_TF._.r.i[uid];
-				};
-				tfc_TF._.r.i[uid] = { type: type, data: data, def: td, count: 0, xhr: xhr };
-
-				if ((tfc_TF.state.login.state == 'login-expired' || tfc_TF.state.login.state == 'logged-out') && !(type.indexOf('login') == 0 || (type == 'update-log' && data?.type == 'activity'))) {
-					tfc_TF.login((tfc_TF.state.login.state == 'login-expired' ? 'confirm' : null));
-					tfc_TF._.l.ra.push(uid);
-				} else xhr.send(args);
-			}
-		});
-	},
-
-	// utilities
-	u: {
-		re: {
-			url: /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
-			email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-		},
-		code: {
-			lang: {
-				'json': {
-					validate: function (json) {
-						try {
-							var o = JSON.parse(json);
-						} catch (e) {
-							return e;
-						}
-						return true;
-					},
-					reformat: function (json) {
-						try {
-							var o = JSON.parse(json);
-							json = JSON.stringify(o, '', '\t');
-						} catch (e) { }
-						return json;
-					},
-					keywords: {
-						caseSensitive: true,
-						values: []
-					},
-					draw: function (v) {
-						var ti = v[0];
-						var tin = '';
-						var lookFor = false;
-						var v2 = [];
-						var lookI = 0;
-						for (var i = 0; i < v.length; i++) {
-							tin = v[i + 1];
-							if (lookFor) {
-								lookI = v.substr(i).search(lookFor);
-								if (lookI == -1) {
-									v2.push(v.substr(i));
-									break;
-								} else {
-									v2.push(v.substr(i, lookI + 1));
-									v2.push('__ENDSPAN__');
-									i += lookI;
-								}
-								tin = v[i + 1];
-								lookFor = false;
-							} else {
-								if (ti == '"') {
-									lookFor = '"';
-									v2.push('__STR__');
-								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
-									lookFor = /[^0-9\.]/;
-									v2.push('__NUM__');
-								}
-								v2.push(ti);
-							}
-							ti = tin;
-						}
-						v = v2.join('');
-						v = A5.u.html.escape(v);
-						v = v.replace(/(\{|\}|\[|\])/g, '<span class="TFCodeJSONBrackets">$1</span>');
-						v = v.replace(/(,|:)/g, '<span class="TFCodeJSONSep">$1</span>');
-						v = v.replace(/(false|true)([^A-z]|$)/g, '<span class="TFCodeJSONBool">$1</span>$2');
-						v = v.split('__STR__').join('<span class="TFCodeJSONStr">');
-						v = v.split('__NUM__').join('<span class="TFCodeJSONNum">');
-						v = v.split('__ENDSPAN__').join('</span>');
-						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
-					}
-				},
-				'js': {
-					keywords: {
-						caseSensitive: true,
-						values: ['Array', 'Date', 'eval', 'function', 'hasOwnProperty', 'Infinity', 'isFinite', 'isNaN', 'isPrototypeOf', 'length', 'Math', 'NaN', 'Number', 'Object', 'prototype', 'String', 'toString', 'undefined', 'valueOf', 'abstract', 'arguments', 'await', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'double', 'else', 'enum', 'eval', 'export', 'extends', 'false', 'final', 'finally', 'float', 'for', 'function', 'goto', 'if', 'implements', 'import', 'in', 'instanceof', 'int', 'interface', 'let', 'long', 'native', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'short', 'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with', 'yield']
-					},
-					draw: function (v) {
-						var ti = v[0];
-						var tin = '';
-						var lookFor = false;
-						var v2 = [];
-						var lookI = 0;
-						for (var i = 0; i < v.length; i++) {
-							tin = v[i + 1];
-							if (lookFor) {
-								lookI = v.substr(i).search(lookFor);
-								if (lookI == -1) {
-									v2.push(v.substr(i));
-									break;
-								} else {
-									v2.push(v.substr(i, lookI + 1));
-									v2.push('__ENDSPAN__');
-									i += lookI;
-								}
-								tin = v[i + 1];
-								lookFor = false;
-							} else {
-								if (ti == '/' && tin == '/') {
-									lookFor = '\n';
-									v2.push('__COMMENT__');
-								} else if (ti == '/' && tin == '*') {
-									lookFor = '\\*/';
-									v2.push('__COMMENT__');
-								} else if (ti == '\'') {
-									lookFor = '\'';
-									v2.push('__STR__');
-								} else if (ti == '"') {
-									lookFor = '"';
-									v2.push('__STR__');
-								} else if (ti == '`') {
-									lookFor = '`';
-									v2.push('__STR__');
-								} else if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(ti) != -1) {
-									lookFor = /[^0-9\.]/;
-									v2.push('__NUM__');
-								}
-								v2.push(ti);
-							}
-							ti = tin;
-						}
-						v = v2.join('');
-						v = v.replace(/(\{|\}|\[|\]|\(|\)|instanceof|typeof|>>>|!==|===|\*\*=|>>|<<|\|\||&&|<=|>=|!=|==|%=|\/=|\*=|-=|\+=|--|\+\+|\*\*|\^|~|\||&|!|\?|<|>|=|%|\/|\*|-|\+|;|:)/g, '<span class="op">$1</span>');
-						v = v.replace(/(Array|Date|eval|function|hasOwnProperty|Infinity|isFinite|isNaN|isPrototypeOf|length|Math|NaN|Number|Object|prototype|String|toString|undefined|valueOf|abstract|arguments|await|boolean|break|byte|case|catch|char|const|continue|debugger|default|delete|do|double|else|enum|eval|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|let|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|var|void|volatile|while|with|yield)([^A-z]|$)/g, '<span class="keyword">$1</span>$2');
-						v = v.split('__STR__').join('<span class="str">');
-						v = v.split('__NUM__').join('<span class="num">');
-						v = v.split('__COMMENT__').join('<span class="comment">');
-						v = v.split('__ENDSPAN__').join('</span>');
-						return { html: v, lines: { errorsOn: [], errors: {}, count: v.split('\n').length } };
-					}
-				},
-				'tpl': {
-					keywords: {
-						caseSensitive: false,
-						values: ['IF', 'ELSEIF', 'ELSE', 'ENDIF', 'FOR', 'TO', 'STEP', 'CONTINUE', 'EXITFOR', 'ENDFOR', 'ON', 'ENDON', 'FUNCTION', 'ENDFUNCTION', 'RETURN', 'DEBUGGER'],
-					},
-					draw: function (v) {
-						v = v.split('\n');
-						var t = null;
-						var ti = null;
-						var pti = null;
-						var nti = null;
-						var html = [];
-						var lErr = null;
-						var errors = {};
-						var errorsOn = [];
-						var suf = '';
-						var qRE = /"/g;
-						for (var i = 0; i < v.length; i++) {
-							lErr = null;
-							html.push('<div>');
-							if (v[i] == '') html.push('\n');
-							else if (v[i][0] == '\'') html.push('<span class="tplCode-comment">' + v[i] + '</span>\n');
-							else {
-								t = breakIntoTokens(v[i], 0);
-								pti = null;
-								if (t.length > 0) {
-									ti = t[0];
-									for (var j = 0; j < t.length; j++) {
-										nti = j < t.length - 1 ? t[j + 1] : null;
-										if (nti && nti.type == 'error') {
-											if (ti.type == 'string') html.push('<span class="tplCode-error">"' + A5.u.html.escape(ti.text) + '</span>');
-											else html.push('<span class="tplCode-error">' + A5.u.html.escape(ti.text) + '</span>');
-											lErr = A5.u.html.escape(nti.text.replace(qRE, '\\"'));
-										} else if (ti.type != 'error' && ti.type != 'eol') {
-											if (ti.type == 'spacing') html.push(ti.text);
-											else if (ti.type == 'string') html.push('<span class="tplCode-string">"' + A5.u.html.escape(ti.text.replace(qRE, '\\"')) + '"</span>');
-											else if (ti.type == 'text') {
-												if (this.keywords.values.indexOf(ti.text.toUpperCase()) != -1) html.push('<span class="tplCode-keyword">' + A5.u.html.escape(ti.text) + '</span>');
-												else if (nti && nti.type == 'op' && nti.text == '(') html.push('<span class="tplCode-call">' + A5.u.html.escape(ti.text) + '</span>');
-												else html.push('<span class="tplCode-text">' + A5.u.html.escape(ti.text) + '</span>');
-											} else if (ti.type == 'op') {
-												if (ti.op == 'M') html.push('<span class="tplCode-number">-</span>');
-												else if (ti.op == 'P') html.push('<span class="tplCode-number">+</span>');
-												else html.push('<span class="tplCode-op">' + A5.u.html.escape(ti.op) + '</span>');
-											} else html.push('<span class="tplCode-' + ti.type + '">' + A5.u.html.escape(ti.text) + '</span>');
-										}
-										pti = ti;
-										ti = nti;
-									}
-
-									if (pti.pos < v[i].length) {
-										suf = v[i].substr(pti.pos + (pti.typeof != 'eol' ? pti.text.length : 0));
-										if (suf[0] == '\'') suf = '<span class="tplCode-comment">' + suf + '</span>';
-										else suf = '<span class="tplCode-text">' + suf + '</span>';
-										html.push(suf);
-									}
-								}
-							}
-							html.push('</div>');
-
-							if (lErr) {
-								errorsOn.push(i);
-								errors['line-' + i] = lErr;
-							}
-						}
-						html = html.join('');
-
-						return { html: html, lines: { errors: errors, errorsOn: errorsOn, count: v.length } };
-					}
-				}
-			},
-			Editor: A5.u.object.creator({
-				init: function (id, s) {
-					A5.u.object.assign(s, {
-						lang: '',
-						className: '',
-						size: {
-							font: '15px',
-							line: '20px',
-							tab: '20px',
-							padding: '6px'
-						},
-						margin: {
-							show: true,
-							className: '',
-							line: {
-								base: 1,
-								className: '',
-								errorClassName: ''
-							}
-						},
-						onChange: null,
-						onStateChange: null
-					}, true);
-					A5.u.object.assign(this, s);
-
-					var ele = $(id);
-					var html = [
-						'<div class="' + this.margin.className + '" style="min-width: 40px; line-height: inherit; font-family: inherit; font-size: 12px; overflow: hidden; ' + (!this.margin.show ? 'display: none;' : '') + '"><div class="' + this.margin.line.className + '">' + this.margin.line.base + '</div></div>',
-						'<div style="overflow: auto; flex: 1 1 0%;" onscroll="this.previousSibling.scrollTop = this.scrollTop;">',
-						'<div style="position: relative; min-width: 100%; min-height: 100%; width: fit-content;">',
-						'<div id="' + id + '.COLORIZED" style="white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; padding: 0px ' + this.size.padding + '; box-sizing: border-box;"></div>',
-						'<textarea id="' + id + '.CODE" spellcheck="false" style="position: absolute; top: 0px; left: 0px; bottom: 0px; width: 100%; color: transparent; caret-color: #000; background: transparent; resize: none; padding: 0px ' + this.size.padding + '; border: none; outline: none; white-space: pre; line-height: inherit; font-family: inherit; font-size: inherit; tab-size: inherit; box-sizing: border-box;"></textarea>',
-						'&nbsp;',
-						'</div>',
-						'</div>'
-					];
-
-
-					ele.innerHTML = html.join('');
-					ele.className = this.className;
-					A5.u.element.style(ele, '+=position: relative; display: inline-flex; font-family: monospace; font-size: ' + this.size.font + '; line-height: ' + this.size.line + '; tab-size: ' + this.size.tab + '; overflow: hidden;');
-
-					$e.add(id + '.CODE', 'input', function (e, c) {
-						if (c.value == this.value) return false;
-						var cc = tfc_TF.u.code.lang[c.lang];
-						var res = {};
-						if (cc) res = cc.draw(this.value);
-						else {
-							res.html = this.value;
-							res.lines = {
-								errorsOn: [],
-								errors: {},
-								count: res.html.split('\n').length
-							}
-
-							/*
-								var res = cc.parse(value[,start[,end]])
-								res.html = ['<div>....','...']
-								res.errors = [{index: n, text: ''}]
-								res.warnings = [{index: n, text: ''}]
-								res.info = [{index: n, text: ''}]
-							*/
-						}
-
-						this.previousSibling.innerHTML = res.html;
-						var lHTML = [];
-						var lb = c.margin.line.base;
-						for (var i = 0; i < res.lines.count; i++) {
-							if (res.lines.errorsOn.indexOf(i) != -1) lHTML.push('<div class="' + c.margin.line.className + ' ' + c.margin.line.errorClassName + '" title="' + res.lines.errors['line-' + i] + '">' + (i + lb) + '</div>');
-							else lHTML.push('<div class="' + c.margin.line.className + '">' + (i + lb) + '</div>');
-						}
-
-						lHTML.push('<div style="height: 100px;">&nbsp;</div>')
-						lHTML = lHTML.join('');
-						this.parentNode.parentNode.previousSibling.innerHTML = lHTML;
-						c._.state(c, 'dirty', true);
-						c.value = this.value;
-						if (typeof c.onChange == 'function') c.onChange();
-					}, this);
-					$e.add(id + '.CODE', 'keyup', function (e, c) {
-						if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Enter'].indexOf(e.code) != -1) {
-							c._.nav();
-						} else if (e.code[0] == 'K') {
-							c._.sel.start++;
-							c._.sel.end = c._.sel.start;
-							c._.sel.length = 0;
-						}
-					}, this);
-					$e.add(id + '.CODE', 'keydown', function (e, c) {
-						if (e.code == 'Tab') {
-							e.preventDefault();
-							A5.edit.insert(this, '\t');
-						} else if (e.code == 'Enter' && c._.line > 0) {
-							e.preventDefault();
-							var ele = c._.ele;
-							var ws = ele.value.split('\n')[c._.line];
-							var txt = ws.replace(/^[\s]+/, '');
-							ws = ws.substr(0, ws.length - txt.length)
-							A5.edit.insert(this, '\n' + ws);
-
-						}
-					}, this);
-					$e.add(id + '.CODE', A5.d.evnts.click, function (e, c) { c._.nav(); }, this);
-
-					this.state = {
-						isDirty: false
-					}
-					this._ = {
-						id: id,
-						ele: $(id + '.CODE'),
-						sel: null,
-						line: -1,
-						col: -1,
-						state: function (c, t, v) {
-							if (t == 'dirty') {
-								if (c.state.isDirty != v) {
-									c.state.isDirty = v;
-									if (typeof c.onStateChange == 'function') c.onStateChange(t, v);
-								}
-							}
-						},
-						nav: function () {
-							var ele = this.ele;
-							var sel = A5.edit.getSelection(ele);
-							var lns = ele.value.substr(0, sel.end).split('\n');
-							this.line = lns.length - 1;
-							this.col = lns[lns.length - 1].length;
-							this.sel = sel;
-						}
-					}
-				},
-				setValue: function (v) {
-					var ele = this._.ele;
-					A5.edit.setSelection(ele, 0, ele.value.length);
-					A5.edit.insert(ele, v);
-					$e.execute(ele, 'input');
-					this._.state(this, 'dirty', false);
-					if (typeof this.onChange == 'function') this.onChange();
-				},
-				setDirty: function (v) { this._.state(this, 'dirty', v); }
-			}),
-			editors: {
-				json: {
-					_: { h: null },
-					edit: function (d, h) {
-						if (!this._.je) {
-							var ele = document.createElement('div');
-							ele.id = 'TF.JSON.EDIT';
-							A5.u.element.style(ele, 'position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 10;');
-							ele.className = '';
-							ele.innerHTML = [
-								'<div class="window" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column;">',
-								'<div class="TFDockHeader" style="display: flex; flex-direction: row;">',
-								'<div style="flex: 1 1 auto;">',
-								A5.buttons.html('TF.JSON.EDIT.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }),
-								A5.buttons.html('TF.JSON.EDIT.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }),
-								'</div>',
-								'<div>',
-								A5.buttons.html('TF.JSON.EDIT.SAVE', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
-								A5.buttons.html('TF.JSON.EDIT.CANCEL', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
-								'</div>',
-								'</div>',
-								'<div id="TF.JSON.EDIT.EDITOR" style="flex: 1 1 auto"></div>',
-								'</div>'
-							].join('');
-							document.body.appendChild(ele);
-
-							$e.add('TF.JSON.EDIT.CANCEL', 'click', function () {
-								tfc_TF.u.code.editors.json._.ele.style.display = 'none';
-								tfc_TF.u.code.editors.json._.h = null;
-							});
-							$e.add('TF.JSON.EDIT.SAVE', 'click', function () {
-								var json = tfc_TF.u.code.editors.json._.je.value;
-								var res = tfc_TF.u.code.lang.json.validate(json);
-								if (res !== true) {
-									tfc_TF.u.message.show('confirm', 'Error', res.message);
-								} else {
-									var d = JSON.parse(json);
-									var h = tfc_TF.u.code.editors.json._.h;
-									if (typeof h == 'function') h(d);
-									else if (typeof h == 'object' && typeof h.populate == 'function') h.populate(d);
-									tfc_TF.u.code.editors.json._.ele.style.display = 'none';
-									tfc_TF.u.code.editors.json._.h = null;
-								}
-							});
-							$e.add('TF.JSON.EDIT.VALIDATE', 'click', function (e) {
-								var json = tfc_TF.u.code.editors.json._.je.value;
-								var res = tfc_TF.u.code.lang.json.validate(json);
-								if (res !== true) {
-									tfc_TF.u.message.show('confirm', 'Error', res.message);
-								}
-							});
-							$e.add('TF.JSON.EDIT.REFORMAT', 'click', function (e) {
-								var json = tfc_TF.u.code.editors.json._.je.value;
-								json = tfc_TF.u.code.lang.json.reformat(json);
-								tfc_TF.u.code.editors.json._.je.setValue(json);
-							});
-
-							var je = new tfc_TF.u.code.Editor('TF.JSON.EDIT.EDITOR', {
-								lang: 'json',
-								className: 'TFCodeEditor',
-								margin: {
-									show: true,
-									className: 'TFCodeEditorMargin'
-								},
-								onStateChange: function (t, v) {
-									if (t == 'dirty') {
-
-									}
-								}
-							});
-							this._.ele = ele;
-							this._.je = je;
-						}
-						var json = JSON.stringify(d, '', '\t');
-						this._.je.setValue(json);
-						this._.h = h;
-						this._.ele.style.display = 'flex';
-					}
-				}
-			}
-		},
-		docks: {
-			tabs: {
-				html: function (idp, tabs, tab) {
-					var html = [];
-					if (!this.buttons) {
-						this.icons = {
-							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {fill: #ff9000; width: 7px; height: 7px;}')
-						}
-						this.buttons = {
-							save: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-save:icon' }),
-							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
-						}
-					}
-
-					var hasGroup = false;
-					var ti = null;
-					var tk = null;
-					var ta = null;
-					var count = 0;
-					for (var i = 0; i < tabs.length; i++) {
-						ti = tabs[i];
-						if (Array.isArray(ti.items)) {
-							hasGroup = true;
-							html.push('<div class="TFDockTabGroup"' + (typeof ti.color == 'string' ? ' style="background: ' + ti.color + ';"' : '') + '>');
-							html.push('<div>' + ti.title + '</div>');
-							html.push('<div>');
-							for (var k = 0; k < ti.items.length; k++) {
-								tk = ti.items[k];
-								if (tab == tk.value) ta = tk;
-								this.tabHTML(idp, count, tk, tab, html);
-								count++;
-							}
-							html.push('</div>');
-							html.push('</div>');
-						} else {
-							if (tab == ti.value) ta = ti;
-							html.push('<div class="TFDockTabSingle">');
-							this.tabHTML(idp, count, ti, tab, html);
-							html.push('</div>');
-						}
-						count++;
-					}
-					html.push('<div class="TFDockTabEnd">');
-					html.push('<div></div>');
-					html.push('<div>');
-					if (ta && ta.dirty) {
-						html.push('<div class="TFDockTabActions">');
-						html.push('<div id="' + idp + '.TAB.COMMIT" a5-item="tab-action:commit" onmouseenter="TF.u.flyout.show(this,\'Save changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.save + '</div>');
-						html.push('<div id="' + idp + '.TAB.CANCEL" a5-item="tab-action:cancel" onmouseenter="TF.u.flyout.show(this,\'Discard changes to current tab...\',{direction: \'vertical\'})" onmouseleave="TF.u.flyout.hide();">' + this.buttons.cancel + '</div>');
-						html.push('</div>');
-					}
-					html.push('</div>');
-					html.push('</div>');
-
-					if (hasGroup) html.unshift('<div class="TFDockTabs TFDockTabsGroups">');
-					else html.unshift('<div class="TFDockTabs">');
-
-					html.push('</div>');
-					return html.join('');
-				},
-				tabHTML: function (idp, i, ti, tab, html) {
-					html.push('<div id="' + idp + '.TAB.' + i + '" a5-item="tab:' + ti.value + '" class="TFDockTab' + (tab == ti.value ? ' TFDockTabSelected' : '') + '">' + ti.html + (ti.dirty ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + this.icons.dirty + '</div>' : '') + '</div>');
-				},
-				setTabDirty: function (t, v) {
-					var ti, tk = null;
-					for (var i = 0; i < this.data.tabs.length; i++) {
-						ti = this.data.tabs[i];
-						if (Array.isArray(ti.items)) {
-							for (var k = 0; k < ti.items.length; k++) {
-								tk = ti.items[k];
-								if (t == tk.value) {
-									tk.dirty = v;
-									this.refresh();
-									return true;
-								}
-							}
-						} else if (t == ti.value) {
-							ti.dirty = v;
-							this.refresh();
-							return true;
-						}
-
-					}
-					return false;
-				},
-				getTab: function (t) {
-					var ti, tk = null;
-					if (typeof t == 'undefined') t = this.data.tab;
-					for (var i = 0; i < this.data.tabs.length; i++) {
-						ti = this.data.tabs[i];
-						if (Array.isArray(ti.items)) {
-							for (var k = 0; k < ti.items.length; k++) {
-								tk = ti.items[k];
-								if (t == tk.value) {
-									return tk;
-								}
-							}
-						} else if (t == ti.value) return ti;
-					}
-					return false;
-				},
-				items: {
-					'tab': {
-						selectable: false,
-						onClick: function (v, ia) {
-							var otv = this.data.tab;
-							var ntv = ia;
-							if (otv == ntv) return false;
-							var ot, nt, ti, tk = null;
-							for (var i = 0; i < this.data.tabs.length; i++) {
-								ti = this.data.tabs[i];
-								if (Array.isArray(ti.items)) {
-									for (var k = 0; k < ti.items.length; k++) {
-										tk = ti.items[k];
-										if (tk.value == otv) ot = tk;
-										else if (tk.value == ntv) nt = tk;
-									}
-								} else {
-									if (ti.value == otv) ot = ti;
-									else if (ti.value == ntv) nt = ti;
-								}
-							}
-							var res = true;
-							if (ot && typeof ot.onBeforeHide == 'function') var res = ot.onBeforeHide();
-							if (res) {
-								if (nt && typeof nt.onShow == 'function') nt.onShow();
-								if (ot && typeof ot.onHide == 'function') var res = ot.onHide();
-								this.data.tab = ntv;
-								tfc_TF._.act('navigate', { context: this.context, target: ntv });
-								this.refresh();
-							}
-						}
-					},
-					'tab-action': {
-						selectable: false,
-						onClick: function (v, ia) {
-							tfc_TF.u.flyout.hide();
-							var tv = this.data.tab;
-							var t, ti, tk = null;
-							for (var i = 0; i < this.data.tabs.length; i++) {
-								ti = this.data.tabs[i];
-
-								if (Array.isArray(ti.items)) {
-									for (var k = 0; k < ti.items.length; k++) {
-										tk = ti.items[k];
-										if (tk.value == tv) {
-											t = tk;
-											break;
-										}
-									}
-								} else {
-									if (ti.value == tv) {
-										t = ti;
-										break;
-									}
-								}
-							}
-							if (t) {
-								if (typeof t.action == 'function') t.action(ia, false);
-							}
-						}
-					}
-				}
-			}
-		},
-		panels: {
-			lockable: function (p) {
-				var id = p.getPanelId();
-				var ele = $(id);
-				var lEle = document.createElement('div');
-				lEle.id = id + '.LOCK';
-				lEle.className = 'TFWorkingMessageOverlay';
-				lEle.innerHTML = '<div class="TFWorkingMessage"></div>';
-				lEle.style.display = 'none';
-				ele.appendChild(lEle);
-
-				p.lock = function (m) {
-					var lEle = $(this.contId + '.LOCK');
-					var mEle = lEle.children[0]
-					if (arguments[1]) A5.u.element.cls(mEle, '+=TFWorkingMessageNoInd');
-					else A5.u.element.cls(mEle, '-=TFWorkingMessageNoInd');
-					mEle.innerHTML = m;
-					lEle.style.display = '';
-				}
-				p.unlock = function (m) {
-					var lEle = $(this.contId + '.LOCK');
-					lEle.style.display = 'none';
-				}
-			}
-		},
-		flyout: {
-			_: {
-				t: false,
-				id: '',
-				hide: function (id) {
-					if (id != this.id) this.t.hide();
-				}
-			},
-			/*
-				show a flyout message
-					e = element to flyout from
-					m = message 
-			*/
-			show: function (e, m, s) {
-				var id = Date.now().toString(36);
-				if (!this._.t) {
-					this._.t = new A5.Transient({
-						theme: 'Alpha',
-						content: { type: 'html', html: '' },
-						layout: 'v',
-						layouts: {
-							v: {
-								stretch: 'none',
-								innerClassName: 'TFFlyout',
-								location: ['dropdown-center'],
-								behavior: { type: 'modeless' }
-							},
-							vl: {
-								stretch: 'none',
-								innerClassName: 'TFFlyout',
-								location: ['dropdown-left'],
-								behavior: { type: 'modeless' }
-							},
-							vr: {
-								stretch: 'none',
-								innerClassName: 'TFFlyout',
-								location: ['dropdown-right'],
-								behavior: { type: 'modeless' }
-							},
-							h: {
-								stretch: 'none',
-								innerClassName: 'TFFlyout',
-								location: ['flyout-top'],
-								behavior: { type: 'modeless' }
-							}
-						}
-					});
-					var tEle = this._.t.getElement()
-					tEle.style.zIndex = '1000';
-					tEle.style.pointerEvents = 'none'
-				}
-				if (typeof s.direction == 'string') {
-					var l = 'v';
-					if (s.direction[0] == 'h') l = 'h';
-					else if (s.direction == 'vertical-left') l = 'vl';
-					else if (s.direction == 'vertical-right') l = 'vr';
-
-					if (this._.t.layout != l) this._.t.setLayout(l);
-				}
-				var cEle = this._.t.getElement('content');
-				cEle.innerHTML = m;
-				this._.id = id;
-				this._.t.show(e);
-				return id;
-			},
-			hide: function () {
-				var hide = true;
-				if (typeof arguments[0] == 'string' && arguments[0] != this._.id) hide = false;
-				if (hide) this._.t.hide();
-
-			},
-			/*
-				show a flyout message
-					id = flyout message instance ID
-					m = message html
-			*/
-			update: function (id, m) {
-				if (id == this._.id) {
-					var cEle = this._.t.getElement('content');
-					cEle.innerHTML = m;
-				}
-			}
-		},
-
-		message: {
-			_: {
-				ele: null
-			},
-			show: function (t, mt, m, s) {
-				if (typeof s == 'undefined') s = {};
-				if (!this._.ele) {
-					var ele = document.createElement('div');
-					ele.id = 'TF.MSG';
-					A5.u.element.style(ele, 'display: none; position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 50;');
-					ele.className = 'TFMsg';
-					ele.innerHTML = '<div id="TF.MSG.CONTENT" class="TFMsgPanel"></div>';
-					document.body.appendChild(ele);
-					this._.ele = ele;
-
-					var vb = new A5.ViewBox('TF.MSG.CONTENT', [], {
-						captureFocus: false,
-						buttons: {
-							confirm: A5.buttons.html('TF.MSG.B.[[[i]]].CONFIRM', {
-								theme: tfc_TF.theme + ':confirm',
-								html: '[[[text]]]'
-							}, 'a5-item=button:confirm|[[[i]]]'),
-							deny: A5.buttons.html('TF.MSG.B.[[[i]]].DENY', {
-								theme: tfc_TF.theme + ':deny',
-								html: '[[[text]]]'
-							}, 'a5-item=button:deny|[[[i]]]'),
-							cancel: A5.buttons.html('TF.MSG.B.[[[i]]].CANCEL', {
-								theme: tfc_TF.theme + ':subtle',
-								html: '[[[text]]]'
-							}, 'a5-item=button:cancel|[[[i]]]')
-						},
-						icons: {
-							defaults: {
-								'confirm': 'info',
-								'confirm-deny': 'question',
-								'confirm-cancel': 'question',
-								'choice': 'question',
-								'choice-deny': 'question',
-								'choice-cancel': 'question',
-								'prompt': 'question',
-								'prompt-cancel': 'question',
-								'deny-cancel': 'warning',
-								'confirm-deny-cancel': 'warning'
-							},
-							q: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{width: 32px; height: 32px;}'),
-							e: A5.u.icon.html('svgIcon=#alpha-icon-exclamationTriangle:icon{width: 32px; height: 32px;}'),
-							i: A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}')
-						},
-						layout: 'main',
-						layouts: {
-							'main': {
-								type: 'static',
-								html: function () {
-									var d = this.data;
-									var di, dit, opk = null;
-									var html = [];
-									for (var i = 0; i < d.length; i++) {
-										di = d[i]
-										html.push('<div class="TFMsgItem">');
-										html.push('<div>');
-										html.push('<div>');
-										if (di.type == 'wait' || di.type == 'wait-cancel') {
-											html.push('<div class="TFMsgItemWait"></div>');
-										} else {
-											var icon = di.settings.icon || (typeof this.icons.defaults[di.type] == 'string' ? this.icons.defaults[di.type] : 'info');
-											if (icon == 'question') html.push(this.icons.q);
-											else if (icon == 'warning') html.push(this.icons.e);
-											else if (icon != 'info') html.push(A5.u.icon.html(icon));
-											else html.push(this.icons.i);
-										}
-										html.push('</div>');
-										html.push('<div style="flex: 1 1 auto;">');
-										if (di.title) {
-											html.push('<div class="TFMsgItemTitle">');
-											html.push(di.title);
-											html.push('</div>');
-										}
-										if (di.msg) {
-											html.push('<div class="TFMsgItemMsg">');
-											html.push(di.msg);
-											html.push('</div>');
-										}
-										html.push('</div>');
-										html.push('</div>');
-										if (di.type == 'confirm' || di.type == 'confirm-deny' || di.type == 'confirm-cancel' || di.type == 'deny-cancel' || di.type == 'confirm-deny-cancel' || di.type == 'wait-cancel') {
-											dit = di.settings.text;
-											html.push('<div class="TFMsgItemButtons">');
-											if (di.type == 'confirm') {
-												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
-											} else if (di.type == 'confirm-deny') {
-												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
-												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
-											} else if (di.type == 'confirm-cancel') {
-												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
-												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											} else if (di.type == 'deny-cancel') {
-												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
-												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											} else if (di.type == 'confirm-deny-cancel') {
-												html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
-												html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
-												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											} else if (di.type == 'wait-cancel') {
-												html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											}
-											html.push('</div>');
-										} else if (di.type == 'choice' || di.type == 'choice-deny' || di.type == 'choice-cancel') {
-											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
-
-											for (var k = 0; k < di.settings.options.length; k++) {
-												opk = di.settings.options[k];
-												html.push(A5.buttons.html('TF.MSG.B.' + i + '.OPTION.' + k, {
-													theme: tfc_TF.theme + ':confirm',
-													html: (typeof opk == 'string' ? opk : opk.html)
-												}, 'a5-item=button:choose|' + i + '|' + k));
-											}
-											dit = di.settings.text;
-											if (di.type == 'choice-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											else if (di.type == 'choice-deny') html.push(this.buttons.deny.split('[[[i]]]').join(i).replace('[[[text]]]', dit.deny));
-											html.push('</div>');
-										} else if (di.type == 'prompt' || di.type == 'prompt-cancel') {
-											html.push('<div class="TFMsgItemEdit">');
-											if (Array.isArray(di.settings.value)) {
-												for (var k = 0; k < di.settings.value.length; k++) {
-													html.push('<input class="editPrimary' + (di.error[k] ? ' editError' : '') + '" value="' + di.settings.value[k] + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value[' + k + '] = this.value;" placeholder="' + di.settings.placeholder[k] + '">');
-													if (di.error[k]) html.push('<div class="TFMsgItemEditError">' + di.error[k] + '</div>');
-												}
-											} else {
-												html.push('<input class="editPrimary' + (di.error ? ' editError' : '') + '" value="' + di.settings.value + '" oninput="TF.u.message._.vb.data[' + i + '].settings.value = this.value;" placeholder="' + di.settings.placeholder + '">');
-												if (di.error) html.push('<div class="TFMsgItemEditError">' + di.error + '</div>');
-											}
-											html.push('</div>');
-											html.push('<div class="TFMsgItemButtons" style="flex-wrap: wrap;">');
-											dit = di.settings.text;
-											html.push(this.buttons.confirm.split('[[[i]]]').join(i).replace('[[[text]]]', dit.confirm));
-											if (di.type == 'prompt-cancel') html.push(this.buttons.cancel.split('[[[i]]]').join(i).replace('[[[text]]]', dit.cancel));
-											html.push('</div>');
-										}
-										html.push('</div>');
-									}
-									return html.join('');
-								}
-							}
-						},
-						items: {
-							'button': {
-								selectable: false,
-								onClick: function (v, ia) {
-									ia = ia.split('|');
-									var di = this.data[ia[1]];
-									if (typeof di.settings.action == 'function') {
-										if (ia[0] == 'choose') {
-											var o = di.settings.options[ia[2]];
-											if (o) di.settings.action((typeof o == 'string' ? o : o.value));
-										} else if (di.type.indexOf('prompt') == 0) {
-											var res = di.settings.action(ia[0], di.settings.value);
-											if (A5.u.typeOf(res) == 'object') {
-												di.error = res.error;
-												this.refresh();
-												return false;
-											}
-										} else di.settings.action(ia[0]);
-									}
-									tfc_TF.u.message.hide(di.id, false);
-								}
-							}
-						}
-					});
-					this._.vb = vb;
-				} else {
-					var ele = this._.ele;
-					var vb = this._.vb;
-				}
-
-				var d = vb.data;
-
-				if (t.indexOf('deny') != -1) {
-					A5.u.object.assign(s, {
-						text: { confirm: 'Yes', deny: 'No', cancel: 'Cancel' }
-					}, true);
-				} else {
-					A5.u.object.assign(s, {
-						text: { confirm: 'OK', deny: 'No', cancel: 'Cancel' }
-					}, true);
-				}
-
-				if (t.indexOf('prompt') == 0) {
-					A5.u.object.assign(s, {
-						value: '',
-						placeholder: ''
-					}, true);
-				}
-				var di = {
-					id: (typeof s.id == 'string' ? s.id : 'pid:' + Date.now()),
-					type: t,
-					title: mt,
-					msg: m,
-					error: false,
-					settings: (A5.u.typeOf(s) == 'object' ? s : {})
-				}
-				var res = di.id;
-
-				if (typeof s.duration == 'number') setTimeout(function () { tfc_TF.u.message.hide(res); }, s.duration);
-
-				d.push(di);
-				ele.style.display = '';
-				if (d.length == 1) {
-					A5.u.element.transition(ele.children[0], {
-						from: { transform: 'translateY(-110%)' },
-						to: { transform: 'translateY(0px)' },
-						duration: 200
-					});
-				}
-				vb.refresh();
-				return res;
-			},
-			update: function (id, mt, m) {
-				var vb = this._.vb;
-				var d = vb.data;
-				var di = null;
-				for (var i = d.length - 1; i >= 0; i--) {
-					di = d[i];
-					if (di.id == id) {
-						if (typeof mt == 'string') di.title = mt;
-						if (typeof m == 'string') di.msg = m;
-						vb.refresh();
-						break;
-					}
-				}
-			},
-			hide: function (id) {
-				var ele = this._.ele;
-				var vb = this._.vb;
-				var d = vb.data;
-				var di = null;
-				var fa = typeof arguments[1] == 'boolean' ? arguments[1] : true;
-				for (var i = d.length - 1; i >= 0; i--) {
-					di = d[i];
-					if (di.id == id) {
-						if (typeof di.settings.action == 'function' && fa) di.settings.action('hide');
-						d.splice(i, 1);
-						break;
-					}
-				}
-				if (d.length == 0) {
-					A5.u.element.transition(ele.children[0], {
-						from: { transform: 'translateY(0px)' },
-						to: { transform: 'translateY(-110%)' },
-						duration: 200
-					}, function () {
-						if (tfc_TF.u.message._.vb.data.length == 0) this.parentNode.style.display = 'none';
-					}
-					);
-				} else vb.refresh();
-			}
-		},
-
-		filler: {
-			_: {
-				ele: null,
-				iEle: null,
-				dirty: false,
-				route: {
-					m: false,
-					q: false,
-					default: null,
-					current: null,
-					tip: function (ele, show) {
-						if (show) {
-							var m = 'Form will not be routed on save.';
-							var c = this.current;
-							if (c) {
-								if (c.indexOf('queue:') == 0) {
-									c = c.split(':');
-									c.shift();
-									c.pop();
-									var q = this.q ? this.q.src : false;
-									if (q) {
-										var cq = '';
-										for (var i = 0; i < c.length; i++) {
-											cq = c[i];
-											for (var k = 0; k < q.length; k++) {
-												if (q[k].queueID == cq) {
-													cq = q[k].name;
-													break;
-												}
-											}
-											c[i] = '"' + cq + '"';
-										}
-									} else {
-										for (var i = 0; i < c.length; i++) c[i] = '"' + c[i] + '"';
-									}
-									m = 'Form will be routed to the ' + c.join(', ') + ' queue' + (c.length > 1 ? 's' : '') + ' on save.';
-								} else m = 'Form will be routed to "' + A5.u.html.escape(c) + '" on save.';
-							}
-							tfc_TF.u.flyout.show(ele, m, { direction: 'vertical' });
-						} else {
-							tfc_TF.u.flyout.hide();
-						}
-					},
-					shown: false,
-					show: function () {
-						var _f = tfc_TF.u.filler._;
-						var _r = _f.route;
-
-						var d = { type: 'none' };
-						var c = _r.current;
-						if (typeof c == 'string') {
-							if (c.indexOf('queue:') == 0) {
-								c = c.split(':');
-								c.shift();
-								c.pop();
-								d.type = 'queue';
-								d.queue = c;
-							} else if (c.trim() != '') {
-								d.type = 'member';
-								d.member = c;
-							}
-						}
-						_r.f.populate(d);
-						_f.rEle.style.display = '';
-						_f.lEle.setAttribute('mode', 'route');
-						_f.lEle.style.display = '';
-						this.shown = true;
-						A5.u.element.transition(_f.rEle, {
-							from: { transform: 'translateY(-100%)' },
-							to: { transform: 'translateY(0%)' }
-						});
-					},
-					hide: function () {
-						if (this.shown) {
-							A5.u.element.transition(tfc_TF.u.filler._.rEle, {
-								from: { transform: 'translateY(0%)' },
-								to: { transform: 'translateY(-100%)' },
-								after: { display: 'none' }
-							}, function () { tfc_TF.u.filler._.lEle.style.display = 'none'; });
-							this.shown = false;
-						}
-					},
-					set: function () {
-						var _f = tfc_TF.u.filler._;
-						var p = _f.route.current;
-						if (!p) p = tfc_TF.state.login.user.id;
-						_f.iEle.contentWindow.postMessage({ cmd: 'setPersonFiller', person: p }, "*");
-					}
-				},
-				jwtMsg: function (args) {
-					var l = tfc_TF.state.login;
-					var d = l.expires;
-					var e = String(Number(d) / 1000);
-					var p = JSON.stringify(l.account.permissions);
-					var res = {
-						cmd: 'setJWTFromParent',
-						efobj: {
-							JWTname: l.user.id,
-							JWTuserToken: l.token,
-							JWTexpiration: e,
-							JWTdisplayName: l.user.name,
-							JWTaccount: l.account.id,
-							JWTrole: l.account.member.roles.join(','),
-							JWTpermissions: p,
-							EFJWTname: l.user.id,
-							EFJWTuserToken: l.token,
-							EFJWTexpiration: e,
-							EFJWTdisplayName: l.user.name,
-							EFJWTaccount: l.account.id,
-							EFJWTrole: l.account.member.roles.join(','),
-							EFJWTpermissions: p,
-
-						}
-					}
-					if (typeof args == 'string' && args.trim() != '') res.efobj.JWToverridesearchparams = args;
-					return res;
-				},
-				msg: function (event) {
-					var msg = event.data;
-					if (typeof msg != 'object') msg = {};
-					if (event.origin != location.origin) return; // 2023-11-15 DSB let go to some other handler
-					var f = tfc_TF.u.filler;
-					var ele = f._.iEle;
-					if (!ele || event.source != ele.contentWindow) return; // 2023-11-15 DSB let go to some other handler
-					switch (msg.cmd) {
-						case 'fillerCentralDoneLogout':
-							//console.log('Got quicklink embed logout. Should not.');
-							break;
-						case 'fillerCentralGetParentJWT':
-							ele.contentWindow.postMessage(f._.jwtMsg(), "*");
-							break;
-						case 'fillerCentralLoggedInEditForm':
-							//console.log('Quicklink embed LoggedInEditForm.');
-							setTimeout(function () {
-								tfc_TF.u.filler._.lEle.style.display = 'none';
-							}, 600);
-							if (f._.route.current) f._.route.set();
-							break;
-						case 'fillerCentralUpdateDirtyValue':
-							f._.dirty = msg.isDirty;
-							f._.setState();
-							//console.log("Quicklink embed message: "+(msg.isDirty ? "Is dirty" : "Is not dirty."));
-							break;
-
-						case 'fillerCentralAfterSyncWithErrors':
-							//console.log('Got AfterSyncWithErrors. Updated:'+msg.updated+", inserted:"+msg.inserted);
-							//console.log(JSON.stringify(msg.errors));
-							break;
-
-						case 'fillerCentralAfterSuccessfulSync':
-							//console.log('Got AfterSuccessfulSync. Updated:'+msg.updated+", inserted:"+msg.inserted);
-							if (typeof f._.s.onCommit == 'function') f._.s.onCommit(f._.m, f._.id, f._.s);
-							f._.ele.style.display = 'none';
-							f._.route.hide();
-							break;
-
-						case 'ignore':
-							break;
-
-						default:
-					}
-				},
-				setState: function () {
-					var bEle = $('TF.FILLER.COMMIT');
-					if (this.dirty) {
-						bEle.disabled = false;
-						A5.u.element.cls(bEle, '-=buttonDisabled');
-					} else {
-						bEle.disabled = true;
-						A5.u.element.cls(bEle, '+=buttonDisabled');
-					}
-					if (this.route.current) {
-						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeOn:icon');
-						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Routed';
-					} else {
-						A5.u.icon.update('TF.FILLER.ROUTE.ICON', 'svgIcon=#alpha-icon-routeEnd:icon');
-						$('TF.FILLER.ROUTE.TEXT').innerHTML = 'Not Routed';
-					}
-				},
-				cancel: function () {
-					tfc_TF._.act('filler', { action: 'cancel', mode: this.m, id: this.id });
-					this.iEle.contentWindow.postMessage({ cmd: 'cancelFiller' }, "*");
-					this.ele.style.display = 'none';
-					this.route.hide();
-				}
-			},
-
-			start: function (m, id, s) { // mode, formId / formInstId
-				if (this._.ele == null) {
-					var ele = document.createElement('div');
-					ele.id = 'TF.FILLER';
-					A5.u.element.style(ele, 'display: none; z-index: 49;');
-					ele.className = 'TFModal';
-					var html = [
-						'<div id="TF.FILLER.CONTENT" class="TFModalPanel TFFillerPanel">',
-						'<div class="TFModalPanelHeader">',
-						'<div id="TF.FILLER.TITLE">',
-						'Filler',
-						'</div>',
-						'<div>',
-						A5.buttons.html('TF.FILLER.ROUTE', { theme: tfc_TF.theme + ':subtle', html: A5.u.icon.html('svgIcon=#alpha-icon-routeEnd:icon', 'id="TF.FILLER.ROUTE.ICON"') + ' <span id="TF.FILLER.ROUTE.TEXT">Route</span>' }),
-						A5.buttons.html('TF.FILLER.COMMIT', { theme: tfc_TF.theme + ':confirm', html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
-						A5.buttons.html('TF.FILLER.CANCEL', { theme: tfc_TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }),
-						'</div>',
-						'</div>',
-						'<div style="position: relative; overflow: hidden;">',
-						'<div id="TF.FILLER.IFRAME.LOCK" mode="loading" style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px;" onclick="if(this.getAttribute(\'mode\') == \'route\') TF.u.filler._.route.hide();"></div>',
-						'<div id="TF.FILLER.ROUTE.PANEL" class="TFFillerRoutePanel" style="display: none; position: absolute; top: 0px; right: 0px; width: 320px; max-height: 100%;">',
-						'<div id="TF.FILLER.ROUTE.FORM" class="TFForm"></div>',
-						'</div>',
-						'<iframe id="TF.FILLER.IFRAME" src="" border="0" style="width: 100%; height: 100%;" />',
-						'</div>',
-						'</div>'
-					];
-					ele.innerHTML = html.join('');
-					document.body.appendChild(ele);
-
-					$e.add('TF.FILLER.COMMIT', 'click', function () { tfc_TF.u.filler.commit(); });
-					$e.add('TF.FILLER.CANCEL', 'click', function () { tfc_TF.u.filler.cancel(); });
-					$e.add('TF.FILLER.ROUTE', 'click', function () {
-						var r = tfc_TF.u.filler._.route;
-						if (r.shown) r.hide();
-						else {
-							tfc_TF.u.flyout.hide();
-							r.show();
-						}
-					});
-					$e.add('TF.FILLER.ROUTE', 'mouseenter', function () { tfc_TF.u.filler._.route.tip(this, true); });
-					$e.add('TF.FILLER.ROUTE', 'mouseleave', function () { tfc_TF.u.filler._.route.tip(this, false); });
-
-					this._.route.f = new A5.FormBox('TF.FILLER.ROUTE.FORM', {
-						form: {
-							items: [
-								{
-									type: 'button-list',
-									layout: 'tf-label-above',
-									data: { from: 'type' },
-									label: { text: 'Route to' },
-									control: {
-										style: 'display: flex; flex-direction: row;',
-										allowNullSelection: false,
-										data: {
-											src: [
-												{ html: A5.u.icon.html('svgIcon=#alpha-icon-docCheckSolid:icon') + ' Myself', value: 'none', style: 'flex: 1 1 0%;' },
-												{ html: A5.u.icon.html('svgIcon=#alpha-icon-personInSolid:icon') + ' Member', value: 'member', style: 'flex: 1 1 0%;' },
-												{ html: A5.u.icon.html('svgIcon=#alpha-icon-trayFull:icon') + ' Queue', value: 'queue', style: 'flex: 1 1 0%;' }
-											]
-										}
-									}
-								},
-								{
-									type: 'edit-picker',
-									show: function (d) { return d.form.data.type == 'member' },
-									data: { from: 'member' },
-									container: { className: 'TFFormItem' },
-									control: {
-										width: '100%',
-										behavior: { show: { mode: 'change' } },
-										picker: {
-											type: 'list',
-											data: { filter: 'contains' }
-										},
-										buttons: {
-											after: [{
-												html: A5.u.icon.html('svgIcon=#alpha-icon-refresh:icon'),
-												click: function () { tfc_TF.u.filler._.route.m = false; }
-											}]
-										},
-										data: {
-											src: function () {
-												if (tfc_TF.u.filler._.route.m) return tfc_TF.u.filler._.route.m;
-												else {
-													tfc_TF.request('get-members', { manage: false }).then(function (d) {
-														var ld = [];
-														var di = null
-														for (var i = 0; i < d.members.length; i++) {
-															di = d.members[i];
-															ld.push({
-																html: '<div class="listItemPartMain">' + di.name + '</div><div class="listItemPartSub">' + di.userId + '</div>',
-																value: di.userId
-															});
-														}
-														tfc_TF.u.filler._.route.m = { src: ld };
-														tfc_TF.u.filler._.route.f.ctrls.picker.update('data', ld);
-													}).catch(function () {
-														tfc_TF.u.filler._.route.f.ctrls.picker.hide();
-													});
-													return null;
-												}
-											}
-										}
-									}
-								},
-								{
-									type: 'group',
-									show: function (d) { return d.form.data.type == 'queue' },
-									items: [
-										{
-											type: 'list',
-											data: { from: 'queue' },
-											container: { className: 'TFFormItem' },
-											control: {
-												width: '100%',
-												style: 'max-height: 200px; overflow: auto;',
-												multiple: true,
-												selectionMode: 'additive',
-												className: 'list TFFillerQueuesList',
-												data: {
-													src: function () {
-														if (tfc_TF.u.filler._.route.q) return tfc_TF.u.filler._.route.q;
-														else {
-															tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
-																var qd = A5.u.object.get(d.data, 'queues.listOfQueues');
-																if (!Array.isArray(qd)) qd = [];
-																tfc_TF.u.filler._.route.q = { src: qd };
-																tfc_TF.u.filler._.route.f.refresh();
-															});
-															return null;
-														}
-													}
-												},
-												layout: 'main',
-												layouts: { main: { item: { html: '<div style="display: flex; flex-direction: row; gap: 6px; align-items: center;"><div style="display: inline-block; width: 20px; height: 20px; background: {color}; border: 1px solid #fff; border-radius: 4px;"></div><div>{name}</div></div>', value: 'queueID' } } }
-											}
-										},
-										{
-											type: 'group',
-											container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row;' },
-											items: [
-												{
-													type: 'button',
-													layout: 'tf-simple',
-													container: { style: 'flex: 1 1 auto;' },
-													control: {
-														theme: tfc_TF.theme + ':subtle',
-														html: 'Clear Selection',
-														onClick: function () { this.update('queue', []); }
-													}
-												},
-												{
-													type: 'button',
-													layout: 'tf-simple',
-													control: {
-														theme: tfc_TF.theme + ':subtle',
-														html: 'Refresh Queues List',
-														onClick: function () {
-															tfc_TF.u.filler._.route.q = false;
-															tfc_TF.u.filler._.route.f.refresh();
-														}
-													}
-												}
-											]
-										}
-									]
-								},
-								{
-									type: 'switch',
-									layout: 'tf-label-flex',
-									data: { from: 'makeDefault' },
-									label: { text: 'Make default route' },
-									control: { width: '50px' }
-								},
-								{
-									type: 'html',
-									show: function (d) { return d.form.data.makeDefault },
-									container: { className: 'TFFormNote' },
-									control: {
-										html: 'When you press "Done", the selected value will be stored, and the next time you fill in a form instance the form will be routed to the same location.'
-									}
-								},
-								{
-									type: 'group',
-									container: { className: 'TFFormItem', style: 'display: flex; flex-direction: row' },
-									items: [
-										{
-											type: 'button',
-											container: { style: 'flex: 1 1 auto;' },
-											control: {
-												html: 'Done',
-												style: 'width: 100%;',
-												onClick: function () {
-													var _f = tfc_TF.u.filler._;
-													var _r = _f.route;
-
-													_r.hide();
-													var d = this.data;
-													if (d.type == 'none') _r.current = null;
-													else if (d.type == 'member') _r.current = d.member;
-													else if (d.type == 'queue') _r.current = 'queue:' + d.queue.join(':') + ':';
-													if (d.makeDefault) _r.default = _r.current;
-													_r.set();
-													_f.setState();
-												}
-											}
-										},
-										{
-											type: 'button',
-											container: { style: 'flex: 1 1 auto;' },
-											control: {
-												html: 'Cancel',
-												theme: tfc_TF.theme + ':subtle',
-												style: 'width: 100%;',
-												onClick: function () {
-													tfc_TF.u.filler._.route.hide();
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}, {}, { theme: tfc_TF.theme, item: { label: { style: '' }, description: { style: '' } } });
-
-					this._.ele = ele;
-					this._.tEle = $('TF.FILLER.TITLE');
-					this._.lEle = $('TF.FILLER.IFRAME.LOCK');
-					this._.iEle = $('TF.FILLER.IFRAME');
-					this._.rEle = $('TF.FILLER.ROUTE.PANEL');
-					window.addEventListener("message", this._.msg, false);
-				}
-				var bEle = $('TF.FILLER.ROUTE');
-				if (tfc_TF.state.login.account.member.ui.allow.manage) bEle.style.display = '';
-				else bEle.style.display = 'none';
-				this._.dirty = false;
-				this._.route.current = this._.route.default;
-				this._.setState();
-
-				if (this._.iEle.src.indexOf('QuickLink.html') != -1) this._.iEle.contentWindow.postMessage(this._.jwtMsg('m=n&a=' + tfc_TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N'), "*");
-				else this._.iEle.src = 'QuickLink.html?m=n&a=' + tfc_TF.state.login.account.id + '&d=' + id + '&parentjwt&postmessage=Y&closemsg=Created new form instance.&postmessageprefix=fillerCentral&windowmargin=0px auto&askonleave=N';
-				//m=q&a=Account1&q=default3 - get queue
-
-				if (m == 'create') {
-					this._.tEle.innerHTML = 'New Form Instance';
-					this._.lEle.setAttribute('message', 'Creating form...');
-				} else {
-					this._.tEle.innerHTML = 'Edit Form Instance';
-					this._.lEle.setAttribute('message', 'Loading form...');
-				}
-				this._.lEle.setAttribute('mode', 'loading');
-				this._.lEle.style.display = '';
-				this._.ele.style.display = '';
-				this._.m = m;
-				this._.id = id;
-				this._.s = s || {};
-
-				tfc_TF._.act('filler', { action: 'start', mode: m, id: id });
-			},
-
-			commit: function () {
-				this._.iEle.contentWindow.postMessage({ cmd: 'saveFiller' }, "*");
-				tfc_TF._.act('filler', { action: 'commit', mode: this._.m, id: this._.id });
-			},
-			cancel: function () {
-				if (this._.ele) {
-					if (this._.dirty) {
-						tfc_TF.u.message.show('confirm-cancel', 'Discard Form', 'Are you sure you want to discard the current form?', {
-							action: function (a) {
-								if (a == 'confirm') tfc_TF.u.filler._.cancel();
-							}
-						});
-					} else this._.cancel();
-				}
-			}
-		}
-	},
-	forms: {},
-
-	// UI element definitions and helper functions
-	ui: {
-		// top level UI (e.g. the masthead)
-		main: {
-			_: {
-				ux: null,
-				d: {
-					id: null,
-					gotoList: false,
-					ux: null,
-					getIndx: function (id) {
-						var d = this.ux.getControl('REPORTCHOOSERVIEWBOX').data;
-						for (var i = 0; i < d.reports.defs.length; i++) {
-							if (d.reports.defs[i].name == id) {
-								return i;
-								break;
-							}
-						}
-						return null;
-					}
-				},
-				m: {
-					id: null,
-					ux: null
-				},
-				b: {
-					id: null,
-					ux: null
-				},
-				di: {
-					"adv": {
-						"include": function () {
-							return tfc_TF.state.ui.editing.json.forms;
-						},
-						"type": "frame",
-						"container": {
-							"collapse": { "allow": true, "initial": true },
-							"title": { "html": "Advanced" }
-						},
-						"items": [
-							{
-								"layout": "tf-button",
-								"type": "button",
-								"control": {
-									"html": "Edit JSON...",
-									"onClick": function () {
-										tfc_TF.u.code.editors.json.edit(this.data, this);
-									}
-								}
-							}
-						]
-					}
-				}
-			},
-			init: function (ux) {
-				setInterval(function () { ux.getControl('TRANSFORM_MASTHEAD').refresh(); }, 30000);
-				this._.vb = ux.getControl('TRANSFORM_MASTHEAD');
-				this._.p = ux.panelGet('TRANSFORM');
-			},
-			html: function (vb) {
-				var html = [];
-				const iconHome = A5.u.icon.html('svgIcon=#alpha-icon-home:icon');
-				const iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon');
-				const iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon');
-				const iconManage = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
-				const iconApps = A5.u.icon.html('svgIcon=#alpha-icon-appGrid:icon {width: 32px; height: 32px;}');
-
-				const iconNotification = A5.u.icon.html('svgIcon=#alpha-icon-bell:icon {width: 32px; height: 32px;}');
-				const iconDeveloper = A5.u.icon.html('svgIcon=#alpha-icon-docXMLSolid:icon {width: 32px; height: 32px;}');
-				const iconAccount = A5.u.icon.html('svgIcon=#alpha-icon-gear:icon {width: 32px; height: 32px;}');
-				const iconPerson = A5.u.icon.html('svgIcon=#alpha-icon-personSolid:icon {position: absolute; top: 0px; left: 4px; width: 52px; height: 52px;}');
-				const iconHelp = A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon {width: 32px; height: 32px;}');
-				const iconDot = A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}');
-
-
-				const sui = tfc_TF.state.ui;
-				const sl = tfc_TF.state.login;
-
-
-				const tab = sui.tab;
-				const allow = sl.account.member.ui.allow;
-				const dirty = sui.dirty;
-				const dock = sui.dock;
-				const idp = vb.contId + '.';
-
-				html.push('<div class="TFHeadLine"></div>');
-				html.push('<div class="TFHead">');
-				html.push('<div class="TFHeadLogo">');
-				html.push('<img src="TFLogo78x78.png" style="height: 100%;"/>');
-				html.push('</div>');
-				html.push('<div class="TFHeadTabs">');
-				html.push('<div id="' + idp + 'HOME" a5-item="tab:home" class="TFHeadTab TFHeadTabHome' + (tab == 'home' ? ' TFHeadTabSelected' : '') + '">' + iconHome + '<span class="TFHeadTabText">Home</span>&ZeroWidthSpace;</div>');
-				if (allow.dashboard) html.push('<div id="' + idp + 'DASHBOARD" a5-item="tab:dashboard" class="TFHeadTab TFHeadTabDashboard' + (tab == 'dashboard' ? ' TFHeadTabSelected' : '') + '">' + iconDashboard + '<span class="TFHeadTabText">Dashboard</span>&ZeroWidthSpace;' + (dirty.dashboard ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
-				if (allow.manage) html.push('<div id="' + idp + 'MANAGE" a5-item="tab:manage" class="TFHeadTab TFHeadTabManage' + (tab == 'manage' ? ' TFHeadTabSelected' : '') + '">' + iconManage + '<span class="TFHeadTabText">Manage</span>&ZeroWidthSpace;' + (dirty.manage ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
-				if (allow.design) html.push('<div id="' + idp + 'DESIGNER" a5-item="tab:designer" class="TFHeadTab TFHeadTabDesign' + (tab == 'designer' ? ' TFHeadTabSelected' : '') + '">' + iconFormDesign + '<span class="TFHeadTabText">Design</span>&ZeroWidthSpace;' + (dirty.designer ? '<div style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>' : '') + '</div>');
-				html.push('</div>');
-				html.push('<div class="TFHeadSettings">');
-				/*	
-				var n = vb.data.notifications;
-				var ii = null;
-				var now = Date.now();
-				for(var i=n.items.length-1;i>=0;i--){
-					ii = n.items[i];
-					if(ii.dismiss && ii.dismiss < now) n.items.splice(i,1);
-				}
-				
-				if(n.items.length > 0){
-					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices<div class="TFHeadButtonNotification">'+iconDot+'</div></div>');
-				} else{
-					html.push('<div id="'+idp+'NOTIFICATIONS" a5-item="docks:notifications" class="TFHeadSettingsButton TFHeadButton'+(dock.active && dock.type == 'notifications' ? ' TFHeadSettingsButtonActive' : '')+'">'+iconNotification+'<br/>Notices</div>');
-				}
-				*/
-
-				html.push('<div id="' + idp + 'APPS" a5-item="docks:apps" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'apps' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconApps + '<br/>Apps</div>');
-				if (allow.developer) html.push('<div id="' + idp + 'DEVELOPER" a5-item="docks:developer" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'developer' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconDeveloper + '<br/>Configure</div>');
-				if (allow.account) html.push('<div id="' + idp + 'ACCOUNT" a5-item="docks:account" class="TFHeadSettingsButton TFHeadButton' + (dock.active && dock.type == 'account' ? ' TFHeadSettingsButtonActive' : '') + '">' + iconAccount + '<br/>Account</div>');
-				html.push('</div>');
-
-				html.push('<div a5-item="docks:user" class="TFHeadUser TFHeadButton' + (dock.active && dock.type == 'user' ? ' TFHeadUserActive' : '') + '">');
-				html.push(iconPerson + '<div class="TFHeadUserName">' + sl.user.name + '</div><div class="TFHeadUserAccount">' + sl.account.name + '</div>');
-
-				var lsDelta = (sl.expires - Date.now()) / 60000;
-				var lss = 'Good';
-				if (lsDelta <= 0) lss = 'Expired';
-				else if (lsDelta < 60) lss = 'Expiring';
-				vb.data.expiresStatus = lss.toLowerCase();
-				html.push('<div class="TFHeadLoginStatus' + lss + '" style="position: absolute; top: 7px; right: 7px; font-size: 0px;">' + iconDot + '</div>');
-				html.push('</div>');
-				if (tfc_TF.state.ui.help.mode != 'pinned') {
-					html.push('<div id="' + idp + 'HELP" a5-item="help" class="TFHeadHelp TFHeadButton">');
-					html.push(iconHelp + '<br/>Help');
-					html.push('</div>');
-				}
-				html.push('</div>');
-
-
-				return html.join('');
-			},
-			action: function (a, d, f) {
-				var pp = 'TRANSFORM_MAIN_NAV:';
-				var vb = tfc_TF.ui.main._.vb;
-				var pUX = tfc_TF.ui.main._.ux;
-				if (a == 'home') {
-					vb.setTab('home');
-				} else if (a.indexOf('dashboard') == 0) {
-					var _d = tfc_TF.ui.main._.d;
-					var ux = _d.ux;
-					if (ux && !f) {
-						var s = pUX.sendMessageToChild('FORMDASHBOARD', { type: "query", cmd: "uistate" });
-						if (s.busy) {
-							tfc_TF.u.message.show('confirm-deny', 'Dashboard', 'The dashboard is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
-								action: function (ba) {
-									if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
-									else tfc_TF.ui.main._.vb.setTab('dashboard');
-								}
-							});
-							return false;
-						}
-					}
-					if (a == 'dashboard') {
-						if (d.id) {
-							if (ux) {
-								var id = _d.getIndx(d.id);
-								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
-								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
-							} else _d.id = d.id;
-							vb.setTab('dashboard');
-						}
-					} else if (a == 'dashboard-create') {
-						tfc_TF.u.message.show('confirm', 'Dashboard', 'Create new dashboard.');
-						vb.setTab('dashboard');
-					} else if (a == 'dashboard-manage') {
-						if (d.id) {
-							if (ux) {
-								var id = _d.getIndx(d.id);
-								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "resetuistate" });
-								pUX.sendMessageToChild('FORMDASHBOARD', { type: "action", cmd: "loadreport", reportnum: id });
-							} else _d.id = d.id;
-							_d.gotoList = true;
-							vb.setTab('dashboard');
-						}
-					}
-				} else if (a == 'manage') {
-					if (d.id) {
-						var _m = tfc_TF.ui.main._.m;
-						var ux = _m.ux;
-						if (ux) {
-							if (!f) {
-								var s = pUX.sendMessageToChild('FORMBROWSER', { type: "query", cmd: "uistate" });
-								if (s.busy) {
-									tfc_TF.u.message.show('confirm-deny', 'Manager', 'The form manger is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
-										action: function (ba) {
-											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
-											else tfc_TF.ui.main._.vb.setTab('manage');
-										}
-									});
-									return false;
-								}
-							}
-
-							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "resetuistate" });
-							pUX.sendMessageToChild('FORMBROWSER', { type: "action", cmd: "loadformtype", formid: d.id });
-						} else _m.id = d.id;
-						vb.setTab('manage');
-					}
-				} else if (a == 'form-design') {
-					if (d.id) {
-						var _b = tfc_TF.ui.main._.b;
-						var ux = _b.ux;
-						if (ux) {
-							if (!f) {
-								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
-								if (s.busy) {
-									tfc_TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
-										action: function (ba) {
-											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
-											else tfc_TF.ui.main._.vb.setTab('designer');
-										}
-									});
-									return false;
-								}
-							}
-							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
-							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "loadformtype", formid: d.id });
-						} else {
-							_b.id = d.id;
-							_b.mode = 'edit';
-						}
-						vb.setTab('designer');
-					}
-				} else if (a == 'form-create') {
-					var _b = tfc_TF.ui.main._.b;
-					if (d.create) {
-						var ux = _b.ux;
-						if (ux) {
-							if (!f) {
-								var s = pUX.sendMessageToChild('FORMBUILDER', { type: "query", cmd: "uistate" });
-								if (s.busy) {
-									tfc_TF.u.message.show('confirm-deny', 'Designer', 'The form designer is currently in a unsaved state. Would you like to overwrite any unsaved data?', {
-										action: function (ba) {
-											if (ba == 'confirm') tfc_TF.ui.main.action(a, d, true);
-											else tfc_TF.ui.main._.vb.setTab('designer');
-										}
-									});
-									return false;
-								}
-							}
-							pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "resetuistate" });
-							if (d.from == 'blank') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: '' });
-							else if (d.from == 'copy') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addformtype", formid: d.id });
-							else if (d.from == 'template') pUX.sendMessageToChild('FORMBUILDER', { type: "action", cmd: "addtemplateformtype" });
-						} else {
-							_b.mode = 'create';
-							_b.from = d.from;
-							_b.id = d.id;
-						}
-						vb.setTab('designer');
-					} else {
-						if (!_b.t) {
-							_b.t = new A5.Transient({
-								theme: tfc_TF.theme,
-								content: {
-									type: 'html',
-									html: ''
-								},
-								layout: 'main',
-								layouts: {
-									'main': {
-										stretch: 'none',
-										animation: { show: { type: 'fade' }, hide: { type: 'fade' } },
-										location: 'flyout-center',
-										offset: { major: 4 }
-									}
-								},
-								onShow: function () {
-									var p = tfc_TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
-									p.lock('', true);
-								},
-								onHide: function () {
-									var p = tfc_TF.ui.main._.ux.panelGet('TRANSFORM_HOME');
-									p.unlock();
-								}
-							});
-							var tEle = _b.t.getElement('top');
-							tEle.style.zIndex = '1000';
-							var id = _b.t.getElement('content').id;
-
-							_b.tVB = new A5.ViewBox(id, { mode: 'main' }, {
-								icons: {
-									ai: A5.u.icon.html('svgIcon=#alpha-icon-ai:icon'),
-									template: A5.u.icon.html('svgIcon=#alpha-icon-folderOpen:icon'),
-									copy: A5.u.icon.html('svgIcon=#alpha-icon-docDuplicate:icon'),
-									blank: A5.u.icon.html('svgIcon=#alpha-icon-docAdd:icon'),
-									children: A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon'),
-								},
-								buttons: {
-									back: A5.buttons.html(id + '.COPY.BACK', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="back"'),
-									cancel: A5.buttons.html(id + '.CANCEL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-chevronLeft:icon' }, 'a5-item="cancel"'),
-								},
-								layout: 'main',
-								layouts: {
-									'main': {
-										type: 'static',
-										html: function () {
-											var html = [];
-											var idp = this.contId + '.';
-											var fStyle = ' style="display: flex; flex-direction: row; align-items: center;"';
-											html.push('<div class="TFTileAddMenu" style="display: flex; flex-direction: column;">');
-											var liEvnts = ' onmouseenter="A5.u.element.cls(this,\'+=listItemHover\')" onmouseleave="A5.u.element.cls(this,\'-=listItemHover\')"';
-											if (this.data.mode == 'copy') {
-												html.push('<div class="listItemTitle"' + fStyle + '>');
-												html.push(this.buttons.back);
-												html.push('<div>&nbsp;Select Form Type</div>')
-												html.push('</div>');
-												html.push('<div style="flex: 1 1 0%; overflow: auto;">');
-												var ft = tfc_TF.ui.home._.vb.data.forms.types;
-												var fti = null;
-												for (var i = 0; i < ft.length; i++) {
-													fti = ft[i];
-													html.push('<div id="' + idp + 'COPY.' + i + '" a5-item="create:' + fti.id + '" a5-value="copy" class="listItem"' + liEvnts + '>' + fti.name + '</div>');
-												}
-												html.push('</div>');
-
-											} else {
-
-												html.push('<div>');
-												html.push('<div class="listItemTitle"' + fStyle + '>');
-												html.push(this.buttons.cancel);
-												html.push('<div>&nbsp;Add Form Type</div>')
-												html.push('</div>');
-												if (tfc_TF._.beta()) {
-													html.push('<div id="' + idp + 'AI" a5-item="create" a5-value="ai" class="listItem"' + fStyle + liEvnts + '>' + this.icons.ai + '<div><span class="TFAIFont">AI</span> Form Builder &nbsp;&nbsp;<span class="TFFormItemDescData">BETA</span></div></div>');
-												}
-												html.push('<div id="' + idp + 'TEMPLATE" a5-item="create" a5-value="template" class="listItem"' + fStyle + liEvnts + '>' + this.icons.template + '<div>New from Template</div></div>');
-												html.push('<div id="' + idp + 'BLANK" a5-item="create" a5-value="blank" class="listItem"' + fStyle + liEvnts + '>' + this.icons.blank + '<div>Blank Form Type</div></div>');
-												html.push('<div id="' + idp + 'COPY" a5-item="copy" class="listItem"' + fStyle + liEvnts + '>' + this.icons.copy + '<div style="flex: 1 1 auto;">Copy Existing</div>' + this.icons.children + '</div>');
-												html.push('</div>');
-											}
-											html.push('</div>');
-											return html.join('');
-										}
-									}
-								},
-								items: {
-									'create': {
-										onClick: function (v, ia) {
-											if (v == 'blank') tfc_TF.ui.main.action('form-create', { create: true, from: 'blank' });
-											else if (v == 'template') tfc_TF.ui.main.action('form-create', { create: true, from: 'template' });
-											else if (v == 'copy') tfc_TF.ui.main.action('form-create', { create: true, from: 'copy', id: ia });
-											else if (v == 'ai') tfc_TF.ui.ai.form.start();
-											tfc_TF.ui.main._.b.t.hide();
-
-										}
-									},
-									'copy': {
-										onClick: function () {
-											this.data.mode = 'copy';
-											this.refresh();
-											tfc_TF.ui.main._.b.t.refresh();
-										}
-									},
-									'back': {
-										onClick: function () {
-											this.data.mode = 'main';
-											this.refresh();
-											tfc_TF.ui.main._.b.t.refresh();
-										}
-									},
-									'cancel': {
-										onClick: function () {
-											tfc_TF.ui.main._.b.t.hide();
-										}
-									}
-								}
-							});
-
-						}
-						_b.tVB.populate({ mode: 'main' });
-						_b.t.show(tfc_TF.ui.home._.vb.contId + '.FORMS.CREATE');
-					}
-				} else if (a == 'form-fill') {
-					tfc_TF.u.filler.start('create', d.id, {
-						onCommit: function (m, id, s) {
-							if (m == 'create') {
-								var vb = tfc_TF.ui.home._.vb;
-								var indx = -1;
-								var ft = vb.data.forms.types;
-								for (var i = 0; i < ft.length; i++) {
-									if (ft[i].id == id) {
-										indx = i;
-										break;
-									}
-								}
-								if (indx != -1) {
-									var ele = $(vb.contId + '.FORMS.' + indx + '.COUNT');
-									var count = String(ele.innerText).toNumber() + 1 || 1;
-									if (count > 99) count = '99+';
-									ele.innerText = count;
-									vb.badgeUpdated(vb.contId + '.FORMS.' + indx + '.COUNT', 1);
-								}
-							}
-						}
-					});
-				}
-				return true;
-			}
-		},
-		// AI
-		ai: {
-			form: {
-				_: { ele: false },
-				start: function () {
-					if (!this._.ele) {
-						var ele = document.createElement('div');
-						ele.id = 'TF.AI.FORM';
-						ele.className = 'TFModal';
-						A5.u.element.style(ele, 'display: none; z-index: 49;');
-						ele.innerHTML = [
-							'<div class="TFModalPanel" style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;">',
-							'<div class="TFModalPanelHeader">',
-							'<div style="flex: 1 1 auto;"><span class="TFAIFont">AI</span> Form Builder</div>',
-							A5.buttons.html('TF.AI.FORM.SAVE', { theme: tfc_TF.theme, html: 'Save', icon: 'svgIcon=#alpha-icon-save:icon' }),
-							A5.buttons.html('TF.AI.FORM.CLOSE', { theme: tfc_TF.theme + ':deny', html: 'Cancel', icon: 'svgIcon=#alpha-icon-x:icon' }, 'onclick="this.parentNode.parentNode.parentNode.style.display = \'none\';"'),
-							'</div>',
-							'<div id="TF.AI.FORM.BUILDER" style="flex: 1 1 auto"></div>',
-							'</div>'
-						].join('');
-						document.body.appendChild(ele);
-						this._.ele = ele;
-
-						A5.component.runGenericComponent({
-							dialog2Div: 'TF.AI.FORM.BUILDER',
-							dialog2Name: 'transformAIFormBuilder01',
-							type: 'dialog2',
-							alias: 'TF_AI_FB',
-							workingMessage: '<div class="TFWorkingMessage">Loading...</div>'
-						});
-						$e.add('TF.AI.FORM.SAVE', A5.d.evnts.click, function () {
-							tfc_TF.ui.ai.form._.ux
-							var pUX = tfc_TF.ui.main._.ux;
-							var cmds = pUX.sendMessageToChild('TF_AI_FB', { type: "action", cmd: "getDefinition" });
-							if (cmds) {
-								// DLG1_DlgObj.getControl('formslist')._data[0].formdata
-								tfc_TF.u.message.show('prompt-cancel', 'Save Form', 'Please enter the ID you would like to use for the form.', {
-									action: function (a, id) {
-										if (a == 'confirm') {
-											var fd = {
-												id: id,
-												version: 1,
-												display: {
-													name: id,
-													color: { main: '', text: '' },
-													icon: '',
-													templates: {
-														heading: '',
-														listing: '',
-														printing: ''
-													}
-												},
-												data: {
-													preview: {},
-													instance: {
-														init: '',
-														status: ''
-													}
-												},
-												settings: { generation: 2 },
-												security: { statusRoleGroup: '' },
-												tpl: { code: '' },
-												cmds: cmds
-											};
-											tfc_TF.u.message.show('wait', 'Creating Form', 'Please wait while the form is created.', { id: 'ai-form-save-wait' });
-											tfc_TF.request('update-form-defs', { create: [fd] }).then(function () {
-												tfc_TF.u.message.hide('ai-form-save-wait');
-												$('TF.AI.FORM').style.display = 'none';
-												tfc_TF.ui.home._.vb.getStructure();
-											}).catch(function () {
-												tfc_TF.u.message.hide('ai-form-save-wait');
-												tfc_TF.u.message.show('confirm', 'Error', 'Form was unable to be saved.');
-											});
-										}
-									}
-								})
-							}
-						});
-						$e.add(window, 'resize', function () { $e.execute('TF.AI.FORM.BUILDER', 'a5resize'); });
-					}
-					this._.ele.style.display = '';
-				},
-				builder: {
-					init: function (ux) {
-						tfc_TF.ui.ai.form._.ux = ux;
-						var pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'body');
-						var ele = $(pId);
-						var html = [
-							'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style=""></iframe></div>',
-							'<div class="TFAIBuilderPreviewShownHide" style="position: absolute; top: 5px; left: 5px;">',
-							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.HIDE', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }),
-							'</div>'
-						];
-						ele.innerHTML = html.join('');
-						//'<div><iframe id="TF.AI.FORM.BUILDER.FILLER" style="" /></div>';
-						ele.className = 'TFAIBuilderPreview';
-						ele.parentNode.className = 'TFAIBuilderPreviewPanel';
-
-						ele = $('TF.AI.FORM.BUILDER.FILLER');
-						$e.add(ele, 'load', function (e, ux) {
-							var iEle = this;
-							if (typeof ux != 'undefined' && ux.f && typeof ux.f.fillerembedIFRAMELoaded != 'undefined') setTimeout(function () { ux.f.fillerembedIFRAMELoaded(iEle) }, 0);
-						}, ux);
-						pId = ux.panelGetId('AI_BUILDER_CHAT', 'footer');
-						html = [
-							'<div class="TFAIBuilderChatCmdBar" style="">',
-							'<div>',
-							'<div>',
-							A5.buttons.html('TF.AI.FORM.BUILDER.REVERT', { theme: tfc_TF.theme, layout: 'text icon', html: 'Revert', icon: 'svgIcon=#alpha-icon-triUpSolid:icon', style: 'text-align: right; width: 100%;' }),
-							'</div>',
-							'<div>',
-							A5.buttons.html('TF.AI.FORM.BUILDER.RESTORE', { theme: tfc_TF.theme, layout: 'text icon', html: 'Restore', icon: 'svgIcon=#alpha-icon-triDownSolid:icon', style: 'text-align: right; width: 100%;' }),
-							'</div>',
-							'</div>',
-							'<div style="flex: 1 1 auto;">',
-							'<textarea id="TF.AI.FORM.BUILDER.INPUT" class="edit" style="resize: none; width: 100%; height: 100%; box-sizing: border-box;" placeholder="Type your instructions here..." onkeydown="if(!event.shiftKey && event.key == \'Enter\' && this.value.trim() != \'\'){ $e.stopEvent(event); doCreateForm(); }"></textarea>',
-							'</div>',
-							'<div>',
-							A5.buttons.html('TF.AI.FORM.BUILDER.SEND', { theme: tfc_TF.theme, html: 'Send', icon: 'svgIcon=#alpha-icon-paperPlaneSolid:icon', style: 'height: 100%;' }, 'onclick="if($(\'TF.AI.FORM.BUILDER.INPUT\').value.trim() != \'\') doCreateForm();"'),
-							'</div>',
-							'</div>'
-						];
-						ele = $(pId);
-						ele.innerHTML = html.join('');
-						ele.className = 'TFDockFooter';
-
-						$e.add('TF.AI.FORM.BUILDER.REVERT', A5.d.evnts.click, ux.f.doRevert);
-						$e.add('TF.AI.FORM.BUILDER.RESTORE', A5.d.evnts.click, ux.f.doRestore);
-
-						var p = ux.panelGet('AI_BUILDER_CHAT');
-						p.setDisplay('footer', true);
-
-						pId = ux.panelGetId('AI_BUILDER_PREVIEW', 'footer');
-						html = [
-							'<div style="display: flex; flex-direction: row; gap: 4px; padding: 4px;">',
-							'<div style="flex: 1 1 auto;"></div>',
-							'<div>',
-							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.PHONE', { theme: tfc_TF.theme + ':subtle', html: 'Phone', icon: 'svgIcon=#alpha-icon-devicePhone:icon' }),
-							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.TABLET', { theme: tfc_TF.theme + ':subtle', html: 'Tablet', icon: 'svgIcon=#alpha-icon-deviceTablet:icon' }),
-							'&nbsp;',
-							A5.buttons.html('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-arrowCounterClockwise:icon', 'id="TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON"') }),
-							'</div>',
-							'<div style="flex: 1 1 auto;"></div>',
-							'</div>'
-						];
-						ele = $(pId);
-						ele.innerHTML = html.join('');
-						ele.className = 'TFDockFooter';
-						p = ux.panelGet('AI_BUILDER_PREVIEW');
-						p.setDisplay('footer', true);
-
-						p = ux.panelGet('AI_BUILDER');
-						$e.add('TF.AI.FORM.BUILDER.PREVIEW.HIDE', A5.d.evnts.click, function (e, ci) {
-							ci.hideDock();
-						}, p);
-						$e.add('TF.AI.FORM.BUILDER.PREVIEW.PHONE', A5.d.evnts.click, function () {
-							var p = tfc_TF.ui.ai.form.builder.preview;
-							if (p.active.device != 'phone') {
-								p.active.device = 'phone';
-								p.refresh();
-							}
-						});
-						$e.add('TF.AI.FORM.BUILDER.PREVIEW.TABLET', A5.d.evnts.click, function () {
-							var p = tfc_TF.ui.ai.form.builder.preview;
-							if (p.active.device != 'tablet') {
-								p.active.device = 'tablet';
-								p.refresh();
-							}
-						});
-						$e.add('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION', A5.d.evnts.click, function () {
-							var p = tfc_TF.ui.ai.form.builder.preview;
-							p.active.landscape = !p.active.landscape;
-							p.refresh();
-						});
-
-						tfc_TF.ui.ai.form._.p = ux.panelGet('AI_BUILDER');
-
-						ele = $('TF.AI.FORM.BUILDER.CHAT');
-						ele.style.position = 'absolute';
-						A5.u.element.setScroll(ele, 0, 10000);
-
-						this.preview.refresh();
-
-					},
-
-					preview: {
-						active: {
-							device: 'phone',
-							landscape: false
-						},
-						refresh: function () {
-							var p = tfc_TF.ui.ai.form._.p;
-
-							var pd = this.devices;
-							var pa = this.active;
-							var pSize = pd.phone;
-							var ele = $('TF.AI.FORM.BUILDER.FILLER').parentNode;
-							var bpEle = $('TF.AI.FORM.BUILDER.PREVIEW.PHONE');
-							var btEle = $('TF.AI.FORM.BUILDER.PREVIEW.TABLET');
-							var iEle = $('TF.AI.FORM.BUILDER.PREVIEW.ORIENTATION.ICON')
-							if (pa.device == 'tablet') {
-								pSize = pd.tablet;
-								A5.u.element.cls(btEle, '+=buttonPressed');
-								btEle.setAttribute('a5-pressed', 'true');
-								A5.u.element.cls(bpEle, '-=buttonPressed');
-								bpEle.setAttribute('a5-pressed', 'false');
-							} else {
-								A5.u.element.cls(bpEle, '+=buttonPressed');
-								bpEle.setAttribute('a5-pressed', 'true');
-								A5.u.element.cls(btEle, '-=buttonPressed');
-								btEle.setAttribute('a5-pressed', 'false');
-							}
-							if (pa.landscape) {
-								pSize = pSize.l;
-								ele.className = 'TFAIBuilderPreviewLandscape';
-								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(0deg); transition: transform 500ms;}');
-							} else {
-								pSize = pSize.p;
-								ele.className = 'TFAIBuilderPreviewPortrait';
-								A5.u.icon.update(iEle, 'svgIcon=#alpha-icon-arrowCounterClockwise:icon{transform: rotate(90deg); transition: transform 500ms;}');
-							}
-
-							var sAdj = 20;
-							ele.style.maxHeight = (pSize.height + sAdj) + 'px';
-							ele.style.width = (pSize.width + sAdj) + 'px';
-
-							p.panels[1].size = '1064px'; //(pSize.width+sAdj+20)+'px';
-
-							p.refresh();
-						},
-						devices: {
-							phone: {
-								p: { width: 320, height: 600 },
-								l: { width: 600, height: 320 }
-							},
-							tablet: {
-								p: { width: 768, height: 1024 },
-								l: { width: 1024, height: 768 }
-							}
-						}
-					}
-				}
-			}
-		},
-
-		// help dock UI
-		help: {
-			_: { w: null },
-			setMode: function (mode) {
-				if (mode == tfc_TF.state.ui.help.mode) mode = 'docked';
-				var ux = tfc_TF.ui.main._.ux;
-				var uis = tfc_TF.state.ui;
-				var p = ux.panelGet('TRANSFORM');
-				var hp = p.getPanel('TRANSFORM_HELP');
-				var vb = ux.getControl('TRANSFORM_HELP');
-				if (mode == 'pinned') {
-					uis.help.mode = 'pinned';
-					hp.dock = '';
-					uis.dock.type = '';
-					uis.dock.active = false;
-					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
-					$(p.contId + '.DOCKOVERLAY').style.display = 'none';
-					//} else if(mode == 'float'){
-					//	uis.help.mode = 'float';
-					//	hp.show = false;
-					//	$(p.contId+'.DOCKOVERLAY').style.display = 'none';
-					//	this._.w = window.open('about:blank','TFHelp');
-					//	this._.w.onbeforeunload = function(){ this.opener.TF.ui.help._.w = null;}
-					//	p.hideDock();
-				} else {
-					uis.help.mode = 'docked';
-					hp.dock = 'collapse-after';
-					A5.u.element.cls(hp.src.getPanelId(), '-=panelDockAfter');
-				}
-				if (uis.help.mode != 'float' && this._.w) this._.w.close();
-				p.refresh();
-				vb.refresh();
-				tfc_TF.ui.main._.vb.refresh();
-			},
-			html: function (vb) {
-				var html = [];
-				html.push('<div class="TFHelpHeader">');
-				html.push(A5.buttons.html('TF.HELP.PIN', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: (tfc_TF.state.ui.help.mode == 'pinned' ? 'svgIcon=#alpha-icon-unpin:icon' : 'svgIcon=#alpha-icon-pin:icon') }, 'a5-item="mode:pinned"'));
-				html.push('<div style="flex: 1 1 auto;">');
-				html.push('<input class="editPrimary" style="width: 100%; box-sizing: border-box;" placeholder="Search help..."/>');
-				html.push('</div>');
-				html.push(A5.buttons.html('TF.HELP.SEARCH.DO', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-magGlass:icon' }, 'a5-item="search:execute"'));
-				html.push(A5.buttons.html('TF.HELP.SEARCH.CLEAR', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="search:clear"'));
-				html.push('</div>');
-				var ii = null;
-				var co = vb.data.contexts[vb.data.context];
-				if (co) {
-					html.push('<div class="TFHelpContext">');
-					html.push('<div class="TFHelpTitle">' + co.name + '</div>');
-					html.push('<div class="TFHelpGroupTitle">Videos</div>');
-					html.push('<div class="TFHelpGroup">');
-					for (var i = 0; i < co.videos.length; i++) {
-						ii = co.videos[i];
-						html.push('<div id="' + vb.contId + '.CV' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
-					}
-					html.push('</div>');
-					html.push('</div>');
-				}
-				html.push('<div class="TFHelpItem">Documentation</div>');
-				html.push('<div class="TFHelpItem">Release notes</div>');
-
-				html.push('<div class="TFHelpGroupTitle" id="' + vb.contId + '.V" a5-item="toggle:allVideos">All Videos</div>');
-				html.push('<div class="TFHelpGroup" style="' + (vb.data.show.allVideos ? '' : 'display: none; ') + 'overflow: hidden;">');
-				for (var c in vb.data.contexts) {
-					co = vb.data.contexts[c];
-					for (var i = 0; i < co.videos.length; i++) {
-						ii = co.videos[i];
-						html.push('<div id="' + vb.contId + '.V' + i + '" a5-item="video:' + ii.url + '" class="TFHelpItem">' + ii.name + '</div>');
-					}
-				}
-				html.push('</div>');
-
-				html.push('<div class="TFHelpExtra">Version ' + 2 + '</div>');
-
-				return html.join('');
-			}
-		},
-		// user dock UI
-		user: {
-			_: {},
-			init: function (ux) {
-				if (typeof tfc_TF.ui.user._.h == 'undefined') {
-					var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
-					tfc_TF.u.panels.lockable(p);
-					ux.userPreferencesForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.userPreferences, {}, {
-						theme: tfc_TF.theme,
-						item: {
-							label: { style: '' },
-							description: { style: '' }
-						},
-						onStateChange: function (t, d) {
-							if (t == 'isDirty') {
-								tfc_TF.ui.user._.h.setTabDirty('preferences', d.value);
-							}
-						}
-					});
-					var p = ux.panelGet('TRANSFORM_USER_PROFILE');
-					tfc_TF.u.panels.lockable(p);
-					ux.userProfileForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.userProfile, {}, {
-						theme: tfc_TF.theme,
-						item: {
-							label: { style: '' },
-							description: { style: '' }
-						},
-						onStateChange: function (t, d) {
-							if (t == 'isDirty') {
-								tfc_TF.ui.user._.h.setTabDirty('profile', d.value);
-							}
-						}
-					});
-
-					var p = ux.panelGet('TRANSFORM_USER');
-					var ele = $(p.getPanelId('header'));
-					ele.className = 'TFDockPanelHeader';
-					tfc_TF.ui.user._.h = new A5.ViewBox(ele.id, {
-						tab: 'preferences',
-						tabs: [
-							{
-								html: 'Preferences',
-								value: 'preferences',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_USER_PREFERENCES');
-									if (!this.dirty) {
-										var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
-										p.lock('Loading preferences...');
-										tfc_TF.request('get-preferences', { type: 'user' }).then(function (d) {
-											var fd = d.data;
-											if (typeof fd == 'string') fd = JSON.parse(d.data);
-											ux.userPreferencesForm.populate(fd);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								},
-								action: function (t) {
-									var p = ux.panelGet('TRANSFORM_USER_PREFERENCES');
-									if (t == 'commit') {
-										p.lock('Saving preferences...');
-										tfc_TF.request('set-preferences', { type: 'user', data: ux.userPreferencesForm.data }).then(function (d) {
-											ux.userPreferencesForm.setDirty(false);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										p.lock('Loading preferences...');
-										tfc_TF.request('get-preferences', { type: 'user' }).then(function (d) {
-											var fd = d.data;
-											if (typeof fd == 'string') fd = JSON.parse(d.data);
-											ux.userPreferencesForm.populate(fd);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'discard') {
-										ux.userPreferencesForm.setDirty(false);
-									}
-								}
-							},
-							{
-								html: 'Your Profile',
-								value: 'profile',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_USER_PROFILE');
-									if (!this.dirty) {
-										var p = ux.panelGet('TRANSFORM_USER_PROFILE');
-										p.lock('Loading profile...');
-										tfc_TF.request('get-profile', { type: 'user' }).then(function (d) {
-											ux.userProfileForm.populate(d.data);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								},
-								action: function (t) {
-									var p = ux.panelGet('TRANSFORM_USER_PROFILE');
-									if (t == 'commit') {
-										p.lock('Saving profile...');
-										var fd = JSON.stringify(ux.userProfileForm.data);
-										tfc_TF.request('set-profile', { type: 'user', data: fd }).then(function (d) {
-											ux.userProfileForm.setDirty(false);
-											tfc_TF.state.login.user.name = ux.userProfileForm.data.name;
-											tfc_TF._.saveState(true);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										p.lock('Loading profile...');
-										tfc_TF.request('get-profile', { type: 'user' }).then(function (d) {
-											ux.userProfileForm.populate(d.data);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'discard') {
-										ux.userProfileForm.setDirty(false);
-									}
-								}
-							}
-						]
-					}, {
-						context: 'user',
-						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
-						getTab: tfc_TF.u.docks.tabs.getTab,
-						icons: {
-							status: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 10px; height: 10px;}')
-						},
-						buttons: {
-							login: [
-								'<div style="display: flex; flex-direction: row;">',
-								A5.buttons.html('TFUserButtonConfirmLogin', { theme: tfc_TF.theme + ':confirm', html: 'Confirm Login', icon: 'svgIcon=#alpha-icon-checkShield:icon' }, 'a5-item="confirmLogin"'),
-								'<div style="flex: 1 1 auto;"></div>',
-								A5.buttons.html('TFUserButtonLogout', { theme: tfc_TF.theme + ':deny', html: 'Logout', icon: 'svgIcon=#alpha-icon-exit:icon' }, 'a5-item="logout"'),
-								'</div>'
-							].join(''),
-							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
-							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
-							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
-						},
-						layout: 'main',
-						layouts: {
-							'main': {
-								type: 'static',
-								html: function () {
-									var html = [];
-									var d = this.data;
-									var hObj = ux.getControl('TRANSFORM_MASTHEAD');
-									var ed = tfc_TF.state.login.expires;
-									var es = hObj.data.expiresStatus;
-									var loginMsg = '';
-									var iconDot = this.icons.status;
-									var loginMsgCls = '';
-									if (es == 'good') {
-										if (ed.same('day')) {
-											loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('hh:mm') + '.';
-										} else if (ed.same('week')) {
-											loginMsg = iconDot + 'Login will expire ' + ed.toFormat('Weekday') + ' at ' + ed.toFormat('hh:mm') + '.';
-										} else {
-											loginMsg = iconDot + 'Login will expire on ' + ed.toFormat('Month d') + ' at ' + ed.toFormat('hh:mm') + '.';
-										}
-										loginMsgCls = 'TFUserLoginStatusMessageGood';
-									} else if (es == 'expiring') {
-										loginMsg = iconDot + 'Login will expire today at ' + ed.toFormat('h:mm') + '.';
-										loginMsgCls = 'TFUserLoginStatusMessageExpiring';
-									} else {
-										loginMsg = iconDot + 'Login has expired. You must re-confirm login.';
-										loginMsgCls = 'TFUserLoginStatusMessageExpired';
-									}
-
-									html.push('<div class="TFDockHeader">');
-									html.push(this.buttons.login);
-									html.push('<div class="' + loginMsgCls + '">' + loginMsg + '</div>');
-									html.push('</div>');
-									html.push(tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab));
-									return html.join('');
-								}
-							}
-						},
-						items: {
-							'confirmLogin': {
-								selectable: false,
-								onClick: function () {
-									tfc_TF.login('confirm');
-								}
-							},
-							'logout': {
-								selectable: false,
-								onClick: function () {
-									tfc_TF.logout();
-								}
-							},
-							'tab': tfc_TF.u.docks.tabs.items['tab'],
-							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
-						}
-					});
-					p.setDisplay('header', true);
-				} else {
-					tfc_TF.ui.user._.h.refresh();
-				}
-				tfc_TF.ui.user._.h.getTab().onShow();
-			}
-		},
-
-		// account dock UI
-		account: {
-			_: {},
-			init: function (ux) {
-				if (typeof tfc_TF.ui.account._.h == 'undefined') {
-					var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
-					tfc_TF.u.panels.lockable(p);
-					ux.accountPreferencesForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.accountPreferences, {}, {
-						theme: tfc_TF.theme,
-						item: {
-							label: { style: '' },
-							description: { style: '' }
-						},
-						onStateChange: function (t, d) {
-							if (t == 'isDirty') {
-								tfc_TF.ui.account._.h.setTabDirty('preferences', d.value);
-							}
-						}
-					});
-					p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
-					tfc_TF.u.panels.lockable(p);
-					ux.accountProfileForm = new A5.FormBox(p.getPanelId('body'), tfc_TF.forms.accountProfile, {}, {
-						theme: tfc_TF.theme,
-						item: {
-							label: { style: '' },
-							description: { style: '' }
-						},
-						onStateChange: function (t, d) {
-							if (t == 'isDirty') {
-								tfc_TF.ui.account._.h.setTabDirty('profile', d.value);
-							}
-						}
-					});
-					p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
-					tfc_TF.u.panels.lockable(p);
-
-					p = ux.panelGet('TRANSFORM_ACCOUNT');
-					var ele = $(p.getPanelId('header'));
-					ele.className = 'TFDockPanelHeader';
-					tfc_TF.ui.account._.h = new A5.ViewBox(ele.id, {
-						account: { rename: false },
-						tab: 'preferences',
-						tabs: [
-							{
-								html: 'Preferences',
-								value: 'preferences',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_ACCOUNT_PREFERENCES');
-									if (!this.dirty) {
-										var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
-										p.lock('Loading preferences...');
-										tfc_TF.request('get-preferences', { type: 'account' }).then(function (d) {
-											var fd = d.data;
-											if (typeof fd == 'string') fd = JSON.parse(d.data);
-											ux.accountPreferencesForm.populate(fd);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								},
-								action: function (t) {
-									var p = ux.panelGet('TRANSFORM_ACCOUNT_PREFERENCES');
-									if (t == 'commit') {
-										p.lock('Saving preferences...');
-										tfc_TF.request('set-preferences', { type: 'account', data: ux.accountPreferencesForm.data }).then(function (d) {
-											ux.accountPreferencesForm.setDirty(false);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										p.lock('Loading preferences...');
-										tfc_TF.request('get-preferences', { type: 'account' }).then(function (d) {
-											var fd = d.data;
-											if (typeof fd == 'string') fd = JSON.parse(d.data);
-											ux.accountPreferencesForm.populate(fd);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'discard') {
-										ux.accountPreferencesForm.setDirty(false);
-									}
-								}
-							},
-							{
-								html: 'Account Profile', value: 'profile',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_ACCOUNT_PROFILE');
-									if (!this.dirty) {
-										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
-										p.lock('Loading profile...');
-										tfc_TF.request('get-profile', { type: 'account' }).then(function (d) {
-											ux.accountProfileForm.populate(d.data);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								},
-								action: function (t, hide) {
-									if (t == 'commit') {
-										var p = ux.panelGet('TRANSFORM_ACCOUNT_PROFILE');
-										p.lock('Saving profile...');
-										var d = A5.u.object.clone(ux.accountProfileForm.data);
-										tfc_TF.request('set-profile', { type: 'account', data: d }).then(function () {
-											tfc_TF.state.login.account.name = d.name;
-											tfc_TF._.saveState(true);
-											p.unlock();
-											tfc_TF.ui.account._.h.setTabDirty('profile', false);
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										tfc_TF.ui.members.list._.l.getMembersData();
-									} else if (t == 'discard') {
-										tfc_TF.ui.account._.h.setTabDirty('profile', false);
-									}
-								}
-							},
-							{
-								html: 'Billing & Usage', value: 'billingAndUsage',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
-									var p = ux.panelGet('TRANSFORM_ACCOUNT_BILLINGANDUSAGE');
-									p.lock('Loading billing & usage...');
-									tfc_TF.request('get-plan', {}).then(function (d) {
-										ux.getControl('TRANSFORM_BILLING_USAGE').populate(d);
-										p.unlock();
-									}).catch(function () {
-										p.unlock();
-									});
-								}
-							},
-							{
-								html: 'Members', value: 'members', onShow: function () {
-									ux.panelSetActive('TRANSFORM_ACCOUNT_MEMBERS');
-									if (!this.dirty) {
-										var l = tfc_TF.ui.members.list._.l;
-										if (l) l.getMembersData();
-									}
-								},
-								action: function (t) {
-									var po = ux.getChildObject('members');
-									var p = po.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
-									if (t == 'commit') {
-										p.lock('Saving members...');
-										var d = tfc_TF.ui.members.list._.l.generateCRUD();
-										tfc_TF.request('update-members', d).then(function (d) {
-											tfc_TF.ui.members.list._.l.getMembersData();
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										tfc_TF.ui.members.list._.l.getMembersData();
-									} else if (t == 'discard') {
-										tfc_TF.ui.account._.h.setTabDirty('members', false);
-									}
-								}
-							}
-						]
-					}, {
-						context: 'account',
-						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
-						getTab: tfc_TF.u.docks.tabs.getTab,
-						icons: {
-							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
-						},
-						buttons: {
-							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
-							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
-							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
-						},
-						layout: 'main',
-						layouts: {
-							'main': {
-								type: 'static',
-								html: function () {
-									var d = this.data;
-									return tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
-								}
-							}
-						},
-						items: {
-							'tab': tfc_TF.u.docks.tabs.items['tab'],
-							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
-						}
-					});
-					p.setDisplay('header', true);
-				} else {
-					tfc_TF.ui.account._.h.refresh();
-				}
-				tfc_TF.ui.account._.h.getTab().onShow();
-			}
-		},
-
-		members: {
-			init: function (ux) {
-				var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS');
-				tfc_TF.u.panels.lockable(p);
-			},
-			list: {
-				_: {},
-				init: function (ux, l) {
-					var html = [];
-					html.push('<div style="display: flex; flex-direction: row;">');
-					html.push('<div style="display: flex; flex-direction: row; width: 385px;">');
-					html.push(A5.buttons.html('TF.MEMBERS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
-					html.push(A5.buttons.html('TF.MEMBERS.ADD', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Add', icon: 'svgIcon=#alpha-icon-peopleAddSolid:icon' }));
-					html.push(A5.buttons.html('TF.MEMBERS.REMOVE', { theme: tfc_TF.theme + ':deny', style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Remove', icon: 'svgIcon=#alpha-icon-personXSolid:icon' }, '', 'disabled'));
-					html.push(A5.buttons.html('TF.MEMBERS.RESTORE', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Restore', icon: 'svgIcon=#alpha-icon-personInSolid:icon' }, '', 'disabled'));
-					html.push(A5.buttons.html('TF.MEMBERS.SETROLES', { theme: tfc_TF.theme, style: 'flex: 1 1 0%; white-space: nowrap;', html: 'Roles', icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, '', 'disabled'));
-					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITE', { theme: tfc_TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Resend Invite', icon: 'svgIcon=#alpha-icon-envelopeOut:icon' }, '', 'disabled'));
-					html.push(A5.buttons.html('TF.MEMBERS.RESENDINVITECANCEL', { theme: tfc_TF.theme, style: 'white-space: nowrap; width: 125px;', html: 'Cancel Resend', icon: 'svgIcon=#alpha-icon-envelopeIn:icon' }));
-					html.push('</div>');
-					html.push(A5.buttons.html('TF.MEMBERS.EXPORT', { theme: tfc_TF.theme, className: 'button buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-export:icon' }));
-					html.push('<div style="width: 4px;"></div>');
-					html.push('<input id="TF.MEMBERS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
-					html.push('<div style="width: 4px;"></div>');
-					html.push(A5.buttons.html('TF.MEMBERS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
-					html.push(A5.buttons.html('TF.MEMBERS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
-					html.push('</div>');
-
-					//var ele = $('TF.MEMBERS.LISTHEADER');
-					var p = ux.panelGet('TRANSFORM_ACCOUNT_MEMBERS_LIST');
-					var ele = $(p.getPanelId('header'));
-					ele.className = 'TFPanelHeader';
-					ele.innerHTML = html.join('');
-
-					$e.add('TF.MEMBERS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
-					$e.add('TF.MEMBERS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
-					$e.add('TF.MEMBERS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
-					$e.add('TF.MEMBERS.SELECTALL', 'click', function (e, l) {
-						if (l.selection.length != 0) l.setValue(false);
-						else l.setValue({ select: 'all' });
-					}, l);
-					$e.add('TF.MEMBERS.ADD', 'click', function (e, l) { l.inviteMembers(); }, l);
-					$e.add('TF.MEMBERS.REMOVE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(true); }, l);
-					$e.add('TF.MEMBERS.RESTORE', 'click', function (e, l) { if (!this.disabled) l.removeMembers(false); }, l);
-					$e.add('TF.MEMBERS.SETROLES', 'click', function (e, l) { if (!this.disabled) l.setRoles(); }, l);
-					$e.add('TF.MEMBERS.RESENDINVITE', 'click', function (e, l) { if (!this.disabled) l.resendInvite(true); }, l);
-					$e.add('TF.MEMBERS.RESENDINVITECANCEL', 'click', function (e, l) { if (!this.disabled) l.resendInvite(false); }, l);
-					$e.add('TF.MEMBERS.EXPORT', 'click', function () {
-						tfc_TF.ui.members.list._.ux.exportListData('members', {
-							data: 'listData',
-							exportType: 'excel',
-							action: 'download',
-							clientsidefilename: '',
-							maxRecords: -1,
-							onlyexportcolumnsinschema: true,
-							datatransformationjavascript: 'data.state = data._.state; if(data.invite.guid) data.link = location.origin+\'/transformAcceptInvite.a5w?mode=acceptInvite&uid=\'+urlencode(data.userId)+\'&invitationguid=\'+data.invite.guid; ',
-							schema: {
-								userId: { type: 'C', size: 30, columnHeading: 'User ID' },
-								name: { type: 'C', size: 20, columnHeading: 'User Name' },
-								roles: { type: 'C', size: 100, columnHeading: 'User Roles' },
-								state: { type: 'C', size: 20, columnHeading: 'Invitation State' },
-								link: { type: 'C', size: 20, columnHeading: 'Invitation Link' }
-							}
-						});
-					});
-
-					$e.add('TF.MEMBERS.EXPORT', 'mouseenter', function () {
-						tfc_TF.u.flyout.show(this, 'Export visible members to Excel...</div>', { direction: 'vertical-left' });
-					});
-					$e.add('TF.MEMBERS.EXPORT', 'mouseleave', function () { tfc_TF.u.flyout.hide(); });
-
-					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseenter', function () {
-						var html = [
-							'<div style="display: flex; flex-direction: row;">',
-							'<div style="align-self: center;">',
-							A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon{width: 32px; height: 32px;}'),
-							'</div>',
-							'<div class="TFFormItemExtra" style="max-width: 300px; white-space: wrap; text-align: justify;">',
-							'<div>',
-							'A prefix of <span class="TFFormItemDescData">roles:</span> will target the search to roles.',
-							'</div>',
-							'<div style="margin-top: 6px;">',
-							'A prefix of <span class="TFFormItemDescData">state:</span> will filter on the states ',
-							'<span class="TFFormItemDescData">dirty</span>, <span class="TFFormItemDescData">clean</span>, <span class="TFFormItemDescData">deleted</span>, <span class="TFFormItemDescData">pending</span>, <span class="TFFormItemDescData">expired</span>, <span class="TFFormItemDescData">unsent</span> and <span class="TFFormItemDescData">resend</span>.',
-							'</div>',
-							'<div style="margin-top: 6px;">',
-							'For <span class="TFFormItemDescData">roles:</span> and <span class="TFFormItemDescData">state:</span> multiple values are allowed using a <span class="TFFormItemDescData">,</span> as a separator.',
-							'</div>',
-							'</div>',
-							'</div>'
-						]
-						tfc_TF.u.flyout.show(this, html.join(''), { direction: 'vertical-right' });
-					});
-					$e.add('TF.MEMBERS.FILTER.EDIT', 'mouseleave', function () { tfc_TF.u.flyout.hide(); });
-
-					A5.u.element.cls(l.contId, 'TFMembersList TFMembersDragAllow');
-
-					p.setDisplay('header', true);
-					l.refreshToolbar();
-
-					l.sortMenu = new A5.Menu([
-						{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
-						'-',
-						{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
-						{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
-						{ html: 'Date Added Ascending', value: 'invite.added:1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
-						{ html: 'Date Added Descending', value: 'invite.added:-1', icon: 'svgIcon=#alpha-icon-calendarDate:icon' },
-						'-',
-						{ html: 'Unsaved', value: '_.isDirty:-1', icon: 'svgIcon=#alpha-icon-broom:icon' },
-						{ html: 'Pending Members', value: '_.sortP:1', icon: 'svgIcon=#alpha-icon-questionCircle:icon' },
-						{ html: 'Expired Members', value: '_.sortE:1', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }
-					], {
-						theme: tfc_TF.theme,
-						style: 'white-space: nowrap;',
-						onClick: function (i) {
-							var v = i.value.split(':');
-							var l = tfc_TF.ui.members.list._.l;
-							if (v.length > 1) {
-								var dir = v[1].toNumber();
-								l.setOrder([[v[0], dir]]);
-							} else l.setOrder(false);
-						}
-					});
-
-					this._.l = l;
-					this._.ux = ux;
-				}
-			},
-			invite: {
-				html: function (vb) {
-
-					var html = [];
-					var d = vb.data;
-					html.push('<div class="TFFormItemFlex" style="margin-top: 4px;">');
-					html.push('<div class="TFFormItemLabel">Create users without sending invitations</div>');
-					html.push('<div class="TFFormItemContent" style="display: inline-block; width: 60px;">');
-					html.push(A5.switches.html(vb.noInvite || false, { theme: tfc_TF.theme }, ' id="' + this.contId + '.NOINVITE" a5-item="noInvite"'));
-					html.push('</div>');
-					html.push('</div>');
-					if (Array.isArray(d) && d.length > 0) {
-						var di, rk, idp = null;
-						var rm = vb._rm;
-						html.push('<div id="' + vb.contId + '.LIST" style="display: grid; grid-template-columns: 150px 100px' + (vb.noInvite ? ' 100px' : '') + ' 1fr auto auto; grid-column-gap: 4px; row-gap: 4px; margin-top: 4px;">');
-						html.push('<div class="TFFormItemLabel">Email</div>');
-						html.push('<div class="TFFormItemLabel">Name</div>');
-						if (vb.noInvite) html.push('<div class="TFFormItemLabel">Password</div>');
-						html.push('<div class="TFFormItemLabel">Roles</div>');
-						html.push('<div class="TFFormItemLabel"></div>');
-						html.push('<div class="TFFormItemLabel"></div>');
-						var rolesBtn = A5.buttons.html(vb.contId + '.__I__.ROLES', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-personDocSolid:icon' }, 'a5-item="setRoles:__I__"');
-						var remBtn = A5.buttons.html(vb.contId + '.__I__.REMOVE', { theme: tfc_TF.theme + ':deny', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, 'a5-item="remove:__I__"');
-						var re = /__I__/g;
-						for (var i = 0; i < d.length; i++) {
-							di = d[i]
-							idp = vb.contId + '.' + i + '.';
-							html.push('<input id="' + idp + 'email" a5-value-from="' + i + ':email" value="' + di.email + '" spellcheck="false" class="edit' + (tfc_TF.u.re.email.test(di.email) ? '' : ' editError') + '" style="align-self: start;"/>');
-							html.push('<input id="' + idp + 'name" a5-value-from="' + i + ':name" value="' + di.name + '" placeholder="Display name..." spellcheck="false" class="edit' + (di.name.trim() != '' ? '' : ' editError') + '" style="align-self: start;"/>');
-							if (vb.noInvite) html.push('<input id="' + idp + 'pw" a5-value-from="' + i + ':pw" value="' + di.pw + '" ondblclick="this.select();" spellcheck="false" class="edit' + (di.pw != '' ? '' : ' editError') + '" style="align-self: start;"/>');
-							html.push('<div style="flex: 1 1 auto; align-self: center;">');
-							if (di.roles.length == 0) {
-								html.push('<div class="TFFormItemLabel">Click button to select roles...</div>');
-							} else {
-								for (var k = 0; k < di.roles.length; k++) {
-									rk = di.roles[k];
-									html.push('<div class="TFListDataBadge">' + (typeof rm[rk] == 'string' ? rm[rk] : rk) + '</div>');
-								}
-							}
-
-							html.push('</div>');
-							html.push(rolesBtn.replace(re, i));
-							html.push(remBtn.replace(re, i));
-						}
-						html.push('</div>');
-					}
-					html.push('<div style="margin-top: 4px; margin-bottom: 8px;">');
-					html.push('<textarea id="' + vb.contId + '.ADD" a5-value-from="add" onkeyup="if(event.key == \'Enter\'){this.dispatchEvent(new Event(\'change\',{bubbles: true}));}" class="edit" style="width: 100%; resize: none; box-sizing: border-box;" placeholder="Enter or paste email addresses..."></textarea>');
-					html.push('</div>');
-
-					html.push('<div class="TFFormNote">');
-					html.push('<p>');
-					html.push('You may use standard email formatting in the above input. ');
-					html.push('When entering a member by typing in above input, you must hit the ENTER key to add the member. ');
-					html.push('When pasting, you may enter multiple members with one member on each line. ');
-					html.push('</p>');
-					html.push('<p>');
-					html.push('You can select the roles to give each member by clicking the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-personDocSolid:icon') + '</span> button.');
-					html.push('</p>');
-					html.push('<p>');
-					html.push('Once you have entered the members you wish to add to the account you must press the <span class="button" style="display: inline-block;">' + A5.u.icon.html('svgIcon=#alpha-icon-peopleAddSolid:icon') + 'Add Members</span> button to add the members to the account.');
-					html.push('</p>');
-					html.push('</div>');
-					return html.join('');
-
-				}
-			},
-			roles: {
-				_: {},
-				select: function (ele, v, r, c) {
-					if (typeof this._.vb == 'undefined') {
-						this._.t = new A5.Transient({
-							theme: tfc_TF.theme,
-							content: {
-								type: 'html',
-								html: ''
-							},
-							layout: 'main',
-							layouts: {
-								'main': {
-									stretch: 'none',
-									location: ['dropdown-left', 'dropdown-right']
-								}
-							}
-						});
-						var tEle = this._.t.getElement('top');
-						tEle.style.zIndex = '1000';
-						var id = this._.t.getElement('content').id;
-						this._.vb = new A5.ViewBox(id, [], {
-							wrapper: {
-								allow: true,
-								html: [
-									'<div a5-layout-target="true" class="TFListSubtle" style="max-height: 200px; min-width: 200px;"></div>',
-									'<div class="windowButtons">',
-									'<div id="TF.MEMBERS.ROLES.MULTIPLE" style="display: flex; flex-direction: row; padding: 4px; padding-bottom: 0px;">',
-									A5.buttons.html('TF.MEMBERS.ROLES.ADD', { theme: tfc_TF.theme, html: 'Add', style: 'flex: 1 1 0%;' }, 'a5-item="done:add"'),
-									A5.buttons.html('TF.MEMBERS.ROLES.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Remove', style: 'flex: 1 1 0%;' }, 'a5-item="done:remove"'),
-									'</div>',
-									'<div style="display: flex; flex-direction: row; padding: 4px;">',
-									A5.buttons.html('TF.MEMBERS.ROLES.COMMIT', { theme: tfc_TF.theme, html: 'Set Roles', style: 'flex: 1 1 0%;' }, 'a5-item="done:set"'),
-									A5.buttons.html('TF.MEMBERS.ROLES.CANCEL', { theme: tfc_TF.theme + ':subtle', html: 'Cancel', style: 'flex: 1 1 0%;' }, 'a5-item="done:cancel"'),
-									'</div>',
-									'</div>'
-								].join('')
-
-							},
-							scroll: { axis: 'y' },
-							multiple: true,
-							selectionMode: 'additive',
-							allowNullDeselection: true,
-							allowTextSelection: false,
-							layout: 'main',
-							layouts: {
-								'main': {
-									type: 'template',
-									template: [
-										'<div id="' + id + '.{[count]}" a5-item="item" a5-value="{value}" class="listItem listItemSubtle" style="display: flex; flex-direction: row;">',
-										'<div style="align-self: center;">',
-										A5.u.icon.html('svgIcon=#alpha-icon-circle:icon TFCheckboxListUnselected'),
-										A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon TFCheckboxListSelected'),
-										'</div>',
-										'<div style="flex: 1 1 auto; align-self: center; padding-left: 4px;">',
-										'{html}',
-										'</div>',
-										'</div>'
-									].join('')
-								}
-							},
-							items: {
-								'item': {
-									selectable: true,
-									selectedClassName: 'listItemSelected'
-								},
-								'done': {
-									selectable: false,
-									onClick: function (v, ia) {
-										if (ia != 'cancel') this.commit(this.value, ia);
-										tfc_TF.ui.members.roles._.t.hide();
-									}
-								}
-							}
-						});
-					}
-					this._.vb.populate(r);
-					var s = { multiple: false };
-					if (!Array.isArray(v)) {
-						A5.u.object.assign(s, v);
-						v = [];
-					}
-
-					if (s.multiple) $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'flex';
-					else $('TF.MEMBERS.ROLES.MULTIPLE').style.display = 'none';
-
-					this._.vb.setValue(v);
-					this._.t.show(ele);
-					this._.vb.commit = c;
-				}
-			}
-		},
-
-		// dev dock UI
-		dev: {
-			_: { e: {} },
-			init: function (ux) {
-				if (typeof tfc_TF.ui.dev._.h == 'undefined') {
-					var p = ux.panelGet('TRANSFORM_DEVELOPER');
-					var ele = $(p.getPanelId('header'));
-					ele.className = 'TFDockPanelHeader';
-
-					tfc_TF.ui.dev._.h = new A5.ViewBox(ele.id, {
-						tab: 'preferences',
-						tabs: [
-							{
-								html: 'Settings',
-								value: 'preferences',
-								onShow: function () {
-									ux.panelSetActive('TRANSFORM_DEVELOPER_PREFERENCES');
-									if (!this.dirty) {
-										var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
-										p.lock('Loading preferences JSON...');
-										tfc_TF.request('get-preferences', { type: 'developer' }).then(function (d) {
-											var v = d.data;
-											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
-											tfc_TF.ui.dev._.e.p.setValue(v);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								},
-								action: function (t) {
-									var p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
-									if (t == 'commit') {
-										if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev._.e.p.value) !== true) {
-											tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
-											return false;
-										}
-										p.lock('Saving preferences JSON...');
-										tfc_TF.request('set-preferences', { type: 'developer', data: JSON.parse(tfc_TF.ui.dev._.e.p.value) }).then(function (d) {
-											tfc_TF.ui.dev._.e.p.setDirty(false);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									} else if (t == 'cancel') {
-										p.lock('Loading preferences JSON...');
-										tfc_TF.request('get-preferences', { type: 'developer' }).then(function (d) {
-											var v = d.data;
-											if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
-											tfc_TF.ui.dev._.e.p.setValue(v);
-											p.unlock();
-										}).catch(function () {
-											p.unlock();
-										});
-									}
-								}
-							},
-							{
-								html: 'Permissions',
-								value: 'permissions',
-								onShow: function () {
-									ux._currentPermissions = null;
-									ux.panelSetActive('TRANSFORM_DEVELOPER_PERMISSIONS');
-									ux.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
-								},
-								action: function (t) {
-									var pUX = tfc_TF.ui.main._.ux;
-									if (t == 'commit') {
-										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "save" });
-									} else if (t == 'cancel') {
-										pUX.sendMessageToChild('PERMISSIONS', { type: "action", cmd: "load" });
-									}
-								}
-							},
-							{
-								html: 'Dispatch Forms',
-								value: 'dispatch',
-								onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_DISPATCH_FORMS'); },
-							},
-							{
-								title: 'Actions',
-								color: '#fdd5b3',
-								items: [
-									{
-										html: 'Builder', value: 'onsubmit',
-										onShow: function () {
-											ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS');
-											if (!this.dirty) {
-												var po = ux.getChildObject('actionEditor');
-												if (po) po.getActions();
-											}
-										},
-										action: function (t) {
-											var p = tfc_TF.ui.dev.actions._.p;
-											if (t == 'commit') {
-												if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev.actions._.e.value) !== true) {
-													tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
-													return false;
-												}
-												p.lock('Saving actions JSON...');
-												tfc_TF.request('set-preferences', { type: 'actions', data: JSON.parse(tfc_TF.ui.dev.actions._.e.value) }).then(function (d) {
-													tfc_TF.ui.dev.actions._.e.setDirty(false);
-													p.unlock();
-												}).catch(function () {
-													p.unlock();
-												});
-											} else if (t == 'cancel') {
-												var po = ux.getChildObject('actionEditor');
-												if (po) po.getActions();
-											}
-
-										}
-									},
-									{ html: 'Event Log', value: 'onsubmitLog', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ACTIONS_LOG'); } }
-								]
-							},
-							{
-								title: 'Assets',
-								color: '#b0d6fd',
-								items: [
-									{
-										html: 'On Device', value: 'deviceAssets',
-										onShow: function () {
-											ux.panelSetActive('TRANSFORM_DEVELOPER_ASSETS');
-											if (!this.dirty) {
-												if (typeof tfc_TF.ui.dev.assets.list._.l != 'undefined') tfc_TF.ui.dev.assets.list._.l.getAssetsData();
-											}
-										},
-										action: function (t) {
-											if (t == 'commit') {
-												tfc_TF.ui.dev.assets.list._.l.setAssetsData();
-											} else if (t == 'cancel') {
-												tfc_TF.ui.dev.assets.list._.l.getAssetsData();
-											}
-
-										}
-									},
-									{
-										html: 'Policies & Queues',
-										value: 'policiesAndQueues',
-										onShow: function () {
-											ux.panelSetActive('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
-											if (!this.dirty) {
-												var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
-												p.lock('Loading policies & queues JSON...');
-												tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
-													var v = d.data;
-													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
-													tfc_TF.ui.dev._.e.pq.setValue(v);
-													p.unlock();
-												}).catch(function () {
-													p.unlock();
-												});
-											}
-										},
-										action: function (t) {
-											var p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
-											if (t == 'commit') {
-												if (tfc_TF.u.code.lang.json.validate(tfc_TF.ui.dev._.e.pq.value) !== true) {
-													tfc_TF.u.message.show('confirm', 'Syntax Error', 'Invalid JSON.');
-													return false;
-												}
-												p.lock('Saving policies & queues JSON...');
-												tfc_TF.request('set-preferences', { type: 'device-assets-options', data: JSON.parse(tfc_TF.ui.dev._.e.pq.value) }).then(function (d) {
-													tfc_TF.ui.dev._.e.pq.setDirty(false);
-													p.unlock();
-												}).catch(function () {
-													p.unlock();
-												});
-											} else if (t == 'cancel') {
-												p.lock('Loading policies & queues JSON...');
-												tfc_TF.request('get-preferences', { type: 'device-assets-options' }).then(function (d) {
-													var v = d.data;
-													if (A5.u.typeOf(v) == 'object') v = JSON.stringify(v, '', '\t');
-													tfc_TF.ui.dev._.e.pq.setValue(v);
-													p.unlock();
-												}).catch(function () {
-													p.unlock();
-												});
-											}
-										}
-									}
-								]
-							},
-							{
-								title: 'Integrations',
-								items: [
-									{ html: 'API Keys', value: 'apiKeys', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_APIKEYS'); } },
-									{
-										html: 'Connected Apps', value: 'connectedApps',
-										onShow: function () {
-											ux.panelSetActive('TRANSFORM_DEVELOPER_APPS');
-											if (!this.dirty) {
-												if (typeof tfc_TF.ui.dev.apps.list._.l != 'undefined') tfc_TF.ui.dev.apps.list._.l.getConnectedAppsData();
-											}
-										},
-										action: function (t) {
-											if (t == 'commit') {
-												tfc_TF.ui.dev.apps.list._.l.setConnectedAppsData();
-											} else if (t == 'cancel') {
-												tfc_TF.ui.dev.apps.list._.l.getConnectedAppsData();
-											}
-										}
-									},
-									{ html: 'Zapier', value: 'zapier', onShow: function () { ux.panelSetActive('TRANSFORM_DEVELOPER_ZAPIER'); } },
-								]
-							}
-						]
-					}, {
-						context: 'configure',
-						setTabDirty: tfc_TF.u.docks.tabs.setTabDirty,
-						getTab: tfc_TF.u.docks.tabs.getTab,
-						icons: {
-							dirty: A5.u.icon.html('svgIcon=#alpha-icon-circleSolid:icon {width: 7px; height: 7px;}')
-						},
-						buttons: {
-							edit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-edit:icon' }),
-							commit: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonConfirm buttonIcon', icon: 'svgIcon=#alpha-icon-check:icon' }),
-							cancel: A5.buttons.html('', { theme: tfc_TF.theme, className: 'button buttonDeny buttonIcon', icon: 'svgIcon=#alpha-icon-x:icon' })
-						},
-						layout: 'main',
-						layouts: {
-							'main': {
-								type: 'static',
-								html: function () {
-									var d = this.data;
-									return tfc_TF.u.docks.tabs.html(this.contId, d.tabs, d.tab);
-								}
-							}
-						},
-						items: {
-							'tab': tfc_TF.u.docks.tabs.items['tab'],
-							'tab-action': tfc_TF.u.docks.tabs.items['tab-action']
-						}
-					});
-					p.setDisplay('header', true);
-
-					p = ux.panelGet('TRANSFORM_DEVELOPER_PREFERENCES');
-					tfc_TF.u.panels.lockable(p);
-					ele = $(p.getPanelId('body'));
-					ele.innerHTML = '<div id="TF.DEV.PREFERENCES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
-					tfc_TF.ui.dev._.e.p = new tfc_TF.u.code.Editor('TF.DEV.PREFERENCES', {
-						lang: 'json',
-						className: 'TFCodeEditor',
-						margin: {
-							show: true,
-							className: 'TFCodeEditorMargin'
-
-						},
-						onStateChange: function (t, v) {
-							if (t == 'dirty') {
-								tfc_TF.ui.dev._.h.setTabDirty('preferences', v);
-							}
-						}
-					});
-					ele = $(p.getPanelId('header'));
-					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
-					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The preferences are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=otheraccountsettings" target="_blank">here</a>.</div>');
-					html.push(A5.buttons.html('TF.DEV.PREFERENCES.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
-					html.push(A5.buttons.html('TF.DEV.PREFERENCES.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
-					html.push('</div>');
-					ele.innerHTML = html.join('');
-					$e.add('TF.DEV.PREFERENCES.VALIDATE', 'click', function (e) {
-						var json = tfc_TF.ui.dev._.e.p.value;
-						var res = tfc_TF.u.code.lang.json.validate(json);
-						if (res !== true) {
-							tfc_TF.u.message.show('confirm', 'Error', res.message);
-						}
-					});
-					$e.add('TF.DEV.PREFERENCES.REFORMAT', 'click', function (e) {
-						var json = tfc_TF.ui.dev._.e.p.value;
-						json = tfc_TF.u.code.lang.json.reformat(json);
-						tfc_TF.ui.dev._.e.p.setValue(json);
-					});
-					ele.className = 'TFPanelHeader';
-					p.setDisplay('header', true);
-
-					p = ux.panelGet('TRANSFORM_DEVELOPER_PERMISSIONS');
-					tfc_TF.u.panels.lockable(p);
-
-					p = ux.panelGet('TRANSFORM_DEVELOPER_POLICIES_QUEUES');
-					tfc_TF.u.panels.lockable(p);
-					ele = $(p.getPanelId('body'));
-					ele.innerHTML = '<div id="TF.DEV.POLICIES_QUEUES"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
-					tfc_TF.ui.dev._.e.pq = new tfc_TF.u.code.Editor('TF.DEV.POLICIES_QUEUES', {
-						lang: 'json',
-						className: 'TFCodeEditor',
-						margin: {
-							show: true,
-							className: 'TFCodeEditorMargin'
-
-						},
-						onStateChange: function (t, v) {
-							if (t == 'dirty') {
-								tfc_TF.ui.dev._.h.setTabDirty('policiesAndQueues', v);
-							}
-						}
-					});
-					ele = $(p.getPanelId('header'));
-
-					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
-					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The policies & queues are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=ondevice%20assets%20policy" target="_blank">here</a>.</div>');
-					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.VALIDATE', { theme: tfc_TF.theme, html: 'Validate', icon: 'svgIcon=#alpha-icon-exclamationTriangle:icon' }));
-					html.push(A5.buttons.html('TF.DEV.POLICIES_QUEUES.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
-					html.push('</div>');
-					ele.innerHTML = html.join('');
-					$e.add('TF.DEV.POLICIES_QUEUES.VALIDATE', 'click', function (e) {
-						var json = tfc_TF.ui.dev._.e.pq.value;
-						var res = tfc_TF.u.code.lang.json.validate(json);
-						if (res !== true) {
-							tfc_TF.u.message.show('confirm', 'Error', res.message);
-						}
-					});
-					$e.add('TF.DEV.POLICIES_QUEUES.REFORMAT', 'click', function (e) {
-						var json = tfc_TF.ui.dev._.e.pq.value;
-						json = tfc_TF.u.code.lang.json.reformat(json);
-						tfc_TF.ui.dev._.e.pq.setValue(json);
-					});
-
-					ele.className = 'TFPanelHeader';
-					p.setDisplay('header', true);
-				} else {
-					tfc_TF.ui.dev._.h.refresh();
-				}
-				tfc_TF.ui.dev._.h.getTab().onShow();
-			},
-			assets: {
-				_: {},
-				init: function (ux) {
-					var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
-					this._.p = p;
-					tfc_TF.u.panels.lockable(p);
-					var pId = p.getPanelId();
-					var ele = $(pId);
-					var fEle = document.createElement('div');
-					fEle.id = 'TF.ASSETS.FORM';
-					fEle.style.display = 'none';
-					fEle.style.zIndex = '5';
-					fEle.className = 'TFOverlayForm';
-					fEle.innerHTML = '<div id="TF.ASSETS.FORM.CONTENT" class="TFForm"></div>';
-					ele.appendChild(fEle);
-					this._.f = new A5.FormBox('TF.ASSETS.FORM.CONTENT', tfc_TF.forms.deviceAssets, {}, {
-						theme: tfc_TF.theme
-					});
-				},
-				getFoldersList: function () {
-					var d = this.list._.l._data;
-					var dtf = null;
-					var res = [];
-					for (var i = 0; i < d.length; i++) {
-						dtf = d[i].targetFolder;
-						if (typeof dtf == 'string' && dtf != '' && res.indexOf(dtf) == -1) res.push(dtf);
-					}
-					res.unshift({ "html": "[Top Level]", "value": "" });
-					return res;
-				},
-				list: {
-					_: {},
-					init: function (ux, l) {
-						var dev = tfc_TF.state.ui.editing.json.lists;
-						var html = [];
-						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px; padding-bottom: 2px;">');
-						html.push('<div class="TFFormItemLabel">Manifest source</div>');
-						html.push('<div id="TF.ASSETS.SRC"><button class="button" style="visibility: hidden;">Button</button></div>');
-						html.push('<input id="TF.ASSETS.SRC.URL" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Specify the URL of the JSON file..." spellcheck="false" />');
-						html.push('</div>');
-						html.push('<div style="display: flex; flex-direction: row;">');
-						html.push('<div style="display: flex; flex-direction: row;">');
-						html.push(A5.buttons.html('TF.ASSETS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
-						html.push(A5.buttons.html('TF.ASSETS.ADD', { theme: tfc_TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
-						html.push(A5.buttons.html('TF.ASSETS.EDIT', { theme: tfc_TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
-						html.push(A5.buttons.html('TF.ASSETS.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Remove', icon: 'svgIcon=#alpha-icon-x:icon' }));
-						html.push(A5.buttons.html('TF.ASSETS.RESTORE', { theme: tfc_TF.theme, html: 'Restore', icon: 'svgIcon=#alpha-icon-docInSolid:icon' }));
-						html.push('</div>');
-						html.push('<div style="width: 4px;"></div>');
-						html.push('<input id="TF.ASSETS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." spellcheck="false" />');
-						html.push('<div style="width: 4px;"></div>');
-						html.push(A5.buttons.html('TF.ASSETS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
-						html.push(A5.buttons.html('TF.ASSETS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
-						if (dev) html.push(A5.buttons.html('TF.ASSETS.JSON.EDIT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-dataJSON:icon' }))
-
-
-						html.push('</div>');
-
-						//var ele = $('TF.ASSETS.LISTHEADER');
-						var p = ux.panelGet('TRANSFORM_DEVICE_ASSETS');
-						var ele = $(p.getPanelId('header'));
-						ele.className = 'TFPanelHeader';
-						ele.innerHTML = html.join('');
-
-						$e.add('TF.ASSETS.SRC.URL', 'change', function (e, l) {
-							var url = $('TF.ASSETS.SRC.URL').value;
-							l.getAssetsFromURL(url);
-							l.setDirty();
-						}, l);
-						$e.add('TF.ASSETS.SRC', 'click', function (e, l) {
-							var v = e.target.value;
-							if (l.source != v) {
-								l.source = v;
-								var iEle = $('TF.ASSETS.SRC.URL');
-								if (v == 'url') {
-									l._localData = [].concat(l._data);
-									l.populate([]);
-									iEle.style.visibility = '';
-									var url = $('TF.ASSETS.SRC.URL').value;
-									if (url != '') l.getAssetsFromURL(url);
-								} else {
-									l.populate(l._localData);
-									iEle.style.visibility = 'hidden';
-								}
-								l.setDirty();
-							}
-						}, l);
-						$e.add('TF.ASSETS.SELECTALL', 'click', function (e, l) {
-							if (l.selection.length != 0) l.setValue(false);
-							else l.setValue({ select: 'all' });
-						}, l);
-
-						$e.add('TF.ASSETS.ADD', 'click', function (e, l) {
-							$('TF.ASSETS.FORM').style.display = '';
-							tfc_TF.ui.dev.assets._.f.populate({
-								mode: 'add',
-								asset: {
-									type: 'file',
-									url: '',
-									version: 1,
-									targetFolder: ''
-								}
-							});
-						}, l);
-						$e.add('TF.ASSETS.EDIT', 'click', function (e, l) {
-							$('TF.ASSETS.FORM').style.display = '';
-							var d = l.selectionData[0];
-							tfc_TF.ui.dev.assets._.f.populate({
-								mode: 'edit',
-								asset: {
-									type: d.type,
-									url: d.url,
-									version: d.version,
-									targetFolder: (typeof d.targetFolder == 'string' ? d.targetFolder : '')
-								}
-							});
-						}, l);
-						$e.add('TF.ASSETS.REMOVE', 'click', function (e, l) {
-							l.removeAssets(true);
-						}, l);
-						$e.add('TF.ASSETS.RESTORE', 'click', function (e, l) {
-							l.removeAssets(false);
-						}, l);
-						$e.add('TF.ASSETS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
-						$e.add('TF.ASSETS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
-						$e.add('TF.ASSETS.SORT', 'click', function (e, l) { if (l.source == 'local') l.sortMenu.show('dropdown', this); }, l);
-						$e.add('TF.ASSETS.JSON.EDIT', 'click', function (e, l) {
-							if (l.source == 'local') {
-								var ld = l._data;
-								var d = [];
-								var di = null;
-								for (var i = 0; i < ld.length; i++) {
-									di = {};
-									A5.u.object.assign(di, ld[i], true, ['*key', '*renderIndex', '*value', '_']);
-									if (ld[i]._.deleted) di._ = { deleted: true, note: 'This asset has been marked for deletion. You can cancel this by setting the deleted property to false.' };
-									d.push(di);
-								}
-								tfc_TF.u.code.editors.json.edit(d, l);
-							}
-						}, l);
-						$e.add('TF.ASSETS.JSON.EDIT', 'mouseenter', function () { tfc_TF.u.flyout.show(this, 'Edit JSON...', {}) });
-						$e.add('TF.ASSETS.JSON.EDIT', 'mouseleave', function () { tfc_TF.u.flyout.hide() });
-
-
-						p.setDisplay('header', true);
-						l.refreshToolbar();
-
-						l.sortMenu = new A5.Menu([
-							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
-							'-',
-							{ html: 'URL Ascending', value: 'url:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
-							{ html: 'URL Descending', value: 'url:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
-							'-',
-							{ html: 'Type Ascending', value: 'type:1', icon: 'svgIcon=#alpha-icon-sortAmountAsc:icon' },
-							{ html: 'Type Descending', value: 'type:-1', icon: 'svgIcon=#alpha-icon-sortAmountDesc:icon' },
-							'-',
-							{ html: 'Version Ascending', value: 'version:1', icon: 'svgIcon=#alpha-icon-sortNumericAsc:icon' },
-							{ html: 'Version Descending', value: 'version:-1', icon: 'svgIcon=#alpha-icon-sortNumericDesc:icon' }
-						], {
-							theme: tfc_TF.theme,
-							style: 'white-space: nowrap;',
-							onClick: function (i) {
-								var v = i.value.split(':');
-								var l = tfc_TF.ui.dev.assets.list._.l;
-								if (v.length > 1) {
-									var dir = v[1].toNumber();
-									l.setOrder([[v[0], dir]]);
-								} else l.setOrder(false);
-							}
-						});
-
-						this._.l = l;
-					}
-				}
-			},
-			apps: {
-				_: {},
-				init: function (ux) {
-					var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
-					this._.p = p;
-					tfc_TF.u.panels.lockable(p);
-					var pId = p.getPanelId();
-					var ele = $(pId);
-					var fEle = document.createElement('div');
-					fEle.id = 'TF.APPS.FORM';
-					fEle.style.display = 'none';
-					fEle.className = 'TFOverlayForm';
-					fEle.innerHTML = '<div id="TF.APPS.FORM.CONTENT" class="TFForm"></div>';
-					ele.appendChild(fEle);
-					this._.f = new A5.FormBox('TF.APPS.FORM.CONTENT', tfc_TF.forms.connectedApps, {}, {
-						theme: tfc_TF.theme
-					});
-				},
-				list: {
-					_: {},
-					init: function (ux, l) {
-						var html = [];
-						html.push('<div style="display: flex; flex-direction: row;">');
-						html.push('<div style="display: flex; flex-direction: row;">');
-						html.push(A5.buttons.html('TF.APPS.SELECTALL', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', html: A5.u.icon.html('svgIcon=#alpha-icon-circle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircle:icon') + A5.u.icon.html('svgIcon=#alpha-icon-checkCircleBorder:icon') }));
-						html.push(A5.buttons.html('TF.APPS.ADD', { theme: tfc_TF.theme, html: 'Add', icon: 'svgIcon=#alpha-icon-add:icon' }));
-						html.push(A5.buttons.html('TF.APPS.EDIT', { theme: tfc_TF.theme, html: 'Edit', icon: 'svgIcon=#alpha-icon-edit:icon' }));
-						html.push(A5.buttons.html('TF.APPS.REMOVE', { theme: tfc_TF.theme + ':deny', html: 'Delete', icon: 'svgIcon=#alpha-icon-x:icon' }));
-
-						html.push('</div>');
-						html.push('<div style="width: 4px;"></div>');
-						html.push('<input id="TF.APPS.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
-						html.push('<div style="width: 4px;"></div>');
-						html.push(A5.buttons.html('TF.APPS.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
-						html.push(A5.buttons.html('TF.APPS.SORT', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-sort:icon' }));
-						html.push('</div>');
-
-						var p = ux.panelGet('TRANSFORM_CONNECTED_APPS');
-						var ele = $(p.getPanelId('header'));
-						ele.className = 'TFPanelHeader';
-						ele.innerHTML = html.join('');
-
-						$e.add('TF.APPS.SELECTALL', 'click', function (e, l) {
-							if (l.selection.length != 0) l.setValue(false);
-							else l.setValue({ select: 'all' });
-						}, l);
-						$e.add('TF.APPS.ADD', 'click', function (e, l) {
-							$('TF.APPS.FORM').style.display = '';
-							var f = tfc_TF.ui.dev.apps._.f;
-							f.editMode = 'create';
-							f.populate({
-								name: '',
-								type: 'amazon-s3',
-								def: {}
-							});
-						}, l);
-						$e.add('TF.APPS.EDIT', 'click', function (e, l) {
-							$('TF.APPS.FORM').style.display = '';
-							var d = l.selectionData[0];
-							var f = tfc_TF.ui.dev.apps._.f;
-							f.editMode = 'edit';
-							f.populate({
-								name: d.name,
-								rename: d.name,
-								type: d.type,
-								def: (d.def ? A5.u.object.clone(d.def) : {})
-							});
-						}, l);
-						$e.add('TF.APPS.REMOVE', 'click', function (e, l) {
-							tfc_TF.u.message.show('confirm-cancel', 'Delete Connection', 'Are you sure you want to delete the specified connection?', {
-								action: function (a) {
-									if (a == 'confirm') {
-										tfc_TF.ui.dev.apps._.p.lock('Removing connection...');
-										var n = [];
-										var d = tfc_TF.ui.dev.apps.list._.l.selectionData;
-										for (var i = 0; i < d.length; i++) {
-											n.push(d[i].name);
-										}
-										tfc_TF.request('remove-connections', { names: n }).then(function (d) {
-											tfc_TF.ui.dev.apps.list._.l.populate(d, false);
-											tfc_TF.ui.dev.apps._.p.unlock();
-										}).catch(function () {
-											tfc_TF.ui.dev.apps._.p.unlock();
-										});
-									}
-								}
-							})
-						}, l);
-						$e.add('TF.APPS.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
-						$e.add('TF.APPS.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
-						$e.add('TF.APPS.SORT', 'click', function (e, l) { l.sortMenu.show('dropdown', this); }, l);
-
-
-						p.setDisplay('header', true);
-						l.refreshToolbar();
-
-						l.sortMenu = new A5.Menu([
-							{ html: 'Clear Sort', value: 'none', icon: 'svgIcon=#alpha-icon-x:icon' },
-							'-',
-							{ html: 'Name Ascending', value: 'name:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
-							{ html: 'Name Descending', value: 'name:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
-							'-',
-							{ html: 'Application Ascending', value: 'application:1', icon: 'svgIcon=#alpha-icon-sortAlphaAsc:icon' },
-							{ html: 'Application Descending', value: 'application:-1', icon: 'svgIcon=#alpha-icon-sortAlphaDesc:icon' },
-						], {
-							theme: tfc_TF.theme,
-							style: 'white-space: nowrap;',
-							onClick: function (i) {
-								var v = i.value.split(':');
-								var l = tfc_TF.ui.dev.apps.list._.l;
-								if (v.length > 1) {
-									var dir = v[1].toNumber();
-									l.setOrder([[v[0], dir]]);
-								} else l.setOrder(false);
-							}
-						});
-
-						this._.l = l;
-					}
-				}
-			},
-			actions: {
-				_: {},
-				init: function (ux) {
-					var p = ux.panelGet('TRANSFORM_ACTIONS');
-					this._.p = p;
-					tfc_TF.u.panels.lockable(p);
-
-					p = ux.panelGet('TRANSFORM_ACTIONS_CODE');
-					tfc_TF.u.panels.lockable(p);
-					ele = $(p.getPanelId('body'));
-					ele.innerHTML = '<div id="TF.DEV.ACTIONS"style="width: 100%; height: 100%; box-sizing: border-box;"></div>';
-					tfc_TF.ui.dev.actions._.e = new tfc_TF.u.code.Editor('TF.DEV.ACTIONS', {
-						lang: 'json',
-						className: 'TFCodeEditor',
-						margin: {
-							show: true,
-							className: 'TFCodeEditorMargin'
-
-						},
-						onStateChange: function (t, v) {
-							if (t == 'dirty') {
-								if (tfc_TF.ui.dev._.h) tfc_TF.ui.dev._.h.setTabDirty('onsubmit', v);
-							}
-						},
-						onChange: function () {
-							clearTimeout(this.pto);
-							this.pto = setTimeout(function () {
-								var json = $('TF.DEV.ACTIONS.CODE').value;
-								var d = null;
-								try {
-									d = JSON.parse(json);
-								} catch (err) {
-									tfc_TF.ui.dev.actions.list._.l.jsonError(err);
-									return false;
-								}
-								if (Array.isArray(d)) {
-									tfc_TF.ui.dev.actions.list._.l.updateData(d);
-								}
-							}, 400);
-						}
-					});
-					ele = $(p.getPanelId('header'));
-					var html = ['<div style="display: flex; flex-direction: row; align-items: center;">'];
-					html.push('<div style="flex: 1 1 auto; padding-left: 4px;">The onsubmit actions are defined using JSON. For help with syntax click <a class="link" href="https://documentation.alphasoftware.com/TransFormDocumentation/index?search=json%20syntax%20for%20onsubmit" target="_blank">here</a>.</div>');
-					html.push(A5.buttons.html('TF.DEV.ACTIONS.REFORMAT', { theme: tfc_TF.theme, html: 'Reformat', icon: 'svgIcon=#alpha-icon-textAlignLeft:icon' }));
-					html.push('</div>');
-					ele.innerHTML = html.join('');
-					$e.add('TF.DEV.ACTIONS.REFORMAT', 'click', function (e, c) {
-						var json = tfc_TF.ui.dev.actions._.e.value;
-						json = tfc_TF.u.code.lang.json.reformat(json);
-						tfc_TF.ui.dev.actions._.e.setValue(json);
-					}, ux);
-					ele.className = 'TFPanelHeader';
-					p.setDisplay('header', true);
-				},
-				list: {
-					_: {},
-					icons: {
-						condition: A5.u.icon.html('svgIcon=#alpha-icon-questionCircle:icon{fill: #2f83a8}')
-					},
-					init: function (ux, l) {
-						this._.l = l;
-						p = ux.panelGet('TRANSFORM_ACTIONS_LIST');
-						tfc_TF.u.panels.lockable(p);
-						ele = $(p.getPanelId('header'));
-						var html = [];
-						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.ADD', { theme: tfc_TF.theme, html: 'Add Action', icon: 'svgIcon=#alpha-icon-add:icon' }));
-						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.REMOVE', { theme: tfc_TF.theme + ':deny', className: 'button buttonDeny buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }));
-						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.UP', { theme: tfc_TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowUp:icon' }));
-						html.push(A5.buttons.html('TF.DEV.ACTIONS.MOVE.DOWN', { theme: tfc_TF.theme + ':icon', layout: 'icon', icon: 'svgIcon=#alpha-icon-arrowDown:icon' }));
-
-						ele.innerHTML = html.join('');
-						$e.add('TF.DEV.ACTIONS.MOVE.ADD', 'click', function (e, c) {
-							var m = tfc_TF.ui.dev.actions.list._.m;
-							if (m._data.length == 0) {
-								var a = c.actions;
-								var items = [];
-								for (var i = 0; i < a.length; i++) items.push({ html: a[i][0], value: i });
-								m.populate(items);
-							}
-							m.show('dropdown', this);
-						}, ux);
-						$e.add('TF.DEV.ACTIONS.MOVE.REMOVE', 'click', function (e) {
-							tfc_TF.u.message.show('confirm-cancel', 'Delete Action', 'Are you sure you would like to delete the selected action?', {
-								action: function (a) {
-									if (a == 'confirm') {
-										var json = tfc_TF.ui.dev.actions._.e.value;
-										var d = JSON.parse(json);
-										var l = tfc_TF.ui.dev.actions.list._.l;
-										var indx = l.selection[0];
-										d.splice(indx, 1);
-										json = JSON.stringify(d, '', '\t');
-										tfc_TF.ui.dev.actions._.e.setValue(json);
-										tfc_TF.ui.dev.actions._.e.setDirty(true);
-										l.setValue(false);
-									}
-								}
-							});
-						});
-						$e.add('TF.DEV.ACTIONS.MOVE.UP', 'click', function (e) {
-							var json = tfc_TF.ui.dev.actions._.e.value;
-							var d = JSON.parse(json);
-							var l = tfc_TF.ui.dev.actions.list._.l;
-							var indx = l.selection[0];
-							A5.u.array.move(d, indx, 'up');
-							json = JSON.stringify(d, '', '\t');
-							tfc_TF.ui.dev.actions._.e.setValue(json);
-							tfc_TF.ui.dev.actions._.e.setDirty(true);
-							l.setValue(indx - 1);
-						});
-						$e.add('TF.DEV.ACTIONS.MOVE.DOWN', 'click', function (e) {
-							var json = tfc_TF.ui.dev.actions._.e.value;
-							var d = JSON.parse(json);
-							var l = tfc_TF.ui.dev.actions.list._.l;
-							var indx = l.selection[0];
-							A5.u.array.move(d, indx, 'down');
-							json = JSON.stringify(d, '', '\t');
-							tfc_TF.ui.dev.actions._.e.setValue(json);
-							tfc_TF.ui.dev.actions._.e.setDirty(true);
-							l.setValue(indx + 1);
-						});
-						ele.className = 'TFPanelHeader';
-						p.setDisplay('header', true);
-						this._.m = new A5.Menu([], {
-							theme: tfc_TF.theme,
-							style: 'white-space: nowrap;',
-							iconColumn: { show: false },
-							onClick: function (i) {
-								var nd = A5.u.object.clone(ux.actions[i.value][2]);
-								var l = tfc_TF.ui.dev.actions.list._.l;
-								var json = tfc_TF.ui.dev.actions._.e.value;
-								var d = JSON.parse(json);
-								if (l.selection.length == 1) d.splice(l.selection[0], 0, nd);
-								else d.push(nd);
-								json = JSON.stringify(d, '', '\t');
-								tfc_TF.ui.dev.actions._.e.setValue(json);
-								tfc_TF.ui.dev.actions._.e.setDirty(true);
-							}
-						})
-					},
-					html: function (d) {
-						var html = [];
-						html.push('<div>');
-						html.push(d.actionName);
-						html.push('</div>');
-
-						if (Array.isArray(d.formIds)) {
-							html.push('<div>');
-							for (var i = 0; i < d.formIds.length; i++) {
-								html.push('<div class="TFListDataBadge">' + d.formIds[i] + '</div>');
-							}
-							html.push('</div>');
-						}
-
-						html.push('<div style="position: absolute; top: 3px; right: 5px; display: flex; flex-direction row; align-items: center; gap: 4px; font: 12px monospace;" onmouseenter="TF.u.flyout.show(this,\'' + (d.condition == 'none' ? 'Action is not conditioned' : 'Action has conditional logic') + '\',{direction: \'horizontal\'});" onmouseleave="TF.u.flyout.hide();">');
-						if (d.condition == 'none') {
-							html.push('<div style="opacity: .15">' + this.icons.condition + '</div>');
-						} else {
-							html.push('<div>' + d.condition.toUpperCase() + '</div>');
-							html.push(this.icons.condition);
-						}
-						html.push('</div>');
-						var ik = Object.keys(d.info);
-						var iki = null;
-						if (ik.length > 0) {
-							html.push('<table>');
-							for (var i = 0; i < ik.length; i++) {
-								iki = ik[i];
-								html.push('<tr>');
-								html.push('<td class="TFFormItemLabel" style="text-align: right; white-space: nowrap;">' + iki + '</td>');
-								html.push('<td>');
-								if (Array.isArray(d.info[iki])) html.push(d.info[iki].join(', '))
-								else html.push(d.info[iki]);
-								html.push('</td>');
-								html.push('</tr>');
-							}
-							html.push('</table>');
-						}
-						return html.join('');
-					}
-				},
-				log: {
-					_: {},
-					init: function (ux, l) {
-						var p = ux.panelGet('TRANSFORM_ACTIONS_LOG');
-						tfc_TF.u.panels.lockable(p);
-						ele = $(p.getPanelId('header'));
-						var html = [];
-						html.push('<div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">');
-						html.push(A5.buttons.html('TF.ACTIONS.LOG.REFRESH', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-refresh:icon', html: 'Refresh' }));
-						html.push(A5.buttons.html('TF.ACTIONS.LOG.EXPORT', { theme: tfc_TF.theme, icon: 'svgIcon=#alpha-icon-export:icon', html: 'Export' }));
-						html.push('<div class="TFFormItemLabel" style="padding-left: 4px;">Group by</div>');
-						html.push('<div id="TF.ACTIONS.LOG.GROUP"></div>');
-						html.push('<input id="TF.ACTIONS.LOG.FILTER.EDIT" class="TFEdit edit" style="flex: 1 1 auto;" placeholder="Quick search..." />');
-						html.push(A5.buttons.html('TF.ACTIONS.LOG.FILTER.CLEAR', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-x:icon' }, '', 'disabled'));
-						html.push(A5.buttons.html('TF.ACTIONS.LOG.GROUP.TOGGLE', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', layout: 'icon', icon: 'svgIcon=#alpha-icon-chevronDown:icon' }, 'a5-state="expanded"', 'disabled'));
-						html.push('</div>');
-						ele.innerHTML = html.join('');
-						$e.add('TF.ACTIONS.LOG.REFRESH', 'click', function (e, c) {
-							c.getActionsLogData();
-						}, ux);
-						$e.add('TF.ACTIONS.LOG.EXPORT', 'click', function (e, c) {
-							var obj = {
-								data: 'listData',
-								exportType: 'excel',
-								action: 'download',
-								clientsidefilename: 'log',
-								maxRecords: -1,
-								decryptfields: false,
-								onlyexportvisibilecolumns: false
-							};
-							c.exportListData('log', obj);
-						}, ux);
-
-						$e.add('TF.ACTIONS.LOG.GROUP.TOGGLE', 'click', function (e) {
-							var l = tfc_TF.ui.dev.actions.log._.l;
-							if (this.getAttribute('a5-state') == 'collapsed') {
-								l.setGroupCollapse(['all'], false);
-								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
-								this.setAttribute('a5-state', 'expanded');
-							} else {
-								l.setGroupCollapse(['all'], true);
-								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = 'rotate(-90deg)';
-								this.setAttribute('a5-state', 'collapsed');
-							}
-						});
-						$e.add('TF.ACTIONS.LOG.FILTER.EDIT', 'keyup', function (e, l) { l.quickSearch(this.value); }, l);
-						$e.add('TF.ACTIONS.LOG.FILTER.CLEAR', 'click', function (e, l) { l.quickSearch(''); }, l);
-						this._.gb = new A5.ButtonList('TF.ACTIONS.LOG.GROUP', [
-							{ html: 'None', value: 'none' },
-							{ html: 'Action', value: 'action' },
-							{ html: 'Errors', value: 'errors' },
-							{ html: 'Form Type', value: 'form' },
-							{ html: 'Form Instance', value: 'instance' },
-							{ html: 'Date', value: 'date' },
-						], {
-							theme: tfc_TF.theme,
-							onClick: function () {
-								var v = this.value[0];
-								var l = tfc_TF.ui.dev.actions.log._.l;
-								var gb = false;
-								var bEle = $('TF.ACTIONS.LOG.GROUP.TOGGLE');
-
-								if (v == 'action') gb = { order: { actionName: 1 }, group: function (d) { return d.actionName; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Action:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
-								else if (v == 'errors') gb = { order: { flagError: -1 }, group: function (d) { return '' + d.flagError; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;">' + (g == 'true' ? 'Errors' : 'Successful') + '</div><div>{indicator}</div></div>'; } } };
-								else if (v == 'form') gb = { order: { formId: 1 }, group: function (d) { return d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Type:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
-								else if (v == 'instance') gb = { order: { formInstanceId: 1 }, group: function (d) { return d.formInstanceId + ' of ' + d.formId; }, header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>Form Instance:</i> ' + g + '</div><div>{indicator}</div></div>'; } } };
-								else if (v == 'date') {
-									gb = {
-										order: { dateTime: -1 },
-										group: function (d) {
-											var dt = d.dateTime;
-											dt = dt.substr(0, 10);
-											return dt;
-										},
-										header: { html: function (g, d) { return '<div style="display: flex; flex-direction: row; align-items: center; padding-right: 1px;"><div style="flex: 1 1 auto;"><i>On:</i> ' + g + '</div><div>{indicator}</div></div>'; } }
-									};
-								}
-								if (gb) {
-									l.layouts['Default'].group.auto = null;
-									gb.className = 'TFListGroup';
-									l.group.auto = [gb];
-									bEle.disabled = false;
-									A5.u.element.cls(bEle, '-=buttonDisabled');
-								} else {
-									l.group.auto = false;
-									bEle.disabled = true;
-									A5.u.element.cls(bEle, '+=buttonDisabled');
-								}
-
-								$('TF.ACTIONS.LOG.GROUP.TOGGLE.ICON').style.transform = '';
-								bEle.setAttribute('a5-state', 'expanded');
-								l.groupBy = v;
-								l.refresh();
-							}
-						});
-						this._.gb.setValue('none');
-						ele.className = 'TFPanelHeader';
-						p.setDisplay('header', true);
-
-						l.group.collapse.allow = 'title';
-						l.group.collapse.auto = false;
-						l.group.collapse.indicator.collapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
-						l.group.collapse.indicator.expand = A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon');
-						this._.l = l;
-					}
-				}
-			}
-		},
-
-		// home page UI
-		home: {
-			_: {},
-			init: function (vb, ux) {
-				var p = ux.panelGet('TRANSFORM_HOME');
-				tfc_TF.u.panels.lockable(p);
-				tfc_TF.ui.home._.vb = vb;
-				vb.getStructure();
-			},
-			html: function (vb, uxId) {
-				var html = [];
-				var sl = tfc_TF.state.login;
-				var bEle = $('TF.HOME.BLOCK');
-				if (sl.state != 'logged-in') {
-					bEle.setAttribute('login-state', (tfc_TF.state.login.state == 'logged-out' ? 'Login required...' : 'Login confirmation required...'));
-					bEle.style.display = '';
-				} else bEle.style.display = 'none';
-
-				var fd = vb.data.forms.types;
-				var dd = vb.data.dashboards.types;
-				var allow = tfc_TF.state.login.account.member.ui.allow;
-				var di = null;
-				var idp = vb.contId + '.';
-				// icons
-				var iconForm = A5.u.icon.html('svgIcon=#alpha-icon-doc:icon {width: 52px; height: 52px;}');
-				var iconDashboard = A5.u.icon.html('svgIcon=#alpha-icon-trendingUp:icon {width: 52px; height: 52px;}');
-				var iconFill = A5.u.icon.html('svgIcon=#alpha-icon-docEdit:icon');
-				var iconData = A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon');
-				var iconFormStatus = A5.u.icon.html('svgIcon=#alpha-icon-infoCircle:icon iconButton');
-				var iconFormDesign = A5.u.icon.html('svgIcon=#alpha-icon-screwdriverAndWrench:icon iconButton');
-				var iconX = A5.u.icon.html('svgIcon=#alpha-icon-xCircle:icon iconButton');
-				var iconGoto = A5.u.icon.html('svgIcon=#alpha-icon-chevronDblRight:icon');
-				var iconCollapse = A5.u.icon.html('svgIcon=#alpha-icon-chevronDown:icon');
-				var iconAdd = A5.u.icon.html('svgIcon=#alpha-icon-add:icon {width: 52px; height: 52px;}');
-
-				// flyout events
-				var getUX = uxId + '_DlgObj.getControl(\'' + vb.variableName + '\')';
-				var foEvnts = 'onmouseenter="' + getUX + '.showFlyout(this);" onmouseleave="' + getUX + '.hideFlyout();"';
-
-
-				// filter
-				var filter = function () { return true; };
-				if (!vb.filter) {
-					vb.filter = { text: '', state: 0 };
-					var iconFilter = A5.u.icon.html('svgIcon=#alpha-icon-x:icon iconButton', 'id="TF.HOME.FILTER.QSICON" a5-item="clearQuickSearch" flyout-type="tip:Clear quick search..." ' + foEvnts);
-					var iconCalendar = A5.u.icon.html('svgIcon=#alpha-icon-calendar:icon iconButton');
-
-					html.push('<div style="display: flex; align-items: center;">');
-					html.push('<div style="flex: 1 1 auto;">');
-					html.push('<input id="TF.HOME.FILTER.QS" placeholder="Quick search..." class="TFEdit edit" onkeyup="var vb = ' + getUX + '.quickSearch(this.value);" /> ');
-					html.push(iconFilter);
-					html.push('</div>');
-					html.push('<div>');
-					html.push(A5.buttons.html('TF.HOME.REFRESH', { theme: tfc_TF.theme + ':subtle', className: 'button buttonSubtle buttonIcon', icon: 'svgIcon=#alpha-icon-refresh:icon' }, 'a5-item="refresh" flyout-type="tip:Refresh account data..." ' + foEvnts));
-					html.push('</div>');
-					html.push('</div>');
-					//html.push(iconCalendar);
-					$('TF.HOME.FILTER').innerHTML = html.join('');
-					html = [];
-
-					$e.add('TF.HOME.ALLTILES', 'scroll', function (e, c) {
-						var cs = A5.u.element.getScroll(this);
-						var ps = c._ps || 0;
-						if (ps == 0 && cs.top != 0) {
-							A5.u.element.cls(this.parentNode, '+=TFTilesBodyScrolled');
-						} else if (cs.top == 0 && ps != 0) {
-							A5.u.element.cls(this.parentNode, '-=TFTilesBodyScrolled');
-						}
-						c._ps = cs.top;
-					}, vb);
-				} else {
-					if (vb.filter.text != '') {
-						filter = function (t, i) {
-							if (i.name.toLowerCase().indexOf(vb.filter.text) == -1) return false;
-							return true;
-						}.bind(this);
-						//if(vb.filter.state != 1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filterOff:icon iconButton');
-						vb.filter.state = 1;
-					} else {
-						//if(vb.filter.state != -1) A5.u.icon.update('TF.HOME.FILTER.QSICON','svgIcon=#alpha-icon-filter:icon iconButton');
-						vb.filter.state = -1;
-					}
-				}
-
-				// header
-				var mrat = '<span class="TFTilesFormInstCallout">form submit</span>';
-				var mra = 0;
-				var dt = null;
-				for (var i = 0; i < fd.length; i++) {
-					dt = new Date(fd[i].times.instance);
-					if (dt > mra) mra = dt;
-				}
-
-				html.push('<div class="TFTilesMainHeaderWelcome">Hello, ' + sl.user.name + '. Welcome to TransForm Central.</div>');
-				html.push('<div>');
-				html.push('You have <span class="TFTilesFormCallout">' + (fd.length == 0 ? 'No' : fd.length) + ' Form Type' + (fd.length != 1 ? 's' : '') + '</span>');
-				if (allow.dashboard) html.push(' and <span class="TFTilesDashboardCallout">' + (dd.length == 0 ? 'No' : dd.length) + ' Dashboard' + (dd.length != 1 ? 's' : '') + '</span>');
-				html.push('.');
-				if (Number(mra) > 0) html.push(' Last activity was a ' + mrat + ' on <span style="font-weight: bold;">' + (mra.same('year', new Date()) ? mra.toFormat('Month x') : mra.toFormat('Month x yyyy')) + '</span> at <span style="font-weight: bold;">' + mra.toFormat('0h:0m') + '</span>.');
-
-				// back to old
-				html.push('<div style="position: absolute; top: 10px; right: 10px; font-size: 12px;">');
-				html.push('<a href="#" onclick="localStorage.removeItem(\'A5.transform\'); if(event.ctrlKey || event.shiftKey) window.open(\'transFormCentralNew_FAST.a5w\'); else location.href = \'transFormCentralNew_FAST.a5w\';" oncontextmenu="$e.stopEvent(event);" class="link" flyout-type="tip:Revert to old TransForm Central..." ' + foEvnts + '>Revert</a>');
-				html.push('</div>');
-				html.push('</div>');
-
-				$('TF.HOME.HEADING').innerHTML = html.join('');
-				html = [];
-
-				// start form tiles
-				var canFill = tfc_TF.state.login.account.member.ui.allow.filler.web;
-				html.push('<div class="TFTileGroup"><div id="' + idp + 'FORMS" a5-item="groupToggle:forms" class="TFTileGroupTitle">Forms<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (tfc_TF.state.ui.home.forms.collapsed ? ' style="display: none;"' : '') + '><div>');
-				for (var i = 0; i < fd.length; i++) {
-					di = fd[i];
-					if (filter('form', di)) {
-						html.push('<div id="' + idp + 'FORM.' + i + '" class="TFTileFlip">');
-						html.push('<div class="TFTile TFTileForm TFTileFront">');
-						html.push('<div class="TFTileMain">');
-						html.push('<div><div class="TFTileIcon">' + (di.icon != '' ? di.icon : iconForm) + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px;"><span id="' + idp + 'FORM.' + i + '.TITLE" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div>');
-						html.push('<div class="TFTileToolbarTR">');
-						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" flyout-type="form:status" flyout-tile="' + i + '" ' + foEvnts + ' a5-item="formStatus:' + i + '">' + iconFormStatus + '</div>');
-						html.push('</div>');
-						html.push('<div id="' + idp + 'FORM.' + i + '.DESIGN" class="TFTileToolbarBR" flyout-type="form:design" flyout-tile="' + i + '" ' + foEvnts + '>');
-						if (allow.design) html.push('<div id="' + idp + 'FORMS.' + i + '.DESIGN" a5-item="formDesign:' + di.id + '">' + iconFormDesign + '</div>');
-						html.push('</div>');
-						if (di.color) html.push('<div class="TFTileFormColor"><div style="background: ' + di.color + ';"></div></div>');
-						html.push('</div>');
-
-						if (di.allow.manage) html.push('<div id="' + idp + 'FORMS.' + i + '.VIEW" a5-item="formView:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">View Instances</div><div id="' + idp + 'FORMS.' + i + '.COUNT" class="TFTileBadge">' + (di.count > 99 ? '99+' : di.count) + '</div></div>');
-						if (canFill && di.allow.fill) html.push('<div id="' + idp + 'FORMS.' + i + '.FILL" a5-item="formFill:' + di.id + '" class="TFTileButton TFTileFormCreate">' + iconFill + '<div class="TFTileButtonText">Fill New Instance</div></div>');
-						html.push('</div>');
-						html.push('<div class="TFTileBack">');
-						html.push('<div class="TFTileFormBack">');
-						html.push('<div>');
-						html.push('<div class="TFTileToolbarTR">');
-						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS" a5-item="formStatus:' + i + '">' + iconX + '</div>');
-						html.push('</div>');
-						html.push('<div a5-item="formStatus:' + i + '" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 28px; text-align: center;"><span id="' + idp + 'FORM.' + i + '.TITLE.BACK" flyout-type="form:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div>');
-						html.push('</div>');
-						html.push('<div id="' + idp + 'FORM.' + i + '.STATUS.LIST" style="display: flex; flex-direction: column; min-height: 100%; flex: 1 1 auto;"></div>');
-						html.push('</div>');
-						html.push('</div>');
-						html.push('</div>');
-					}
-				}
-				if (allow.design) {
-					html.push('<div id="' + idp + 'FORMS.CREATE" a5-item="formCreate" class="TFTileAdd TFTileForm"><div>' + iconAdd + '</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Form<br/>Type</div></div>');
-				}
-
-				html.push('</div></div></div>');
-				// end form tiles
-
-				// start dashboard tiles
-				if (A5.u.typeOf(dd) == 'array' && allow.dashboard) {
-					html.push('<div class="TFTileGroup"><div id="' + idp + 'DASHBORADS" a5-item="groupToggle:dashboards" class="TFTileGroupTitle">Dashboards<div>' + iconCollapse + '</div></div><div class="TFTileGroupTiles"' + (tfc_TF.state.ui.home.dashboards.collapsed ? ' style="display: none;"' : '') + '><div>');
-					for (var i = 0; i < dd.length; i++) {
-						di = dd[i];
-						if (filter('dashboard', di)) {
-							html.push('<div class="TFTile TFTileDash">');
-							html.push('<div class="TFTileMain"><div><div class="TFTileIcon">' + iconDashboard + '</div><div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; padding: 4px 20px;"><span id="' + idp + 'DASH.' + i + '.TITLE" flyout-type="dashboard:name" flyout-tile="' + i + '" ' + foEvnts + '>' + di.name + '</span></div></div></div>');
-							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.VIEW" a5-item="dashboardView:' + di.id + '" class="TFTileButton TFTileDashGoto">' + iconGoto + '<div class="TFTileButtonText">Goto Dashboard</div></div>');
-							html.push('<div id="' + idp + 'DASHBOARDS.' + i + '.MANAGE" a5-item="dashboardManage:' + di.id + '" class="TFTileButton TFTileFormData">' + iconData + '<div class="TFTileButtonText">Linked Data</div></div>');
-							html.push('</div>');
-						}
-					}
-					//html.push('<div id="'+idp+'DASHBORADS.CREATE" a5-item="dashboardCreate" class="TFTileAdd TFTileDash"><div>'+iconAdd+'</div><div style="position: absolute; bottom: 18px; left: 0px; right: 0px;">Add<br/>Dashboard</div></div>');
-					html.push('</div></div></div>');
-				}
-				// end dashboard tiles
-
-				// output HTML
-				html = html.join('');
-				return html;
-			},
-			forms: {
-				info: {
-					html: function (d) {
-						var info = d.info;
-						var html = [];
-						html.push('<div style="flex: 1 1 auto;">');
-						if (info.errors.count > 0) {
-							html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.count + '</div> Errors<br/>');
-							if (info.errors.missingRequired > 0) html.push('<div class="TFTileBadge TFTileBadgeErrors">' + info.errors.missingRequired + '</div> Missing required values<br/>');
-						}
-						var sl = tfc_TF.state.login.account.permissions.statusesList;
-						var sli = null;
-						for (var i = 0; i < sl.length; i++) {
-							sli = sl[i];
-							if (typeof info.status[sli.statusID] == 'number' && info.status[sli.statusID] > 0) {
-								html.push('<div class="TFTileBadge TFTileBadgeStatus">' + (info.status[sli.statusID] > 99 ? '99+' : info.status[sli.statusID]) + '</div> ' + sli.display + '<br/>');
-							}
-						}
-						if (html.length == 0) html.push('<div>No statuses</div>');
-						html.push('</div>');
-						html.push('<div class="TFTileActivity"><div>Last activity:</div><div>' + info.times.instance + '</div></div>');
-						return html.join('');
-					}
-				}
-			}
-		}
-	}
-}
-
-
-
-
-;// ./src/style.ts
-/* harmony default export */ const style = (`
-    body {
-        --json-punctuation:rgb(196, 26, 97);
-        --json-value:rgb(18, 119, 214);
-        --js-keyword: rgba(230, 53, 206, 1);
-        --js-string: rgba(204, 63, 7, 1);
-        --js-num: rgba(61, 206, 162, 1);
-        --js-comment: rgba(10, 180, 81, 1);
-        --js-op: black;
-    }
-
-    .TFCodeJSONBrackets, .TFCodeJSONSep, .TFCodeJSONBool {
-        color: var(--json-punctuation);
-    }
-    
-    .TFCodeJSONStr, .TFCodeJSONNum {
-        color: var(--json-value);
-    }
-
-    .op {
-        color: var(--js-op);
-    }
-
-    .keyword {
-        color: var(--js-keyword); 
-    }
-
-    .str {
-        color: var(--js-string);
-    }
-
-    .num { color: var(--js-num); }
-    .comment { color: var(--js-comment); }
-`);
 
 ;// ./src/index.ts
-
 
 
 
@@ -18848,7 +18726,6 @@ const tfc_TF = {
 window.initialize = initialize;
 window.initTFSelector = initTFSelector;
 window.afterFileUpload = AFTER_FILE_UPLOAD;
-window.TF = tfc_TF;
 window.addEventListener('load', () => {
     let styleNode = document.createElement('style');
     styleNode.innerHTML = style;

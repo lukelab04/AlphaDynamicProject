@@ -28,8 +28,19 @@ define class DynamicLists::ListFilter
 			createFromJSON = DynamicLists::Result.fail("Filter does not have a column name.")
 			end 
 		end if 
+
+		dim colNamePath as p = filter.getProperty("columnName")
+		if colNamePath.getLength() <> 1 then 
+			createFromJSON = DynamicLists::Result.fail("All server-side SQL filters must be top-level.")
+			end
+		end if
+
+		if colNamePath.getIndexed(0).getProperty("tag") <> "object" then 
+			createFromJSON = DynamicLists::Result.fail("All server-side SQL filters must be top-level.")
+			end
+		end if
 		
-		dim maybeColName as c = filter.getProperty("columnName")
+		dim maybeColName as c = colNamePath.getIndexed(0).getProperty("key")
 		if .not. allowedColumnNames.exist(maybeColName) then 
 			createFromJSON = DynamicLists::Result.fail("Column name " + maybeColName + " is unknown.")
 			end 
@@ -221,8 +232,15 @@ define class DynamicLists::QueryHandler
 	end function
 
 	function private convertVal as a (val as a, colName as c)
+		dim dtFmt as c = (new DynamicLists::Environment()).DEFAULT_DATETIME_FMT
 		if columnLookup.exist(colName) then 
-			convertVal = convert_type(val, columnLookup.get(colName).alphaType)
+			dim ty as c = columnLookup.get(colName).alphaType
+
+			if (ty = "t" .or. ty = "d") .and. (typeof(val) = "c") then 
+				convertVal = scantime(val, dtFmt)
+			else
+				convertVal = convert_type(val, columnLookup.get(colName).alphaType)
+			end if
 		end if
 		convertVal = val
 	end function
@@ -399,7 +417,7 @@ define class DynamicLists::QueryHandler
 	
 	function private run as DynamicLists::Result (sql as c, args as sql::arguments)
 		conn.PortableSqlEnabled = .t.
-		conn.JSONDateTimeFormat = "yyyy/MM/dd 0h:0m:0s.3"
+		conn.JSONDateTimeFormat = (new DynamicLists::Environment()).DEFAULT_DATETIME_FMT
 		if conn.execute(sql, args) = .f. then 
 			run = DynamicLists::Result.fail(conn.callResult.text)
 			end
@@ -505,7 +523,10 @@ define class DynamicLists::QueryHandler
 
 			dim filter as extension::json
 			filter.setJson("{}")
-			filter.setProperty("columnName", primaryKey.value)
+
+			dim path as extension::json 
+			path.setJson("[{\"tag\": \"object\", \"key\": \"" + primaryKey.value + "\"}]")
+			filter.setProperty("columnName", path)
 
 			dim columnVal as extension::json 
 			columnVal.setJson("{}")

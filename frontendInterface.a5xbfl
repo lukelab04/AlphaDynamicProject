@@ -43,7 +43,7 @@ function handle_file_download as c (e as p)
 		end 
 	end if 
 	
-	dim result as DynamicLists::Result = fileInteractor.getInner().createExcelFile(stateInfo.currentFilters)
+	dim result as DynamicLists::Result = fileInteractor.getInner().createExcelFile(e, stateInfo.currentFilters)
 	
 	if result.isSuccessful() then 
 		e.fileToDownload = result.getInner()
@@ -94,12 +94,17 @@ function handle_data_upload as v (e as p)
 end function
 
 function pre_file_upload as v (e as p)
-	dim key as c = "DYNAMIC_LIST_CURRENT_DATA"
+	session_set("DYNAMIC_LIST_CURRENT_DATA", e.__listData)
+	session_set("DYNAMIC_LIST_COLUMN_NAMES", e.DYNAMIC_LIST_COLUMN_NAMES)
+	session_set("DYNAMIC_LIST_COLUMN_DISPLAY_NAMES", e.DYNAMIC_LIST_COLUMN_DISPLAY_NAMES)
+end function
+
+function session_set as v (key as c, val as c)
 	if .not. context.session.hasVariable(key) then 
-		context.session.add(key, e.__listData)
+		context.session.add(key, val)
 	else 
-		context.session.DYNAMIC_LIST_CURRENT_DATA = e.__listData
-	end if 
+		context.session.saveData(key, val)
+	end if
 end function
 
 function post_file_upload as c (e as p)
