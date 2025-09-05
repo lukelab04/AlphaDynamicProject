@@ -129,7 +129,7 @@ DIM swapLatLngForMysql as L = .T.
 DIM oauthEvents as P
 DIM oauthEvents.onGotAccessToken as C
 DIM oauthEvents.library as C
-DIM projectStyle as C = "Alpha"
+DIM projectStyle as C = "Alpha Modern"
 DIM projectConnectionString as C
 DIM useDirectPdf as L
 DIM usePhantomJStoConvertToPDF as L = .T.
@@ -339,7 +339,7 @@ DIM publish.library as C
 DIM oneSignal as P
 DIM oneSignal.enable as L
 DIM oneSignal.appid as C
-DIM __token as C = "4884f6aca5234b6f833b01c537df4aea"
+DIM __token as C = "ecaa598915b243999ae1603d0cb3e4ab"
 %txt%
 
 dim gv as p 
@@ -350,10 +350,10 @@ dim gv.__buildNumberExe__ as n
 dim gv.__buildNumberAddins__ as n 
 dim gv.__guid as c 
 dim gv.__A5PublishVersion as n 
-gv.__A5PublishTimestamp = 2025333314133333476
-gv.__buildNumberExe__ = 9909
+gv.__A5PublishTimestamp = 202521210415211359
+gv.__buildNumberExe__ = 9936
 gv.__buildNumberAddins__ = 5725
-gv.__guid = "4e5c75ae-e2e7-497f-8bf7-f94a99038bc8"
+gv.__guid = "6ebe2086-c10b-4591-87b1-a6d6e8733437"
 gv.__control = <<%txtcontrol%
 hV7+2zUTjP0=
 %txtcontrol%

@@ -5454,7 +5454,27 @@ var types = __webpack_require__(876);
 
 const DEFAULT_DATETIME_FMT = "yyyy/MM/dd 0h:0m:0s.3";
 function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+    return "id_" + "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+}
+function deepEq(o1, o2) {
+    if (Array.isArray(o1) && Array.isArray(o2)) {
+        if (o1.length == o2.length)
+            return o1.map((x, i) => deepEq(x, o2[i])).reduce((x, y) => x && y);
+        return false;
+    }
+    else if (typeof o1 == 'object' && typeof o2 == 'object') {
+        const keys = Array.from(new Set(...Object.keys(o1), ...Object.keys(o2)));
+        for (const key of keys) {
+            if (!(key in o1) || !(key in o2))
+                return false;
+            if (!deepEq(o1[key], o2[key]))
+                return false;
+        }
+        return true;
+    }
+    else {
+        return o1 == o2;
+    }
 }
 function safeJsonParse(s) {
     try {
@@ -5533,7 +5553,7 @@ function displayErrorMessage(e) {
     errContainer.style.display = "flex";
     errContainer.style.backgroundColor = "white";
     errContainer.style.flexDirection = "column";
-    errContainer.style.padding = "1rem";
+    errContainer.style.padding = "var(--border-l)";
     errContainer.style.alignItems = "center";
     errContainer.style.border = "2px solid red";
     errContainer.style.fontSize = "1.3rem";
@@ -5542,7 +5562,7 @@ function displayErrorMessage(e) {
 
 ;// ./src/tfc.js
 const TF = {
-	theme: 'Alpha',
+	theme: 'Alpha Modern',
 	url: 'tfc.a5w',
 	_: {
 		saveState: function (refresh) {
@@ -11194,6 +11214,7 @@ const TF = {
 ;// ./src/util/declares.ts
 
 const _A5 = A5;
+const THEME_NAME = "Alpha Modern";
 const declares_TF = TF;
 const _$ = $;
 const _openNewPanel = openNewPanel;
@@ -11209,25 +11230,26 @@ class ReactiveForm {
     }
 }
 class ReactiveFormManager {
-    constructor(root, containerId, obj, injectInto) {
+    constructor(props) {
         this.inject = j => j;
-        this.root = root;
+        this.root = props.root;
         this.fragments = new Map();
-        this.containerId = containerId;
+        this.containerId = props.containerId;
         this.afterRender = [];
         this.formDataUpdateRequests = {};
         this.context = new Map();
-        this.obj = obj;
+        this.obj = props.obj;
         this.changed = false;
+        this.containerStyles = props.formContainerStyles;
         this.formBox = ReactiveFormManager.constructFormBox(this.containerId);
-        if (injectInto)
-            this.inject = injectInto;
+        if (props.injectInto)
+            this.inject = props.injectInto;
         this.render(this.root);
     }
     static constructFormBox(cId) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         const fb = new _A5.FormBox(cId, [], null, {
-            theme: 'Alpha',
+            theme: THEME_NAME,
             item: {
                 label: { style: '' },
                 description: { style: '' }
@@ -11349,6 +11371,10 @@ class ReactiveFormManager {
                 this.afterRender.forEach(f => { f(); });
             };
             this.formBox.load({ form: { items: [form] }, guides: ReactiveFormManager.guides }, oldFormData);
+            let container = document.getElementById(this.formBox.contId + '.CONTENT');
+            if (container && this.containerStyles) {
+                container.style.cssText += this.containerStyles;
+            }
         }, 1);
     }
     hookIntoChangeEvents(f) {
@@ -11398,9 +11424,6 @@ class ReactiveFormManager {
         this.changed = dirty;
     }
     serialize() {
-        return this.root.serialize(this.formBox.data ?? {}).map(v => changeDetectionToRaw(v));
-    }
-    serializeWithChanges() {
         return this.root.serialize(this.formBox.data ?? {});
     }
 }
@@ -11437,20 +11460,6 @@ ReactiveFormManager.guides = {
         /*eslint-enable*/
     }
 };
-function changeDetectionToRaw(c) {
-    if ('raw' in c)
-        return c.raw;
-    else if ('keys' in c) {
-        const out = {};
-        for (const key in c.keys) {
-            out[key] = changeDetectionToRaw(c.keys[key]);
-        }
-        return out;
-    }
-    else {
-        return c.elements.map(x => changeDetectionToRaw(x));
-    }
-}
 
 ;// ./src/list/listAction.ts
 
@@ -11492,11 +11501,7 @@ function executeListAction(list, action, rowData, row) {
             row: rowData
         };
         const filled = _A5.u.template.expand(templateData, { template: tabTemplate });
-        const name = list.dataModel.getUniqueName(action.fromColumn);
-        if (!name)
-            return;
-        const path = list.dataController.getFlatRow(row)[name].path;
-        list.linkSublistToField(action.configurationName, filled, flatIndex ?? 0, path);
+        list.linkSublistToField(action.configurationName, filled, flatIndex ?? 0, action.fromColumn);
     }
 }
 class ListActionEditor extends ReactiveForm {
@@ -11507,34 +11512,29 @@ class ListActionEditor extends ReactiveForm {
     buildForm(m) {
         if (this.data === undefined)
             this.data = { actionName: 'openDetailView' };
-        let defaultSelected;
-        switch (this.data.actionName) {
-            case "openDetailView":
-                defaultSelected = 'Open Detail View';
-                break;
-            case "openLinkedList":
-                defaultSelected = 'Open Linked List';
-                break;
-            case "openJSONSublist":
-                defaultSelected = 'Open JSON Sub-list';
-                break;
-        }
         this.form = new MultiForm({
-            options: ['Open Detail View', 'Open Linked List', 'Open JSON Sub-list'],
-            defaultOption: defaultSelected,
-            chooseForm: selected => {
-                if (selected == 'Open Detail View') {
-                    if (!this.data)
-                        this.data = { actionName: 'openDetailView' };
-                    const d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
-                    return new ObjectForm(d, {
-                        "actionName": () => new ConstForm("openDetailView")
-                    });
+            options: {
+                'openDetailView': {
+                    title: 'Open Detail View',
+                    form: () => {
+                        if (!this.data)
+                            this.data = { actionName: 'openDetailView' };
+                        const d = (this.data.actionName == 'openDetailView') ? this.data : { actionName: 'openDetailView' };
+                        return new ObjectForm(d, {
+                            "actionName": () => new ConstForm("openDetailView")
+                        });
+                    }
+                },
+                'openJSONSublist': {
+                    title: 'Open JSON Sub-list',
+                    form: () => this.jsonSublistForm(m, this.data),
+                },
+                'openLinkedList': {
+                    title: 'Link another list by a field',
+                    form: () => this.linkedListForm(m, this.data)
                 }
-                if (selected == 'Open JSON Sub-list')
-                    return this.jsonSublistForm(m, this.data);
-                return this.linkedListForm(m, this.data);
             },
+            defaultOption: this.data.actionName,
             allowCollapse: false
         });
     }
@@ -11616,7 +11616,7 @@ class ListActionEditor extends ReactiveForm {
     }
     serialize(formData) {
         if (!this.form) {
-            return (0,types.Ok)({ changed: false, raw: this.data });
+            return (0,types.Ok)(this.data);
         }
         else
             return this.form.serialize(formData);
@@ -11651,62 +11651,98 @@ class ConfigForm extends ReactiveForm {
         this.dataModel = model;
         this.nameSuggestor = suggestor;
         this.list = list;
-        let subForm;
         if (this.showEntireConfig) {
-            subForm = new ObjectForm(config, {
-                "name": data => new ConstForm(data),
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-                "onInitialize": (data, i) => new ItemLabel(i, { enabled: data !== undefined, label: "On Initialize", item: new Input({ type: 'function', initialData: data }) }),
-                "dataSource": (dataSource, i) => new ItemLabel(i, {
-                    label: "Data Source",
-                    enclosed: true,
-                    collapsed: true,
-                    launchInTab: "tabs",
-                    item: new ConfigDataSource(dataSource)
-                }),
-                "mappings": (mappings, i) => new ItemLabel(i, {
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    label: "Mappings",
-                    item: new MappingsForm(mappings)
-                }),
-                "dataModel": (dm, i) => new ItemLabel(i, {
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    label: "Data Model",
-                    item: new DataModelForm(dm ?? model.model)
-                }),
-                "searchOptions": (ops, i) => new ItemLabel(i, {
-                    label: "Search Options",
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    item: new SearchOptionsForm(ops),
-                }),
-                "rowOptions": (data, i) => new ItemLabel(i, {
-                    enclosed: true,
-                    collapsed: true,
-                    label: 'Row Options',
-                    item: new ObjectForm(data ?? {}, {
-                        'multiSelect': (d, i) => new LabelBool('Multi-Select', d),
-                        'moveRows': (d, i) => new LabelBool('Move Rows', d)
-                    })
-                }),
-                "buttons": (data, i) => new ItemLabel(i, {
-                    label: "List Buttons",
-                    collapsed: true,
-                    enclosed: true,
-                    launchInTab: "tabs",
-                    item: new ListButtonsForm(data)
-                })
+            this.form = new LayoutTabs({
+                children: {
+                    "data": _ => ({
+                        title: "Data",
+                        icon: "dataXML",
+                        form: new LayoutGrid({
+                            children: [
+                                i => ({
+                                    form: new ItemLabel(i, {
+                                        label: "Data Source",
+                                        enclosed: true,
+                                        collapsed: true,
+                                        item: new ConfigDataSource(config.dataSource)
+                                    })
+                                }),
+                                i => ({
+                                    form: new ItemLabel(i, {
+                                        label: 'Data Model',
+                                        enclosed: true,
+                                        collapsed: true,
+                                        item: new DataModelForm(config.dataModel ?? model.model)
+                                    })
+                                })
+                            ],
+                            styles: "padding: var(--border-m); grid-template-columns: 1fr; gap: var(--border-l);",
+                            serialize: x => (0,types.Ok)(x)
+                        })
+                    }),
+                    "general": _ => ({
+                        title: "General",
+                        icon: 'gear',
+                        form: new LayoutGrid({
+                            children: [
+                                i => ({
+                                    form: new ItemLabel(i, {
+                                        enabled: config.onInitialize !== undefined,
+                                        label: "Initialization Function",
+                                        item: new Input({
+                                            type: 'function',
+                                            initialData: config.onInitialize
+                                        })
+                                    }),
+                                }),
+                                _ => ({ form: new LabelBool('Multi-Select', config.rowOptions?.multiSelect) }),
+                                _ => ({ form: new LabelBool('Move Rows', config.rowOptions?.moveRows) }),
+                            ],
+                            serialize: x => (0,types.Ok)(x),
+                            styles: "grid-template-columns: 1fr 1fr; gap: var(--border-m); padding: var(--border-m);"
+                        })
+                    }),
+                    "mappings": _ => ({
+                        title: "Mappings",
+                        icon: "listBulleted",
+                        form: new MappingsForm(config.mappings)
+                    }),
+                    "searchOptions": _ => ({
+                        title: "Search",
+                        icon: "magGlass",
+                        form: new SearchOptionsForm(config.searchOptions)
+                    }),
+                    "buttons": _ => ({
+                        title: "Buttons",
+                        icon: "addCircleBorder",
+                        form: new ListButtonsForm(config.buttons)
+                    }),
+                },
+                serialize: data => {
+                    let d = data.data;
+                    // Initialization, multi-select, move rows
+                    let general = data.general;
+                    let conf = {
+                        onInitialize: general[0],
+                        buttons: data.buttons,
+                        dataSource: d[0],
+                        mappings: data.mappings,
+                        name: config.name,
+                        searchOptions: data.searchOptions,
+                        version: config.version,
+                        dataModel: d[1],
+                        rowOptions: {
+                            multiSelect: general[1],
+                            moveRows: general[2]
+                        }
+                    };
+                    return (0,types.Ok)(conf);
+                }
             });
         }
         else {
-            subForm = new MappingsForm(config.mappings);
+            this.form = new MappingsForm(config.mappings);
         }
-        this.form = new TabForm("List Configuration", subForm, "tabs");
     }
     setDataModel(m) {
         this.dataModel = m;
@@ -11718,16 +11754,15 @@ class ConfigForm extends ReactiveForm {
         m.setContext(this, ConfigContext.id, new ConfigContext(this.showEntireConfig, this.config, this.obj, this.dataModel, this.nameSuggestor, this.list));
         return {
             type: 'group',
-            id: 'dynamic-form-config-form',
+            container: {
+                className: 'dynamic-form-config-form',
+                style: ';display: flex; flex-direction: column; flex: 1;'
+            },
             items: [this.form]
         };
     }
     serialize(formData) {
-        return this.form.serialize(formData).map(s => {
-            if ('keys' in s)
-                s.keys['version'] = { changed: false, raw: this.config.version };
-            return s;
-        });
+        return this.form.serialize(formData);
     }
 }
 class MappingsForm extends ReactiveForm {
@@ -11767,81 +11802,140 @@ class MappingsForm extends ReactiveForm {
                         enclosed: true,
                         showDelete: true,
                         showMove: true,
-                        item: new ObjectForm(mapping, {
-                            "fullPath": (data, i) => new ItemLabel(i, {
-                                label: "Column",
-                                item: new ColumnSelector(data, dm => dm.allPaths(), false, newPath => observer.notify(newPath)),
-                            }),
-                            "displayName": (data, i) => new StringInput(i, "Display Name", data, true),
-                            "inList": data => new LabelBool("In List", data),
-                            "inDetailView": data => new LabelBool("In Detail View", data),
-                            "readOnly": ctx.viewEntireConfig
-                                ? data => new LabelBool("Read Only", data)
-                                : data => new ConstForm(data),
-                            "dateSettings": dataModelObj.tag == 'data' && dataModelObj.type == 'datetime'
-                                ? (d, i) => new ItemLabel(i, {
-                                    label: 'Date Settings',
-                                    collapsed: true,
-                                    enclosed: true,
-                                    item: new ObjectForm(d ?? {}, {
-                                        "clientFormat": (d, i) => new StringInput(i, "Client Format", d ?? DEFAULT_DATETIME_FMT, true)
-                                    })
-                                })
-                                : (d, i) => new ConstForm(d),
-                            "template": (d, i) => new StringInput(i, "Template", d, true),
-                            "width": (d, i) => new StringInput(i, "Width", d, true),
-                            "jsonEditorType": dataModelObj.tag == 'array' || dataModelObj.tag == 'object'
-                                ? (d, i) => new ItemLabel(i, {
-                                    label: "JSON Editor Type",
-                                    item: new DropdownForm({
-                                        defaultValue: d ?? 'text',
-                                        options: [{ text: 'Text', value: 'text' }, { text: 'List', value: 'list' }],
-                                    })
-                                })
-                                : (d, i) => new ConstForm(d),
-                            "jsonEditorListConfigName": (d, i) => new ObserverForm(jsonTypeObserver, mapping.jsonEditorType ?? 'text', type => {
-                                if ((dataModelObj.tag == 'array' || dataModelObj.tag == 'object') && type == 'list') {
-                                    let blankName = ctx.config.name + '_' + ctx.dataModel.getUniqueName(mapping);
-                                    return new StringInput(i, 'JSON Editor List Config Name', d ?? blankName);
-                                }
-                                return new ConstForm(d);
-                            }),
-                            "dropdownConfig": dataModelObj.tag == 'data' && dataModelObj.type == 'dropdown'
-                                ? (d, i) => new ItemLabel(i, {
-                                    label: 'Dropdown Config',
-                                    item: new MultiForm({
-                                        defaultOption: ('fromColumn' in (d ?? {})) ? 'Column' : 'Values',
-                                        options: ['Column', 'Values'],
-                                        chooseForm: chosen => chosen == 'Column'
-                                            ? new ObjectForm(d ?? { choices: [] }, {
-                                                "choices": (c, i) => new ItemLabel(i, {
-                                                    label: 'Choices',
-                                                    collapsed: true,
-                                                    enclosed: true,
-                                                    item: new ArrayForm(c, (choice, i) => new StringInput(i, "Choice", choice), () => "")
-                                                }),
-                                                "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                        item: new LayoutGrid({
+                            styles: 'grid-template-columns: 1fr 1fr 1fr; align-items: start; grid-auto-rows: auto; gap: var(--border-l);',
+                            serialize: x => {
+                                return (0,types.Ok)({
+                                    fullPath: x[0],
+                                    displayName: x[1],
+                                    inList: x[2],
+                                    inDetailView: x[3],
+                                    template: x[4],
+                                    width: x[5],
+                                    readOnly: x[6],
+                                    dateSettings: x[7],
+                                    jsonEditorType: x[8],
+                                    jsonEditorListConfigName: x[9],
+                                    dropdownConfig: x[10]
+                                });
+                            },
+                            children: [
+                                i => ({
+                                    form: new ItemLabel(i, {
+                                        label: "Column",
+                                        item: new ColumnSelector(mapping.fullPath, dm => dm.allPaths(), false, newPath => observer.notify(newPath)),
+                                    }),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 2; min-height: 55px;',
+                                    form: new StringInput(i, "Display Name", mapping.displayName, true),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 2;',
+                                    form: new LabelBool("In List", mapping.inList),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 2;',
+                                    form: new LabelBool("In Detail View", mapping.inDetailView),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 3; min-height: 55px;',
+                                    form: new StringInput(i, "Template", mapping.template, true),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 3;',
+                                    form: new StringInput(i, "Width", mapping.width, true),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 3;',
+                                    form: ctx.viewEntireConfig
+                                        ? new LabelBool("Read Only", mapping.readOnly)
+                                        : new ConstForm(mapping.readOnly),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 4; grid-column: 1/3;',
+                                    form: dataModelObj.tag == 'data' && dataModelObj.type == 'datetime'
+                                        ? new ItemLabel(i, {
+                                            label: 'Date Settings',
+                                            collapsed: true,
+                                            enclosed: true,
+                                            item: new ObjectForm(mapping.dateSettings ?? {}, {
+                                                "clientFormat": (d, i) => new StringInput(i, "Client Format", d ?? DEFAULT_DATETIME_FMT, true)
                                             })
-                                            : new ObjectForm(d ?? { fromColumn: ctx.config.mappings[0]?.fullPath ?? [] }, {
-                                                "fromColumn": (d, i) => new ItemLabel(i, {
-                                                    label: 'From Column',
-                                                    item: new ColumnSelector(d, dm => dm.allPaths(), false)
-                                                }),
-                                                "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                                        })
+                                        : new ConstForm(mapping.dateSettings),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 4; grid-column-start: 1;',
+                                    form: dataModelObj.tag == 'array' || dataModelObj.tag == 'object'
+                                        ? new ItemLabel(i, {
+                                            label: "JSON Editor Type",
+                                            item: new DropdownForm({
+                                                defaultValue: mapping.jsonEditorType ?? 'text',
+                                                options: [{ text: 'Text', value: 'text' }, { text: 'List', value: 'list' }],
+                                                onChange: x => jsonTypeObserver.notify(x)
                                             })
-                                    })
+                                        })
+                                        : new ConstForm(mapping.jsonEditorType),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 4; grid-column-start: 2;',
+                                    form: new ObserverForm(jsonTypeObserver, mapping.jsonEditorType ?? 'text', type => {
+                                        if ((dataModelObj.tag == 'array' || dataModelObj.tag == 'object') && type == 'list') {
+                                            let blankName = ctx.config.name + '_' + ctx.dataModel.getUniqueName(mapping);
+                                            return new StringInput(i, 'JSON Editor List Config Name', (mapping.jsonEditorListConfigName) ?? blankName);
+                                        }
+                                        return new ConstForm(mapping.jsonEditorListConfigName);
+                                    }),
+                                }),
+                                i => ({
+                                    styles: 'grid-row-start: 4; grid-column: 1/3;',
+                                    form: dataModelObj.tag == 'data' && dataModelObj.type == 'dropdown'
+                                        ? new ItemLabel(i, {
+                                            label: 'Dropdown Config',
+                                            item: new MultiForm({
+                                                defaultOption: ('fromColumn' in (mapping.dropdownConfig ?? {})) ? 'column' : 'values',
+                                                options: {
+                                                    'values': {
+                                                        title: "Values",
+                                                        form: () => new ObjectForm(mapping.dropdownConfig ?? { choices: [] }, {
+                                                            "choices": (c, i) => new ItemLabel(i, {
+                                                                label: 'Choices',
+                                                                collapsed: true,
+                                                                enclosed: true,
+                                                                item: new ArrayForm(c, (choice, i) => new StringInput(i, "Choice", choice), () => "")
+                                                            }),
+                                                            "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                                                        })
+                                                    },
+                                                    'column': {
+                                                        title: 'From Column',
+                                                        form: () => new ObjectForm(mapping.dropdownConfig ?? { fromColumn: ctx.config.mappings[0]?.fullPath ?? [] }, {
+                                                            "fromColumn": (d, i) => new ItemLabel(i, {
+                                                                label: 'From Column',
+                                                                item: new ColumnSelector(d, dm => dm.allPaths(), false)
+                                                            }),
+                                                            "allowCustom": d => new LabelBool("Allow Custom Values", d)
+                                                        })
+                                                    }
+                                                }
+                                            })
+                                        })
+                                        : new ConstForm(mapping.dropdownConfig),
                                 })
-                                : (d, i) => new ConstForm(d),
+                            ]
                         })
                     });
                 });
             }, () => ({ fullPath: ctx.dataModel.topLevelPaths()[0] ?? [] }));
         }
         return {
-            type: 'group', items: [
+            type: 'group',
+            items: [
                 {
                     type: 'button',
                     control: {
+                        style: "margin: var(--border-l);",
                         html: 'Load Mappings from Data Model',
                         onClick: () => {
                             if (ctx.list === undefined) {
@@ -11882,7 +11976,7 @@ class MappingsForm extends ReactiveForm {
     serialize(formData) {
         if (this.form !== undefined)
             return this.form.serialize(formData);
-        return (0,types.Ok)({ raw: this.mappings, changed: false });
+        return (0,types.Ok)(this.mappings);
     }
 }
 class ForcedValueForm extends ReactiveForm {
@@ -11894,36 +11988,38 @@ class ForcedValueForm extends ReactiveForm {
                 label: "Column",
                 //item: new ColumnSelector(d as string, true, model)
                 item: new ValueMapper(new ColumnSelector([{ tag: 'object', key: d }], dm => dm.allPaths().filter(x => x.length == 1), false), change => {
-                    if ('raw' in change) {
-                        return { raw: change.raw[0].key, changed: change.changed };
-                    }
-                    return change;
+                    return change[0].key;
                 })
             }),
             "value": (d) => {
                 let data = d;
                 return new MultiForm({
-                    options: ['Value', 'XBasic Argument'],
-                    defaultOption: data.tag == 'value' ? 'Value' : 'XBasic Argument',
-                    chooseForm: selected => {
-                        if (selected == 'Value') {
-                            if (data.tag == 'argument')
-                                data = { tag: 'value', value: '' };
-                            return new ObjectForm(data, {
-                                "tag": () => new ConstForm("value"),
-                                "value": (v, i) => new StringInput(i, "Value", v)
-                            });
-                        }
-                        else {
-                            if (data.tag == 'value')
-                                data = { tag: 'argument', value: '' };
-                            return new ObjectForm(data, {
-                                "tag": () => new ConstForm("argument"),
-                                "value": (v, i) => new StringInput(i, "Value", v)
-                            });
+                    defaultOption: data.tag,
+                    options: {
+                        'value': {
+                            title: 'Value',
+                            form: () => {
+                                if (data.tag == 'argument')
+                                    data = { tag: 'value', value: '' };
+                                return new ObjectForm(data, {
+                                    "tag": () => new ConstForm("value"),
+                                    "value": (v, i) => new StringInput(i, "Value", v)
+                                });
+                            }
+                        },
+                        'argument': {
+                            title: "Argument",
+                            form: () => {
+                                if (data.tag == 'value')
+                                    data = { tag: 'argument', value: '' };
+                                return new ObjectForm(data, {
+                                    "tag": () => new ConstForm("argument"),
+                                    "value": (v, i) => new StringInput(i, "Value", v)
+                                });
+                            }
                         }
                     },
-                    allowCollapse: false,
+                    allowCollapse: false
                 });
             }
         });
@@ -12097,9 +12193,21 @@ class ConfigDataSource extends ReactiveForm {
             return form;
         };
         this.form = new MultiForm({
-            options: ['SQL Table', 'Custom SQL', 'API', 'Static JSON'],
+            options: {
+                "Custom SQL": {
+                    form: () => onSelect('Custom SQL'),
+                },
+                "SQL Table": {
+                    form: () => onSelect('SQL Table')
+                },
+                "Static JSON": {
+                    form: () => onSelect('Static JSON')
+                },
+                "API": {
+                    form: () => onSelect("API")
+                }
+            },
             defaultOption: defaultItem,
-            chooseForm: onSelect
         });
     }
     render() {
@@ -12126,17 +12234,23 @@ class ListFiltersForm extends ReactiveForm {
                 "columnVal": (v) => {
                     const val = v;
                     return new MultiForm({
-                        options: ['Filter on Value', 'Filter on XBasic Argument'],
-                        defaultOption: val.tag == 'value' ? 'Filter on Value' : 'Filter on XBasic Argument',
-                        chooseForm: selected => selected == 'Filter on Value'
-                            ? new ObjectForm(val, {
-                                "tag": () => new ConstForm("value"),
-                                "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ initialData: val, type: 'string' }) })
-                            })
-                            : new ObjectForm(val, {
-                                "tag": () => new ConstForm("arg"),
-                                "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ initialData: val, type: 'string' }) })
-                            })
+                        options: {
+                            "value": {
+                                title: 'Filter on Value',
+                                form: () => new ObjectForm(val, {
+                                    "tag": () => new ConstForm("value"),
+                                    "value": (val, i) => new ItemLabel(i, { label: "Value", item: new Input({ initialData: val, type: 'string' }) })
+                                })
+                            },
+                            "arg": {
+                                title: "Filter on XBasic Argument",
+                                form: () => new ObjectForm(val, {
+                                    "tag": () => new ConstForm("arg"),
+                                    "value": (val, i) => new ItemLabel(i, { label: "Argument Name", item: new Input({ initialData: val, type: 'string' }) })
+                                })
+                            }
+                        },
+                        defaultOption: val.tag,
                     });
                 },
                 "connector": (c, i) => new ItemLabel(i, {
@@ -12194,9 +12308,7 @@ class ServerSortForm extends ReactiveForm {
                 "columnName": (name, i) => new ItemLabel(i, {
                     label: 'Column to Sort By',
                     item: new ValueMapper(new ColumnSelector([{ tag: 'object', key: name }], dm => dm.topLevelPaths(), false), change => {
-                        if ('raw' in change)
-                            return { raw: change.raw[0].key, changed: change.changed };
-                        return change;
+                        return change[0].key;
                     })
                 }),
                 "order": (name, i) => new ItemLabel(i, {
@@ -12225,23 +12337,30 @@ class EndpointForm extends ReactiveForm {
         const templateOrArgSelector = d => {
             const data = d;
             return new MultiForm({
-                options: ['Template', 'XBasic Argument'],
-                defaultOption: data.tag == 'template' ? 'Template' : 'XBasic Argument',
-                chooseForm: selected => selected == 'Template'
-                    ? new ObjectForm(data, {
-                        "tag": () => new ConstForm("template"),
-                        "value": (data, i) => new ItemLabel(i, {
-                            label: "Template",
-                            item: new TemplateHelper(data)
+                //options: ['Template', 'XBasic Argument'],
+                defaultOption: data.tag,
+                options: {
+                    'template': {
+                        title: 'Template',
+                        form: () => new ObjectForm(data, {
+                            "tag": () => new ConstForm("template"),
+                            "value": (data, i) => new ItemLabel(i, {
+                                label: "Template",
+                                item: new TemplateHelper(data)
+                            })
                         })
-                    })
-                    : new ObjectForm(data, {
-                        "tag": () => new ConstForm("argument"),
-                        "value": (data, i) => new ItemLabel(i, {
-                            label: "Argument",
-                            item: new Input({ initialData: data, type: 'string' })
+                    },
+                    'argument': {
+                        title: 'XBasic Argument',
+                        form: () => new ObjectForm(data, {
+                            "tag": () => new ConstForm("argument"),
+                            "value": (data, i) => new ItemLabel(i, {
+                                label: "Argument",
+                                item: new Input({ initialData: data, type: 'string' })
+                            })
                         })
-                    })
+                    }
+                }
             });
         };
         this.form = new ObjectForm(e, {
@@ -12303,28 +12422,37 @@ class ListButtonsForm extends ReactiveForm {
                         collapsed: true,
                         enclosed: true,
                         item: new MultiForm({
-                            options: ["Javascript Function", "Javascript Action", "List Action"],
-                            defaultOption: ('function' in data ? 'Javascript Function' : ('action' in data ? 'Javascript Action' : 'List Action')),
-                            chooseForm: selected => {
-                                if (selected == 'Javascript Function') {
-                                    const d = ('function' in data) ? data : { function: '() => {}' };
-                                    return new ObjectForm(d, {
-                                        "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
-                                    });
+                            //options: ["Javascript Function", "Javascript Action", "List Action"],
+                            options: {
+                                'function': {
+                                    title: 'Javascript Function',
+                                    form: () => {
+                                        const d = ('function' in data) ? data : { function: '() => {}' };
+                                        return new ObjectForm(d, {
+                                            "function": (data, i) => new StringInput(i, "Function", data, undefined, true)
+                                        });
+                                    }
+                                },
+                                'jsAction': {
+                                    title: 'Javascript Action',
+                                    form: () => {
+                                        const d = ('action' in data) ? data : { action: '' };
+                                        return new ObjectForm(d, {
+                                            "action": (data, i) => new StringInput(i, "Action Name", data)
+                                        });
+                                    }
+                                },
+                                'listAction': {
+                                    title: 'List Action',
+                                    form: () => {
+                                        const d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
+                                        return new ObjectForm(d, {
+                                            "listAction": d => new ListActionEditor(d)
+                                        });
+                                    }
                                 }
-                                else if (selected == 'Javascript Action') {
-                                    const d = ('action' in data) ? data : { action: '' };
-                                    return new ObjectForm(d, {
-                                        "action": (data, i) => new StringInput(i, "Action Name", data)
-                                    });
-                                }
-                                else {
-                                    const d = ('listAction' in data) ? data : { listAction: { actionName: 'openDetailView' } };
-                                    return new ObjectForm(d, {
-                                        "listAction": d => new ListActionEditor(d)
-                                    });
-                                }
-                            }
+                            },
+                            defaultOption: ('function' in data ? 'function' : ('action' in data ? 'jsAction' : 'listAction')),
                         })
                     });
                 }
@@ -12369,7 +12497,7 @@ class SearchOptionsForm extends ReactiveForm {
         });
     }
     render() {
-        return { type: 'group', items: [this.form] };
+        return { type: 'group', items: [this.form], container: { style: "padding: var(--border-m);" } };
     }
     serialize(formData) {
         return this.form.serialize(formData);
@@ -12450,20 +12578,18 @@ class DataModelForm extends ReactiveForm {
         return new MultiForm({
             label: path.length == 0 ? 'Data Root' : DataModel.printPath(path),
             dropdownOnRight: true,
-            options: [
-                { text: 'Object', value: 'object' },
-                { text: 'Array', value: 'array' },
-                { text: 'Data', value: 'data' },
-                { text: 'Unknown', value: 'unknown' }
-            ],
-            defaultOption: o.tag,
-            chooseForm: (name) => {
-                switch (name) {
-                    case "object":
+            options: {
+                'object': {
+                    title: 'Object',
+                    form: () => {
                         if (o.tag == 'object')
                             return this.dmObj(o, path, suggestor);
                         return this.dmObj({ ...o, tag: 'object', keys: {} }, path, suggestor);
-                    case "array":
+                    }
+                },
+                'array': {
+                    title: 'Array',
+                    form: () => {
                         if (o.tag == 'array')
                             return this.dmArray(o, path, suggestor);
                         return this.dmArray({
@@ -12471,7 +12597,11 @@ class DataModelForm extends ReactiveForm {
                             tag: 'array',
                             item: { tag: 'data', nullable: false, optional: false, type: 'text', uniqueName: suggestor.get([...path, { tag: 'array' }]) }
                         }, path, suggestor);
-                    case "data":
+                    }
+                },
+                'data': {
+                    title: 'Data',
+                    form: () => {
                         if (o.tag == 'data')
                             return this.dmData(o, path);
                         return this.dmData({
@@ -12479,12 +12609,18 @@ class DataModelForm extends ReactiveForm {
                             tag: 'data',
                             type: 'text',
                         }, path);
-                    case "unknown":
+                    }
+                },
+                'unknown': {
+                    title: 'Unknown',
+                    form: () => {
                         if (o.tag == 'unknown')
                             return this.dmUnknown(o, path);
                         return this.dmUnknown({ ...o, tag: 'unknown' }, path);
+                    }
                 }
             },
+            defaultOption: o.tag,
         });
     }
     dmObj(o, path, suggestor) {
@@ -12581,7 +12717,7 @@ class DataModelForm extends ReactiveForm {
     }
     serialize(formData) {
         if (this.form === undefined)
-            return (0,types.Ok)({ changed: false, raw: this.data });
+            return (0,types.Ok)(this.data);
         return this.form.serialize(formData);
     }
 }
@@ -12637,9 +12773,7 @@ class ColumnSelector extends ReactiveForm {
         return { type: 'group', items: [this.dropdown] };
     }
     serialize() {
-        if (this.dropdown === undefined)
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        return (0,types.Ok)({ changed: true, raw: this.data });
+        return (0,types.Ok)(this.data);
     }
 }
 
@@ -12706,13 +12840,13 @@ function templateHelperHTML(form, colNames, m) {
         };
         d.style.margin = "";
         d.innerHTML = `<p style="margin: 0px;">${text}</p>`;
-        d.style.padding = "0.5rem";
+        d.style.padding = "var(--border-m)";
         d.onclick = onclick;
         return d;
     };
-    templateHelper.style.color = 'black';
+    templateHelper.style.color = 'var(--color-forecolor)';
     templateHelper.style.backgroundColor = 'white';
-    templateHelper.style.border = "1px solid black";
+    templateHelper.style.border = "1px solid var(--color-bordercolor)";
     templateHelper.style.textAlign = "left";
     templateHelper.style.width = "200px";
     colNames.forEach(name => {
@@ -12731,7 +12865,6 @@ class ObjectForm extends ReactiveForm {
         this.id = uuidv4();
         this.keyMap = keymap;
         this.formMap = new Map();
-        this.changed = false;
         this.newKey = newKey;
     }
     makeInteractor(key, m) {
@@ -12853,6 +12986,11 @@ class ObjectForm extends ReactiveForm {
             else {
                 keyInput = {
                     type: 'edit',
+                    control: {
+                        placeholder: {
+                            text: 'New Key Name...',
+                        }
+                    },
                     id: inputId,
                     data: {
                         from: inputId,
@@ -12875,8 +13013,8 @@ class ObjectForm extends ReactiveForm {
                     style: `;
                         display: flex;
                         flex-direction: row;
-                        gap: 1rem;
-                        padding: 0.5rem;
+                        gap: var(--border-l);
+                        padding: var(--border-m);
                     `
                 },
                 items: [
@@ -12885,6 +13023,7 @@ class ObjectForm extends ReactiveForm {
                         type: 'button',
                         control: {
                             html: _A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                            theme: 'Alpha Modern:iconOnlyModern',
                             onClick: () => {
                                 const newName = m.getFormData(inputId);
                                 if (typeof newName == 'string' && newName !== '') {
@@ -12914,7 +13053,7 @@ class ObjectForm extends ReactiveForm {
                 style: `; 
                     display: flex; 
                     flex-direction: column;
-                    gap: 1rem;
+                    gap: var(--border-l);
                 `
             },
             items: [...this.formMap.values(), newKeyBtn]
@@ -12922,19 +13061,16 @@ class ObjectForm extends ReactiveForm {
     }
     serialize(formData) {
         if (!this.initialized)
-            return (0,types.Ok)({ changed: false, raw: this.data });
-        const keys = {};
+            return (0,types.Ok)(this.data);
+        const obj = {};
         for (const [k, v] of this.formMap.entries()) {
             const s = v.serialize(formData);
             if (s.isOk())
-                keys[k] = s.asOk();
+                obj[k] = s.asOk();
             else
                 return s;
         }
-        return (0,types.Ok)({
-            keys,
-            changed: this.changed
-        });
+        return (0,types.Ok)(obj);
     }
 }
 class ArrayForm extends ReactiveForm {
@@ -12995,8 +13131,8 @@ class ArrayForm extends ReactiveForm {
                 style: `
                     display: flex; 
                     flex-direction: column;
-                    padding: 0.5rem;
-                    gap: 0.5rem;
+                    padding: var(--border-m);
+                    gap: var(--border-l);
                 `
             },
             items: [
@@ -13006,7 +13142,13 @@ class ArrayForm extends ReactiveForm {
                     items: [{
                             type: 'button',
                             control: {
-                                html: _A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24'),
+                                theme: 'Alpha Modern:iconOnlyModern',
+                                html: `
+                                    <div style="display: flex; align-items: center; gap: var(--border-m);">
+                                        ${_A5.u.icon.html('svgIcon=#alpha-icon-add:icon,24')}
+                                        <p> Add Item </p>
+                                    </div>
+                                `,
                                 onClick: () => {
                                     const newItem = this.onAdd();
                                     this.entries.push(this.makeEntry(newItem, this.entries.length, m));
@@ -13024,19 +13166,18 @@ class ArrayForm extends ReactiveForm {
     }
     serialize(formData) {
         if (!this.initialized)
-            return (0,types.Ok)({ changed: false, raw: this.data });
+            return (0,types.Ok)(this.data);
         const items = [];
         for (const e of this.entries) {
             const s = e.form.serialize(formData);
-            if (s.isOk())
-                items.push(s.asOk());
+            if (s.isOk()) {
+                let ok = s.asOk();
+                items.push(ok);
+            }
             else
                 return s;
         }
-        return (0,types.Ok)({
-            elements: items,
-            changed: items.reduce((a, b) => a || b.changed, false)
-        });
+        return (0,types.Ok)(items);
     }
 }
 class ItemLabel extends ReactiveForm {
@@ -13085,6 +13226,7 @@ class ItemLabel extends ReactiveForm {
             type: 'button',
             disabled: () => !(this.options.enabled ?? true),
             control: {
+                theme: `Alpha Modern:iconOnlyModern`,
                 html: _A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
                 onClick: () => {
                     this.options.collapsed = !this.options.collapsed;
@@ -13106,6 +13248,7 @@ class ItemLabel extends ReactiveForm {
                     type: 'button',
                     disabled: () => !this.interactor.canMoveUp(),
                     control: {
+                        theme: 'Alpha Modern:iconOnlyModern',
                         html: _A5.u.icon.html('svgIcon=#alpha-icon-arrowUp:icon,24'),
                         onClick: () => {
                             this.interactor.moveUp();
@@ -13118,6 +13261,7 @@ class ItemLabel extends ReactiveForm {
                     type: 'button',
                     disabled: () => !this.interactor.canMoveDown(),
                     control: {
+                        theme: 'Alpha Modern:iconOnlyModern',
                         html: _A5.u.icon.html('svgIcon=#alpha-icon-arrowDown:icon,24'),
                         onClick: () => {
                             this.interactor.moveDown();
@@ -13137,6 +13281,7 @@ class ItemLabel extends ReactiveForm {
             disabled: () => !this.interactor.canDelete(),
             control: {
                 html: _A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24'),
+                theme: 'Alpha Modern:iconOnlyModern',
                 onClick: () => {
                     this.interactor.delete();
                     m.render(this);
@@ -13153,13 +13298,11 @@ class ItemLabel extends ReactiveForm {
             },
             container: {
                 style: `;
-                    font-variant: all-petite-caps;
                     font-weight: bold;
-                    color: #434343;
                     display: flex;
                     flex-direction: row;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: var(--border-m);
                 `
             },
             layout: '{content}'
@@ -13174,25 +13317,28 @@ class ItemLabel extends ReactiveForm {
             container: {
                 className: 'dynamic-form-item-group',
                 style: `;
-                            display: flex;
-                            flex-direction: row;
-                            gap: 0.5rem;
-                            align-items: center;
-                        `
+                    display: flex;
+                    flex-direction: row;
+                    gap: var(--border-m);
+                    align-items: center;
+                `
             },
             items: [
-                this.enabledCheck(m),
                 this.collapseBtn(m),
+                this.enabledCheck(m),
                 !(this.options.labelRight ?? false) ? label : undefined,
                 this.deleteBtn(m),
                 this.moveBtns(m),
                 this.options.labelRight ? {
                     type: 'group',
                     items: [label],
-                    container: { style: 'margin-left: 1rem;' },
+                    container: { style: 'margin-left: var(--border-l);' },
                 } : undefined
             ]
         };
+        if (shouldDisplay) {
+            labelGroup.container.style += "padding-bottom: var(--border-m);";
+        }
         const tabCtx = m.getContext(this.options.launchInTab ?? '');
         const newTabLaunch = {
             type: 'button',
@@ -13202,10 +13348,10 @@ class ItemLabel extends ReactiveForm {
                         display: flex;
                         flex-direction: row;
                         align-items: center;
-                        gap: 0.5rem;
+                        gap: var(--border-m);
                         cursor: pointer;
                     >
-                        <p style="font-variant: all-petite-caps: font-weight: bold;"> Edit ${this.options.label} </p>
+                        <p style="font-weight: 500;"> Edit ${this.options.label} </p>
                         ${_A5.u.icon.html('svgIcon=#alpha-icon-chevronRight:icon,24')}
                     </div>
                 `,
@@ -13213,7 +13359,7 @@ class ItemLabel extends ReactiveForm {
                     if (tabCtx)
                         tabCtx.tabForm.pushTab(m, this.options.label, this.options.item);
                 },
-                style: 'color: black !important;'
+                style: 'color: var(--color-forecolor) !important;'
             },
             sys: { isEmbedded: false }
         };
@@ -13226,16 +13372,12 @@ class ItemLabel extends ReactiveForm {
         };
         if (this.options.enclosed && labelGroup.container) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            labelGroup.container.style += `
-                padding: 0.5rem;
-                border: 1px solid black;
-                background-color: lightgray;
-            `;
             itemGroup.container = {
                 className: 'dynamic-form-label-item-group',
                 style: `
-                    padding: 0.5rem;
-                    border: 1px solid black;
+                    padding-left: var(--border-l);
+                    border-left: 4px solid var(--color-bordercolor);
+                    margin-left: var(--border-m);
                 `,
             };
         }
@@ -13255,7 +13397,7 @@ class ItemLabel extends ReactiveForm {
         if (this.options.enabled ?? true) {
             return this.options.item.serialize(formData);
         }
-        return (0,types.Ok)({ changed: false, raw: undefined });
+        return (0,types.Ok)(undefined);
     }
 }
 class LabelBool extends ReactiveForm {
@@ -13264,7 +13406,6 @@ class LabelBool extends ReactiveForm {
         this.id = uuidv4();
         this.label = label;
         this.value = value ?? false;
-        this.changed = false;
     }
     render(m) {
         return {
@@ -13280,7 +13421,7 @@ class LabelBool extends ReactiveForm {
                         style: `;
                                 display: flex;
                                 flex-direction: row;
-                                gap: 0.5rem;
+                                gap: var(--border-m);
                                 align-items: center;
                             `
                     },
@@ -13295,7 +13436,6 @@ class LabelBool extends ReactiveForm {
                             control: {
                                 onChange: () => {
                                     this.value = !this.value;
-                                    this.changed = true;
                                     m.setFormData(this.id, this.value);
                                     m.render(this);
                                 }
@@ -13316,13 +13456,11 @@ class LabelBool extends ReactiveForm {
                             },
                             container: {
                                 style: `;
-                                font-variant: all-petite-caps;
                                 font-weight: bold;
-                                color: #434343;
                                 display: flex;
                                 flex-direction: row;
                                 align-items: center;
-                                gap: 0.5rem;
+                                gap: var(--border-m);
                             `
                             },
                             layout: '{content}'
@@ -13332,7 +13470,7 @@ class LabelBool extends ReactiveForm {
         };
     }
     serialize() {
-        return (0,types.Ok)({ changed: this.changed, raw: this.value });
+        return (0,types.Ok)(this.value);
     }
 }
 class Input extends ReactiveForm {
@@ -13340,7 +13478,6 @@ class Input extends ReactiveForm {
         super();
         this.id = uuidv4();
         this.options = options;
-        this.changed = false;
         let fromWorld = (x) => x;
         let toWorld = (x) => (0,types.Ok)(x);
         if (this.options.type == 'datetime' && this.options.initialData instanceof Date) {
@@ -13386,11 +13523,7 @@ class Input extends ReactiveForm {
                         mode: ''
                     }
                 } : undefined,
-                onChange: () => {
-                    this.changed = true;
-                },
                 onKeyDown: (_1, _2, e) => {
-                    this.changed = true;
                     e.stopPropagation();
                 }
             },
@@ -13410,8 +13543,8 @@ class Input extends ReactiveForm {
                 blank: this.data
             },
             container: {
-                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed;' : ''}`,
-                className: "dynamic-form-simple-item"
+                style: `; flex: 1 1; ${this.options.readonly ? 'cursor: not-allowed; pointer-events: none;' : ''}`,
+                className: "dynamic-form-simple-item " + (this.options.readonly ? 'editDisabled' : '')
             },
             readonly: () => this.options.readonly ?? false,
         };
@@ -13428,7 +13561,7 @@ class Input extends ReactiveForm {
         const val = formData[this.id];
         let jsonVal;
         if (!(this.id in formData)) {
-            return (0,types.Ok)({ changed: false, raw: this.options.initialData });
+            return (0,types.Ok)(this.options.initialData);
         }
         switch (this.options.type) {
             case "function":
@@ -13449,10 +13582,7 @@ class Input extends ReactiveForm {
                     return (0,types.Err)("There was an error parsing the date value.");
             }
         }
-        return (0,types.Ok)({
-            changed: this.changed,
-            raw: jsonVal
-        });
+        return (0,types.Ok)(jsonVal);
     }
 }
 class MultiForm extends ReactiveForm {
@@ -13464,18 +13594,19 @@ class MultiForm extends ReactiveForm {
         this.allowCollapse = options.allowCollapse ?? true;
         this.collapsed = this.allowCollapse ? true : false;
         this.id = uuidv4();
-        this.dropdownOptions = typeof options.options[0] == 'string'
-            ? options.options.map(x => ({ text: x, value: x }))
-            : options.options;
-        this.chooseForm = options.chooseForm;
+        this.dropdownOptions = options.options;
         this.onSelect = options.onSelect;
-        this.activeForm = this.chooseForm(this.activeOption, this);
+        this.activeForm = this.dropdownOptions[this.activeOption].form(this);
         this.dropdownOnRight = options.dropdownOnRight ?? false;
     }
     current() {
         return this.activeForm;
     }
     render(m) {
+        const dropdownOptions = [];
+        for (const key in this.dropdownOptions) {
+            dropdownOptions.push({ text: this.dropdownOptions[key].title ?? key, value: key });
+        }
         const icon = this.collapsed ? 'chevronRight' : 'chevronDown';
         const header = {
             type: 'group',
@@ -13483,6 +13614,7 @@ class MultiForm extends ReactiveForm {
                 this.allowCollapse ? {
                     type: 'button',
                     control: {
+                        theme: 'Alpha Modern:iconOnlyModern',
                         html: _A5.u.icon.html(`svgIcon=#alpha-icon-${icon}:icon,24`),
                         onClick: () => {
                             this.collapsed = !this.collapsed;
@@ -13516,7 +13648,7 @@ class MultiForm extends ReactiveForm {
                     },
                     control: {
                         data: {
-                            src: this.dropdownOptions,
+                            src: dropdownOptions,
                             map: ['value', 'text']
                         },
                         onChange: (change) => {
@@ -13530,7 +13662,7 @@ class MultiForm extends ReactiveForm {
                                     this.activeForm = this.cache[this.activeOption];
                                 }
                                 else {
-                                    this.activeForm = this.chooseForm(this.activeOption, this);
+                                    this.activeForm = this.dropdownOptions[this.activeOption].form(this);
                                     this.cache[this.activeOption] = this.activeForm;
                                 }
                                 m.render(this);
@@ -13542,13 +13674,11 @@ class MultiForm extends ReactiveForm {
             ],
             container: {
                 style: `;
-                    background-color: lightgray; 
-                    padding: 0.5rem; 
-                    border: 1px solid black;
                     display: flex;
                     flex-direction: row;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: var(--border-m);
+                    padding-bottom: var(--border-m);
                 `
             }
         };
@@ -13560,7 +13690,11 @@ class MultiForm extends ReactiveForm {
                     type: 'group',
                     items: [this.activeForm],
                     container: {
-                        style: '; padding: .5rem; border: 1px solid black; '
+                        style: `
+                            padding-top: var(--border-m);
+                            padding-left: var(--border-l);
+                            border-left: 4px solid var(--color-bordercolor);
+                        `
                     }
                 }
             ],
@@ -13577,7 +13711,6 @@ class DropdownForm extends ReactiveForm {
     constructor(options) {
         super();
         this.id = uuidv4();
-        this.changed = false;
         this.options = options;
         this.currentOption = this.options.defaultValue;
     }
@@ -13608,7 +13741,6 @@ class DropdownForm extends ReactiveForm {
                     if (change.item.data != undefined) {
                         if (typeof change.item.data !== 'string')
                             return;
-                        this.changed = true;
                         this.currentOption = change.item.data;
                         if (this.options.onChange)
                             this.options.onChange(this.currentOption);
@@ -13633,7 +13765,7 @@ class DropdownForm extends ReactiveForm {
         };
     }
     serialize() {
-        return (0,types.Ok)({ changed: true, raw: this.currentOption });
+        return (0,types.Ok)(this.currentOption);
     }
 }
 class ConstForm extends ReactiveForm {
@@ -13645,7 +13777,7 @@ class ConstForm extends ReactiveForm {
         return undefined;
     }
     serialize() {
-        return (0,types.Ok)({ changed: false, raw: this.value });
+        return (0,types.Ok)(this.value);
     }
 }
 class Observer {
@@ -13716,7 +13848,7 @@ class AsyncForm extends ReactiveForm {
     }
     serialize(formData) {
         if (this.form === undefined) {
-            return (0,types.Ok)({ changed: false, raw: this.defaultValue });
+            return (0,types.Ok)(this.defaultValue);
         }
         return this.form.serialize(formData);
     }
@@ -13762,7 +13894,7 @@ class TabForm extends ReactiveForm {
                 control: {
                     html: `<p style="${style}">${tab.name}</p>`,
                     onClick: () => { this.navigateToTab(m, index); },
-                    style: `display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;`
+                    style: `display: flex; gap: var(--border-m); align-items: center; flex-wrap: wrap;`
                 },
                 container: {
                     className: 'dynamic-form-top-tab',
@@ -13780,7 +13912,7 @@ class TabForm extends ReactiveForm {
             container: {
                 style: `
                     display: flex;
-                    gap: 0.5rem;
+                    gap: var(--border-m);
                     flex-direction: row;
                     justify-content: center;
                     background-color: lightgray;
@@ -13792,7 +13924,7 @@ class TabForm extends ReactiveForm {
             type: 'group',
             items: [
                 header,
-                { type: 'group', items: [this.tabs[this.tabs.length - 1].tab], container: { style: 'padding: 0.5rem' } }
+                { type: 'group', items: [this.tabs[this.tabs.length - 1].tab], container: { style: 'padding: var(--border-m)' } }
             ],
             container: {
                 style: `;
@@ -13851,7 +13983,6 @@ class ButtonForm extends ReactiveForm {
         this.onClick = onClick;
         this.data = data;
         this.label = label;
-        this.changed = false;
         this.form = {
             type: 'button',
             control: {
@@ -13865,7 +13996,7 @@ class ButtonForm extends ReactiveForm {
         return this.form;
     }
     serialize(formData) {
-        return (0,types.Ok)({ changed: this.changed, raw: this.data });
+        return (0,types.Ok)(this.data);
     }
 }
 class CodeEditor extends ReactiveForm {
@@ -13873,7 +14004,6 @@ class CodeEditor extends ReactiveForm {
         super();
         this.id = uuidv4();
         this.props = props;
-        this.changed = false;
         if (typeof this.props.data == 'string') {
             this.converters = {
                 fromWorld: d => d,
@@ -13906,7 +14036,6 @@ class CodeEditor extends ReactiveForm {
                         return;
                     m.setFormData(_this.id, this.value);
                     _this.data = this.value;
-                    _this.changed = true;
                     m.setDirty(true);
                 };
             };
@@ -13945,13 +14074,141 @@ class CodeEditor extends ReactiveForm {
     }
     serialize(formData) {
         if (this.props.readonly || !(this.id in formData)) {
-            return (0,types.Ok)({ changed: false, raw: this.props.data });
+            return (0,types.Ok)(this.props.data);
         }
         const val = formData[this.id];
-        return this.converters.toWorld(val).map(raw => ({
-            changed: this.changed,
-            raw
-        }));
+        return this.converters.toWorld(val).map(x => x);
+    }
+}
+class LayoutGrid extends ReactiveForm {
+    constructor(props) {
+        super();
+        this.interactor = {
+            canDelete: () => false,
+            canMoveDown: () => false,
+            canMoveUp: () => false,
+            currentIndex: () => 0,
+            delete: () => { },
+            moveDown: () => { },
+            moveUp: () => { }
+        };
+        this.children = props.children.map(x => x(this.interactor));
+        if (props.styles)
+            this.styles = props.styles;
+        else
+            this.styles = '';
+        this.serializeChildren = props.serialize;
+    }
+    render(m) {
+        return {
+            type: 'group',
+            container: {
+                style: `
+                    display: grid;
+                    align-items: center;
+                    justify-content: center;
+                    ${this.styles}
+                `
+            },
+            items: this.children.map(x => ({
+                type: 'group',
+                container: {
+                    style: `
+                        ${x.colSpan !== undefined ? 'grid-column-start: span ' + x.colSpan : ''};
+                        ${x.rowSpan !== undefined ? 'grid-row-start: span ' + x.rowSpan : ''};
+                        ${x.styles ?? ''}
+                    `,
+                },
+                items: [x.form],
+            }))
+        };
+    }
+    serialize(formData) {
+        let out = [];
+        for (const elem of this.children) {
+            const result = elem.form.serialize(formData);
+            if (result.isOk()) {
+                out.push(result.asOk());
+            }
+            else {
+                return result;
+            }
+        }
+        return this.serializeChildren(out);
+    }
+}
+class LayoutTabs extends ReactiveForm {
+    constructor(props) {
+        super();
+        this.serializeChildren = props.serialize;
+        this.styles = props.styles ?? '';
+        this.interactor = {
+            canDelete: () => false,
+            canMoveDown: () => false,
+            canMoveUp: () => false,
+            currentIndex: () => 0,
+            delete: () => { },
+            moveDown: () => { },
+            moveUp: () => { }
+        };
+        this.children = {};
+        for (const key in props.children) {
+            this.children[key] = props.children[key](this.interactor);
+        }
+        this.chosen = Object.keys(this.children)[0];
+        this.currElem = this.children[this.chosen];
+    }
+    render(m) {
+        let ctx = m.getContext(ConfigContext.id);
+        let tabBarHtml = '<div class="layout-tabs-bar">';
+        Object.entries(this.children).forEach(([key, child], i) => {
+            const onClick = () => {
+                this.chosen = key;
+                this.currElem = this.children[this.chosen];
+                m.render(this);
+            };
+            const clickId = uuidv4();
+            ctx.obj._functions[clickId] = onClick;
+            tabBarHtml += `<div 
+                class="layout-tabs-tab ${key == this.chosen ? 'layout-tabs-chosen' : ''}"
+                onclick="${ctx.obj.dialogId}_DlgObj._functions['${clickId}']()"
+            >`;
+            if (child.icon) {
+                tabBarHtml += _A5.u.icon.html(`svgIcon=#alpha-icon-${child.icon}:layout-tabs-tabIcon,24px`);
+            }
+            tabBarHtml += `<p class="layout-tabs-tabname">${child.title ?? key}</p>`;
+            tabBarHtml += '</div>';
+        });
+        return {
+            type: 'group',
+            container: {
+                style: this.styles
+            },
+            items: [
+                {
+                    type: 'html',
+                    control: { html: tabBarHtml },
+                    layout: '{content}',
+                },
+                {
+                    type: 'group',
+                    items: [this.currElem.form]
+                }
+            ]
+        };
+    }
+    serialize(formData) {
+        let data = {};
+        for (const key in this.children) {
+            let result = this.children[key].form.serialize(formData);
+            if (result.isOk()) {
+                data[key] = result.asOk();
+            }
+            else {
+                return result;
+            }
+        }
+        return this.serializeChildren(data);
     }
 }
 
@@ -14004,22 +14261,27 @@ function initTFSelector(containerId, obj) {
             onChange: x => selected = x
         });
     }, []);
-    new ReactiveFormManager(form, cId, obj, raw => {
-        return {
-            type: 'group',
-            items: [
-                raw,
-                {
-                    type: 'button',
-                    control: {
-                        html: `<span> Load Form into List </span> `,
-                        onClick: () => {
-                            okOrLog(launch(selected, obj));
-                        },
+    new ReactiveFormManager({
+        root: form,
+        containerId: cId,
+        obj,
+        injectInto: raw => {
+            return {
+                type: 'group',
+                items: [
+                    raw,
+                    {
+                        type: 'button',
+                        control: {
+                            html: `<span> Load Form into List </span> `,
+                            onClick: () => {
+                                okOrLog(launch(selected, obj));
+                            },
+                        }
                     }
-                }
-            ]
-        };
+                ]
+            };
+        }
     });
 }
 async function launch(formId, obj) {
@@ -14032,7 +14294,6 @@ async function launch(formId, obj) {
         obj: obj,
         configName: formId,
         listContainerId: 'LIST_CONTAINER',
-        searchContainerId: 'SEARCH_CONTAINER',
         titleName: 'Form ' + formId,
     }));
 }
@@ -15639,8 +15900,7 @@ function mappingToInput(list, dataModel, m, ops) {
                         btnForm.data = newData;
                         if (ops.requestSave)
                             ops.requestSave();
-                        childList.obj.refreshClientSideComputations(true);
-                        childList.recalculateButtons();
+                        childList.recalcUIElements();
                         childList.listBox.refresh(true);
                     });
                 }, data ?? []);
@@ -15786,6 +16046,79 @@ async function postFileInteraction(obj) {
     });
 }
 
+;// ./src/ui/ModalWindow.ts
+
+class ModalWindow {
+    constructor(props) {
+        this.root = document.createElement('div');
+        this.backdrop = document.createElement('div');
+        this.root.id = uuidv4();
+        this.backdrop.style.cssText = `
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            right: 0px;
+            bottom: 0px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            z-index: 100;
+            display: none;
+        `;
+        this.backdrop.onclick = () => {
+            this.close();
+        };
+        this.root.style.cssText = `
+            border-radius: var(--border-m);
+            background-color: white;
+            max-height: 90vh; 
+            display: flex;
+            flex-direction: column;
+        `;
+        if (props.title !== undefined) {
+            const titleRow = document.createElement('div');
+            const titleElem = document.createElement('p');
+            titleElem.style.margin = '0';
+            titleElem.innerHTML = props.title;
+            titleRow.style.cssText = `
+                padding: var(--border-m);
+                display: flex;
+                flex-direction: row;
+                border-bottom: 1px solid #d9d9d9;
+                font-weight: bold;
+                font-size: 1.4rem;
+            `;
+            titleRow.appendChild(titleElem);
+            this.root.appendChild(titleRow);
+        }
+        this.root.onclick = ev => {
+            ev.stopPropagation();
+        };
+        document.body.appendChild(this.backdrop);
+        this.backdrop.appendChild(this.root);
+        this.body = document.createElement('div');
+        this.body.style.margin = 'var(--border-m)';
+        this.body.style.display = 'flex';
+        this.body.style.flexDirection = 'column';
+        this.body.id = uuidv4();
+        this.body.style.cssText += props.bodyStyle ?? '';
+        this.root.appendChild(this.body);
+    }
+    bodyId() {
+        return this.body.id;
+    }
+    rootId() {
+        return this.root.id;
+    }
+    open() {
+        this.backdrop.style.display = 'flex';
+    }
+    close() {
+        this.backdrop.style.display = 'none';
+    }
+}
+
 ;// ./src/list/DynamicListSearch.ts
 
 
@@ -15793,29 +16126,65 @@ async function postFileInteraction(obj) {
 
 
 
+
+class SearchMemoization {
+    constructor() {
+        this.memoization = {};
+        this.needRebuild = true;
+    }
+    reset() {
+        this.needRebuild = true;
+        this.memoization = {};
+    }
+    getLookup(field, columns, model, flatData, match) {
+        if (this.needRebuild) {
+            this.needRebuild = false;
+            this.memoization = {};
+            columns.forEach(c => {
+                const unique = model.getUniqueName(c);
+                this.memoization[unique] = {};
+                flatData.forEach((data, index) => {
+                    this.memoization[unique][index] = match(data, unique);
+                });
+            });
+        }
+        return this.memoization[field];
+    }
+}
 class DynamicListSearch {
-    constructor(dynamicList, obj, contId) {
-        // Used in _match
-        this.searchMemoizationNeedsRebuild = false;
-        this.searchMemoization = {};
+    constructor(dynamicList, obj) {
         this.flatRowData = [];
         this.list = dynamicList;
+        this.searchMemoized = new SearchMemoization();
         this.obj = obj;
-        const ptr = obj.getPointer(contId);
-        if (!ptr) {
-            throw new Error("Container ID " + contId + " does not point to a container.");
+        this.searchWindow = new ModalWindow({ title: "Search List", bodyStyle: "width: 1250px;" });
+        this.searchableColumns = [];
+        for (const col of this.list.config.mappings) {
+            if (this.list.config.searchOptions.onlyInclude) {
+                if (this.list.config.searchOptions.onlyInclude.find(x => pathsEq(x, col.fullPath)) === undefined)
+                    continue;
+            }
+            if (this.list.config.searchOptions.onlyExclude) {
+                if (this.list.config.searchOptions.onlyExclude.find(x => pathsEq(x, col.fullPath)) !== undefined)
+                    continue;
+            }
+            this.searchableColumns.push(col);
         }
-        this.formContainerId = ptr.id;
         this.resetForm();
     }
     resetForm() {
-        this.form = new ReactiveFormManager(this.buildForm(), this.formContainerId, this.obj, f => ({
-            type: 'group',
-            items: [
-                f,
-                this.makeButtons()
-            ]
-        }));
+        this.form = new ReactiveFormManager({
+            root: this.buildForm(),
+            containerId: this.searchWindow.bodyId(),
+            obj: this.obj,
+            injectInto: f => ({
+                type: 'group',
+                items: [
+                    f,
+                    this.makeButtons()
+                ]
+            })
+        });
     }
     buildForm() {
         let f;
@@ -15828,19 +16197,11 @@ class DynamicListSearch {
             title = "List Search";
             f = this.buildSimpleSearch();
         }
-        return new TabForm(title, f, "search");
+        return f;
     }
     buildSimpleSearch() {
         const keyMap = {};
-        for (const col of this.list.config.mappings) {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (this.list.config.searchOptions.onlyInclude.find(x => pathsEq(x, col.fullPath)) === undefined)
-                    continue;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.find(x => pathsEq(x, col.fullPath)) !== undefined)
-                    continue;
-            }
+        for (const col of this.searchableColumns) {
             keyMap[this.list.dataModel.getUniqueName(col)] = (d, i) => {
                 let data = d; // ?? makeObviousDefault(col.fullPath, this.list.dataModel);
                 return mappingToInput(this.list, this.list.dataModel, col, {
@@ -15853,17 +16214,6 @@ class DynamicListSearch {
         return new ObjectForm({}, keyMap);
     }
     buildAdvancedSearch() {
-        const cols = this.list.config.mappings.filter(col => {
-            if (this.list.config.searchOptions.onlyInclude) {
-                if (this.list.config.searchOptions.onlyInclude.find(x => pathsEq(x, col.fullPath)) === undefined)
-                    return false;
-            }
-            if (this.list.config.searchOptions.onlyExclude) {
-                if (this.list.config.searchOptions.onlyExclude.find(x => pathsEq(x, col.fullPath)) !== undefined)
-                    return false;
-            }
-            return true;
-        });
         const arr = new ArrayForm([], (filter, i) => {
             const colChangeObserver = new Observer();
             return new ItemLabel(i, {
@@ -15874,10 +16224,10 @@ class DynamicListSearch {
                 item: new ObjectForm(filter, {
                     "columnName": (n, i) => new ItemLabel(i, {
                         label: 'Column Name',
-                        item: new ColumnSelector(n, () => cols.map(x => x.fullPath), true, newName => { colChangeObserver.notify(newName); }),
+                        item: new ColumnSelector(n, () => this.searchableColumns.map(x => x.fullPath), true, newName => { colChangeObserver.notify(newName); }),
                     }),
                     "columnVal": (n) => new ObserverForm(colChangeObserver, filter.columnName, (newCol) => {
-                        const mapping = cols.find(x => pathsEq(x.fullPath, newCol)) ?? { fullPath: newCol };
+                        const mapping = this.searchableColumns.find(x => pathsEq(x.fullPath, newCol)) ?? { fullPath: newCol };
                         const item = mappingToInput(this.list, this.list.dataModel, mapping, {
                             forceNoReadonly: true,
                             jsonAsText: true
@@ -15934,7 +16284,7 @@ class DynamicListSearch {
                     })
                 })
             });
-        }, () => ({ columnName: cols[0]?.fullPath ?? [], columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
+        }, () => ({ columnName: this.searchableColumns[0]?.fullPath ?? [], columnVal: { tag: 'value', value: '' }, connector: 'AND', op: '=', quantifier: 'ALL' }));
         return new WithContext(ConfigContext.id, new ConfigContext(false, this.list.config, this.list.obj, this.list.dataModel, undefined, this.list), arr);
     }
     makeButtons() {
@@ -16001,6 +16351,7 @@ class DynamicListSearch {
                 {
                     type: 'button',
                     control: {
+                        theme: 'Alpha Modern:primaryModern',
                         html: `<span class="dynamic-form-search-btn">Search</span>`,
                         onClick: () => {
                             makeFilters().match({
@@ -16019,6 +16370,7 @@ class DynamicListSearch {
                         html: `<span class="dynamic-form-clear-btn">Clear</span>`,
                         onClick: () => {
                             this.clearSearch();
+                            this.searchWindow.close();
                         }
                     },
                     sys: { isEmbedded: false }
@@ -16029,10 +16381,15 @@ class DynamicListSearch {
                 style: `
                     display: flex;
                     flex-direction: row;
-                    gap: 0.5rem;
+                    justify-content: end;
+                    gap: var(--border-m);
+                    margin-top: var(--border-l);
                 `,
             }
         };
+    }
+    openSearch() {
+        this.searchWindow.open();
     }
     doSearch(filters) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
@@ -16045,20 +16402,17 @@ class DynamicListSearch {
             this.clientSearch(filters);
         }
         this.obj._functions.search.onSearch();
+        this.searchWindow.close();
         this.list.updateRecordCount();
     }
     clientSearch(filters) {
-        this.searchMemoizationNeedsRebuild = true;
+        this.searchMemoized.reset();
         const colLookup = {};
         const allowQuantified = this.list.config.searchOptions.advancedSearch === true;
         this.list.listBox.setFilter((data) => {
             const flatKey = data['*key'];
-            const flatData = this.list.dataController.getFlatRow(flatKey);
-            data = {};
-            for (const key in flatData) {
-                data[key] = flatData[key].data;
-            }
-            let matches = true;
+            data = this.list.dataController.getFlattenedRow(flatKey);
+            let matches = undefined;
             filters.forEach(query => {
                 const uniqueName = this.list.dataModel.getUniqueName(query.columnName);
                 let col;
@@ -16074,12 +16428,14 @@ class DynamicListSearch {
                     quantifier: query.quantifier,
                     op: query.op
                 }, allowQuantified);
-                if (query.connector === 'OR')
+                if (matches === undefined)
+                    matches = thisMatch;
+                else if (query.connector === 'OR')
                     matches = thisMatch || matches;
                 else
                     matches = thisMatch && matches;
             });
-            return matches;
+            return matches ?? false;
         });
     }
     serverSearch(filters) {
@@ -16144,6 +16500,10 @@ class DynamicListSearch {
             }
             const cmpDate = scheme.tag === 'data' && scheme.type === 'datetime';
             const cmpText = (scheme.tag === 'object' || scheme.tag == 'array') || (scheme.tag === 'data' && (scheme.type == 'dropdown' || scheme.type == 'text'));
+            if (cmpText) {
+                compareWith = compareWith?.toString().toLowerCase();
+                rowValue = rowValue?.toString().toLowerCase();
+            }
             switch (op) {
                 case '=': {
                     if (cmpDate) {
@@ -16221,14 +16581,8 @@ class DynamicListSearch {
                 }
             }
         };
-        if (this.searchMemoizationNeedsRebuild) {
-            this.searchMemoizationNeedsRebuild = false;
-            this.searchMemoization = {};
-            this.flatRowData = this.list.dataController.getAllFlattenedRows();
-            this.flatRowData.forEach((data, index) => {
-                this.searchMemoization[index] = matches(data, field);
-            });
-        }
+        this.flatRowData = this.list.dataController.getAllFlattenedRows();
+        let memoized = this.searchMemoized.getLookup(field, this.searchableColumns, this.list.dataModel, this.flatRowData, matches);
         let flag;
         let rawRow = this.list.dataController.originalIndexOf(flatIndex).asOk();
         if (this.list.dataModel.getNestingLevel(path) == 0 || allowQuantified == false) {
@@ -16242,7 +16596,7 @@ class DynamicListSearch {
                 this.flatRowData.forEach((_, index) => {
                     if (this.list.dataController.originalIndexOf(index).asOk() !== rawRow)
                         return;
-                    allMatch = allMatch && this.searchMemoization[index];
+                    allMatch = allMatch && memoized[index];
                 });
                 flag = allMatch;
             }
@@ -16258,7 +16612,7 @@ class DynamicListSearch {
                 // If we got to this point of quantification, then there must be some nested mapping.
                 // When searching existentially, we just want to show matching records.
                 // So we just return the search memo entry.
-                flag = this.searchMemoization[flatIndex] ?? false;
+                flag = memoized[flatIndex] ?? false;
             }
         }
         return flag;
@@ -16526,9 +16880,6 @@ class DataController {
     getFlattenedRow(i) {
         return DataController.unflattenPoint(this.flattenedData[i]);
     }
-    getFlatRow(i) {
-        return this.flattenedData[i];
-    }
     getRawRow(i) {
         return this.rawData[i];
     }
@@ -16577,19 +16928,32 @@ class DataController {
         this.rawDirtyRows.add(rawIdx2);
         this.calculateFlattenedData();
     }
-    updateRows(items) {
-        items.forEach(({ index, newData }) => {
+    replaceRows(items) {
+        items.forEach(({ index, row }) => {
             const relaventRow = this.flattenedData[index];
             const unflattenedIndex = this.rowExplosionInfo.get(index);
             if (unflattenedIndex === undefined) {
                 displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
                 return;
             }
-            for (const key in relaventRow) {
-                if (key in newData) {
-                    this.pathUpdate(this.rawData[unflattenedIndex], relaventRow[key].path, newData[key]);
+            for (const key in row) {
+                const entry = row[key];
+                if (key in relaventRow) {
+                    this.pathUpdate(this.rawData[unflattenedIndex], relaventRow[key].path, entry);
                 }
             }
+            this.rawDirtyRows.add(unflattenedIndex);
+        });
+        this.calculateFlattenedData();
+    }
+    updateRows(items) {
+        items.forEach(({ index, newData }) => {
+            const unflattenedIndex = this.rowExplosionInfo.get(index);
+            if (unflattenedIndex === undefined) {
+                displayErrorMessage(new types.ErrMsg("The index " + index + " is out of range. This is a bug."));
+                return;
+            }
+            this.pathUpdate(this.rawData[unflattenedIndex], newData.path, newData.value);
             this.rawDirtyRows.add(unflattenedIndex);
         });
         this.calculateFlattenedData();
@@ -16874,6 +17238,7 @@ class DataController {
 
 
 
+
 class DynamicList {
     constructor() {
         this.rawFetchedData = [];
@@ -16904,6 +17269,7 @@ class DynamicList {
     static makeDynamicList(ops) {
         return new Promise((resolve) => {
             const list = new DynamicList();
+            list.initializer = ops.initializer;
             list.permanentFilters = ops.filters ?? [];
             list.searchFilters = [];
             list.buttonFns = {};
@@ -16961,7 +17327,7 @@ class DynamicList {
             list.initialLoadComplete = true;
             return list.reRender(false);
         }).then((list) => {
-            list.recalculateButtons();
+            list.recalcUIElements();
             return list;
         });
     }
@@ -17006,7 +17372,7 @@ class DynamicList {
             .then(uploadResult => {
             if ('ok' in uploadResult) {
                 const onDone = () => {
-                    okOrLog(this.reRender(false).then(() => { this.recalculateButtons(); }));
+                    okOrLog(this.reRender(false).then(() => { this.recalcUIElements(); }));
                 };
                 this.dataBridge.processImportedData(uploadResult.ok, this.dataModel).match({
                     ok: data => {
@@ -17058,8 +17424,7 @@ class DynamicList {
                     const result = override(this, data);
                     if (result !== undefined) {
                         return result.then(() => {
-                            this.obj.refreshClientSideComputations(true);
-                            this.recalculateButtons();
+                            this.recalcUIElements();
                             return this.reRender(true);
                         }).then(() => { });
                     }
@@ -17075,8 +17440,7 @@ class DynamicList {
                 errMsgTxt += "</ol>";
                 displayErrorMessage(new types.ErrMsg(errMsgTxt));
             }
-            this.obj.refreshClientSideComputations(true);
-            this.recalculateButtons();
+            this.recalcUIElements();
             await this.reRender(true);
         };
         const processed = this.dataBridge.processedToRaw(toUpdate, this.dataModel)
@@ -17091,10 +17455,10 @@ class DynamicList {
         }
         if (this.config.dataSource.type == 'sql') {
             return new Promise(resolve => {
-                this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURI(this.config.name)
-                    + "&toUpdate=" + encodeURI(JSON.stringify(toUpdate))
-                    + "&toInsert=" + encodeURI(JSON.stringify(toInsert))
-                    + "&toDelete=" + encodeURI(JSON.stringify(toDelete)), {
+                this.obj.ajaxCallback("", "", "updateData", "", "configName=" + encodeURIComponent(this.config.name)
+                    + "&toUpdate=" + encodeURIComponent(JSON.stringify(toUpdate))
+                    + "&toInsert=" + encodeURIComponent(JSON.stringify(toInsert))
+                    + "&toDelete=" + encodeURIComponent(JSON.stringify(toDelete)), {
                     onComplete: () => onComplete().then(() => resolve())
                 });
             });
@@ -17165,7 +17529,7 @@ class DynamicList {
                 if (ele) {
                     _A5.u.icon.update(ele.children[0], src);
                 }
-                this.recalculateButtons();
+                this.recalcUIElements();
             }
         };
         items['__toggleAll'] = {
@@ -17179,8 +17543,12 @@ class DynamicList {
                     }
                 }
                 ;
-                this.recalculateButtons();
-                this.listBox.refresh();
+                // TODO
+                // Update how I'm handing change detection
+                // A single flag for change detection isn't good enough
+                this.recalcUIElements();
+                this.listBox.refresh(true);
+                this.listBox.resize();
             }
         };
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -17224,7 +17592,7 @@ class DynamicList {
                     ;
                     const msg = !listObj.initialLoadComplete ? 'Fetching Data...' : 'No Records in List';
                     content.innerHTML = `
-                        <div id="${this.contId + '.NORECORDSINLIST'}" style="text-align: center; padding: 1rem;">
+                        <div id="${this.contId + '.NORECORDSINLIST'}" style="text-align: center; padding: var(--border-l);">
                             <span>${msg}</span>
                         </div>
                     `;
@@ -17338,7 +17706,7 @@ class DynamicList {
                         };
                         data.listName = lAny.listVariableName;
                         navObj.populate(data);
-                        this.listBox.refresh();
+                        this.listBox.refresh(true);
                         this.listBox.resize();
                     }
                 }
@@ -17411,10 +17779,9 @@ class DynamicList {
             const dirty = this.dataController.isDirty();
             const updatedData = this.dataController.getFlattenedRow(index);
             this.dataController.pathUpdate(updatedData, path, newData);
-            this.dataController.updateRows([{ index, newData: updatedData }]);
+            this.dataController.replaceRows([{ index, row: updatedData }]);
             const rest = () => {
-                this.obj.refreshClientSideComputations(true);
-                this.recalculateButtons();
+                this.recalcUIElements();
                 this.listBox.refresh(true);
                 this.dataController.getData(index, path).match({
                     ok: newData => {
@@ -17472,7 +17839,6 @@ class DynamicList {
             configName: configName,
             filters: filters,
             listContainerId: 'LIST_CONTAINER',
-            searchContainerId: 'SEARCH_CONTAINER',
             obj: this.obj,
             titleName
         }));
@@ -17481,7 +17847,6 @@ class DynamicList {
         okOrLog(listUtils_openNewPanel({
             configName: configName,
             listContainerId: 'LIST_CONTAINER',
-            searchContainerId: 'SEARCH_CONTAINER',
             titleName: titleName,
             filters: filters,
             obj: this.obj,
@@ -17492,43 +17857,6 @@ class DynamicList {
             ops.onUnneeded();
             return;
         }
-        const id = this.id + '_ROW_PICKER_MODAL';
-        let modal = document.getElementById(id);
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = id;
-            modal.style.position = 'absolute';
-            modal.style.left = '0px';
-            modal.style.top = '0px';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            modal.style.zIndex = '100';
-            document.body.appendChild(modal);
-        }
-        const close = () => {
-            document.body.removeChild(modal);
-        };
-        modal.onclick = close;
-        const body = document.createElement('div');
-        const bodyId = this.id + '_ROW_PICKER_BODY';
-        body.id = bodyId;
-        body.style.width = '90%';
-        body.style.height = '90%';
-        body.style.backgroundColor = 'white';
-        body.style.boxShadow = '0px 0px 100px 20px';
-        const listContainer = document.createElement('div');
-        listContainer.id = body.id + "_LIST";
-        listContainer.style.flex = '1';
-        listContainer.style.width = '100%';
-        const title = document.createElement('p');
-        title.innerText = "Select a row to append data to.";
-        title.style.marginLeft = '1rem';
-        body.appendChild(title);
-        body.appendChild(listContainer);
-        modal.appendChild(body);
         let cols = this.config.mappings
             .filter(m => this.dataModel.getNestingLevel(m.fullPath) == 0)
             .map(m => this.buildColumnDefinition(m))
@@ -17545,6 +17873,7 @@ class DynamicList {
                     width: 'flex(1)'
                 }];
         }
+        const modal = new ModalWindow({ title: "Pick Row to Append To", bodyStyle: "width: 1250px; height: 70vh;" });
         const settings = {
             theme: this.obj.styleName,
             allParentLists: [],
@@ -17558,11 +17887,12 @@ class DynamicList {
             onSelect(index) {
                 const rawIdx = this.getIndex(index)[0].index;
                 ops.onSelect(rawIdx);
-                close();
+                modal.close();
             },
         };
+        modal.open();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        const l = new _A5.ListBox(listContainer.id, [], settings);
+        const l = new _A5.ListBox(modal.bodyId(), [], settings);
         l.populate(this.dataController.getAllRawData());
     }
     updateRecordCount() {
@@ -17577,11 +17907,6 @@ class DynamicList {
         okOrLog(this.reRender(true));
     }
     newDetailViewRecord(x) {
-        const buildForm = () => {
-            const makeForm = () => { this.buildDetailViewForm(x); };
-            const openForm = () => { this.obj.runAction('Navigate Detail View'); };
-            _A5.executeThisThenThat(makeForm, openForm);
-        };
         if (x.tag == 'newRecord' && this.dataController.mappingInfo.isEntirelyTopLevel() === false) {
             const html = `<div id="dynamic-list-row-selector-${this.id}"></div>`;
             const dd = document.createElement('select');
@@ -17589,7 +17914,7 @@ class DynamicList {
                 const v = Number.parseInt(dd.value);
                 if (!Number.isNaN(v)) {
                     x = { tag: 'appendToRawRow', rawRow: v };
-                    buildForm();
+                    this.buildDetailViewForm(x);
                 }
             });
             this.dataController.getFreeRows().forEach(({ row, index }) => {
@@ -17609,53 +17934,81 @@ class DynamicList {
             document.getElementById(`dynamic-list-row-selector-${this.id}`)?.appendChild(dd);
         }
         else {
-            buildForm();
+            this.buildDetailViewForm(x);
         }
     }
     clearSearchFilters() {
         this.listBox.setFilter(false);
     }
-    recalculateButtons() {
-        const sync = this.obj.getControl('BUTTON_DVSYNCHRONIZE_LIST1');
-        if (sync) {
-            if (this.dataController.isDirty())
-                sync.setDisabled(false);
-            else
-                sync.setDisabled(true);
-            sync.onClick = () => { okOrLog(this.saveDynamicListEdits()); };
-        }
-        const multiEdit = this.obj.getControl('MULTI_EDIT_BTN');
+    recalcUIElements() {
+        const multiEdit = document.getElementById(this.obj.dialogId + '_DlgObj_MULTI_EDIT');
         if (multiEdit) {
-            const selectedCount = this.selectedRows.size;
-            if (selectedCount > 1) {
-                multiEdit.setDisabled(false);
+            const count = this.selectedRows.size;
+            if (count > 1) {
+                multiEdit.style.display = 'block';
             }
             else {
-                multiEdit.setDisabled(true);
+                multiEdit.style.display = 'none';
             }
-            multiEdit.onClick = () => {
-                this.newDetailViewRecord({ tag: 'multiEditRecords', records: Array.from(this.selectedRows) });
-            };
         }
-        const addRow = this.obj.getControl("BUTTON_4");
-        if (addRow) {
-            addRow.onClick = () => {
-                this.showRowPicker({
-                    onUnneeded: () => { this.newDetailViewRecord({ tag: 'newRecord' }); },
-                    onSelect: idx => { this.newDetailViewRecord({ tag: 'appendToRawRow', rawRow: idx }); }
-                });
-            };
+        const sync = document.getElementById(this.obj.dialogId + '_DlgObj_LIST_SYNC_BTN');
+        if (sync) {
+            if (this.dataController.isDirty()) {
+                sync.classList.remove('buttonIconOnlyDisabled');
+                sync.disabled = false;
+            }
+            else {
+                sync.classList.add('buttonIconOnlyDisabled');
+                sync.disabled = true;
+            }
         }
-        const panelNavigator = this.obj.getPanelObject('PANELNAVIGATOR_1');
-        if (panelNavigator) {
-            panelNavigator.panels.forEach(panel => {
-                if (panel.title == 'List Options') {
-                    if (!this.permissions.editConfigMappings) {
-                        panel.show = false;
+        const counter = document.getElementById(this.obj.dialogId + '_DlgObj_RECORD_CNT');
+        if (counter) {
+            let len = this.dataController.length().flattened;
+            counter.innerHTML = len == 1 ? '1 record' : len.toString() + ' records';
+        }
+        const title = document.getElementById(this.obj.dialogId + '_DlgObj_LIST_TITLE');
+        if (title)
+            title.innerHTML = this.config.name;
+        const searchBox = document.getElementById(this.obj.dialogId + '_DlgObj_SEARCH_BOX')?.querySelector('input');
+        if (searchBox) {
+            searchBox.onkeydown = (e) => {
+                if (e.key != 'Enter')
+                    return;
+                e.preventDefault();
+                e.stopPropagation();
+                let value = searchBox.value;
+                let filters = this.initializer.search?.searchableColumns.map(m => {
+                    let model = this.dataModel.find(m.fullPath);
+                    let op = '..x..';
+                    if (model.tag == 'data') {
+                        if (model.type == 'bool') {
+                            if (value.toLowerCase() != 'true' && value.toLowerCase() != 'false')
+                                return null;
+                            op = '=';
+                        }
+                        if (model.type == 'number') {
+                            if (Number.isNaN(Number.parseFloat(value)))
+                                return null;
+                            op = '=';
+                        }
+                        if (model.type == 'datetime')
+                            op = '=';
                     }
-                }
-            });
-            panelNavigator.refresh();
+                    return {
+                        columnName: m.fullPath,
+                        columnVal: {
+                            tag: 'value',
+                            value,
+                        },
+                        connector: 'OR',
+                        op,
+                        quantifier: 'SOME',
+                        type: model.tag == 'data' ? model.type : 'json'
+                    };
+                }).filter(x => x != null) ?? [];
+                this.initializer.search?.doSearch(filters);
+            };
         }
     }
     makeGroupingSettings() {
@@ -17676,7 +18029,7 @@ class DynamicList {
                         return '';
                     },
                     header: {
-                        className: `A5ListGroupHeaders ${_A5.themes._t.Alpha.listbox.base.item.titleClassName}`,
+                        className: `A5ListGroupHeaders ${_A5.themes._t['Alpha Modern'].listbox.base.item.titleClassName}`,
                         html: (group, data) => {
                             const num = data[0]['*key'];
                             if (typeof num == 'number') {
@@ -17856,7 +18209,7 @@ class DynamicList {
                 newIdx = this.dataController.length().raw;
             this.dataController.swapRows(key, newIdx);
             this.reRender(false);
-            this.recalculateButtons();
+            this.recalcUIElements();
             this._rowDragState.listItem = null;
         }
     }
@@ -17991,11 +18344,22 @@ class DynamicList {
             saveOps.onNew = { tag: 'appendToRawRow', rawRow: addInfo.rawRow };
             saveOps.onSave = { tag: 'insertRaw', rawRow: addInfo.rawRow };
         }
-        const { bottomButtons, doSave } = this.makeDetailContextButtons(saveOps);
+        const modal = new ModalWindow({ title: "Detail View", bodyStyle: "width: 1250px; padding: var(--border-m);" });
+        const { bottomButtons, doSave } = this.makeDetailContextButtons(saveOps, modal, clone(selectedData));
         const keyMap = {};
         this.config.mappings.forEach(m => {
             if (!m.inDetailView)
                 return;
+            const model = this.dataModel.find(m.fullPath);
+            if (!(model.uniqueName in selectedData)) {
+                const path = m.fullPath.map(x => {
+                    if (x.tag == 'object')
+                        return x;
+                    else
+                        return ({ tag: 'array', index: 0 });
+                });
+                selectedData[model.uniqueName] = this.dataController.chasePath(selectedData, path);
+            }
             keyMap[this.dataModel.getUniqueName(m)] = mappingToInput(this, this.dataModel, m, {
                 forceReadonly: this.dataController.mappingInfo.isEntirelyTopLevel()
                     ? false
@@ -18005,18 +18369,22 @@ class DynamicList {
             });
         });
         const form = new ObjectForm(selectedData, keyMap);
-        const container = this.obj.getPointer(DETAIL_FORM_CONTAINER);
-        const id = container ? container.id : '';
-        this.detailView = new ReactiveFormManager(form, id, this.obj, objForm => ({
-            type: 'group',
-            items: [
-                objForm,
-                bottomButtons
-            ]
-        }));
+        this.detailView = new ReactiveFormManager({
+            root: form,
+            containerId: modal.bodyId(),
+            obj: this.obj,
+            injectInto: objForm => ({
+                type: 'group',
+                items: [
+                    objForm,
+                    bottomButtons
+                ]
+            })
+        });
+        modal.open();
     }
-    makeDetailContextButtons(options) {
-        const divStyle = "display: flex; flex-direction: row; align-items: center; gap: 0.5rem;";
+    makeDetailContextButtons(options, modal, originalData) {
+        const divStyle = "display: flex; flex-direction: row; align-items: center; gap: var(--border-m);";
         // Alpha overrides all events on all elements with its own handlers. 
         // Apparently, there is a bug where the old 'onclick' version of a button is kept 
         // around. (No other properties of the old button are kept). 
@@ -18031,11 +18399,13 @@ class DynamicList {
                     if (action === 'ok') {
                         this.dataController.deleteRows(options.onDelete);
                         this.listBox.populate(this.flatRowToListSafeRow());
-                        this.obj.refreshClientSideComputations(true);
-                        this.recalculateButtons();
+                        modal.close();
+                        this.recalcUIElements();
+                        this.reRender(false);
                     }
                 });
             }
+            modal.close();
         };
         const doSave = () => {
             let d = {};
@@ -18052,24 +18422,18 @@ class DynamicList {
                 d = s.asOk();
             }
             else {
-                const serialized = this.detailView?.serializeWithChanges() ?? (0,types.Ok)({ changed: false, raw: null });
+                const serialized = this.detailView?.serialize() ?? (0,types.Ok)(null);
                 if (serialized.isOk() == false) {
                     displayErrorMessage(new types.ErrMsg(serialized.asErr()));
                     return;
                 }
                 const changes = serialized.asOk();
-                if ('keys' in changes) {
-                    for (const key in changes.keys) {
-                        const item = changes.keys[key];
-                        if ('raw' in item && item.changed) {
-                            d[key] = item.raw;
-                        }
-                        else if ('keys' in item && item.changed) {
-                            d[key] = item.keys;
-                        }
-                        else if ('elements' in item && item.changed) {
-                            d[key] = item.elements;
-                        }
+                if (changes !== null) {
+                    for (const key in changes) {
+                        if (!(key in originalData))
+                            d[key] = changes[key];
+                        if (!deepEq(originalData[key], changes[key]))
+                            d[key] = changes[key];
                     }
                 }
             }
@@ -18081,15 +18445,26 @@ class DynamicList {
                 this.dataController.insertRows([{ attachToIndex: options.onSave.attachTo ?? 0, data: d }], false);
             }
             else if (options.onSave.tag == 'update') {
-                this.dataController.updateRows(options.onSave.rows.map(s => ({ index: s, newData: d })));
+                const toUpdate = [];
+                for (const key in d) {
+                    let m = this.dataModel.reverseNameLookup(key);
+                    if (m) {
+                        toUpdate.push({ path: m, value: d[key] });
+                    }
+                }
+                for (const newData of toUpdate) {
+                    this.dataController.updateRows(options.onSave.rows.map(s => ({ index: s, newData })));
+                }
             }
             else {
                 this.dataController.insertRows([{ data: d, attachToIndex: options.onSave.rawRow }], true);
             }
             this.listBox.populate(this.flatRowToListSafeRow());
-            this.recalculateButtons();
+            this.recalcUIElements();
             this.detailView?.setDirty(false);
             this.detailView?.refresh();
+            modal.close();
+            this.reRender(false);
         };
         this.obj._functions.DELETE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doDelete;
         this.obj._functions.SAVE_BUTTON_ONCLICK_BUG_WORKAROUND_DYNAMIC_LIST = doSave;
@@ -18100,6 +18475,7 @@ class DynamicList {
                     {
                         type: 'button',
                         control: {
+                            theme: "Alpha Modern:primaryModern",
                             html: `
                         <div style="${divStyle}">
                             ${_A5.u.icon.html('svgIcon=#alpha-icon-save:icon,24')}
@@ -18114,6 +18490,7 @@ class DynamicList {
                     {
                         type: 'button',
                         control: {
+                            theme: "Alpha Modern:denyModern",
                             html: `
                         <div style="${divStyle}">
                             ${_A5.u.icon.html('svgIcon=#alpha-icon-trash:icon,24')}
@@ -18134,7 +18511,7 @@ class DynamicList {
                         </div>
                         `,
                             onClick: () => {
-                                this.recalculateButtons();
+                                this.recalcUIElements();
                                 this.newDetailViewRecord(options.onNew);
                             }
                         },
@@ -18142,7 +18519,7 @@ class DynamicList {
                     },
                 ],
                 container: {
-                    style: '; display: flex; flex-direction: row; gap: 1rem;'
+                    style: '; display: flex; flex-direction: row-reverse; gap: var(--border-l); margin-top: 1.3rem; align-items: center;'
                 }
             }, doSave, doDelete
         };
@@ -18162,7 +18539,6 @@ class DynamicList {
         const ops = {
             obj: this.obj,
             listContainerId: "LIST_CONTAINER",
-            searchContainerId: "SEARCH_CONTAINER",
             configName: configName,
             titleName: label,
             fallbackConfig: newSchema,
@@ -18216,7 +18592,7 @@ class DynamicList {
                 if (this.listBox._state == undefined)
                     this.listBox._state = { page: 0, pageCount: 0, pageSize: 0, recordCount: 0 };
                 this.listBox._state.recordCount = this.dataController.length().flattened;
-                this.recalculateButtons();
+                this.recalcUIElements();
             },
             err: e => {
                 displayErrorMessage(new types.ErrMsg("There was an error processing your data: " + e));
@@ -18358,8 +18734,7 @@ class DynamicList {
         for (const f of this.onRender) {
             f();
         }
-        this.listBox.refresh();
-        this.listBox.resize();
+        this.listBox.refresh(true);
         this.updateRecordCount();
         if (this.listBox._refreshStateMessages)
             this.listBox._refreshStateMessages();
@@ -18367,15 +18742,18 @@ class DynamicList {
         listContainer.ondragover = e => {
             e.preventDefault();
         };
+        this.listBox.resize();
     }
     buildList() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
         this.listBox = new _A5.ListBox(this.containerId, [], this.buildSettings());
+        this.listBox.resize();
         this.obj._controlInst['R1.' + LIST_NAME] = this.listBox;
     }
 }
 
 ;// ./src/list-configuration/ListInitializer.ts
+
 
 
 
@@ -18449,18 +18827,18 @@ class ListInitializer {
                 }
             });
         }
-        ops.embeddedList = ops.embeddedList ?? ops.obj;
-        ops.embeddedSearch = ops.embeddedSearch ?? ops.obj;
-        ops.embeddedSearch._functions.search = {
+        this.configWindow = new ModalWindow({ title: "List Configuration", bodyStyle: "width: 1250px; height: 80vh;" });
+        ops.obj._functions.search = {
             onSearch: () => {
-                ops.obj.runAction('hide docks');
             },
             onClear: () => {
-                ops.obj.runAction('hide docks');
             }
         };
         this.options = ops;
         this.fetchConfig().catch((e) => { this.showError(e, "There was an error fetching the config."); });
+    }
+    openConfig() {
+        this.configWindow.open();
     }
     async fetchConfig() {
         const permissions = await getUserPermissions(this.options.obj);
@@ -18473,9 +18851,11 @@ class ListInitializer {
                 editFullConfig: false
             };
         }
-        if (!this.options.embeddedList)
-            throw new Error("Embedded list is null.");
-        const fetchResponse = await batchFetch(this.options.embeddedList, this.options.configName, this.options.filters ?? []);
+        let listSettings = document.getElementById(this.options.obj.dialogId + '_DlgObj_LIST_SETTINGS_BTN');
+        if (listSettings && this.perms.editConfigMappings == false) {
+            listSettings.style.display = 'none';
+        }
+        const fetchResponse = await batchFetch(this.options.obj, this.options.configName, this.options.filters ?? []);
         if ("err" in fetchResponse) {
             if (this.options.fallbackConfig) {
                 console.warn("Config does not exist, but fallback was specified.");
@@ -18510,11 +18890,9 @@ class ListInitializer {
     }
     async initializeList() {
         try {
-            if (!this.options.embeddedList) {
-                throw new Error('Embedded list is null');
-            }
             this.list = await DynamicList.makeDynamicList({
-                obj: this.options.embeddedList,
+                initializer: this,
+                obj: this.options.obj,
                 prefetch: this.prefetched,
                 containerId: this.options.listContainerId ?? 'LIST_CONTAINER',
                 filters: this.options.filters,
@@ -18522,10 +18900,7 @@ class ListInitializer {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
                 otherProperties: this.options.otherProps
             });
-            if (!this.options.embeddedSearch) {
-                throw new Error('Embedded list is null');
-            }
-            this.search = new DynamicListSearch(this.list, this.options.embeddedSearch, this.options.searchContainerId ?? 'SEARCH_CONTAINER');
+            this.search = new DynamicListSearch(this.list, this.options.obj);
             this.manageConfigForm();
         }
         catch (err) {
@@ -18577,12 +18952,11 @@ class ListInitializer {
             }
             if (this.list === undefined || this.search === undefined)
                 return;
-            if (!this.options.embeddedList || !this.options.embeddedSearch)
-                return;
             this.list.destructor();
             const prefetchCopy = _jQuery.extend(true, {}, this.prefetched);
             this.list = await DynamicList.makeDynamicList({
-                obj: this.options.embeddedList,
+                initializer: this,
+                obj: this.options.obj,
                 prefetch: prefetchCopy,
                 containerId: this.options.listContainerId ?? 'LIST_CONTAINER',
                 filters: this.options.filters,
@@ -18590,7 +18964,7 @@ class ListInitializer {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
                 otherProperties: this.options.otherProps
             });
-            this.search = new DynamicListSearch(this.list, this.options.embeddedSearch, this.options.searchContainerId ?? 'LIST_CONTAINER');
+            this.search = new DynamicListSearch(this.list, this.options.obj);
             this.configFormManager.render(this.configForm);
             alert('Changes applied locally.');
         };
@@ -18677,10 +19051,54 @@ class ListInitializer {
             processUnknown: (a, p) => nameSet.push([p, a.uniqueName]),
         });
         this.configForm = new ConfigForm(this.prefetched.config, this.perms.editFullConfig, this.options.obj, this.list?.dataModel ?? new DataModel({ rawRows: [], root: this.prefetched.config.dataModel }), new FlatNameSuggestor(nameSet), this.list);
-        const ptr = this.options.obj.getPointer("CONFIG_CONTAINER");
-        if (!ptr)
-            return;
-        this.configFormManager = new ReactiveFormManager(this.configForm, ptr.id, this.options.obj);
+        this.configFormManager = new ReactiveFormManager({
+            root: this.configForm,
+            containerId: this.configWindow.bodyId(),
+            obj: this.options.obj,
+            formContainerStyles: 'flex: 1;',
+            injectInto: (config) => ({
+                type: 'group',
+                container: {
+                    style: 'display: flex; flex-direction: column; height: 100%;',
+                },
+                items: [
+                    config,
+                    {
+                        type: 'group',
+                        container: {
+                            style: 'margin-top: auto; display: flex; flex-direction: row-reverse; align-items: center; gap: var(--border-m); padding: var(--border-m);'
+                        },
+                        items: [
+                            {
+                                type: 'button',
+                                control: {
+                                    html: 'Apply',
+                                    theme: 'Alpha Modern:primaryModern',
+                                    onClick: () => this.options.obj.applyConfigChanges()
+                                },
+                                sys: { isEmbedded: false }
+                            },
+                            {
+                                type: 'button',
+                                control: {
+                                    html: 'Save Globally',
+                                    onClick: () => this.saveGlobal()
+                                },
+                                sys: { isEmbedded: false }
+                            },
+                            {
+                                type: 'button',
+                                control: {
+                                    html: 'Save for Current User',
+                                    onClick: () => this.saveUser()
+                                },
+                                sys: { isEmbedded: false }
+                            },
+                        ]
+                    }
+                ]
+            })
+        });
     }
     saveUser() {
         if (!this.configFormManager)
@@ -18714,7 +19132,117 @@ class ListInitializer {
     ;
 }
 function initialize(ops) {
+    patchStyles(ops.obj);
     new ListInitializer(ops);
+}
+function patchStyles(obj) {
+    let root = document.getElementById(obj.dialogId + '.R1');
+    root.style.height = '100%';
+    root.style.display = 'flex';
+    root.style.flexDirection = 'column';
+    const getElem = (id) => {
+        let btn = document.getElementById(obj.dialogId + "_DlgObj" + id);
+        if (btn)
+            return (0,types.Ok)(btn);
+        return (0,types.Err)(false);
+    };
+    const list = () => {
+        return obj.getDynamicList();
+    };
+    getElem('_LIST_SYNC_BTN').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:iconOnlyModern',
+            html: _A5.u.icon.html("svgIcon=#alpha-icon-upload:icon,24"),
+            onClick: () => {
+                list()?.saveDynamicListEdits();
+                list()?.recalcUIElements();
+            }
+        });
+        btn.style = 'margin-left: auto;';
+        btn.bind(b);
+        btn.setDisabled(true);
+    });
+    getElem('_LIST_REFRESH_BTN').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:iconOnlyModern',
+            html: _A5.u.icon.html("svgIcon=#alpha-icon-refresh:icon,24"),
+            onClick: () => {
+                list()?.reRender(true);
+            }
+        });
+        btn.bind(b);
+    });
+    getElem('_LIST_SETTINGS_BTN').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:iconOnlyModern',
+            html: _A5.u.icon.html("svgIcon=#alpha-icon-gear:icon,24"),
+            onClick: () => {
+                list()?.initializer.openConfig();
+            }
+        });
+        btn.bind(b);
+    });
+    getElem('_LIST_ADD_BTN').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:primaryModern',
+            html: `
+                    <div style="display: flex; flex-direction: row; gap: 0.4rem; align-items: center; justify-content: center;">
+                        ${_A5.u.icon.html("svgIcon=#alpha-icon-add:icon,24")}
+                        <p> Add New </p>
+                    </div>
+                `,
+            onClick: () => {
+                list()?.showRowPicker({
+                    onUnneeded: () => list()?.newDetailViewRecord({ tag: 'newRecord' }),
+                    onSelect: idx => list()?.newDetailViewRecord({ tag: 'appendToRawRow', rawRow: idx })
+                });
+            }
+        });
+        btn.bind(b);
+    });
+    getElem('_ADV_SEARCH').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:iconOnlyModern',
+            html: _A5.u.icon.html('svgIcon=#alpha-icon-filter:icon,24'),
+            onClick: () => {
+                list()?.initializer.search?.openSearch();
+            }
+        });
+        btn.bind(b);
+    });
+    getElem('_SEARCH_BOX').map(d => {
+        const div = d;
+        div.innerHTML = '';
+        div.style.position = 'relative';
+        const searchIcon = document.createElement('div');
+        searchIcon.innerHTML = _A5.u.icon.html('svgIcon=#alpha-icon-magGlass:icon,24');
+        searchIcon.style.position = 'absolute';
+        searchIcon.style.transform = 'translate(var(--border-m), -50%)';
+        searchIcon.style.top = '50%';
+        div.appendChild(searchIcon);
+        const searchBox = document.createElement('input');
+        searchBox.style.padding = 'var(--border-m)';
+        searchBox.style.paddingLeft = '2rem';
+        searchBox.style.width = '450px';
+        searchBox.classList.add('edit');
+        div.appendChild(searchBox);
+    });
+    getElem('_MULTI_EDIT').map(b => {
+        let btn = new _A5.Button({
+            theme: 'Alpha Modern:primaryModern',
+            html: `
+            <div style="display: flex; align-items: center; gap: var(--border-m);">
+                ${_A5.u.icon.html('svgIcon=#alpha-icon-edit:icon,24')} 
+                <p> Edit All Selected </p>
+            </div>
+            `,
+            onClick: () => {
+                list()?.newDetailViewRecord({ tag: 'multiEditRecords', records: Array.from(list()?.selectedRows ?? []) });
+            }
+        });
+        btn.bind(b);
+        b.style.display = 'none';
+    });
 }
 
 ;// ./src/index.ts

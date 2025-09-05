@@ -192,6 +192,10 @@ stroke: $confirmColor;
 fill: $denyColor;
 stroke: $denyColor;
 }
+.iconActive {
+fill: $altAccentColor;
+stroke: $altAccentColor;
+}
 .compact .icon {
 width: $cIconSize + 4px;
 height: $cIconSize + 4px;
@@ -1633,6 +1637,7 @@ outline: none;
 border-radius: 200px;
 color: $altAccentForeColor;
 background: $altAccentColor;
+min-width: $size;
 }
 .buttonCircle {
 width: $size;
@@ -1772,6 +1777,48 @@ padding-top: 3px;
 padding-bottom: 3px;
 font-size: $size - $iconSize - 8px;
 line-height: $size - $iconSize - 6px;
+}
+
+.buttonOutline {
+	color: $altAccentColor;
+	background: transparent;
+	border: 2px solid $altAccentColor;
+	padding: $iconPad - 2px $fontPad - 2px;
+	&.buttonConfirm{
+		color: $confirmColor;
+		border-color: $confirmColor;
+		&.buttonHover {
+			background-color: transparentize($confirmColor,.8);
+		}
+		&.buttonPressed {
+			background-color: transparentize($confirmColor,.2);
+			color: $confirmForeColor;
+		}
+	}
+	&.buttonDeny {
+		color: $denyColor;
+		border-color: $denyColor;
+		&.buttonHover {
+			background-color: transparentize($denyColor,.8);
+		}
+		&.buttonPressed {
+			background-color: transparentize($denyColor,.2);
+			color: $denyForeColor;
+		}
+	}
+	&.buttonHover {
+		background-color: transparentize($altAccentColor,.8);
+	}
+	&.buttonPressed {
+		background-color: $altAccentLightColor;
+		color: $altAccentForeColor;
+	}
+	&.buttonDisabled {
+		background: transparent;
+		color: $foreVeryLightColor;
+		border-color: $foreVeryLightColor;
+	}
+	
 }
 
 .buttonLeft {
@@ -1965,6 +2012,9 @@ border-radius: 0px 0px 2px 2px;
 		font-size: max($cSize - $cIconSize - 2px,8px);
 		line-height: max($cSize - $cIconSize - 2px,8px);
 	}
+	.buttonRounded {
+		min-width: $cSize;
+	}
 	.buttonCircle {
 		width: $cSize;
 		height: $cSize;
@@ -1976,6 +2026,10 @@ border-radius: 0px 0px 2px 2px;
 	}
 	.buttonPrimary.buttonPressed {
 		padding: $cIconPad - 2px $cFontPad - 2px;
+	}
+	.buttonOutline {
+		border-width: 1px;
+		padding: $cIconPad - 1px $cFontPad - 1px;
 	}
 	.buttonLeft {
 		padding-left: $cIconSize;

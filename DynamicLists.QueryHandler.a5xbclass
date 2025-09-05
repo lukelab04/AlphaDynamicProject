@@ -238,8 +238,10 @@ define class DynamicLists::QueryHandler
 
 			if (ty = "t" .or. ty = "d") .and. (typeof(val) = "c") then 
 				convertVal = scantime(val, dtFmt)
+				end
 			else
 				convertVal = convert_type(val, columnLookup.get(colName).alphaType)
+				end
 			end if
 		end if
 		convertVal = val

@@ -23,7 +23,7 @@
 <oauthEvents<onGotAccessToken="">
 <library="">
 >
-<projectStyle="Alpha">
+<projectStyle="Alpha Modern">
 <projectConnectionString="">
 <useDirectPdf=.F.>
 <usePhantomJStoConvertToPDF=.T.>
@@ -245,4 +245,7 @@
 >
 <publish<onPublish="">
 <library="">
+>
+<oneSignal<enable=.F.>
+<appid="">
 >

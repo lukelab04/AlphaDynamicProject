@@ -6,11 +6,12 @@
 'you must call the loadclass() function at least once before you DIM an instance of the class. For example: loadClass("mynamespace::mySampleClass")
 
 define class DynamicLists::ConfigVersionHandler
-	dim read VERSIONS[0] as c = ["0.8.0", "0.8.1", "0.8.2", "0.8.3", "0.8.4", "0.8.5"]
+	dim read protected write VERSIONS[0] as c = ["0.8.0", "0.8.1", "0.8.2", "0.8.3", "0.8.4", "0.8.5"]
 	dim read protected write CURRENT_VERSION
 	dim read protected write MADE_CHANGES as l
 	
 	function ConfigVersionHandler()
+		VERSIONS = ["0.8.0", "0.8.1", "0.8.2", "0.8.3", "0.8.4", "0.8.5"]
 		CURRENT_VERSION = VERSIONS[VERSIONS.size()]
 		MADE_CHANGES = .f.
 	end function

@@ -23,22 +23,24 @@ function loginStatus as p ()
 	
 	result.username = context.security.currentuser
 	result.username = "user1@alpha.com"
+	result.permissions.editFullConfig = .t.
+	result.permissions.editConfigMappings = .t.
 	
-	if .not. context.security.callresult.success then
-		result.username = "" 
-		loginStatus = result 
-		end 
-	end if 
-	
-	result.permissions.editFullConfig = context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_FULL_CONFIG_ROLE)
-	result.permissions.editConfigMappings = result.permissions.editFullConfig .or. context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_CONFIG_MAPPINGS_ROLE)
-	
-	if .not. context.security.callresult.success then 
-	 	result.permissions.editFulLConfig = .f. 
-		result.permissions.editConfigMappings = .f.
-		loginStatus = result 
-		end 
-	end if
+'	if .not. context.security.callresult.success then
+'		result.username = "" 
+'		loginStatus = result 
+'		end 
+'	end if 
+'	
+'	result.permissions.editFullConfig = context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_FULL_CONFIG_ROLE)
+'	result.permissions.editConfigMappings = result.permissions.editFullConfig .or. context.security.isUserInRole(result.username, (new DynamicLists::Environment()).EDIT_CONFIG_MAPPINGS_ROLE)
+'	
+'	if .not. context.security.callresult.success then 
+'	 	result.permissions.editFulLConfig = .f. 
+'		result.permissions.editConfigMappings = .f.
+'		loginStatus = result 
+'		end 
+'	end if
 	
 	result.loggedIn = .t.
 	loginStatus = result
